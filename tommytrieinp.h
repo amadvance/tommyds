@@ -38,7 +38,78 @@
  *
  * Compared to ::tommy_trie you should use a lower number of branches to limit the unused memory
  * occupation of the leaf nodes. This imply a lower speed, but without the need of an external allocator.
- 
+ *
+ * To initialize the trie you have to call tommy_trie_inplace_init().
+ *
+ * \code
+ * tommy_trie_inplace trie_inplace;
+ *
+ * tommy_trie_inplace_init(&trie_inplace);
+ * \endcode
+ *
+ * To insert elements in the trie you have to call tommy_trie_inplace_insert() for
+ * each element.
+ * In the insertion call you have to specify the address of the node, the
+ * address of the object, and the key value to use.
+ * The address of the object is used to initialize the tommy_node::data field
+ * of the node, and the key to initialize the tommy_node::key field.
+ *
+ * \code
+ * struct object {
+ *     tommy_node node;
+ *     // other fields
+ *     int value;
+ * };
+ *
+ * struct object* obj = malloc(sizeof(struct object)); // creates the object
+ *
+ * obj->value = ...; // initializes the object
+ *
+ * tommy_trie_inplace_insert(&trie_inplace, &obj->node, obj, obj->value); // inserts the object
+ * \endcode
+ *
+ * To find and element in the trie you have to call tommy_trie_inplace_search() providing
+ * the key to search.
+ *
+ * \code
+ * struct object* obj = tommy_trie_inplace_search(&trie_inplace, value_to_find);
+ * if (!obj) {
+ *     // not found
+ * } else {
+ *     // found
+ * }
+ * \endcode
+ *
+ * To iterate over all the elements in the trie with the same key, you have to
+ * use tommy_trie_inplace_bucket() and follow the tommy_node::next pointer until NULL.
+ *
+ * \code
+ * tommy_node* i = tommy_trie_inplace_bucket(&trie_inplace, value_to_find);
+ * while (i) {
+ *     struct object* obj = i->data; // gets the object pointer
+ *
+ *     printf("%d\n", obj->value); // process the object
+ *
+ *     i = i->next; // goes to the next element
+ * }
+ * \endcode
+ *
+ * To remove an element from the trie you have to call tommy_trie_inplace_remove()
+ * providing the key to search and remove.
+ *
+ * \code
+ * struct object* obj = tommy_trie_inplace_remove(&trie_inplace, value_to_remove);
+ * if (obj) {
+ *     free(obj); // frees the object allocated memory
+ * }
+ * \endcode
+ *
+ * To destroy the trie you have only to remove all the elements, as the trie is
+ * completely inplace and it doesn't allocate memory.
+ *
+ * Note that you cannot iterates over all the elements in the trie using the
+ * trie itself. You have to insert all the elements also in a ::tommy_list,
+ * and use the list to iterate. See the \ref multiindex example for more detail.
  */
 
 #ifndef __TOMMYTRIEINP_H

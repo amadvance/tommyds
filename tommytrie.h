@@ -56,7 +56,7 @@
  * In the insertion call you have to specify the address of the node, the
  * address of the object, and the key value to use.
  * The address of the object is used to initialize the tommy_node::data field
- * of the node.
+ * of the node, and the key to initialize the tommy_node::key field.
  *
  * \code
  * struct object {

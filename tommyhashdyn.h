@@ -42,6 +42,92 @@
  * and deallocating the older table. Leaving a big hole in the heap.
  * 
  * The ::tommy_hashlin hashtable fixes both problems.
+ *
+ * To initialize the hashtable you have to call tommy_hashdyn_init().
+ *
+ * \code
+ * tommy_hashslin hashdyn;
+ *
+ * tommy_hashdyn_init(&hashdyn);
+ * \endcode
+ *
+ * To insert elements in the hashtable you have to call tommy_hashdyn_insert() for
+ * each element.
+ * In the insertion call you have to specify the address of the node, the
+ * address of the object, and the hash value of the key to use.
+ * The address of the object is used to initialize the tommy_node::data field
+ * of the node, and the hash to initialize the tommy_node::key field.
+ *
+ * \code
+ * struct object {
+ *     tommy_node node;
+ *     // other fields
+ *     int value;
+ * };
+ *
+ * struct object* obj = malloc(sizeof(struct object)); // creates the object
+ *
+ * obj->value = ...; // initializes the object
+ *
+ * tommy_hashdyn_insert(&hashdyn, &obj->node, obj, tommy_inthash_u32(obj->value)); // inserts the object
+ * \endcode
+ *
+ * To find and element in the hashtable you have to call tommy_hashtable_search()
+ * providing a comparison function, its argument, and the hash of the key to search.
+ *
+ * \code
+ * int compare(const void* arg, const void* obj)
+ * {
+ *     return (*(const unsigned*)arg != ((const struct object*)obj)->value;
+ * }
+ *
+ * struct object* obj = tommy_hashdyn_search(&hashdyn, compare, &value_to_find, tommy_inthash_u32(value_to_find));
+ * if (!obj) {
+ *     // not found
+ * } else {
+ *     // found
+ * }
+ * \endcode
+ *
+ * To iterate over all the elements in the hashtable with the same key, you have to
+ * use tommy_hashdyn_bucket() and follow the tommy_node::next pointer until NULL.
+ * You have also to check explicitely for the key, as the bucket may contains
+ * different keys.
+ *
+ * \code
+ * tommy_node* i = tommy_hashdyn_bucket(&hashdyn, tommy_inthash_u32(value_to_find));
+ * while (i) {
+ *     struct object* obj = i->data; // gets the object pointer
+ *
+ *     if (obj->value == value_to_find) {
+ *         printf("%d\n", obj->value); // process the object
+ *     }
+ *
+ *     i = i->next; // goes to the next element
+ * }
+ * \endcode
+ *
+ * To remove an element from the hashtable you have to call tommy_hashdyn_remove()
+ * providing a comparison function, its argument, and the hash of the key to search
+ * and remove.
+ *
+ * \code
+ * struct object* obj = tommy_trie_remove(&hashtable, compare, &value_to_remove, tommy_inthash_u32(value_to_remove));
+ * if (obj) {
+ *     free(obj); // frees the object allocated memory
+ * }
+ * \endcode
+ *
+ * To destroy the hashtable you have to remove all the elements, and deinitialize
+ * the hashtable calling tommy_hashdyn_done().
+ *
+ * \code
+ * tommy_hashdyn_done(&hashdyn);
+ * \endcode
+ *
+ * Note that you cannot iterates over all the elements in the hashtable using the
+ * hashtable itself. You have to insert all the elements also in a ::tommy_list,
+ * and use the list to iterate. See the \ref multiindex example for more detail.   
  */
 
 #ifndef __TOMMYHASHDYN_H

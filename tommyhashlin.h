@@ -59,7 +59,7 @@
  * In the insertion call you have to specify the address of the node, the
  * address of the object, and the hash value of the key to use.
  * The address of the object is used to initialize the tommy_node::data field
- * of the node.
+ * of the node, and the hash to initialize the tommy_node::key field.
  *
  * \code
  * struct object {
@@ -79,7 +79,6 @@
  * providing a comparison function, its argument, and the hash of the key to search.
  *
  * \code
- *
  * int compare(const void* arg, const void* obj)
  * {
  *     return (*(const unsigned*)arg != ((const struct object*)obj)->value;
