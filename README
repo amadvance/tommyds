@@ -1,0 +1,23 @@
+                             =============
+                                 Tommy
+                             =============
+
+Tommy is a C library of hashtables and tries designed for high performance.
+
+It's faster than all the similar libraries like rbtree, judy, goodledensehash,
+khash, uthash, nedtries and others.
+
+The data structures provided are:
+
+	tommy_list - A double linked list.
+	tommy_hashtable - A fixed size chained hashtable.
+	tommy_hashdyn - A dynamic chained hashtable.
+	tommy_hashlin - A linear chained hashtable. It doesn't have the
+		problem of the delay when resizing and it doesn't fragment
+		the heap.
+	tommy_trie - A trie optimized for cache utilization.
+	tommy_trie_inplace - A trie completely inplace.
+
+The documentation is available in HTML format in the doc/index.html file,
+and directly in the .h files.
+
