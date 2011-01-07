@@ -1,0 +1,120 @@
+<!doctype html public "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="style.css" />
+<title>TommyDS</title>
+<meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
+<meta http-equiv="cache-control" content="no-cache" />
+<meta name="description" content="Tommy/TommyDS library of hashtables and tries designed for high performance">
+<meta name="keywords" content="hashtable hashtables trie tries data structure">
+<meta name="author" content="Andrea Mazzoleni">
+
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-21967501-2']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</head>
+<body>
+<div id="title">
+</div>
+<div id="bar">
+<a href="index.html">About</a>
+<a href="download.html">Download</a>
+<a href="doc/index.html">Documentation</a>
+<a href="doc/benchmark.html">Benchmark</a>
+<a href="authors.html">Authors</a>
+</div>
+<div id="main">
+
+
+
+
+<p>
+<span class="bold">TommyDS</span> is a C library of hashtables and tries designed to store and find
+objects with high performance.
+</p>
+<p>
+It's faster than all the similar libraries like
+<a href="http://www.canonware.com/rb/">rbtree</a>,
+<a href="http://judy.sourceforge.net/">judy</a>,
+<a href="http://code.google.com/p/cpp-btree/">googlebtree</a>,
+<a href="http://panthema.net/2007/stx-btree/">stxbtree</a>,
+<a href="http://attractivechaos.awardspace.com/">khash</a>,
+<a href="http://uthash.sourceforge.net/">uthash</a>,
+<a href="http://www.nedprod.com/programs/portable/nedtries/">nedtrie</a>,
+<a href="http://code.google.com/p/judyarray/">judyarray</a>,
+<a href="http://concurrencykit.org/">concurrencykit</a>, and others.
+Only <a href="http://code.google.com/p/google-sparsehash/">googledensehash</a> is a real competitor for TommyDS.
+See the <a href="doc/benchmark.html">benchmarks</a> for some nice graphs.
+</p>
+<p>
+The data structures provided are:
+</p>
+<ul>
+<li><a href="doc/tommylist_8h.html" title="Double linked list for collisions into hashtables.">tommy_list</a> - A double linked list.</li>
+<li><a href="doc/tommyarray_8h.html" title="Linear array.">tommy_array</a> - A linear array. It doesn't fragment the heap.</li>
+<li><a href="doc/tommyarrayblk_8h.html" title="Blocked Linear array.">tommy_arrayblk</a> - A blocked linear array. It doesn't fragment the heap and it minimizes the space occupation.</li>
+<li><a href="doc/tommyhashtbl_8h.html" title="Fixed size chained hashtable.">tommy_hashtable</a> - A fixed size chained hashtable.</li>
+<li><a href="doc/tommyhashdyn_8h.html" title="Dynamic chained hashtable.">tommy_hashdyn</a> - A dynamic chained hashtable.</li>
+<li><a href="doc/tommyhashlin_8h.html" title="Linear chained hashtable.">tommy_hashlin</a> - A linear chained hashtable. It doesn't have the problem of the delay when resizing and it doesn't fragment the heap.</li>
+<li><a href="doc/tommytrie_8h.html" title="Trie optimized for cache utilization.">tommy_trie</a> - A trie optimized for cache utilization.</li>
+<li><a href="doc/tommytrieinp_8h.html" title="Inplace trie.">tommy_trie_inplace</a> - A trie completely inplace.</li>
+</ul>
+<p>
+The most interesting are
+<a href="doc/tommyarray_8h.html" title="Linear array.">tommy_array</a>,
+<a href="doc/tommyhashlin_8h.html" title="Linear chained hashtable.">tommy_hashlin</a>,
+<a href="doc/tommytrie_8h.html" title="Trie optimized for cache utilization.">tommy_trie</a> and
+<a href="doc/tommytrieinp_8h.html" title="Inplace trie.">tommy_trie_inplace</a>.
+</p>
+
+<p>
+If you need support go to the <a href="https://sourceforge.net/projects/tommyds/forums/forum/1343699">Forum</a>.
+</p>
+
+<p>
+<span class="bold">TommyDS</span> has also a
+<a href="http://sourceforge.net/projects/tommyds/">SourceForge</a>
+and a
+<a href="https://github.com/amadvance/tommyds/">GitHub</a> page.
+</p>
+
+<p>
+<span class="highlight">2014/12 News!</span> Version <span class="bold">2.0 RELEASED!</span> Download it <a href="download.html">here</a>
+</p>
+
+
+</div>
+
+<div id="bottombar">
+
+<div style="float: left; width: 50%;">
+<span class="bold">Donate with</span>
+<br/>
+<a href="http://sourceforge.net/donate/index.php?group_id=390013"><img src="paypal.png"/></a>
+
+</div>
+
+<div style="float: left; width: 50%;">
+<span class="bold">Find other resources at</span>
+<br/>
+<a href="https://github.com/amadvance/tommyds/"><img src="github.png"/></a>
+<a href="http://sourceforge.net/projects/tommyds/"><img src="sourceforge.png"/></a>
+<a href="https://travis-ci.org/amadvance/tommyds/"><img src="travisci.png"/></a>
+</div>
+
+</div>
+</body>
+</html>
+
+
+

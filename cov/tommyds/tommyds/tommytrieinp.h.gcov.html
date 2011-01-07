@@ -1,0 +1,315 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - lcov.info - tommyds/tommyds/tommytrieinp.h</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">tommyds/tommyds</a> - tommytrieinp.h<span style="font-size: 80%;"> (source / <a href="tommytrieinp.h.func.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">lcov.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">7</td>
+            <td class="headerCovTableEntry">7</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2014-12-27</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*</a>
+<span class="lineNum">       2 </span>            :  * Copyright (c) 2010, Andrea Mazzoleni. All rights reserved.
+<span class="lineNum">       3 </span>            :  *
+<span class="lineNum">       4 </span>            :  * Redistribution and use in source and binary forms, with or without
+<span class="lineNum">       5 </span>            :  * modification, are permitted provided that the following conditions
+<span class="lineNum">       6 </span>            :  * are met:
+<span class="lineNum">       7 </span>            :  *
+<span class="lineNum">       8 </span>            :  * 1. Redistributions of source code must retain the above copyright
+<span class="lineNum">       9 </span>            :  *    notice, this list of conditions and the following disclaimer.
+<span class="lineNum">      10 </span>            :  *
+<span class="lineNum">      11 </span>            :  * 2. Redistributions in binary form must reproduce the above copyright
+<span class="lineNum">      12 </span>            :  *    notice, this list of conditions and the following disclaimer in the
+<span class="lineNum">      13 </span>            :  *    documentation and/or other materials provided with the distribution.
+<span class="lineNum">      14 </span>            :  *
+<span class="lineNum">      15 </span>            :  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS IS&quot;
+<span class="lineNum">      16 </span>            :  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+<span class="lineNum">      17 </span>            :  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+<span class="lineNum">      18 </span>            :  * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+<span class="lineNum">      19 </span>            :  * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+<span class="lineNum">      20 </span>            :  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+<span class="lineNum">      21 </span>            :  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+<span class="lineNum">      22 </span>            :  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+<span class="lineNum">      23 </span>            :  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+<span class="lineNum">      24 </span>            :  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+<span class="lineNum">      25 </span>            :  * POSSIBILITY OF SUCH DAMAGE.
+<span class="lineNum">      26 </span>            :  */
+<span class="lineNum">      27 </span>            : 
+<span class="lineNum">      28 </span>            : /** \file
+<span class="lineNum">      29 </span>            :  * Inplace trie.
+<span class="lineNum">      30 </span>            :  *
+<span class="lineNum">      31 </span>            :  * This trie is a inplace implementation not needing any external allocation.
+<span class="lineNum">      32 </span>            :  *
+<span class="lineNum">      33 </span>            :  * Elements are not stored in order, like ::tommy_trie, because some elements
+<span class="lineNum">      34 </span>            :  * should be used to represent the inner nodes in the trie.
+<span class="lineNum">      35 </span>            :  *
+<span class="lineNum">      36 </span>            :  * You can control the number of branches of each node using the ::TOMMY_TRIE_INPLACE_TREE_MAX define.
+<span class="lineNum">      37 </span>            :  * More branches imply more speed, but a bigger memory occupation.
+<span class="lineNum">      38 </span>            :  *
+<span class="lineNum">      39 </span>            :  * Compared to ::tommy_trie you should use a lower number of branches to limit the unused memory
+<span class="lineNum">      40 </span>            :  * occupation of the leaf nodes. This imply a lower speed, but without the need of an external allocator.
+<span class="lineNum">      41 </span>            :  *
+<span class="lineNum">      42 </span>            :  * To initialize the trie you have to call tommy_trie_inplace_init().
+<span class="lineNum">      43 </span>            :  *
+<span class="lineNum">      44 </span>            :  * \code
+<span class="lineNum">      45 </span>            :  * tommy_trie_inplace trie_inplace;
+<span class="lineNum">      46 </span>            :  *
+<span class="lineNum">      47 </span>            :  * tommy_trie_inplace_init(&amp;trie_inplace);
+<span class="lineNum">      48 </span>            :  * \endcode
+<span class="lineNum">      49 </span>            :  *
+<span class="lineNum">      50 </span>            :  * To insert elements in the trie you have to call tommy_trie_inplace_insert() for
+<span class="lineNum">      51 </span>            :  * each element.
+<span class="lineNum">      52 </span>            :  * In the insertion call you have to specify the address of the node, the
+<span class="lineNum">      53 </span>            :  * address of the object, and the key value to use.
+<span class="lineNum">      54 </span>            :  * The address of the object is used to initialize the tommy_node::data field
+<span class="lineNum">      55 </span>            :  * of the node, and the key to initialize the tommy_node::key field.
+<span class="lineNum">      56 </span>            :  *
+<span class="lineNum">      57 </span>            :  * \code
+<span class="lineNum">      58 </span>            :  * struct object {
+<span class="lineNum">      59 </span>            :  *     tommy_node node;
+<span class="lineNum">      60 </span>            :  *     // other fields
+<span class="lineNum">      61 </span>            :  *     int value;
+<span class="lineNum">      62 </span>            :  * };
+<span class="lineNum">      63 </span>            :  *
+<span class="lineNum">      64 </span>            :  * struct object* obj = malloc(sizeof(struct object)); // creates the object
+<span class="lineNum">      65 </span>            :  *
+<span class="lineNum">      66 </span>            :  * obj-&gt;value = ...; // initializes the object
+<span class="lineNum">      67 </span>            :  *
+<span class="lineNum">      68 </span>            :  * tommy_trie_inplace_insert(&amp;trie_inplace, &amp;obj-&gt;node, obj, obj-&gt;value); // inserts the object
+<span class="lineNum">      69 </span>            :  * \endcode
+<span class="lineNum">      70 </span>            :  *
+<span class="lineNum">      71 </span>            :  * To find and element in the trie you have to call tommy_trie_inplace_search() providing
+<span class="lineNum">      72 </span>            :  * the key to search.
+<span class="lineNum">      73 </span>            :  *
+<span class="lineNum">      74 </span>            :  * \code
+<span class="lineNum">      75 </span>            :  * int value_to_find = 1;
+<span class="lineNum">      76 </span>            :  * struct object* obj = tommy_trie_inplace_search(&amp;trie_inplace, value_to_find);
+<span class="lineNum">      77 </span>            :  * if (!obj) {
+<span class="lineNum">      78 </span>            :  *     // not found
+<span class="lineNum">      79 </span>            :  * } else {
+<span class="lineNum">      80 </span>            :  *     // found
+<span class="lineNum">      81 </span>            :  * }
+<span class="lineNum">      82 </span>            :  * \endcode
+<span class="lineNum">      83 </span>            :  *
+<span class="lineNum">      84 </span>            :  * To iterate over all the elements in the trie with the same key, you have to
+<span class="lineNum">      85 </span>            :  * use tommy_trie_inplace_bucket() and follow the tommy_node::next pointer until NULL.
+<span class="lineNum">      86 </span>            :  *
+<span class="lineNum">      87 </span>            :  * \code
+<span class="lineNum">      88 </span>            :  * int value_to_find = 1;
+<span class="lineNum">      89 </span>            :  * tommy_node* i = tommy_trie_inplace_bucket(&amp;trie_inplace, value_to_find);
+<span class="lineNum">      90 </span>            :  * while (i) {
+<span class="lineNum">      91 </span>            :  *     struct object* obj = i-&gt;data; // gets the object pointer
+<span class="lineNum">      92 </span>            :  *
+<span class="lineNum">      93 </span>            :  *     printf(&quot;%d\n&quot;, obj-&gt;value); // process the object
+<span class="lineNum">      94 </span>            :  *
+<span class="lineNum">      95 </span>            :  *     i = i-&gt;next; // goes to the next element
+<span class="lineNum">      96 </span>            :  * }
+<span class="lineNum">      97 </span>            :  * \endcode
+<span class="lineNum">      98 </span>            :  *
+<span class="lineNum">      99 </span>            :  * To remove an element from the trie you have to call tommy_trie_inplace_remove()
+<span class="lineNum">     100 </span>            :  * providing the key to search and remove.
+<span class="lineNum">     101 </span>            :  *
+<span class="lineNum">     102 </span>            :  * \code
+<span class="lineNum">     103 </span>            :  * struct object* obj = tommy_trie_inplace_remove(&amp;trie_inplace, value_to_remove);
+<span class="lineNum">     104 </span>            :  * if (obj) {
+<span class="lineNum">     105 </span>            :  *     free(obj); // frees the object allocated memory
+<span class="lineNum">     106 </span>            :  * }
+<span class="lineNum">     107 </span>            :  * \endcode
+<span class="lineNum">     108 </span>            :  *
+<span class="lineNum">     109 </span>            :  * To destroy the trie you have only to remove all the elements, as the trie is
+<span class="lineNum">     110 </span>            :  * completely inplace and it doesn't allocate memory.
+<span class="lineNum">     111 </span>            :  *
+<span class="lineNum">     112 </span>            :  * Note that you cannot iterate over all the elements in the trie using the
+<span class="lineNum">     113 </span>            :  * trie itself. You have to insert all the elements also in a ::tommy_list,
+<span class="lineNum">     114 </span>            :  * and use the list to iterate. See the \ref multiindex example for more detail.
+<span class="lineNum">     115 </span>            :  */
+<span class="lineNum">     116 </span>            : 
+<span class="lineNum">     117 </span>            : #ifndef __TOMMYTRIEINP_H
+<span class="lineNum">     118 </span>            : #define __TOMMYTRIEINP_H
+<span class="lineNum">     119 </span>            : 
+<span class="lineNum">     120 </span>            : #include &quot;tommytypes.h&quot;
+<span class="lineNum">     121 </span>            : 
+<span class="lineNum">     122 </span>            : /******************************************************************************/
+<span class="lineNum">     123 </span>            : /* trie_inplace */
+<span class="lineNum">     124 </span>            : 
+<span class="lineNum">     125 </span>            : /**
+<span class="lineNum">     126 </span>            :  * Number of branches on each node. It must be a power of 2.
+<span class="lineNum">     127 </span>            :  * Suggested values are 2, 4 and 8.
+<span class="lineNum">     128 </span>            :  * Any node, including leafs, contains a pointer to each branch.
+<span class="lineNum">     129 </span>            :  */
+<span class="lineNum">     130 </span>            : #define TOMMY_TRIE_INPLACE_TREE_MAX 4
+<span class="lineNum">     131 </span>            : 
+<span class="lineNum">     132 </span>            : /** \internal
+<span class="lineNum">     133 </span>            :  * Number of bits for each branch.
+<span class="lineNum">     134 </span>            :  */
+<span class="lineNum">     135 </span>            : #define TOMMY_TRIE_INPLACE_TREE_BIT TOMMY_ILOG2(TOMMY_TRIE_INPLACE_TREE_MAX)
+<span class="lineNum">     136 </span>            : 
+<span class="lineNum">     137 </span>            : /** \internal
+<span class="lineNum">     138 </span>            :  * Number of bits of the first level.
+<span class="lineNum">     139 </span>            :  */
+<span class="lineNum">     140 </span>            : #define TOMMY_TRIE_INPLACE_BUCKET_BIT ((TOMMY_KEY_BIT % TOMMY_TRIE_INPLACE_TREE_BIT) + 3 * TOMMY_TRIE_INPLACE_TREE_BIT)
+<span class="lineNum">     141 </span>            : 
+<span class="lineNum">     142 </span>            : /** \internal
+<span class="lineNum">     143 </span>            :  * Number of branches of the first level.
+<span class="lineNum">     144 </span>            :  * It's like a inner branch, but bigger to get any remainder bits.
+<span class="lineNum">     145 </span>            :  */
+<span class="lineNum">     146 </span>            : #define TOMMY_TRIE_INPLACE_BUCKET_MAX (1 &lt;&lt; TOMMY_TRIE_INPLACE_BUCKET_BIT)
+<span class="lineNum">     147 </span>            : 
+<span class="lineNum">     148 </span>            : /**
+<span class="lineNum">     149 </span>            :  * Trie node.
+<span class="lineNum">     150 </span>            :  * This is the node that you have to include inside your objects.
+<span class="lineNum">     151 </span>            :  */
+<span class="lineNum">     152 </span>            : typedef struct tommy_trie_inplace_node_struct {
+<span class="lineNum">     153 </span>            :         struct tommy_trie_inplace_node_struct* next; /**&lt; Next element. 0 if it's the last. */
+<span class="lineNum">     154 </span>            :         struct tommy_trie_inplace_node_struct* prev; /**&lt; Circular previous element. */
+<span class="lineNum">     155 </span>            :         void* data; /**&lt; Pointer at the data. */
+<span class="lineNum">     156 </span>            :         tommy_key_t key; /**&lt; Used to store the key or the hash. */
+<span class="lineNum">     157 </span>            :         struct tommy_trie_inplace_node_struct* map[TOMMY_TRIE_INPLACE_TREE_MAX]; /** Branches of the node. */
+<span class="lineNum">     158 </span>            : } tommy_trie_inplace_node;
+<span class="lineNum">     159 </span>            : 
+<span class="lineNum">     160 </span>            : /**
+<span class="lineNum">     161 </span>            :  * Trie container type.
+<span class="lineNum">     162 </span>            :  * \note Don't use internal fields directly, but access the container only using functions.
+<span class="lineNum">     163 </span>            :  */
+<span class="lineNum">     164 </span>            : typedef struct tommy_trie_inplace_struct {
+<span class="lineNum">     165 </span>            :         tommy_trie_inplace_node* bucket[TOMMY_TRIE_INPLACE_BUCKET_MAX]; /**&lt; First tree level. */
+<span class="lineNum">     166 </span>            :         tommy_count_t count; /**&lt; Number of elements. */
+<span class="lineNum">     167 </span>            : } tommy_trie_inplace;
+<span class="lineNum">     168 </span>            : 
+<span class="lineNum">     169 </span>            : /**
+<span class="lineNum">     170 </span>            :  * Initializes the trie.
+<span class="lineNum">     171 </span>            :  *
+<span class="lineNum">     172 </span>            :  * The tries is completely inplace, and it doesn't need to be deinitialized.
+<span class="lineNum">     173 </span>            :  */
+<span class="lineNum">     174 </span>            : void tommy_trie_inplace_init(tommy_trie_inplace* trie_inplace);
+<span class="lineNum">     175 </span>            : 
+<span class="lineNum">     176 </span>            : /**
+<span class="lineNum">     177 </span>            :  * Inserts an element in the trie.
+<span class="lineNum">     178 </span>            :  */
+<span class="lineNum">     179 </span>            : void tommy_trie_inplace_insert(tommy_trie_inplace* trie_inplace, tommy_trie_inplace_node* node, void* data, tommy_key_t key);
+<span class="lineNum">     180 </span>            : 
+<span class="lineNum">     181 </span>            : /**
+<span class="lineNum">     182 </span>            :  * Searches and removes the first element with the specified key.
+<span class="lineNum">     183 </span>            :  * If the element is not found, 0 is returned.
+<span class="lineNum">     184 </span>            :  * If more equal elements are present, the first one is removed.
+<span class="lineNum">     185 </span>            :  * This operation is faster than calling tommy_trie_inplace_bucket() and tommy_trie_inplace_remove_existing() separately.
+<span class="lineNum">     186 </span>            :  * \param key Key of the element to find and remove.
+<span class="lineNum">     187 </span>            :  * \return The removed element, or 0 if not found.
+<span class="lineNum">     188 </span>            :  */
+<span class="lineNum">     189 </span>            : void* tommy_trie_inplace_remove(tommy_trie_inplace* trie_inplace, tommy_key_t key);
+<span class="lineNum">     190 </span>            : 
+<span class="lineNum">     191 </span>            : /**
+<span class="lineNum">     192 </span>            :  * Gets the bucket of the specified key.
+<span class="lineNum">     193 </span>            :  * The bucket is guaranteed to contain ALL and ONLY the elements with the specified key.
+<span class="lineNum">     194 </span>            :  * You can access elements in the bucket following the ::next pointer until 0.
+<span class="lineNum">     195 </span>            :  * \param key Key of the element to find.
+<span class="lineNum">     196 </span>            :  * \return The head of the bucket, or 0 if empty.
+<span class="lineNum">     197 </span>            :  */
+<span class="lineNum">     198 </span>            : tommy_trie_inplace_node* tommy_trie_inplace_bucket(tommy_trie_inplace* trie_inplace, tommy_key_t key);
+<span class="lineNum">     199 </span>            : 
+<span class="lineNum">     200 </span>            : /**
+<span class="lineNum">     201 </span>            :  * Searches an element in the trie.
+<span class="lineNum">     202 </span>            :  * You have to provide the key of the element you want to find.
+<span class="lineNum">     203 </span>            :  * If more elements with the same key are present, the first one is returned.
+<span class="lineNum">     204 </span>            :  * \param key Key of the element to find.
+<a name="205"><span class="lineNum">     205 </span>            :  * \return The first element found, or 0 if none.</a>
+<span class="lineNum">     206 </span>            :  */
+<span class="lineNum">     207 </span><span class="lineCov">    4000000 : tommy_inline void* tommy_trie_inplace_search(tommy_trie_inplace* trie_inplace, tommy_key_t key)</span>
+<span class="lineNum">     208 </span>            : {
+<span class="lineNum">     209 </span><span class="lineCov">    4000000 :         tommy_trie_inplace_node* i = tommy_trie_inplace_bucket(trie_inplace, key);</span>
+<span class="lineNum">     210 </span>            : 
+<span class="lineNum">     211 </span><span class="lineCov">    4000000 :         if (!i)</span>
+<span class="lineNum">     212 </span><span class="lineCov">    2000000 :                 return 0;</span>
+<span class="lineNum">     213 </span>            : 
+<span class="lineNum">     214 </span><span class="lineCov">    2000000 :         return i-&gt;data;</span>
+<span class="lineNum">     215 </span>            : }
+<span class="lineNum">     216 </span>            : 
+<span class="lineNum">     217 </span>            : /**
+<span class="lineNum">     218 </span>            :  * Removes an element from the trie.
+<span class="lineNum">     219 </span>            :  * You must already have the address of the element to remove.
+<span class="lineNum">     220 </span>            :  * \return The tommy_node::data field of the node removed.
+<span class="lineNum">     221 </span>            :  */
+<span class="lineNum">     222 </span>            : void* tommy_trie_inplace_remove_existing(tommy_trie_inplace* trie_inplace, tommy_trie_inplace_node* node);
+<span class="lineNum">     223 </span>            : 
+<span class="lineNum">     224 </span>            : /**
+<a name="225"><span class="lineNum">     225 </span>            :  * Returns the number of elements.</a>
+<span class="lineNum">     226 </span>            :  */
+<span class="lineNum">     227 </span><span class="lineCov">          1 : tommy_inline tommy_count_t tommy_trie_inplace_count(tommy_trie_inplace* trie_inplace)</span>
+<span class="lineNum">     228 </span>            : {
+<span class="lineNum">     229 </span><span class="lineCov">          1 :         return trie_inplace-&gt;count;</span>
+<span class="lineNum">     230 </span>            : }
+<span class="lineNum">     231 </span>            : 
+<span class="lineNum">     232 </span>            : /**
+<span class="lineNum">     233 </span>            :  * Gets the size of allocated memory.
+<span class="lineNum">     234 </span>            :  * It includes the size of the ::tommy_inplace_node of the stored elements.
+<span class="lineNum">     235 </span>            :  */
+<span class="lineNum">     236 </span>            : tommy_size_t tommy_trie_inplace_memory_usage(tommy_trie_inplace* trie_inplace);
+<span class="lineNum">     237 </span>            : 
+<span class="lineNum">     238 </span>            : #endif
+<span class="lineNum">     239 </span>            : 
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.10</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

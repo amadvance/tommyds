@@ -1,0 +1,1449 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - lcov.info - tommyds/check.c</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">tommyds</a> - check.c<span style="font-size: 80%;"> (source / <a href="check.c.func.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">lcov.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">490</td>
+            <td class="headerCovTableEntry">554</td>
+            <td class="headerCovTableEntryMed">88.4 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2014-12-27</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">26</td>
+            <td class="headerCovTableEntry">26</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*</a>
+<span class="lineNum">       2 </span>            :  * Copyright (c) 2010, Andrea Mazzoleni. All rights reserved.
+<span class="lineNum">       3 </span>            :  *
+<span class="lineNum">       4 </span>            :  * Redistribution and use in source and binary forms, with or without
+<span class="lineNum">       5 </span>            :  * modification, are permitted provided that the following conditions
+<span class="lineNum">       6 </span>            :  * are met:
+<span class="lineNum">       7 </span>            :  *
+<span class="lineNum">       8 </span>            :  * 1. Redistributions of source code must retain the above copyright
+<span class="lineNum">       9 </span>            :  *    notice, this list of conditions and the following disclaimer.
+<span class="lineNum">      10 </span>            :  *
+<span class="lineNum">      11 </span>            :  * 2. Redistributions in binary form must reproduce the above copyright
+<span class="lineNum">      12 </span>            :  *    notice, this list of conditions and the following disclaimer in the
+<span class="lineNum">      13 </span>            :  *    documentation and/or other materials provided with the distribution.
+<span class="lineNum">      14 </span>            :  *
+<span class="lineNum">      15 </span>            :  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS IS&quot;
+<span class="lineNum">      16 </span>            :  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+<span class="lineNum">      17 </span>            :  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+<span class="lineNum">      18 </span>            :  * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+<span class="lineNum">      19 </span>            :  * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+<span class="lineNum">      20 </span>            :  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+<span class="lineNum">      21 </span>            :  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+<span class="lineNum">      22 </span>            :  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+<span class="lineNum">      23 </span>            :  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+<span class="lineNum">      24 </span>            :  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+<span class="lineNum">      25 </span>            :  * POSSIBILITY OF SUCH DAMAGE.
+<span class="lineNum">      26 </span>            :  */
+<span class="lineNum">      27 </span>            : 
+<span class="lineNum">      28 </span>            : /**
+<span class="lineNum">      29 </span>            :  * Tommy check program.
+<span class="lineNum">      30 </span>            :  *
+<span class="lineNum">      31 </span>            :  * Simply run it without any options. If it terminates printing &quot;OK&quot; all the
+<span class="lineNum">      32 </span>            :  * checks are succesful.
+<span class="lineNum">      33 </span>            :  */
+<span class="lineNum">      34 </span>            :  
+<span class="lineNum">      35 </span>            : #include &lt;math.h&gt;
+<span class="lineNum">      36 </span>            : #include &lt;stdlib.h&gt;
+<span class="lineNum">      37 </span>            : #include &lt;stdio.h&gt;
+<span class="lineNum">      38 </span>            : #include &lt;string.h&gt;
+<span class="lineNum">      39 </span>            : #include &lt;stddef.h&gt;
+<span class="lineNum">      40 </span>            : #include &lt;time.h&gt;
+<span class="lineNum">      41 </span>            : #include &lt;errno.h&gt;
+<span class="lineNum">      42 </span>            : #include &lt;assert.h&gt;
+<span class="lineNum">      43 </span>            : 
+<span class="lineNum">      44 </span>            : #if defined(__linux)
+<span class="lineNum">      45 </span>            : #include &lt;stdint.h&gt;
+<span class="lineNum">      46 </span>            : #include &lt;unistd.h&gt;
+<span class="lineNum">      47 </span>            : #include &lt;sys/time.h&gt;
+<span class="lineNum">      48 </span>            : #endif
+<span class="lineNum">      49 </span>            : 
+<span class="lineNum">      50 </span>            : #if defined(__MACH__)
+<span class="lineNum">      51 </span>            : #include &lt;mach/mach_time.h&gt;
+<span class="lineNum">      52 </span>            : #endif
+<span class="lineNum">      53 </span>            : 
+<span class="lineNum">      54 </span>            : #include &quot;tommyds/tommy.h&quot;
+<span class="lineNum">      55 </span>            : 
+<span class="lineNum">      56 </span>            : #define TOMMY_SIZE 1000000
+<span class="lineNum">      57 </span>            : 
+<span class="lineNum">      58 </span>            : #define PAYLOAD 16 /**&lt; Size of payload data for objects */
+<span class="lineNum">      59 </span>            : 
+<span class="lineNum">      60 </span>            : struct object {
+<span class="lineNum">      61 </span>            :         int value;
+<span class="lineNum">      62 </span>            :         tommy_node node;
+<span class="lineNum">      63 </span>            :         char payload[PAYLOAD];
+<span class="lineNum">      64 </span>            : };
+<span class="lineNum">      65 </span>            : 
+<a name="66"><span class="lineNum">      66 </span>            : unsigned compare_counter;</a>
+<span class="lineNum">      67 </span>            : 
+<span class="lineNum">      68 </span><span class="lineCov">   56468477 : int compare(const void* void_a, const void* void_b)</span>
+<span class="lineNum">      69 </span>            : {
+<span class="lineNum">      70 </span><span class="lineCov">   56468477 :         const struct object* a = void_a;</span>
+<span class="lineNum">      71 </span><span class="lineCov">   56468477 :         const struct object* b = void_b;</span>
+<span class="lineNum">      72 </span>            : 
+<span class="lineNum">      73 </span><span class="lineCov">   56468477 :         ++compare_counter;</span>
+<span class="lineNum">      74 </span>            : 
+<span class="lineNum">      75 </span><span class="lineCov">   56468477 :         if (a-&gt;value &lt; b-&gt;value)</span>
+<span class="lineNum">      76 </span><span class="lineCov">   23591414 :                 return -1;</span>
+<span class="lineNum">      77 </span><span class="lineCov">   32877063 :         if (a-&gt;value &gt; b-&gt;value)</span>
+<span class="lineNum">      78 </span><span class="lineCov">   27168983 :                 return 1;</span>
+<span class="lineNum">      79 </span><span class="lineCov">    5708080 :         return 0;</span>
+<span class="lineNum">      80 </span>            : }
+<span class="lineNum">      81 </span>            : 
+<span class="lineNum">      82 </span>            : struct object_vector {
+<span class="lineNum">      83 </span>            :         int value;
+<span class="lineNum">      84 </span>            :         char payload[PAYLOAD];
+<a name="85"><span class="lineNum">      85 </span>            : };</a>
+<span class="lineNum">      86 </span>            : 
+<span class="lineNum">      87 </span><span class="lineCov">   73248608 : int compare_vector(const void* void_a, const void* void_b)</span>
+<span class="lineNum">      88 </span>            : {
+<span class="lineNum">      89 </span><span class="lineCov">   73248608 :         const struct object_vector* a = void_a;</span>
+<span class="lineNum">      90 </span><span class="lineCov">   73248608 :         const struct object_vector* b = void_b;</span>
+<span class="lineNum">      91 </span>            : 
+<span class="lineNum">      92 </span><span class="lineCov">   73248608 :         ++compare_counter;</span>
+<span class="lineNum">      93 </span>            : 
+<span class="lineNum">      94 </span><span class="lineCov">   73248608 :         if (a-&gt;value &lt; b-&gt;value)</span>
+<span class="lineNum">      95 </span><span class="lineCov">   32724901 :                 return -1;</span>
+<span class="lineNum">      96 </span><span class="lineCov">   40523707 :         if (a-&gt;value &gt; b-&gt;value)</span>
+<span class="lineNum">      97 </span><span class="lineCov">   34939766 :                 return 1;</span>
+<span class="lineNum">      98 </span><span class="lineCov">    5583941 :         return 0;</span>
+<span class="lineNum">      99 </span>            : }
+<span class="lineNum">     100 </span>            : 
+<span class="lineNum">     101 </span>            : struct object_hash {
+<span class="lineNum">     102 </span>            :         int value;
+<span class="lineNum">     103 </span>            :         tommy_node node;
+<span class="lineNum">     104 </span>            :         char payload[PAYLOAD];
+<span class="lineNum">     105 </span>            : };
+<span class="lineNum">     106 </span>            : 
+<span class="lineNum">     107 </span>            : struct object_trie {
+<span class="lineNum">     108 </span>            :         int value;
+<span class="lineNum">     109 </span>            :         tommy_trie_node node;
+<span class="lineNum">     110 </span>            :         char payload[PAYLOAD];
+<span class="lineNum">     111 </span>            : };
+<span class="lineNum">     112 </span>            : 
+<span class="lineNum">     113 </span>            : struct object_trie_inplace {
+<span class="lineNum">     114 </span>            :         int value;
+<span class="lineNum">     115 </span>            :         tommy_trie_inplace_node node;
+<span class="lineNum">     116 </span>            :         char payload[PAYLOAD];
+<span class="lineNum">     117 </span>            : };
+<span class="lineNum">     118 </span>            : 
+<span class="lineNum">     119 </span>            : /******************************************************************************/
+<span class="lineNum">     120 </span>            : /* time */
+<span class="lineNum">     121 </span>            : 
+<span class="lineNum">     122 </span>            : #if defined(_WIN32)
+<span class="lineNum">     123 </span>            : static LARGE_INTEGER win_frequency; 
+<a name="124"><span class="lineNum">     124 </span>            : #endif</a>
+<span class="lineNum">     125 </span>            : 
+<span class="lineNum">     126 </span><span class="lineCov">          1 : static void nano_init(void)</span>
+<span class="lineNum">     127 </span>            : {
+<span class="lineNum">     128 </span>            : #if defined(_WIN32)
+<span class="lineNum">     129 </span>            :         if (!QueryPerformanceFrequency(&amp;win_frequency)) {
+<span class="lineNum">     130 </span>            :                 win_frequency.QuadPart = 0;
+<span class="lineNum">     131 </span>            :         }
+<span class="lineNum">     132 </span>            : #endif
+<a name="133"><span class="lineNum">     133 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">     134 </span>            : 
+<span class="lineNum">     135 </span><span class="lineCov">         66 : static tommy_uint64_t nano(void)</span>
+<span class="lineNum">     136 </span>            : {
+<span class="lineNum">     137 </span>            :         tommy_uint64_t ret;
+<span class="lineNum">     138 </span>            : #if defined(_WIN32)   
+<span class="lineNum">     139 </span>            :         LARGE_INTEGER t;
+<span class="lineNum">     140 </span>            : 
+<span class="lineNum">     141 </span>            :         if (!QueryPerformanceCounter(&amp;t))
+<span class="lineNum">     142 </span>            :                 return 0;
+<span class="lineNum">     143 </span>            : 
+<span class="lineNum">     144 </span>            :         ret = (t.QuadPart / win_frequency.QuadPart) * 1000000000;
+<span class="lineNum">     145 </span>            : 
+<span class="lineNum">     146 </span>            :         ret += (t.QuadPart % win_frequency.QuadPart) * 1000000000 / win_frequency.QuadPart;
+<span class="lineNum">     147 </span>            : #elif defined(__MACH__)
+<span class="lineNum">     148 </span>            :         mach_timebase_info_data_t info;
+<span class="lineNum">     149 </span>            :         kern_return_t r;
+<span class="lineNum">     150 </span>            :         tommy_uint64_t t;
+<span class="lineNum">     151 </span>            : 
+<span class="lineNum">     152 </span>            :         t = mach_absolute_time();
+<span class="lineNum">     153 </span>            : 
+<span class="lineNum">     154 </span>            :         r = mach_timebase_info(&amp;info);
+<span class="lineNum">     155 </span>            :         if (r != 0) {
+<span class="lineNum">     156 </span>            :                 abort();
+<span class="lineNum">     157 </span>            :         }
+<span class="lineNum">     158 </span>            : 
+<span class="lineNum">     159 </span>            :         ret = (t / info.denom) * info.numer;
+<span class="lineNum">     160 </span>            :         
+<span class="lineNum">     161 </span>            :         ret += (t % info.denom) * info.numer / info.denom;
+<span class="lineNum">     162 </span>            : #elif defined(__linux)
+<span class="lineNum">     163 </span>            :         struct timespec ts;
+<span class="lineNum">     164 </span>            :         int r;
+<span class="lineNum">     165 </span>            : 
+<span class="lineNum">     166 </span><span class="lineCov">         66 :         r = clock_gettime(CLOCK_MONOTONIC, &amp;ts);</span>
+<span class="lineNum">     167 </span><span class="lineCov">         66 :         if (r != 0) {</span>
+<span class="lineNum">     168 </span><span class="lineNoCov">          0 :                 abort();</span>
+<span class="lineNum">     169 </span>            :         }
+<span class="lineNum">     170 </span>            : 
+<span class="lineNum">     171 </span><span class="lineCov">         66 :         ret = ts.tv_sec * (tommy_uint64_t)1000000000 + ts.tv_nsec;</span>
+<span class="lineNum">     172 </span>            : #else
+<span class="lineNum">     173 </span>            :         struct timeval tv;
+<span class="lineNum">     174 </span>            :         int r;
+<span class="lineNum">     175 </span>            : 
+<span class="lineNum">     176 </span>            :         r = gettimeofday(&amp;tv, 0);
+<span class="lineNum">     177 </span>            :         if (r != 0) {
+<span class="lineNum">     178 </span>            :                 abort();
+<span class="lineNum">     179 </span>            :         }
+<span class="lineNum">     180 </span>            : 
+<span class="lineNum">     181 </span>            :         ret = tv.tv_sec * (tommy_uint64_t)1000000000 + tv.tv_usec * 1000;
+<span class="lineNum">     182 </span>            : #endif
+<span class="lineNum">     183 </span><span class="lineCov">         66 :         return ret;</span>
+<span class="lineNum">     184 </span>            : }
+<span class="lineNum">     185 </span>            : 
+<span class="lineNum">     186 </span>            : /******************************************************************************/
+<span class="lineNum">     187 </span>            : /* random */
+<span class="lineNum">     188 </span>            : 
+<span class="lineNum">     189 </span>            : /**
+<span class="lineNum">     190 </span>            :  * Pseudo random number generator.
+<span class="lineNum">     191 </span>            :  * Note that using (rand() % max) in Visual C results in totally bogus values, 
+<span class="lineNum">     192 </span>            :  * with *strong* cache effects when accessing elements in a not really random order.
+<span class="lineNum">     193 </span>            :  * This happen because Visual C uses a simple linear congruential generator with only 32 bits.
+<span class="lineNum">     194 </span>            :  */
+<a name="195"><span class="lineNum">     195 </span>            : tommy_uint64_t SEED = 0;</a>
+<span class="lineNum">     196 </span>            : 
+<span class="lineNum">     197 </span><span class="lineCov">    3009981 : unsigned rnd(unsigned max) </span>
+<span class="lineNum">     198 </span>            : {
+<span class="lineNum">     199 </span>            :         unsigned r;
+<span class="lineNum">     200 </span>            :         tommy_uint64_t divider;
+<span class="lineNum">     201 </span>            :     
+<span class="lineNum">     202 </span>            : loop:    
+<span class="lineNum">     203 </span>            :         /* linear congruential generator from MMIX by Donald Knuth, http://en.wikipedia.org/wiki/Linear_congruential_generator */
+<span class="lineNum">     204 </span>            : #ifdef _MSC_VER
+<span class="lineNum">     205 </span>            :         divider = 0xFFFFFFFFFFFFFFFF / max;
+<span class="lineNum">     206 </span>            :         SEED = SEED * 6364136223846793005 + 1442695040888963407;
+<span class="lineNum">     207 </span>            : #else
+<span class="lineNum">     208 </span><span class="lineCov">    3009981 :         divider = 0xFFFFFFFFFFFFFFFFULL / max;</span>
+<span class="lineNum">     209 </span><span class="lineCov">    3009981 :         SEED = SEED * 6364136223846793005LL + 1442695040888963407LL;</span>
+<span class="lineNum">     210 </span>            : #endif
+<span class="lineNum">     211 </span>            :  
+<span class="lineNum">     212 </span><span class="lineCov">    3009981 :         r = (unsigned)(SEED / divider);</span>
+<span class="lineNum">     213 </span>            : 
+<span class="lineNum">     214 </span>            :         /* it may happen as the divider is approximated down */
+<span class="lineNum">     215 </span><span class="lineCov">    3009981 :         if (r &gt;= max)</span>
+<span class="lineNum">     216 </span><span class="lineNoCov">          0 :                 goto loop;</span>
+<span class="lineNum">     217 </span>            : 
+<span class="lineNum">     218 </span><span class="lineCov">    3009981 :         return r;</span>
+<span class="lineNum">     219 </span>            : }
+<span class="lineNum">     220 </span>            : 
+<span class="lineNum">     221 </span>            : /******************************************************************************/
+<a name="222"><span class="lineNum">     222 </span>            : /* helper */</a>
+<span class="lineNum">     223 </span>            : 
+<span class="lineNum">     224 </span><span class="lineCov">          6 : unsigned isqrt(unsigned n)</span>
+<span class="lineNum">     225 </span>            : {
+<span class="lineNum">     226 </span>            :         unsigned root, remain, place;
+<span class="lineNum">     227 </span>            : 
+<span class="lineNum">     228 </span><span class="lineCov">          6 :         root = 0;</span>
+<span class="lineNum">     229 </span>            : 
+<span class="lineNum">     230 </span><span class="lineCov">          6 :         remain = n;</span>
+<span class="lineNum">     231 </span>            : 
+<span class="lineNum">     232 </span><span class="lineCov">          6 :         place = 0x40000000;</span>
+<span class="lineNum">     233 </span>            : 
+<span class="lineNum">     234 </span><span class="lineCov">         48 :         while (place &gt; remain)</span>
+<span class="lineNum">     235 </span><span class="lineCov">         36 :                 place /= 4;</span>
+<span class="lineNum">     236 </span>            : 
+<span class="lineNum">     237 </span><span class="lineCov">         72 :         while (place) {</span>
+<span class="lineNum">     238 </span><span class="lineCov">         60 :                 if (remain &gt;= root + place) {</span>
+<span class="lineNum">     239 </span><span class="lineCov">         36 :                         remain -= root + place;</span>
+<span class="lineNum">     240 </span><span class="lineCov">         36 :                         root += 2 * place;</span>
+<span class="lineNum">     241 </span>            :                 }
+<span class="lineNum">     242 </span>            : 
+<span class="lineNum">     243 </span><span class="lineCov">         60 :                 root /= 2;</span>
+<span class="lineNum">     244 </span><span class="lineCov">         60 :                 place /= 4;</span>
+<span class="lineNum">     245 </span>            :         }
+<span class="lineNum">     246 </span>            : 
+<span class="lineNum">     247 </span><span class="lineCov">          6 :         return root;</span>
+<span class="lineNum">     248 </span>            : }
+<span class="lineNum">     249 </span>            : 
+<span class="lineNum">     250 </span>            : /**
+<span class="lineNum">     251 </span>            :  * Cache clearing buffer.
+<span class="lineNum">     252 </span>            :  */
+<span class="lineNum">     253 </span>            : static unsigned char the_cache[16*1024*1024];
+<span class="lineNum">     254 </span>            : static const char* the_str;
+<a name="255"><span class="lineNum">     255 </span>            : static tommy_uint64_t the_start;</a>
+<span class="lineNum">     256 </span>            : 
+<span class="lineNum">     257 </span><span class="lineCov">         33 : void cache_clear(void)</span>
+<span class="lineNum">     258 </span>            : {
+<span class="lineNum">     259 </span>            :         unsigned i;
+<span class="lineNum">     260 </span>            : 
+<span class="lineNum">     261 </span>            :         /* read &amp; write */
+<span class="lineNum">     262 </span><span class="lineCov">   17301537 :         for(i=0;i&lt;sizeof(the_cache);i += 32)</span>
+<span class="lineNum">     263 </span><span class="lineCov">   17301504 :                 the_cache[i] += 1;</span>
+<span class="lineNum">     264 </span>            : 
+<span class="lineNum">     265 </span>            : #ifdef WIN32
+<span class="lineNum">     266 </span>            :         Sleep(0);
+<span class="lineNum">     267 </span>            : #endif
+<a name="268"><span class="lineNum">     268 </span><span class="lineCov">         33 : }</span></a>
+<span class="lineNum">     269 </span>            : 
+<span class="lineNum">     270 </span><span class="lineCov">         33 : void start(const char* str)</span>
+<span class="lineNum">     271 </span>            : {
+<span class="lineNum">     272 </span><span class="lineCov">         33 :         cache_clear();</span>
+<span class="lineNum">     273 </span><span class="lineCov">         33 :         compare_counter = 0;</span>
+<span class="lineNum">     274 </span><span class="lineCov">         33 :         the_str = str;</span>
+<span class="lineNum">     275 </span><span class="lineCov">         33 :         the_start = nano();</span>
+<a name="276"><span class="lineNum">     276 </span><span class="lineCov">         33 : }</span></a>
+<span class="lineNum">     277 </span>            : 
+<span class="lineNum">     278 </span><span class="lineCov">         33 : void stop()</span>
+<span class="lineNum">     279 </span>            : {
+<span class="lineNum">     280 </span><span class="lineCov">         33 :         tommy_uint64_t the_stop = nano();</span>
+<span class="lineNum">     281 </span><span class="lineCov">         33 :         printf(&quot;%25s %8u [ms], %8u [compare]\n&quot;, the_str, (unsigned)((the_stop - the_start) / 1000000), compare_counter);</span>
+<span class="lineNum">     282 </span><span class="lineCov">         33 : }</span>
+<span class="lineNum">     283 </span>            : 
+<span class="lineNum">     284 </span>            : #define START(s) start(s)
+<span class="lineNum">     285 </span>            : #define STOP() stop()
+<span class="lineNum">     286 </span>            : 
+<span class="lineNum">     287 </span>            : /******************************************************************************/
+<span class="lineNum">     288 </span>            : /* test */
+<span class="lineNum">     289 </span>            : 
+<span class="lineNum">     290 </span>            : struct hash32_test {
+<span class="lineNum">     291 </span>            :         char* data;
+<span class="lineNum">     292 </span>            :         tommy_uint32_t len;
+<span class="lineNum">     293 </span>            :         tommy_uint32_t hash;
+<span class="lineNum">     294 </span>            : } HASH32[] = {
+<span class="lineNum">     295 </span>            :         { &quot;&quot;, 0, 0x8614384c },
+<span class="lineNum">     296 </span>            :         { &quot;a&quot;, 1, 0x12c16c36 },
+<span class="lineNum">     297 </span>            :         { &quot;abc&quot;, 3, 0xc58e8af5 },
+<span class="lineNum">     298 </span>            :         { &quot;message digest&quot;, 14, 0x006b32f1 },
+<span class="lineNum">     299 </span>            :         { &quot;abcdefghijklmnopqrstuvwxyz&quot;, 26, 0x7e6fcfe0 },
+<span class="lineNum">     300 </span>            :         { &quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&quot;, 62, 0x8604adf8 },
+<span class="lineNum">     301 </span>            :         { &quot;The quick brown fox jumps over the lazy dog&quot;, 43, 0xdeba3d3a },
+<span class="lineNum">     302 </span>            :         { &quot;\x00&quot;, 1, 0x4a7d1c33 },
+<span class="lineNum">     303 </span>            :         { &quot;\x16\x27&quot;, 2, 0x8b50899b },
+<span class="lineNum">     304 </span>            :         { &quot;\xe2\x56\xb4&quot;, 3, 0x60406493 },
+<span class="lineNum">     305 </span>            :         { &quot;\xc9\x4d\x9c\xda&quot;, 4, 0xa049144a },
+<span class="lineNum">     306 </span>            :         { &quot;\x79\xf1\x29\x69\x5d&quot;, 5, 0x4da2c2f1 },
+<span class="lineNum">     307 </span>            :         { &quot;\x00\x7e\xdf\x1e\x31\x1c&quot;, 6, 0x59de30cf },
+<span class="lineNum">     308 </span>            :         { &quot;\x2a\x4c\xe1\xff\x9e\x6f\x53&quot;, 7, 0x219e149c },
+<span class="lineNum">     309 </span>            :         { &quot;\xba\x02\xab\x18\x30\xc5\x0e\x8a&quot;, 8, 0x25067520 },
+<span class="lineNum">     310 </span>            :         { &quot;\xec\x4e\x7a\x72\x1e\x71\x2a\xc9\x33&quot;, 9, 0xa1f368d8 },
+<span class="lineNum">     311 </span>            :         { &quot;\xfd\xe2\x9c\x0f\x72\xb7\x08\xea\xd0\x78&quot;, 10, 0x805fc63d },
+<span class="lineNum">     312 </span>            :         { &quot;\x65\xc4\x8a\xb8\x80\x86\x9a\x79\x00\xb7\xae&quot;, 11, 0x7f75dd0f },
+<span class="lineNum">     313 </span>            :         { &quot;\x77\xe9\xd7\x80\x0e\x3f\x5c\x43\xc8\xc2\x46\x39&quot;, 12, 0xb9154382 },
+<span class="lineNum">     314 </span>            :         { &quot;\x87\xd8\x61\x61\x4c\x89\x17\x4e\xa1\xa4\xef\x13\xa9&quot;, 13, 0x2bdd05d7 },
+<span class="lineNum">     315 </span>            :         { &quot;\xfe\xa6\x5b\xc2\xda\xe8\x95\xd4\x64\xab\x4c\x39\x58\x29&quot;, 14, 0xabffeb9f },
+<span class="lineNum">     316 </span>            :         { &quot;\x94\x49\xc0\x78\xa0\x80\xda\xc7\x71\x4e\x17\x37\xa9\x7c\x40&quot;, 15, 0x886da0b4 },
+<span class="lineNum">     317 </span>            :         { &quot;\x53\x7e\x36\xb4\x2e\xc9\xb9\xcc\x18\x3e\x9a\x5f\xfc\xb7\xb0\x61&quot;, 16, 0x34ed2af3 },
+<span class="lineNum">     318 </span>            :         { 0, 0, 0 }
+<span class="lineNum">     319 </span>            : };
+<span class="lineNum">     320 </span>            : 
+<span class="lineNum">     321 </span>            : struct hash64_test {
+<span class="lineNum">     322 </span>            :         char* data;
+<span class="lineNum">     323 </span>            :         tommy_uint32_t len;
+<span class="lineNum">     324 </span>            :         tommy_uint64_t hash;
+<span class="lineNum">     325 </span>            : } HASH64[] = {
+<span class="lineNum">     326 </span>            :         { &quot;&quot;, 0, 0x8614384cb5165fbfULL },
+<span class="lineNum">     327 </span>            :         { &quot;a&quot;, 1, 0x1a2e0298a8e94a3dULL },
+<span class="lineNum">     328 </span>            :         { &quot;abc&quot;, 3, 0x7555796b7a7d21ebULL },
+<span class="lineNum">     329 </span>            :         { &quot;message digest&quot;, 14, 0x9411a57d04b92fb4ULL },
+<span class="lineNum">     330 </span>            :         { &quot;abcdefghijklmnopqrstuvwxyz&quot;, 26, 0x3ca3f8d2b4e69832ULL },
+<span class="lineNum">     331 </span>            :         { &quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&quot;, 62, 0x6dae542ba0015a4dULL },
+<span class="lineNum">     332 </span>            :         { &quot;The quick brown fox jumps over the lazy dog&quot;, 43, 0xe06d8cbb3d2ea1a6ULL },
+<span class="lineNum">     333 </span>            :         { &quot;\x00&quot;, 1, 0x201e664fb5f2c021ULL },
+<span class="lineNum">     334 </span>            :         { &quot;\x16\x27&quot;, 2, 0xef42fa8032c4b775ULL },
+<span class="lineNum">     335 </span>            :         { &quot;\xe2\x56\xb4&quot;, 3, 0x6e6c498a6688466cULL },
+<span class="lineNum">     336 </span>            :         { &quot;\xc9\x4d\x9c\xda&quot;, 4, 0x5195005419905423ULL },
+<span class="lineNum">     337 </span>            :         { &quot;\x79\xf1\x29\x69\x5d&quot;, 5, 0x221235b48afee7c1ULL },
+<span class="lineNum">     338 </span>            :         { &quot;\x00\x7e\xdf\x1e\x31\x1c&quot;, 6, 0x1b1f18b9266f095bULL },
+<span class="lineNum">     339 </span>            :         { &quot;\x2a\x4c\xe1\xff\x9e\x6f\x53&quot;, 7, 0x2cbafa8e741d49caULL },
+<span class="lineNum">     340 </span>            :         { &quot;\xba\x02\xab\x18\x30\xc5\x0e\x8a&quot;, 8, 0x4677f04c06e0758dULL },
+<span class="lineNum">     341 </span>            :         { &quot;\xec\x4e\x7a\x72\x1e\x71\x2a\xc9\x33&quot;, 9, 0x5afe09e8214e2163ULL },
+<span class="lineNum">     342 </span>            :         { &quot;\xfd\xe2\x9c\x0f\x72\xb7\x08\xea\xd0\x78&quot;, 10, 0x115b6276d209fab6ULL },
+<span class="lineNum">     343 </span>            :         { &quot;\x65\xc4\x8a\xb8\x80\x86\x9a\x79\x00\xb7\xae&quot;, 11, 0xd0636d2f01cf3a3eULL },
+<span class="lineNum">     344 </span>            :         { &quot;\x77\xe9\xd7\x80\x0e\x3f\x5c\x43\xc8\xc2\x46\x39&quot;, 12, 0x6d259f5fef74f93eULL },
+<span class="lineNum">     345 </span>            :         { &quot;\x87\xd8\x61\x61\x4c\x89\x17\x4e\xa1\xa4\xef\x13\xa9&quot;, 13, 0x23449c3baf93ac39ULL },
+<span class="lineNum">     346 </span>            :         { &quot;\xfe\xa6\x5b\xc2\xda\xe8\x95\xd4\x64\xab\x4c\x39\x58\x29&quot;, 14, 0x9b85ba28d7854d69ULL },
+<span class="lineNum">     347 </span>            :         { &quot;\x94\x49\xc0\x78\xa0\x80\xda\xc7\x71\x4e\x17\x37\xa9\x7c\x40&quot;, 15, 0x3617c833193a359fULL },
+<span class="lineNum">     348 </span>            :         { &quot;\x53\x7e\x36\xb4\x2e\xc9\xb9\xcc\x18\x3e\x9a\x5f\xfc\xb7\xb0\x61&quot;, 16, 0x5dbf9ff58e274dd9ULL },
+<span class="lineNum">     349 </span>            :         { 0, 0, 0 }
+<span class="lineNum">     350 </span>            : };
+<span class="lineNum">     351 </span>            : 
+<span class="lineNum">     352 </span>            : struct inthash32_test {
+<span class="lineNum">     353 </span>            :         tommy_uint32_t value;
+<span class="lineNum">     354 </span>            :         tommy_uint32_t hash;
+<span class="lineNum">     355 </span>            : } INTHASH32[] = {
+<span class="lineNum">     356 </span>            :         { 0x00000000, 0x00000000 },
+<span class="lineNum">     357 </span>            :         { 0x00000001, 0xc2b73583 },
+<span class="lineNum">     358 </span>            :         { 0x00000002, 0xe90f1258 },
+<span class="lineNum">     359 </span>            :         { 0x00000004, 0x7a10c2d3 },
+<span class="lineNum">     360 </span>            :         { 0x00000008, 0x200c3457 },
+<span class="lineNum">     361 </span>            :         { 0x00000010, 0xeb97690a },
+<span class="lineNum">     362 </span>            :         { 0x00000020, 0x7fb291d3 },
+<span class="lineNum">     363 </span>            :         { 0x00000040, 0xf50601d8 },
+<span class="lineNum">     364 </span>            :         { 0x00000080, 0x727dbaed },
+<span class="lineNum">     365 </span>            :         { 0x00000100, 0x7ef5f77d },
+<span class="lineNum">     366 </span>            :         { 0x00000200, 0x91a480dc },
+<span class="lineNum">     367 </span>            :         { 0x00000400, 0x2bad9acc },
+<span class="lineNum">     368 </span>            :         { 0x00000800, 0xfe4d150e },
+<span class="lineNum">     369 </span>            :         { 0x00001000, 0xc3add476 },
+<span class="lineNum">     370 </span>            :         { 0x00002000, 0x23946174 },
+<span class="lineNum">     371 </span>            :         { 0x00004000, 0x987cfc43 },
+<span class="lineNum">     372 </span>            :         { 0x00008000, 0x630cdf68 },
+<span class="lineNum">     373 </span>            :         { 0x00010000, 0x0ac3a767 },
+<span class="lineNum">     374 </span>            :         { 0x00020000, 0xad086d5b },
+<span class="lineNum">     375 </span>            :         { 0x00040000, 0x1126ccdf },
+<span class="lineNum">     376 </span>            :         { 0x00080000, 0x4370dbc4 },
+<span class="lineNum">     377 </span>            :         { 0x00100000, 0xefd6e5e6 },
+<span class="lineNum">     378 </span>            :         { 0x00200000, 0x9a93c1b5 },
+<span class="lineNum">     379 </span>            :         { 0x00400000, 0x10114902 },
+<span class="lineNum">     380 </span>            :         { 0x00800000, 0x96117e60 },
+<span class="lineNum">     381 </span>            :         { 0x01000000, 0x5dec9f58 },
+<span class="lineNum">     382 </span>            :         { 0x02000000, 0xfee234c7 },
+<span class="lineNum">     383 </span>            :         { 0x04000000, 0x36137e26 },
+<span class="lineNum">     384 </span>            :         { 0x08000000, 0x6c26fc4c },
+<span class="lineNum">     385 </span>            :         { 0x10000000, 0xd84df898 },
+<span class="lineNum">     386 </span>            :         { 0x20000000, 0xb099f131 },
+<span class="lineNum">     387 </span>            :         { 0x40000000, 0x6131e262 },
+<span class="lineNum">     388 </span>            :         { 0x80000000, 0xc263c4c4 },
+<span class="lineNum">     389 </span>            :         { 0x00204a16, 0xd8b97461 },
+<span class="lineNum">     390 </span>            :         { 0x05542a27, 0x65d0057a },
+<span class="lineNum">     391 </span>            :         { 0x169c39e2, 0x7c2ff59a },
+<span class="lineNum">     392 </span>            :         { 0x2eab4956, 0xa8ba89bd },
+<span class="lineNum">     393 </span>            :         { 0x0bb0b8b4, 0xb790c8de },
+<span class="lineNum">     394 </span>            :         { 0x0bd068c9, 0x92d30546 },
+<span class="lineNum">     395 </span>            :         { 0x3e5d224d, 0xd610bf1d },
+<span class="lineNum">     396 </span>            :         { 0x436c8d9c, 0x27b09019 },
+<span class="lineNum">     397 </span>            :         { 0x3a2adfda, 0xdfde9385 },
+<span class="lineNum">     398 </span>            :         { 0x1dd8ca79, 0xc7c10d7b },
+<span class="lineNum">     399 </span>            :         { 0x6a67c4f1, 0xf92a788d },
+<span class="lineNum">     400 </span>            :         { 0x7742fa29, 0x892c3519 },
+<span class="lineNum">     401 </span>            :         { 0x48b62d69, 0x7f642f55 },
+<span class="lineNum">     402 </span>            :         { 0x472e195d, 0xea2c49e5 },
+<span class="lineNum">     403 </span>            :         { 0x0681a900, 0x4de5c929 },
+<span class="lineNum">     404 </span>            :         { 0x622ebb7e, 0x35a7e306 },
+<span class="lineNum">     405 </span>            :         { 0x026bccdf, 0xa7e4b630 },
+<span class="lineNum">     406 </span>            :         { 0x204d531e, 0x43ebd664 },
+<span class="lineNum">     407 </span>            :         { 0x262b5331, 0x7a9a161f },
+<span class="lineNum">     408 </span>            :         { 0x7020241c, 0xbaed3ef7 },
+<span class="lineNum">     409 </span>            :         { 0x440a0e2a, 0x0b8c5b29 },
+<span class="lineNum">     410 </span>            :         { 0x75cb1c4c, 0x19555414 },
+<span class="lineNum">     411 </span>            :         { 0x41f9a5e1, 0xc6acbc6b },
+<span class="lineNum">     412 </span>            :         { 0x67bc26ff, 0x54e4411f },
+<span class="lineNum">     413 </span>            :         { 0x181e279e, 0x979c834f },
+<span class="lineNum">     414 </span>            :         { 0x7172c06f, 0xe6a179ff },
+<span class="lineNum">     415 </span>            :         { 0x4909e153, 0x198e5e0f },
+<span class="lineNum">     416 </span>            :         { 0x09d3bfba, 0x109a6f17 },
+<span class="lineNum">     417 </span>            :         { 0x685ae502, 0xf9d57a4b },
+<span class="lineNum">     418 </span>            :         { 0x7e10e8ab, 0x09765bec },
+<span class="lineNum">     419 </span>            :         { 0x0f262618, 0xe16404cd },
+<span class="lineNum">     420 </span>            :         { 0x726b8230, 0x55e478b4 },
+<span class="lineNum">     421 </span>            :         { 0, 0 }
+<span class="lineNum">     422 </span>            : };
+<span class="lineNum">     423 </span>            : 
+<span class="lineNum">     424 </span>            : struct inthash64_test {
+<span class="lineNum">     425 </span>            :         tommy_uint64_t value;
+<span class="lineNum">     426 </span>            :         tommy_uint64_t hash;
+<span class="lineNum">     427 </span>            : } INTHASH64[] = {
+<span class="lineNum">     428 </span>            :         { 0x0000000000000000ULL, 0x77cfa1eef01bca90ULL },
+<span class="lineNum">     429 </span>            :         { 0x0000000000000001ULL, 0x5bca7c69b794f8ceULL },
+<span class="lineNum">     430 </span>            :         { 0x0000000000000002ULL, 0xb795033f6f2a0674ULL },
+<span class="lineNum">     431 </span>            :         { 0x0000000000000004ULL, 0x6f2a25235e544a31ULL },
+<span class="lineNum">     432 </span>            :         { 0x0000000000000008ULL, 0xde543f7b3ca87ecbULL },
+<span class="lineNum">     433 </span>            :         { 0x0000000000000010ULL, 0xbca87eec7950fd82ULL },
+<span class="lineNum">     434 </span>            :         { 0x0000000000000020ULL, 0x7950fddef2a1fb10ULL },
+<span class="lineNum">     435 </span>            :         { 0x0000000000000040ULL, 0xf2a1fbbde543f620ULL },
+<span class="lineNum">     436 </span>            :         { 0x0000000000000080ULL, 0xe543f9324a87efadULL },
+<span class="lineNum">     437 </span>            :         { 0x0000000000000100ULL, 0xca87f25e950fdf4eULL },
+<span class="lineNum">     438 </span>            :         { 0x0000000000000200ULL, 0x950fe4bd2a1fbe9cULL },
+<span class="lineNum">     439 </span>            :         { 0x0000000000000400ULL, 0x2a1fc968543f7d14ULL },
+<span class="lineNum">     440 </span>            :         { 0x0000000000000800ULL, 0x543f92d0a87efa28ULL },
+<span class="lineNum">     441 </span>            :         { 0x0000000000001000ULL, 0xa87f259f50fdf44cULL },
+<span class="lineNum">     442 </span>            :         { 0x0000000000002000ULL, 0x50fe4b3ea1fbe898ULL },
+<span class="lineNum">     443 </span>            :         { 0x0000000000004000ULL, 0xa1fc967bc3f7d12dULL },
+<span class="lineNum">     444 </span>            :         { 0x0000000000008000ULL, 0x43f92da207efa3afULL },
+<span class="lineNum">     445 </span>            :         { 0x0000000000010000ULL, 0x87f25b4e8fdf4773ULL },
+<span class="lineNum">     446 </span>            :         { 0x0000000000020000ULL, 0x0fe4b6a71fbe8efaULL },
+<span class="lineNum">     447 </span>            :         { 0x0000000000040000ULL, 0x1fc96d4ebf7d1df5ULL },
+<span class="lineNum">     448 </span>            :         { 0x0000000000080000ULL, 0x3f92da9dfefa3bebULL },
+<span class="lineNum">     449 </span>            :         { 0x0000000000100000ULL, 0x7f25b53c7df477d7ULL },
+<span class="lineNum">     450 </span>            :         { 0x0000000000200000ULL, 0xfe4b6a797be8efafULL },
+<span class="lineNum">     451 </span>            :         { 0x0000000000400000ULL, 0xfc96d4f377d1df5fULL },
+<span class="lineNum">     452 </span>            :         { 0x0000000000800000ULL, 0xf92da9e76fa3bebfULL },
+<span class="lineNum">     453 </span>            :         { 0x0000000001000000ULL, 0xf25b39f0df4749c2ULL },
+<span class="lineNum">     454 </span>            :         { 0x0000000002000000ULL, 0xe4b673e1be8e9384ULL },
+<span class="lineNum">     455 </span>            :         { 0x0000000004000000ULL, 0xc96ce7c3fd1d2709ULL },
+<span class="lineNum">     456 </span>            :         { 0x0000000008000000ULL, 0x92d9cf87fa3a4e12ULL },
+<span class="lineNum">     457 </span>            :         { 0x0000000010000000ULL, 0x25b39f0ff4749c24ULL },
+<span class="lineNum">     458 </span>            :         { 0x0000000020000000ULL, 0x4b673e1fe8e93848ULL },
+<span class="lineNum">     459 </span>            :         { 0x0000000040000000ULL, 0x96ce7c3a51d27085ULL },
+<span class="lineNum">     460 </span>            :         { 0x0000000080000000ULL, 0x2d9cf88523a4e10bULL },
+<span class="lineNum">     461 </span>            :         { 0x0000000100000000ULL, 0x5b39f10ac749c217ULL },
+<span class="lineNum">     462 </span>            :         { 0x0000000200000000ULL, 0xb673e2060e93842fULL },
+<span class="lineNum">     463 </span>            :         { 0x0000000400000000ULL, 0x6ce7c40c9d27085fULL },
+<span class="lineNum">     464 </span>            :         { 0x0000000800000000ULL, 0xdc8387ff3f0e10aaULL },
+<span class="lineNum">     465 </span>            :         { 0x0000001000000000ULL, 0xb9070fee7e1c2154ULL },
+<span class="lineNum">     466 </span>            :         { 0x0000002000000000ULL, 0x720e1fdcfc3842a8ULL },
+<span class="lineNum">     467 </span>            :         { 0x0000004000000000ULL, 0xe41c3fa478708545ULL },
+<span class="lineNum">     468 </span>            :         { 0x0000008000000000ULL, 0xc8387f58f0e10a8aULL },
+<span class="lineNum">     469 </span>            :         { 0x0000010000000000ULL, 0x9364fec267021515ULL },
+<span class="lineNum">     470 </span>            :         { 0x0000020000000000ULL, 0x26c9fd954e042a2bULL },
+<span class="lineNum">     471 </span>            :         { 0x0000040000000000ULL, 0x4d93fb2a9c085456ULL },
+<span class="lineNum">     472 </span>            :         { 0x0000080000000000ULL, 0x9b27f6553810a8acULL },
+<span class="lineNum">     473 </span>            :         { 0x0000100000000000ULL, 0xae84159b600d1cc8ULL },
+<span class="lineNum">     474 </span>            :         { 0x0000200000000000ULL, 0x455932ec903fc254ULL },
+<span class="lineNum">     475 </span>            :         { 0x0000400000000000ULL, 0xa2d36aa0d044b36fULL },
+<span class="lineNum">     476 </span>            :         { 0x0000800000000000ULL, 0x7b8ef94d0d2d2844ULL },
+<span class="lineNum">     477 </span>            :         { 0x0001000000000000ULL, 0xd802248d5ba62df7ULL },
+<span class="lineNum">     478 </span>            :         { 0x0002000000000000ULL, 0x2c298f47af1d015eULL },
+<span class="lineNum">     479 </span>            :         { 0x0004000000000000ULL, 0x93a4e2a055abc2f5ULL },
+<span class="lineNum">     480 </span>            :         { 0x0008000000000000ULL, 0x6f9511373b7145b2ULL },
+<span class="lineNum">     481 </span>            :         { 0x0010000000000000ULL, 0x6305c0717e1d40d4ULL },
+<span class="lineNum">     482 </span>            :         { 0x0020000000000000ULL, 0x6237df27b416b76bULL },
+<span class="lineNum">     483 </span>            :         { 0x0040000000000000ULL, 0x042bc5ffe77f439eULL },
+<span class="lineNum">     484 </span>            :         { 0x0080000000000000ULL, 0x7241900621a8c72bULL },
+<span class="lineNum">     485 </span>            :         { 0x0100000000000000ULL, 0x6a298a4b4ecb2ec6ULL },
+<span class="lineNum">     486 </span>            :         { 0x0200000000000000ULL, 0x789742a5659f92fbULL },
+<span class="lineNum">     487 </span>            :         { 0x0400000000000000ULL, 0x794ee951db0365e6ULL },
+<span class="lineNum">     488 </span>            :         { 0x0800000000000000ULL, 0x745424e0b94aec3cULL },
+<span class="lineNum">     489 </span>            :         { 0x1000000000000000ULL, 0x726e27d005120de7ULL },
+<span class="lineNum">     490 </span>            :         { 0x2000000000000000ULL, 0x6898adb511c8513eULL },
+<span class="lineNum">     491 </span>            :         { 0x4000000000000000ULL, 0x59dbb96b3414d7ecULL },
+<span class="lineNum">     492 </span>            :         { 0x8000000000000000ULL, 0x3be7d0f7780de548ULL },
+<span class="lineNum">     493 </span>            :         { 0x0cead30e6469f5c5ULL, 0x0f3b67e6407d0ed9ULL },
+<span class="lineNum">     494 </span>            :         { 0x028a2bec206c7b8aULL, 0xa9be0155bf452972ULL },
+<span class="lineNum">     495 </span>            :         { 0x56e5747a306eac4eULL, 0x308451cac91706c3ULL },
+<span class="lineNum">     496 </span>            :         { 0x6058b11e57287c72ULL, 0x6f8b3e2b8bf1abc4ULL },
+<span class="lineNum">     497 </span>            :         { 0x4fec8f2a00cc2071ULL, 0x11f1e965f20a45a4ULL },
+<span class="lineNum">     498 </span>            :         { 0x4f0bdf33102febc9ULL, 0x6102a774aa4baacfULL },
+<span class="lineNum">     499 </span>            :         { 0x17e067e262adc6fdULL, 0x5878e9adb48c4d7cULL },
+<span class="lineNum">     500 </span>            :         { 0x41374f0f3f94939cULL, 0x55d43d2febf8b7dfULL },
+<span class="lineNum">     501 </span>            :         { 0x59d163b72870b072ULL, 0x98ee8d1508e8ff20ULL },
+<span class="lineNum">     502 </span>            :         { 0x702b00ea2f01f008ULL, 0x1abf9db8b3306341ULL },
+<span class="lineNum">     503 </span>            :         { 0x433b78782f7cc0d0ULL, 0xd33358a085d11f6aULL },
+<span class="lineNum">     504 </span>            :         { 0x45789bc436c34865ULL, 0xa573c24e116ccf0dULL },
+<span class="lineNum">     505 </span>            :         { 0x15e7f9b85580528aULL, 0x6d594ec1bb5651dfULL },
+<span class="lineNum">     506 </span>            :         { 0x6e52ea866a56f880ULL, 0x5dac61fbbe7d64ffULL },
+<span class="lineNum">     507 </span>            :         { 0x06baec796275d69aULL, 0x193424cca0b43145ULL },
+<span class="lineNum">     508 </span>            :         { 0x2ac9d0b77bbdcc00ULL, 0x44b2175a2c313151ULL },
+<span class="lineNum">     509 </span>            :         { 0x2299ab770a8223aeULL, 0x404514aa9d8e5c65ULL },
+<span class="lineNum">     510 </span>            :         { 0x568e90d709816de9ULL, 0x08907c8b20d9fb59ULL },
+<span class="lineNum">     511 </span>            :         { 0x3b6b460e67b34680ULL, 0xfc77f1ea859b024eULL },
+<span class="lineNum">     512 </span>            :         { 0x418fde5c48db0e3fULL, 0x2e6a2d8cbe2d4412ULL },
+<span class="lineNum">     513 </span>            :         { 0x5e8fa3c84b12c543ULL, 0xa9354017412aba12ULL },
+<span class="lineNum">     514 </span>            :         { 0x49fad5466f937fc2ULL, 0xe81aeb4429b6264aULL },
+<span class="lineNum">     515 </span>            :         { 0x2ab116877b7b6839ULL, 0xb189fec8b0994d6eULL },
+<span class="lineNum">     516 </span>            :         { 0x16a5916132482fd8ULL, 0xa7c48eb9f12b7d37ULL },
+<span class="lineNum">     517 </span>            :         { 0x6d24a54c0e51b961ULL, 0x701631d776a5b0e2ULL },
+<span class="lineNum">     518 </span>            :         { 0x7a39bf1767d47a89ULL, 0x6bd08da7d7095b7aULL },
+<span class="lineNum">     519 </span>            :         { 0x11c7f9a173bf8d4eULL, 0x451390b96dcad08dULL },
+<span class="lineNum">     520 </span>            :         { 0x10411fef57d4fca4ULL, 0x49bd093dc8d7e040ULL },
+<span class="lineNum">     521 </span>            :         { 0x001079a900860713ULL, 0x81ab2baf1bf59632ULL },
+<span class="lineNum">     522 </span>            :         { 0x4b1b9ca618b2a5feULL, 0x152cb5a46ef65f99ULL },
+<span class="lineNum">     523 </span>            :         { 0x036db8c22ffea95bULL, 0x08a263ec4de57fa9ULL },
+<span class="lineNum">     524 </span>            :         { 0x64861ee83b7d6ddaULL, 0xd344a694800cea8cULL },
+<span class="lineNum">     525 </span>            :         { 0, 0 }
+<a name="526"><span class="lineNum">     526 </span>            : };</a>
+<span class="lineNum">     527 </span>            : 
+<span class="lineNum">     528 </span><span class="lineCov">          1 : void test_hash(void)</span>
+<span class="lineNum">     529 </span>            : {
+<span class="lineNum">     530 </span>            :         unsigned i;
+<span class="lineNum">     531 </span>            : 
+<span class="lineNum">     532 </span><span class="lineCov">          1 :         START(&quot;hash functions&quot;);</span>
+<span class="lineNum">     533 </span>            : 
+<span class="lineNum">     534 </span><span class="lineCov">         24 :         for(i=0;HASH32[i].data;++i) {</span>
+<span class="lineNum">     535 </span><span class="lineCov">         23 :                 if (tommy_hash_u32(0xa766795d, HASH32[i].data, HASH32[i].len) != HASH32[i].hash)</span>
+<span class="lineNum">     536 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">     537 </span>            :         }
+<span class="lineNum">     538 </span>            : 
+<span class="lineNum">     539 </span><span class="lineCov">         24 :         for(i=0;HASH64[i].data;++i) {</span>
+<span class="lineNum">     540 </span><span class="lineCov">         23 :                 if (tommy_hash_u64(0x2f022773a766795dULL, HASH64[i].data, HASH64[i].len) != HASH64[i].hash)</span>
+<span class="lineNum">     541 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">     542 </span>            :         }
+<span class="lineNum">     543 </span>            : 
+<span class="lineNum">     544 </span><span class="lineCov">         66 :         for(i=0;INTHASH32[i].value || !i;++i) {</span>
+<span class="lineNum">     545 </span><span class="lineCov">         65 :                 if (tommy_inthash_u32(INTHASH32[i].value) != INTHASH32[i].hash)</span>
+<span class="lineNum">     546 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">     547 </span>            :         }
+<span class="lineNum">     548 </span>            : 
+<span class="lineNum">     549 </span><span class="lineCov">         98 :         for(i=0;INTHASH64[i].value || !i;++i) {</span>
+<span class="lineNum">     550 </span><span class="lineCov">         97 :                 if (tommy_inthash_u64(INTHASH64[i].value) != INTHASH64[i].hash)</span>
+<span class="lineNum">     551 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">     552 </span>            :         }
+<span class="lineNum">     553 </span>            : 
+<span class="lineNum">     554 </span><span class="lineCov">          1 :         STOP();</span>
+<a name="555"><span class="lineNum">     555 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">     556 </span>            : 
+<span class="lineNum">     557 </span><span class="lineCov">          1 : void test_alloc(void)</span>
+<span class="lineNum">     558 </span>            : {
+<span class="lineNum">     559 </span><span class="lineCov">          1 :         const unsigned size = 10 * TOMMY_SIZE;</span>
+<span class="lineNum">     560 </span>            :         unsigned i;
+<span class="lineNum">     561 </span>            :         tommy_allocator alloc;
+<span class="lineNum">     562 </span>            :         void** PTR;
+<span class="lineNum">     563 </span>            : 
+<span class="lineNum">     564 </span><span class="lineCov">          1 :         PTR = malloc(size * sizeof(void*));</span>
+<span class="lineNum">     565 </span>            : 
+<span class="lineNum">     566 </span>            :         /* ensure at least pointer alignment */
+<span class="lineNum">     567 </span><span class="lineCov">          1 :         tommy_allocator_init(&amp;alloc, sizeof(void*), 1);</span>
+<span class="lineNum">     568 </span><span class="lineCov">          1 :         if (alloc.align_size &lt; sizeof(void*))</span>
+<span class="lineNum">     569 </span><span class="lineNoCov">          0 :                 abort();</span>
+<span class="lineNum">     570 </span><span class="lineCov">          1 :         tommy_allocator_done(&amp;alloc);</span>
+<span class="lineNum">     571 </span>            : 
+<span class="lineNum">     572 </span>            :         /* ensure correct alignment */
+<span class="lineNum">     573 </span><span class="lineCov">          1 :         tommy_allocator_init(&amp;alloc, sizeof(void*) - 1, sizeof(void*));</span>
+<span class="lineNum">     574 </span><span class="lineCov">          1 :         if (alloc.block_size != sizeof(void*))</span>
+<span class="lineNum">     575 </span><span class="lineNoCov">          0 :                 abort();</span>
+<span class="lineNum">     576 </span><span class="lineCov">          1 :         tommy_allocator_done(&amp;alloc);</span>
+<span class="lineNum">     577 </span>            : 
+<span class="lineNum">     578 </span><span class="lineCov">          1 :         tommy_allocator_init(&amp;alloc, 64, 64);</span>
+<span class="lineNum">     579 </span>            : 
+<span class="lineNum">     580 </span><span class="lineCov">          1 :         START(&quot;alloc&quot;);</span>
+<span class="lineNum">     581 </span><span class="lineCov">   10000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">     582 </span><span class="lineCov">   10000000 :                 PTR[i] = tommy_allocator_alloc(&amp;alloc);</span>
+<span class="lineNum">     583 </span>            :         }
+<span class="lineNum">     584 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     585 </span>            : 
+<span class="lineNum">     586 </span><span class="lineCov">          1 :         START(&quot;free&quot;);</span>
+<span class="lineNum">     587 </span><span class="lineCov">   10000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">     588 </span><span class="lineCov">   10000000 :                 tommy_allocator_free(&amp;alloc, PTR[i]);</span>
+<span class="lineNum">     589 </span>            :         }
+<span class="lineNum">     590 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     591 </span>            : 
+<span class="lineNum">     592 </span><span class="lineCov">          1 :         tommy_allocator_done(&amp;alloc);</span>
+<span class="lineNum">     593 </span>            : 
+<span class="lineNum">     594 </span><span class="lineCov">          1 :         free(PTR);</span>
+<a name="595"><span class="lineNum">     595 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">     596 </span>            : 
+<span class="lineNum">     597 </span><span class="lineCov">          5 : void test_list_order(tommy_node* list)</span>
+<span class="lineNum">     598 </span>            : {
+<span class="lineNum">     599 </span>            :         tommy_node* node;
+<span class="lineNum">     600 </span>            : 
+<span class="lineNum">     601 </span><span class="lineCov">          5 :         node = list;</span>
+<span class="lineNum">     602 </span><span class="lineCov">    5000010 :         while (node) {</span>
+<span class="lineNum">     603 </span><span class="lineCov">    5000000 :                 if (node-&gt;next) {</span>
+<span class="lineNum">     604 </span><span class="lineCov">    4999995 :                         const struct object* a = node-&gt;data;</span>
+<span class="lineNum">     605 </span><span class="lineCov">    4999995 :                         const struct object* b = node-&gt;next-&gt;data;</span>
+<span class="lineNum">     606 </span>            :                         /* check order */
+<span class="lineNum">     607 </span><span class="lineCov">    4999995 :                         if (a-&gt;value &gt; b-&gt;value)</span>
+<span class="lineNum">     608 </span><span class="lineNoCov">          0 :                                 abort();</span>
+<span class="lineNum">     609 </span>            :                         /* check order for stable sort */
+<span class="lineNum">     610 </span><span class="lineCov">    4999995 :                         if (a-&gt;value == b-&gt;value &amp;&amp; a &gt; b)</span>
+<span class="lineNum">     611 </span><span class="lineNoCov">          0 :                                 abort();</span>
+<span class="lineNum">     612 </span>            :                 }
+<span class="lineNum">     613 </span><span class="lineCov">    5000000 :                 node = node-&gt;next;</span>
+<span class="lineNum">     614 </span>            :         }
+<a name="615"><span class="lineNum">     615 </span><span class="lineCov">          5 : }</span></a>
+<span class="lineNum">     616 </span>            : 
+<span class="lineNum">     617 </span><span class="lineCov">          1 : void test_list(void)</span>
+<span class="lineNum">     618 </span>            : {
+<span class="lineNum">     619 </span>            :         struct object* LIST;
+<span class="lineNum">     620 </span>            :         struct object_vector* VECTOR;
+<span class="lineNum">     621 </span>            :         tommy_node* list;
+<span class="lineNum">     622 </span>            :         unsigned i;
+<span class="lineNum">     623 </span><span class="lineCov">          1 :         const unsigned size = TOMMY_SIZE;</span>
+<span class="lineNum">     624 </span>            : 
+<span class="lineNum">     625 </span><span class="lineCov">          1 :         LIST = malloc(size * sizeof(struct object));</span>
+<span class="lineNum">     626 </span><span class="lineCov">          1 :         VECTOR = malloc(size * sizeof(struct object_vector));</span>
+<span class="lineNum">     627 </span>            : 
+<span class="lineNum">     628 </span><span class="lineCov">    1000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">     629 </span><span class="lineCov">    1000000 :                 VECTOR[i].value = LIST[i].value = 0;</span>
+<span class="lineNum">     630 </span>            :         }
+<span class="lineNum">     631 </span>            : 
+<span class="lineNum">     632 </span><span class="lineCov">          1 :         tommy_list_init(&amp;list);</span>
+<span class="lineNum">     633 </span>            : 
+<span class="lineNum">     634 </span><span class="lineCov">          1 :         if (!tommy_list_empty(&amp;list))</span>
+<span class="lineNum">     635 </span><span class="lineNoCov">          0 :                 abort();</span>
+<span class="lineNum">     636 </span>            : 
+<span class="lineNum">     637 </span><span class="lineCov">          1 :         if (tommy_list_tail(&amp;list) != 0)</span>
+<span class="lineNum">     638 </span><span class="lineNoCov">          0 :                 abort();</span>
+<span class="lineNum">     639 </span>            : 
+<span class="lineNum">     640 </span><span class="lineCov">          1 :         if (tommy_list_head(&amp;list) != 0)</span>
+<span class="lineNum">     641 </span><span class="lineNoCov">          0 :                 abort();</span>
+<span class="lineNum">     642 </span>            : 
+<span class="lineNum">     643 </span><span class="lineCov">    1000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">     644 </span><span class="lineCov">    1000000 :                 VECTOR[i].value = LIST[i].value = rnd(size);</span>
+<span class="lineNum">     645 </span><span class="lineCov">    1000000 :                 tommy_list_insert_tail(&amp;list, &amp;LIST[i].node, &amp;LIST[i]);</span>
+<span class="lineNum">     646 </span>            :         }
+<span class="lineNum">     647 </span>            : 
+<span class="lineNum">     648 </span><span class="lineCov">          1 :         START(&quot;sort random&quot;);</span>
+<span class="lineNum">     649 </span><span class="lineCov">          1 :         tommy_list_sort(&amp;list, compare);</span>
+<span class="lineNum">     650 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     651 </span>            : 
+<span class="lineNum">     652 </span><span class="lineCov">          1 :         START(&quot;C qsort random&quot;);</span>
+<span class="lineNum">     653 </span><span class="lineCov">          1 :         qsort(VECTOR, size, sizeof(VECTOR[0]), compare_vector);</span>
+<span class="lineNum">     654 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     655 </span>            : 
+<span class="lineNum">     656 </span><span class="lineCov">          1 :         test_list_order(list);</span>
+<span class="lineNum">     657 </span>            : 
+<span class="lineNum">     658 </span>            :         /* forward order with some (1%) random values */
+<span class="lineNum">     659 </span><span class="lineCov">          1 :         list = 0;</span>
+<span class="lineNum">     660 </span><span class="lineCov">    1000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">     661 </span><span class="lineCov">    1000000 :                 VECTOR[i].value = LIST[i].value = i;</span>
+<span class="lineNum">     662 </span><span class="lineCov">    1000000 :                 if (rnd(100) == 0)</span>
+<span class="lineNum">     663 </span><span class="lineCov">       9981 :                         VECTOR[i].value = LIST[i].value = rnd(size);</span>
+<span class="lineNum">     664 </span><span class="lineCov">    1000000 :                 tommy_list_insert_tail(&amp;list, &amp;LIST[i].node, &amp;LIST[i]);</span>
+<span class="lineNum">     665 </span>            :         }
+<span class="lineNum">     666 </span>            : 
+<span class="lineNum">     667 </span><span class="lineCov">          1 :         START(&quot;sort partially ordered&quot;);</span>
+<span class="lineNum">     668 </span><span class="lineCov">          1 :         tommy_list_sort(&amp;list, compare);</span>
+<span class="lineNum">     669 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     670 </span>            : 
+<span class="lineNum">     671 </span><span class="lineCov">          1 :         START(&quot;C qsort partially ordered&quot;);</span>
+<span class="lineNum">     672 </span><span class="lineCov">          1 :         qsort(VECTOR, size, sizeof(VECTOR[0]), compare_vector);</span>
+<span class="lineNum">     673 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     674 </span>            : 
+<span class="lineNum">     675 </span><span class="lineCov">          1 :         test_list_order(list);</span>
+<span class="lineNum">     676 </span>            : 
+<span class="lineNum">     677 </span>            :         /* forward order */
+<span class="lineNum">     678 </span><span class="lineCov">          1 :         list = 0;</span>
+<span class="lineNum">     679 </span><span class="lineCov">    1000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">     680 </span><span class="lineCov">    1000000 :                 VECTOR[i].value = LIST[i].value = i;</span>
+<span class="lineNum">     681 </span><span class="lineCov">    1000000 :                 tommy_list_insert_tail(&amp;list, &amp;LIST[i].node, &amp;LIST[i]);</span>
+<span class="lineNum">     682 </span>            :         }
+<span class="lineNum">     683 </span>            : 
+<span class="lineNum">     684 </span><span class="lineCov">          1 :         START(&quot;sort forward&quot;);</span>
+<span class="lineNum">     685 </span><span class="lineCov">          1 :         tommy_list_sort(&amp;list, compare);</span>
+<span class="lineNum">     686 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     687 </span>            : 
+<span class="lineNum">     688 </span><span class="lineCov">          1 :         START(&quot;C qsort forward&quot;);</span>
+<span class="lineNum">     689 </span><span class="lineCov">          1 :         qsort(VECTOR, size, sizeof(VECTOR[0]), compare_vector);</span>
+<span class="lineNum">     690 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     691 </span>            : 
+<span class="lineNum">     692 </span><span class="lineCov">          1 :         test_list_order(list);</span>
+<span class="lineNum">     693 </span>            : 
+<span class="lineNum">     694 </span>            :         /* backward order */
+<span class="lineNum">     695 </span><span class="lineCov">          1 :         list = 0;</span>
+<span class="lineNum">     696 </span><span class="lineCov">    1000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">     697 </span><span class="lineCov">    1000000 :                 VECTOR[i].value = LIST[i].value = size - 1 - i;</span>
+<span class="lineNum">     698 </span><span class="lineCov">    1000000 :                 tommy_list_insert_tail(&amp;list, &amp;LIST[i].node, &amp;LIST[i]);</span>
+<span class="lineNum">     699 </span>            :         }
+<span class="lineNum">     700 </span>            : 
+<span class="lineNum">     701 </span><span class="lineCov">          1 :         START(&quot;sort backward&quot;);</span>
+<span class="lineNum">     702 </span><span class="lineCov">          1 :         tommy_list_sort(&amp;list, compare);</span>
+<span class="lineNum">     703 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     704 </span>            : 
+<span class="lineNum">     705 </span><span class="lineCov">          1 :         START(&quot;C qsort backward&quot;);</span>
+<span class="lineNum">     706 </span><span class="lineCov">          1 :         qsort(VECTOR, size, sizeof(VECTOR[0]), compare_vector);</span>
+<span class="lineNum">     707 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     708 </span>            : 
+<span class="lineNum">     709 </span><span class="lineCov">          1 :         test_list_order(list);</span>
+<span class="lineNum">     710 </span>            : 
+<span class="lineNum">     711 </span>            :         /* use a small range of random value to insert a lot of duplicates */
+<span class="lineNum">     712 </span><span class="lineCov">          1 :         list = 0;</span>
+<span class="lineNum">     713 </span><span class="lineCov">    1000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">     714 </span><span class="lineCov">    1000000 :                 VECTOR[i].value = LIST[i].value = rnd(size / 1000 + 2);</span>
+<span class="lineNum">     715 </span><span class="lineCov">    1000000 :                 tommy_list_insert_tail(&amp;list, &amp;LIST[i].node, &amp;LIST[i]);</span>
+<span class="lineNum">     716 </span>            :         }
+<span class="lineNum">     717 </span>            : 
+<span class="lineNum">     718 </span><span class="lineCov">          1 :         START(&quot;sort random duplicate&quot;);</span>
+<span class="lineNum">     719 </span><span class="lineCov">          1 :         tommy_list_sort(&amp;list, compare);</span>
+<span class="lineNum">     720 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     721 </span>            : 
+<span class="lineNum">     722 </span><span class="lineCov">          1 :         START(&quot;C qsort random duplicate&quot;);</span>
+<span class="lineNum">     723 </span><span class="lineCov">          1 :         qsort(VECTOR, size, sizeof(VECTOR[0]), compare_vector);</span>
+<span class="lineNum">     724 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     725 </span>            : 
+<span class="lineNum">     726 </span><span class="lineCov">          1 :         test_list_order(list);</span>
+<span class="lineNum">     727 </span>            : 
+<span class="lineNum">     728 </span><span class="lineCov">          1 :         free(LIST);</span>
+<span class="lineNum">     729 </span><span class="lineCov">          1 :         free(VECTOR);</span>
+<a name="730"><span class="lineNum">     730 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">     731 </span>            : 
+<span class="lineNum">     732 </span><span class="lineCov">          1 : void test_array(void)</span>
+<span class="lineNum">     733 </span>            : {
+<span class="lineNum">     734 </span>            :         tommy_array array;
+<span class="lineNum">     735 </span>            :         tommy_uintptr_t i;
+<span class="lineNum">     736 </span><span class="lineCov">          1 :         const unsigned size = 50 * TOMMY_SIZE;</span>
+<span class="lineNum">     737 </span>            : 
+<span class="lineNum">     738 </span><span class="lineCov">          1 :         tommy_array_init(&amp;array);</span>
+<span class="lineNum">     739 </span>            : 
+<span class="lineNum">     740 </span><span class="lineCov">          1 :         START(&quot;array init&quot;);</span>
+<span class="lineNum">     741 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">     742 </span><span class="lineCov">   50000000 :                 tommy_array_grow(&amp;array, i + 1);</span>
+<span class="lineNum">     743 </span><span class="lineCov">   50000000 :                 if (tommy_array_get(&amp;array, i) != 0)</span>
+<span class="lineNum">     744 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">     745 </span>            :         }
+<span class="lineNum">     746 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     747 </span>            : 
+<span class="lineNum">     748 </span><span class="lineCov">          1 :         START(&quot;array set&quot;);</span>
+<span class="lineNum">     749 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">     750 </span><span class="lineCov">   50000000 :                 tommy_array_set(&amp;array, i, (void*)i);</span>
+<span class="lineNum">     751 </span>            :         }
+<span class="lineNum">     752 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     753 </span>            : 
+<span class="lineNum">     754 </span><span class="lineCov">          1 :         START(&quot;array get&quot;);</span>
+<span class="lineNum">     755 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">     756 </span><span class="lineCov">   50000000 :                 if (tommy_array_get(&amp;array, i) != (void*)i)</span>
+<span class="lineNum">     757 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">     758 </span>            :         }
+<span class="lineNum">     759 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     760 </span>            : 
+<span class="lineNum">     761 </span><span class="lineCov">          1 :         if (tommy_array_memory_usage(&amp;array) &lt; size * sizeof(void*))</span>
+<span class="lineNum">     762 </span><span class="lineNoCov">          0 :                 abort();</span>
+<span class="lineNum">     763 </span>            : 
+<span class="lineNum">     764 </span><span class="lineCov">          1 :         tommy_array_done(&amp;array);</span>
+<a name="765"><span class="lineNum">     765 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">     766 </span>            : 
+<span class="lineNum">     767 </span><span class="lineCov">          1 : void test_arrayof(void)</span>
+<span class="lineNum">     768 </span>            : {
+<span class="lineNum">     769 </span>            :         tommy_arrayof arrayof;
+<span class="lineNum">     770 </span>            :         unsigned i;
+<span class="lineNum">     771 </span><span class="lineCov">          1 :         const unsigned size = 50 * TOMMY_SIZE;</span>
+<span class="lineNum">     772 </span>            : 
+<span class="lineNum">     773 </span><span class="lineCov">          1 :         tommy_arrayof_init(&amp;arrayof, sizeof(unsigned));</span>
+<span class="lineNum">     774 </span>            : 
+<span class="lineNum">     775 </span><span class="lineCov">          1 :         START(&quot;arrayof init&quot;);</span>
+<span class="lineNum">     776 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">     777 </span><span class="lineCov">   50000000 :                 tommy_arrayof_grow(&amp;arrayof, i + 1);</span>
+<span class="lineNum">     778 </span><span class="lineCov">   50000000 :                 unsigned* ref = tommy_arrayof_ref(&amp;arrayof, i);</span>
+<span class="lineNum">     779 </span><span class="lineCov">   50000000 :                 if (*ref != 0)</span>
+<span class="lineNum">     780 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">     781 </span>            :         }
+<span class="lineNum">     782 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     783 </span>            : 
+<span class="lineNum">     784 </span><span class="lineCov">          1 :         START(&quot;arrayof set&quot;);</span>
+<span class="lineNum">     785 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">     786 </span><span class="lineCov">   50000000 :                 unsigned* ref = tommy_arrayof_ref(&amp;arrayof, i);</span>
+<span class="lineNum">     787 </span><span class="lineCov">   50000000 :                 *ref = i;</span>
+<span class="lineNum">     788 </span>            :         }
+<span class="lineNum">     789 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     790 </span>            : 
+<span class="lineNum">     791 </span><span class="lineCov">          1 :         START(&quot;arrayof get&quot;);</span>
+<span class="lineNum">     792 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">     793 </span><span class="lineCov">   50000000 :                 unsigned* ref = tommy_arrayof_ref(&amp;arrayof, i);</span>
+<span class="lineNum">     794 </span><span class="lineCov">   50000000 :                 if (*ref != i)</span>
+<span class="lineNum">     795 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">     796 </span>            :         }
+<span class="lineNum">     797 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     798 </span>            : 
+<span class="lineNum">     799 </span><span class="lineCov">          1 :         if (tommy_arrayof_memory_usage(&amp;arrayof) &lt; size * sizeof(unsigned))</span>
+<span class="lineNum">     800 </span><span class="lineNoCov">          0 :                 abort();</span>
+<span class="lineNum">     801 </span>            : 
+<span class="lineNum">     802 </span><span class="lineCov">          1 :         tommy_arrayof_done(&amp;arrayof);</span>
+<a name="803"><span class="lineNum">     803 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">     804 </span>            : 
+<span class="lineNum">     805 </span><span class="lineCov">          1 : void test_arrayblk(void)</span>
+<span class="lineNum">     806 </span>            : {
+<span class="lineNum">     807 </span>            :         tommy_arrayblk arrayblk;
+<span class="lineNum">     808 </span>            :         tommy_uintptr_t i;
+<span class="lineNum">     809 </span><span class="lineCov">          1 :         const unsigned size = 50 * TOMMY_SIZE;</span>
+<span class="lineNum">     810 </span>            : 
+<span class="lineNum">     811 </span><span class="lineCov">          1 :         tommy_arrayblk_init(&amp;arrayblk);</span>
+<span class="lineNum">     812 </span>            : 
+<span class="lineNum">     813 </span><span class="lineCov">          1 :         START(&quot;arrayblk init&quot;);</span>
+<span class="lineNum">     814 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">     815 </span><span class="lineCov">   50000000 :                 tommy_arrayblk_grow(&amp;arrayblk, i + 1);</span>
+<span class="lineNum">     816 </span><span class="lineCov">   50000000 :                 if (tommy_arrayblk_get(&amp;arrayblk, i) != 0)</span>
+<span class="lineNum">     817 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">     818 </span>            :         }
+<span class="lineNum">     819 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     820 </span>            : 
+<span class="lineNum">     821 </span><span class="lineCov">          1 :         START(&quot;arrayblk set&quot;);</span>
+<span class="lineNum">     822 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">     823 </span><span class="lineCov">   50000000 :                 tommy_arrayblk_set(&amp;arrayblk, i, (void*)i);</span>
+<span class="lineNum">     824 </span>            :         }
+<span class="lineNum">     825 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     826 </span>            : 
+<span class="lineNum">     827 </span><span class="lineCov">          1 :         START(&quot;arrayblk get&quot;);</span>
+<span class="lineNum">     828 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">     829 </span><span class="lineCov">   50000000 :                 if (tommy_arrayblk_get(&amp;arrayblk, i) != (void*)i)</span>
+<span class="lineNum">     830 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">     831 </span>            :         }
+<span class="lineNum">     832 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     833 </span>            : 
+<span class="lineNum">     834 </span><span class="lineCov">          1 :         if (tommy_arrayblk_memory_usage(&amp;arrayblk) &lt; size * sizeof(void*))</span>
+<span class="lineNum">     835 </span><span class="lineNoCov">          0 :                 abort();</span>
+<span class="lineNum">     836 </span>            : 
+<span class="lineNum">     837 </span><span class="lineCov">          1 :         tommy_arrayblk_done(&amp;arrayblk);</span>
+<a name="838"><span class="lineNum">     838 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">     839 </span>            : 
+<span class="lineNum">     840 </span><span class="lineCov">          1 : void test_arrayblkof(void)</span>
+<span class="lineNum">     841 </span>            : {
+<span class="lineNum">     842 </span>            :         tommy_arrayblkof arrayblkof;
+<span class="lineNum">     843 </span>            :         unsigned i;
+<span class="lineNum">     844 </span><span class="lineCov">          1 :         const unsigned size = 50 * TOMMY_SIZE;</span>
+<span class="lineNum">     845 </span>            : 
+<span class="lineNum">     846 </span><span class="lineCov">          1 :         tommy_arrayblkof_init(&amp;arrayblkof, sizeof(unsigned));</span>
+<span class="lineNum">     847 </span>            : 
+<span class="lineNum">     848 </span><span class="lineCov">          1 :         START(&quot;arrayblkof init&quot;);</span>
+<span class="lineNum">     849 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">     850 </span><span class="lineCov">   50000000 :                 tommy_arrayblkof_grow(&amp;arrayblkof, i + 1);</span>
+<span class="lineNum">     851 </span><span class="lineCov">   50000000 :                 unsigned* ref = tommy_arrayblkof_ref(&amp;arrayblkof, i);</span>
+<span class="lineNum">     852 </span><span class="lineCov">   50000000 :                 if (*ref != 0)</span>
+<span class="lineNum">     853 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">     854 </span>            :         }
+<span class="lineNum">     855 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     856 </span>            : 
+<span class="lineNum">     857 </span><span class="lineCov">          1 :         START(&quot;arrayblkof set&quot;);</span>
+<span class="lineNum">     858 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">     859 </span><span class="lineCov">   50000000 :                 unsigned* ref = tommy_arrayblkof_ref(&amp;arrayblkof, i);</span>
+<span class="lineNum">     860 </span><span class="lineCov">   50000000 :                 *ref = i;</span>
+<span class="lineNum">     861 </span>            :         }
+<span class="lineNum">     862 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     863 </span>            : 
+<span class="lineNum">     864 </span><span class="lineCov">          1 :         START(&quot;arrayblkof get&quot;);</span>
+<span class="lineNum">     865 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">     866 </span><span class="lineCov">   50000000 :                 unsigned* ref = tommy_arrayblkof_ref(&amp;arrayblkof, i);</span>
+<span class="lineNum">     867 </span><span class="lineCov">   50000000 :                 if (*ref != i)</span>
+<span class="lineNum">     868 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">     869 </span>            :         }
+<span class="lineNum">     870 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     871 </span>            : 
+<span class="lineNum">     872 </span><span class="lineCov">          1 :         if (tommy_arrayblkof_memory_usage(&amp;arrayblkof) &lt; size * sizeof(unsigned))</span>
+<span class="lineNum">     873 </span><span class="lineNoCov">          0 :                 abort();</span>
+<span class="lineNum">     874 </span>            : 
+<span class="lineNum">     875 </span><span class="lineCov">          1 :         tommy_arrayblkof_done(&amp;arrayblkof);</span>
+<span class="lineNum">     876 </span><span class="lineCov">          1 : }</span>
+<span class="lineNum">     877 </span>            : 
+<a name="878"><span class="lineNum">     878 </span>            : static unsigned the_count;</a>
+<span class="lineNum">     879 </span>            : 
+<span class="lineNum">     880 </span><span class="lineCov">   40492500 : static void count_callback(void* data)</span>
+<span class="lineNum">     881 </span>            : {
+<span class="lineNum">     882 </span>            :         (void)data;
+<span class="lineNum">     883 </span><span class="lineCov">   40492500 :         ++the_count;</span>
+<a name="884"><span class="lineNum">     884 </span><span class="lineCov">   40492500 : }</span></a>
+<span class="lineNum">     885 </span>            : 
+<span class="lineNum">     886 </span><span class="lineCov">    3005673 : static void count_arg_callback(void* arg, void* data)</span>
+<span class="lineNum">     887 </span>            : {
+<span class="lineNum">     888 </span><span class="lineCov">    3005673 :         unsigned* count = arg;</span>
+<span class="lineNum">     889 </span>            :         (void)data;
+<span class="lineNum">     890 </span><span class="lineCov">    3005673 :         ++*count;</span>
+<a name="891"><span class="lineNum">     891 </span><span class="lineCov">    3005673 : }</span></a>
+<span class="lineNum">     892 </span>            : 
+<span class="lineNum">     893 </span><span class="lineCov">   26998173 : static int search_callback(const void* arg, const void* obj)</span>
+<span class="lineNum">     894 </span>            : {
+<span class="lineNum">     895 </span><span class="lineCov">   26998173 :         return arg != obj;</span>
+<a name="896"><span class="lineNum">     896 </span>            : }</a>
+<span class="lineNum">     897 </span>            : 
+<span class="lineNum">     898 </span><span class="lineCov">          1 : void test_hashtable(void)</span>
+<span class="lineNum">     899 </span>            : {
+<span class="lineNum">     900 </span>            :         tommy_hashtable hashtable;
+<span class="lineNum">     901 </span>            :         struct object_hash* HASH;
+<span class="lineNum">     902 </span>            :         unsigned i, j, n;
+<span class="lineNum">     903 </span>            :         unsigned limit;
+<span class="lineNum">     904 </span><span class="lineCov">          1 :         const unsigned size = TOMMY_SIZE;</span>
+<span class="lineNum">     905 </span><span class="lineCov">          1 :         const unsigned module = TOMMY_SIZE / 4;</span>
+<span class="lineNum">     906 </span>            : 
+<span class="lineNum">     907 </span><span class="lineCov">          1 :         HASH = malloc(size * sizeof(struct object_hash));</span>
+<span class="lineNum">     908 </span>            : 
+<span class="lineNum">     909 </span><span class="lineCov">    1000001 :         for(i=0;i&lt;size;++i)</span>
+<span class="lineNum">     910 </span><span class="lineCov">    1000000 :                 HASH[i].value = i % module;</span>
+<span class="lineNum">     911 </span>            : 
+<span class="lineNum">     912 </span>            :         /* initialize a very small hashtable */
+<span class="lineNum">     913 </span><span class="lineCov">          1 :         tommy_hashtable_init(&amp;hashtable, 1);</span>
+<span class="lineNum">     914 </span>            : 
+<span class="lineNum">     915 </span>            :         /* check that we allocated space for more elements */
+<span class="lineNum">     916 </span><span class="lineCov">          1 :         if (hashtable.bucket_max == 1)</span>
+<span class="lineNum">     917 </span><span class="lineNoCov">          0 :                 abort();</span>
+<span class="lineNum">     918 </span>            : 
+<span class="lineNum">     919 </span>            :         /* destroy it as empty */
+<span class="lineNum">     920 </span><span class="lineCov">          1 :         tommy_hashtable_done(&amp;hashtable);</span>
+<span class="lineNum">     921 </span>            : 
+<span class="lineNum">     922 </span><span class="lineCov">          1 :         START(&quot;hashtable stack&quot;);</span>
+<span class="lineNum">     923 </span><span class="lineCov">          1 :         limit = 5 * isqrt(size);</span>
+<span class="lineNum">     924 </span><span class="lineCov">       5002 :         for(n=0;n&lt;=limit;++n) {</span>
+<span class="lineNum">     925 </span>            :                 /* last iteration is full size */
+<span class="lineNum">     926 </span><span class="lineCov">       5001 :                 if (n == limit)</span>
+<span class="lineNum">     927 </span><span class="lineCov">          1 :                         n = limit = size;</span>
+<span class="lineNum">     928 </span>            : 
+<span class="lineNum">     929 </span><span class="lineCov">       5001 :                 tommy_hashtable_init(&amp;hashtable, limit / 2);</span>
+<span class="lineNum">     930 </span>            : 
+<span class="lineNum">     931 </span>            :                 /* insert */
+<span class="lineNum">     932 </span><span class="lineCov">   13502501 :                 for(i=0;i&lt;n;++i)</span>
+<span class="lineNum">     933 </span><span class="lineCov">   13497500 :                         tommy_hashtable_insert(&amp;hashtable, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
+<span class="lineNum">     934 </span>            : 
+<span class="lineNum">     935 </span><span class="lineCov">       5001 :                 if (tommy_hashtable_memory_usage(&amp;hashtable) &lt; n * sizeof(void*))</span>
+<span class="lineNum">     936 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">     937 </span>            : 
+<span class="lineNum">     938 </span><span class="lineCov">       5001 :                 if (tommy_hashtable_count(&amp;hashtable) != n)</span>
+<span class="lineNum">     939 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">     940 </span>            : 
+<span class="lineNum">     941 </span><span class="lineCov">       5001 :                 the_count = 0;</span>
+<span class="lineNum">     942 </span><span class="lineCov">       5001 :                 tommy_hashtable_foreach(&amp;hashtable, count_callback);</span>
+<span class="lineNum">     943 </span><span class="lineCov">       5001 :                 if (the_count != n)</span>
+<span class="lineNum">     944 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">     945 </span>            : 
+<span class="lineNum">     946 </span>            :                 /* remove in backward order */
+<span class="lineNum">     947 </span><span class="lineCov">    6752501 :                 for(i=0;i&lt;n/2;++i)</span>
+<span class="lineNum">     948 </span><span class="lineCov">    6747500 :                         tommy_hashtable_remove_existing(&amp;hashtable, &amp;HASH[n-i-1].node);</span>
+<span class="lineNum">     949 </span>            : 
+<span class="lineNum">     950 </span>            :                 /* remove missing */
+<span class="lineNum">     951 </span><span class="lineCov">    6752501 :                 for(i=0;i&lt;n/2;++i)</span>
+<span class="lineNum">     952 </span><span class="lineCov">    6747500 :                         if (tommy_hashtable_remove(&amp;hashtable, search_callback, &amp;HASH[n-i-1], HASH[n-i-1].value) != 0)</span>
+<span class="lineNum">     953 </span><span class="lineNoCov">          0 :                                 abort();</span>
+<span class="lineNum">     954 </span>            : 
+<span class="lineNum">     955 </span>            :                 /* remove search */
+<span class="lineNum">     956 </span><span class="lineCov">    6752501 :                 for(i=0;i&lt;n/2;++i)</span>
+<span class="lineNum">     957 </span><span class="lineCov">    6747500 :                         if (tommy_hashtable_remove(&amp;hashtable, search_callback, &amp;HASH[n/2-i-1], HASH[n/2-i-1].value) == 0)</span>
+<span class="lineNum">     958 </span><span class="lineNoCov">          0 :                                 abort();</span>
+<span class="lineNum">     959 </span>            : 
+<span class="lineNum">     960 </span><span class="lineCov">       5001 :                 tommy_hashtable_done(&amp;hashtable);</span>
+<span class="lineNum">     961 </span>            :         }
+<span class="lineNum">     962 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     963 </span>            : 
+<span class="lineNum">     964 </span><span class="lineCov">          1 :         START(&quot;hashtable queue&quot;);</span>
+<span class="lineNum">     965 </span><span class="lineCov">          1 :         limit = isqrt(size) / 16;</span>
+<span class="lineNum">     966 </span><span class="lineCov">         64 :         for(n=0;n&lt;=limit;++n) {</span>
+<span class="lineNum">     967 </span>            :                 /* last iteration is full size */
+<span class="lineNum">     968 </span><span class="lineCov">         63 :                 if (n == limit)</span>
+<span class="lineNum">     969 </span><span class="lineCov">          1 :                         n = limit = size;</span>
+<span class="lineNum">     970 </span>            : 
+<span class="lineNum">     971 </span><span class="lineCov">         63 :                 tommy_hashtable_init(&amp;hashtable, limit / 2);</span>
+<span class="lineNum">     972 </span>            : 
+<span class="lineNum">     973 </span>            :                 /* insert first run */
+<span class="lineNum">     974 </span><span class="lineCov">    1001954 :                 for(j=0,i=0;i&lt;n;++i)</span>
+<span class="lineNum">     975 </span><span class="lineCov">    1001891 :                         tommy_hashtable_insert(&amp;hashtable, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
+<span class="lineNum">     976 </span>            : 
+<span class="lineNum">     977 </span><span class="lineCov">         63 :                 the_count = 0;</span>
+<span class="lineNum">     978 </span><span class="lineCov">         63 :                 tommy_hashtable_foreach_arg(&amp;hashtable, count_arg_callback, &amp;the_count);</span>
+<span class="lineNum">     979 </span><span class="lineCov">         63 :                 if (the_count != n)</span>
+<span class="lineNum">     980 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">     981 </span>            : 
+<span class="lineNum">     982 </span>            :                 /* insert all the others */
+<span class="lineNum">     983 </span><span class="lineCov">   61998172 :                 for(;i&lt;size;++i,++j) {</span>
+<span class="lineNum">     984 </span>            :                         /* insert one */
+<span class="lineNum">     985 </span><span class="lineCov">   61998109 :                         tommy_hashtable_insert(&amp;hashtable, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
+<span class="lineNum">     986 </span>            : 
+<span class="lineNum">     987 </span>            :                         /* remove one */
+<span class="lineNum">     988 </span><span class="lineCov">   61998109 :                         tommy_hashtable_remove_existing(&amp;hashtable, &amp;HASH[j].node);</span>
+<span class="lineNum">     989 </span>            :                 }
+<span class="lineNum">     990 </span>            : 
+<span class="lineNum">     991 </span><span class="lineCov">    1001954 :                 for(;j&lt;size;++j)</span>
+<span class="lineNum">     992 </span><span class="lineCov">    1001891 :                         if (tommy_hashtable_remove(&amp;hashtable, search_callback, &amp;HASH[j], HASH[j].value) == 0)</span>
+<span class="lineNum">     993 </span><span class="lineNoCov">          0 :                                 abort();</span>
+<span class="lineNum">     994 </span>            : 
+<span class="lineNum">     995 </span><span class="lineCov">         63 :                 tommy_hashtable_done(&amp;hashtable);</span>
+<span class="lineNum">     996 </span>            :         }
+<span class="lineNum">     997 </span><span class="lineCov">          1 :         STOP();</span>
+<a name="998"><span class="lineNum">     998 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">     999 </span>            : 
+<span class="lineNum">    1000 </span><span class="lineCov">          1 : void test_hashdyn(void)</span>
+<span class="lineNum">    1001 </span>            : {
+<span class="lineNum">    1002 </span>            :         tommy_hashdyn hashdyn;
+<span class="lineNum">    1003 </span>            :         struct object_hash* HASH;
+<span class="lineNum">    1004 </span>            :         unsigned i, j, n;
+<span class="lineNum">    1005 </span>            :         unsigned limit;
+<span class="lineNum">    1006 </span><span class="lineCov">          1 :         const unsigned size = TOMMY_SIZE;</span>
+<span class="lineNum">    1007 </span><span class="lineCov">          1 :         const unsigned module = TOMMY_SIZE / 4;</span>
+<span class="lineNum">    1008 </span>            : 
+<span class="lineNum">    1009 </span><span class="lineCov">          1 :         HASH = malloc(size * sizeof(struct object_hash));</span>
+<span class="lineNum">    1010 </span>            : 
+<span class="lineNum">    1011 </span><span class="lineCov">    1000001 :         for(i=0;i&lt;size;++i)</span>
+<span class="lineNum">    1012 </span><span class="lineCov">    1000000 :                 HASH[i].value = i % module;</span>
+<span class="lineNum">    1013 </span>            : 
+<span class="lineNum">    1014 </span><span class="lineCov">          1 :         START(&quot;hashdyn stack&quot;);</span>
+<span class="lineNum">    1015 </span><span class="lineCov">          1 :         limit = 5 * isqrt(size);</span>
+<span class="lineNum">    1016 </span><span class="lineCov">       5002 :         for(n=0;n&lt;=limit;++n) {</span>
+<span class="lineNum">    1017 </span>            :                 /* last iteration is full size */
+<span class="lineNum">    1018 </span><span class="lineCov">       5001 :                 if (n == limit)</span>
+<span class="lineNum">    1019 </span><span class="lineCov">          1 :                         n = limit = size;</span>
+<span class="lineNum">    1020 </span>            : 
+<span class="lineNum">    1021 </span><span class="lineCov">       5001 :                 tommy_hashdyn_init(&amp;hashdyn);</span>
+<span class="lineNum">    1022 </span>            : 
+<span class="lineNum">    1023 </span>            :                 /* insert */
+<span class="lineNum">    1024 </span><span class="lineCov">   13502501 :                 for(i=0;i&lt;n;++i)</span>
+<span class="lineNum">    1025 </span><span class="lineCov">   13497500 :                         tommy_hashdyn_insert(&amp;hashdyn, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
+<span class="lineNum">    1026 </span>            : 
+<span class="lineNum">    1027 </span><span class="lineCov">       5001 :                 if (tommy_hashdyn_memory_usage(&amp;hashdyn) &lt; n * sizeof(void*))</span>
+<span class="lineNum">    1028 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">    1029 </span>            : 
+<span class="lineNum">    1030 </span><span class="lineCov">       5001 :                 if (tommy_hashdyn_count(&amp;hashdyn) != n)</span>
+<span class="lineNum">    1031 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">    1032 </span>            : 
+<span class="lineNum">    1033 </span><span class="lineCov">       5001 :                 the_count = 0;</span>
+<span class="lineNum">    1034 </span><span class="lineCov">       5001 :                 tommy_hashdyn_foreach(&amp;hashdyn, count_callback);</span>
+<span class="lineNum">    1035 </span><span class="lineCov">       5001 :                 if (the_count != n)</span>
+<span class="lineNum">    1036 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">    1037 </span>            : 
+<span class="lineNum">    1038 </span>            :                 /* remove in backward order */
+<span class="lineNum">    1039 </span><span class="lineCov">    6752501 :                 for(i=0;i&lt;n/2;++i)</span>
+<span class="lineNum">    1040 </span><span class="lineCov">    6747500 :                         tommy_hashdyn_remove_existing(&amp;hashdyn, &amp;HASH[n-i-1].node);</span>
+<span class="lineNum">    1041 </span>            : 
+<span class="lineNum">    1042 </span>            :                 /* remove missing */
+<span class="lineNum">    1043 </span><span class="lineCov">    6752501 :                 for(i=0;i&lt;n/2;++i)</span>
+<span class="lineNum">    1044 </span><span class="lineCov">    6747500 :                         if (tommy_hashdyn_remove(&amp;hashdyn, search_callback, &amp;HASH[n-i-1], HASH[n-i-1].value) != 0)</span>
+<span class="lineNum">    1045 </span><span class="lineNoCov">          0 :                                 abort();</span>
+<span class="lineNum">    1046 </span>            : 
+<span class="lineNum">    1047 </span>            :                 /* remove search */
+<span class="lineNum">    1048 </span><span class="lineCov">    6752501 :                 for(i=0;i&lt;n/2;++i)</span>
+<span class="lineNum">    1049 </span><span class="lineCov">    6747500 :                         if (tommy_hashdyn_remove(&amp;hashdyn, search_callback, &amp;HASH[n/2-i-1], HASH[n/2-i-1].value) == 0)</span>
+<span class="lineNum">    1050 </span><span class="lineNoCov">          0 :                                 abort();</span>
+<span class="lineNum">    1051 </span>            : 
+<span class="lineNum">    1052 </span><span class="lineCov">       5001 :                 tommy_hashdyn_done(&amp;hashdyn);</span>
+<span class="lineNum">    1053 </span>            :         }
+<span class="lineNum">    1054 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">    1055 </span>            : 
+<span class="lineNum">    1056 </span><span class="lineCov">          1 :         START(&quot;hashdyn queue&quot;);</span>
+<span class="lineNum">    1057 </span><span class="lineCov">          1 :         limit = isqrt(size) / 16;</span>
+<span class="lineNum">    1058 </span><span class="lineCov">         64 :         for(n=0;n&lt;=limit;++n) {</span>
+<span class="lineNum">    1059 </span>            :                 /* last iteration is full size */
+<span class="lineNum">    1060 </span><span class="lineCov">         63 :                 if (n == limit)</span>
+<span class="lineNum">    1061 </span><span class="lineCov">          1 :                         n = limit = size;</span>
+<span class="lineNum">    1062 </span>            : 
+<span class="lineNum">    1063 </span><span class="lineCov">         63 :                 tommy_hashdyn_init(&amp;hashdyn);</span>
+<span class="lineNum">    1064 </span>            : 
+<span class="lineNum">    1065 </span>            :                 /* insert first run */
+<span class="lineNum">    1066 </span><span class="lineCov">    1001954 :                 for(j=0,i=0;i&lt;n;++i)</span>
+<span class="lineNum">    1067 </span><span class="lineCov">    1001891 :                         tommy_hashdyn_insert(&amp;hashdyn, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
+<span class="lineNum">    1068 </span>            : 
+<span class="lineNum">    1069 </span><span class="lineCov">         63 :                 the_count = 0;</span>
+<span class="lineNum">    1070 </span><span class="lineCov">         63 :                 tommy_hashdyn_foreach_arg(&amp;hashdyn, count_arg_callback, &amp;the_count);</span>
+<span class="lineNum">    1071 </span><span class="lineCov">         63 :                 if (the_count != n)</span>
+<span class="lineNum">    1072 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">    1073 </span>            : 
+<span class="lineNum">    1074 </span>            :                 /* insert all the others */
+<span class="lineNum">    1075 </span><span class="lineCov">   61998172 :                 for(;i&lt;size;++i,++j) {</span>
+<span class="lineNum">    1076 </span>            :                         /* insert one */
+<span class="lineNum">    1077 </span><span class="lineCov">   61998109 :                         tommy_hashdyn_insert(&amp;hashdyn, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
+<span class="lineNum">    1078 </span>            : 
+<span class="lineNum">    1079 </span>            :                         /* remove one */
+<span class="lineNum">    1080 </span><span class="lineCov">   61998109 :                         tommy_hashdyn_remove_existing(&amp;hashdyn, &amp;HASH[j].node);</span>
+<span class="lineNum">    1081 </span>            :                 }
+<span class="lineNum">    1082 </span>            : 
+<span class="lineNum">    1083 </span><span class="lineCov">    1001954 :                 for(;j&lt;size;++j)</span>
+<span class="lineNum">    1084 </span><span class="lineCov">    1001891 :                         if (tommy_hashdyn_remove(&amp;hashdyn, search_callback, &amp;HASH[j], HASH[j].value) == 0)</span>
+<span class="lineNum">    1085 </span><span class="lineNoCov">          0 :                                 abort();</span>
+<span class="lineNum">    1086 </span>            : 
+<span class="lineNum">    1087 </span><span class="lineCov">         63 :                 tommy_hashdyn_done(&amp;hashdyn);</span>
+<span class="lineNum">    1088 </span>            :         }
+<span class="lineNum">    1089 </span><span class="lineCov">          1 :         STOP();</span>
+<a name="1090"><span class="lineNum">    1090 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">    1091 </span>            : 
+<span class="lineNum">    1092 </span><span class="lineCov">          1 : void test_hashlin(void)</span>
+<span class="lineNum">    1093 </span>            : {
+<span class="lineNum">    1094 </span>            :         tommy_hashlin hashlin;
+<span class="lineNum">    1095 </span>            :         struct object_hash* HASH;
+<span class="lineNum">    1096 </span>            :         unsigned i, j, n;
+<span class="lineNum">    1097 </span>            :         unsigned limit;
+<span class="lineNum">    1098 </span><span class="lineCov">          1 :         const unsigned size = TOMMY_SIZE;</span>
+<span class="lineNum">    1099 </span><span class="lineCov">          1 :         const unsigned module = TOMMY_SIZE / 4;</span>
+<span class="lineNum">    1100 </span>            :         tommy_hashlin_node* bucket;
+<span class="lineNum">    1101 </span>            : 
+<span class="lineNum">    1102 </span><span class="lineCov">          1 :         HASH = malloc(size * sizeof(struct object_hash));</span>
+<span class="lineNum">    1103 </span>            : 
+<span class="lineNum">    1104 </span><span class="lineCov">    1000001 :         for(i=0;i&lt;size;++i)</span>
+<span class="lineNum">    1105 </span><span class="lineCov">    1000000 :                 HASH[i].value = i % module;</span>
+<span class="lineNum">    1106 </span>            : 
+<span class="lineNum">    1107 </span><span class="lineCov">          1 :         tommy_hashlin_init(&amp;hashlin);</span>
+<span class="lineNum">    1108 </span>            : 
+<span class="lineNum">    1109 </span>            :         /* insert */
+<span class="lineNum">    1110 </span><span class="lineCov">    1000001 :         for(i=0;i&lt;size;++i)</span>
+<span class="lineNum">    1111 </span><span class="lineCov">    1000000 :                 tommy_hashlin_insert(&amp;hashlin, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
+<span class="lineNum">    1112 </span>            : 
+<span class="lineNum">    1113 </span>            :         /* get the bucket of the last element */
+<span class="lineNum">    1114 </span><span class="lineCov">          1 :         bucket = tommy_hashlin_bucket(&amp;hashlin, module - 1);</span>
+<span class="lineNum">    1115 </span>            : 
+<span class="lineNum">    1116 </span>            :         /* search for element */
+<span class="lineNum">    1117 </span><span class="lineCov">          2 :         while (bucket) {</span>
+<span class="lineNum">    1118 </span><span class="lineCov">          1 :                 struct object_hash* obj = bucket-&gt;data;</span>
+<span class="lineNum">    1119 </span><span class="lineCov">          1 :                 if (obj-&gt;value == module - 1)</span>
+<span class="lineNum">    1120 </span><span class="lineCov">          1 :                         break;</span>
+<span class="lineNum">    1121 </span><span class="lineNoCov">          0 :                 bucket = bucket-&gt;next;</span>
+<span class="lineNum">    1122 </span>            :         }
+<span class="lineNum">    1123 </span><span class="lineCov">          1 :         if (bucket == 0)</span>
+<span class="lineNum">    1124 </span><span class="lineNoCov">          0 :                 abort();</span>
+<span class="lineNum">    1125 </span>            : 
+<span class="lineNum">    1126 </span>            :         /* deinitialize without removing elements */
+<span class="lineNum">    1127 </span><span class="lineCov">          1 :         tommy_hashlin_done(&amp;hashlin);</span>
+<span class="lineNum">    1128 </span>            : 
+<span class="lineNum">    1129 </span><span class="lineCov">          1 :         START(&quot;hashlin stack&quot;);</span>
+<span class="lineNum">    1130 </span><span class="lineCov">          1 :         limit = 5 * isqrt(size);</span>
+<span class="lineNum">    1131 </span><span class="lineCov">       5002 :         for(n=0;n&lt;=limit;++n) {</span>
+<span class="lineNum">    1132 </span>            :                 /* last iteration is full size */
+<span class="lineNum">    1133 </span><span class="lineCov">       5001 :                 if (n == limit)</span>
+<span class="lineNum">    1134 </span><span class="lineCov">          1 :                         n = limit = size;</span>
+<span class="lineNum">    1135 </span>            : 
+<span class="lineNum">    1136 </span><span class="lineCov">       5001 :                 tommy_hashlin_init(&amp;hashlin);</span>
+<span class="lineNum">    1137 </span>            : 
+<span class="lineNum">    1138 </span>            :                 /* insert */
+<span class="lineNum">    1139 </span><span class="lineCov">   13502501 :                 for(i=0;i&lt;n;++i)</span>
+<span class="lineNum">    1140 </span><span class="lineCov">   13497500 :                         tommy_hashlin_insert(&amp;hashlin, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
+<span class="lineNum">    1141 </span>            : 
+<span class="lineNum">    1142 </span><span class="lineCov">       5001 :                 if (tommy_hashlin_memory_usage(&amp;hashlin) &lt; n * sizeof(void*))</span>
+<span class="lineNum">    1143 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">    1144 </span>            : 
+<span class="lineNum">    1145 </span><span class="lineCov">       5001 :                 if (tommy_hashlin_count(&amp;hashlin) != n)</span>
+<span class="lineNum">    1146 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">    1147 </span>            : 
+<span class="lineNum">    1148 </span><span class="lineCov">       5001 :                 the_count = 0;</span>
+<span class="lineNum">    1149 </span><span class="lineCov">       5001 :                 tommy_hashlin_foreach(&amp;hashlin, count_callback);</span>
+<span class="lineNum">    1150 </span><span class="lineCov">       5001 :                 if (the_count != n)</span>
+<span class="lineNum">    1151 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">    1152 </span>            : 
+<span class="lineNum">    1153 </span>            :                 /* remove in backward order */
+<span class="lineNum">    1154 </span><span class="lineCov">    6752501 :                 for(i=0;i&lt;n/2;++i)</span>
+<span class="lineNum">    1155 </span><span class="lineCov">    6747500 :                         tommy_hashlin_remove_existing(&amp;hashlin, &amp;HASH[n-i-1].node);</span>
+<span class="lineNum">    1156 </span>            : 
+<span class="lineNum">    1157 </span>            :                 /* remove missing */
+<span class="lineNum">    1158 </span><span class="lineCov">    6752501 :                 for(i=0;i&lt;n/2;++i)</span>
+<span class="lineNum">    1159 </span><span class="lineCov">    6747500 :                         if (tommy_hashlin_remove(&amp;hashlin, search_callback, &amp;HASH[n-i-1], HASH[n-i-1].value) != 0)</span>
+<span class="lineNum">    1160 </span><span class="lineNoCov">          0 :                                 abort();</span>
+<span class="lineNum">    1161 </span>            : 
+<span class="lineNum">    1162 </span>            :                 /* remove search */
+<span class="lineNum">    1163 </span><span class="lineCov">    6752501 :                 for(i=0;i&lt;n/2;++i)</span>
+<span class="lineNum">    1164 </span><span class="lineCov">    6747500 :                         if (tommy_hashlin_remove(&amp;hashlin, search_callback, &amp;HASH[n/2-i-1], HASH[n/2-i-1].value) == 0)</span>
+<span class="lineNum">    1165 </span><span class="lineNoCov">          0 :                                 abort();</span>
+<span class="lineNum">    1166 </span>            : 
+<span class="lineNum">    1167 </span><span class="lineCov">       5001 :                 tommy_hashlin_done(&amp;hashlin);</span>
+<span class="lineNum">    1168 </span>            :         }
+<span class="lineNum">    1169 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">    1170 </span>            : 
+<span class="lineNum">    1171 </span><span class="lineCov">          1 :         START(&quot;hashlin queue&quot;);</span>
+<span class="lineNum">    1172 </span><span class="lineCov">          1 :         limit = isqrt(size) / 16;</span>
+<span class="lineNum">    1173 </span><span class="lineCov">         64 :         for(n=0;n&lt;=limit;++n) {</span>
+<span class="lineNum">    1174 </span>            :                 /* last iteration is full size */
+<span class="lineNum">    1175 </span><span class="lineCov">         63 :                 if (n == limit)</span>
+<span class="lineNum">    1176 </span><span class="lineCov">          1 :                         n = limit = size;</span>
+<span class="lineNum">    1177 </span>            : 
+<span class="lineNum">    1178 </span><span class="lineCov">         63 :                 tommy_hashlin_init(&amp;hashlin);</span>
+<span class="lineNum">    1179 </span>            : 
+<span class="lineNum">    1180 </span>            :                 /* insert first run */
+<span class="lineNum">    1181 </span><span class="lineCov">    1001954 :                 for(j=0,i=0;i&lt;n;++i)</span>
+<span class="lineNum">    1182 </span><span class="lineCov">    1001891 :                         tommy_hashlin_insert(&amp;hashlin, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
+<span class="lineNum">    1183 </span>            : 
+<span class="lineNum">    1184 </span><span class="lineCov">         63 :                 the_count = 0;</span>
+<span class="lineNum">    1185 </span><span class="lineCov">         63 :                 tommy_hashlin_foreach_arg(&amp;hashlin, count_arg_callback, &amp;the_count);</span>
+<span class="lineNum">    1186 </span><span class="lineCov">         63 :                 if (the_count != n)</span>
+<span class="lineNum">    1187 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">    1188 </span>            : 
+<span class="lineNum">    1189 </span>            :                 /* insert all the others */
+<span class="lineNum">    1190 </span><span class="lineCov">   61998172 :                 for(;i&lt;size;++i,++j) {</span>
+<span class="lineNum">    1191 </span>            :                         /* insert one */
+<span class="lineNum">    1192 </span><span class="lineCov">   61998109 :                         tommy_hashlin_insert(&amp;hashlin, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
+<span class="lineNum">    1193 </span>            : 
+<span class="lineNum">    1194 </span>            :                         /* remove one */
+<span class="lineNum">    1195 </span><span class="lineCov">   61998109 :                         tommy_hashlin_remove_existing(&amp;hashlin, &amp;HASH[j].node);</span>
+<span class="lineNum">    1196 </span>            :                 }
+<span class="lineNum">    1197 </span>            : 
+<span class="lineNum">    1198 </span><span class="lineCov">    1001954 :                 for(;j&lt;size;++j)</span>
+<span class="lineNum">    1199 </span><span class="lineCov">    1001891 :                         if (tommy_hashlin_remove(&amp;hashlin, search_callback, &amp;HASH[j], HASH[j].value) == 0)</span>
+<span class="lineNum">    1200 </span><span class="lineNoCov">          0 :                                 abort();</span>
+<span class="lineNum">    1201 </span>            : 
+<span class="lineNum">    1202 </span><span class="lineCov">         63 :                 tommy_hashlin_done(&amp;hashlin);</span>
+<span class="lineNum">    1203 </span>            :         }
+<span class="lineNum">    1204 </span><span class="lineCov">          1 :         STOP();</span>
+<a name="1205"><span class="lineNum">    1205 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">    1206 </span>            : 
+<span class="lineNum">    1207 </span><span class="lineCov">          1 : void test_trie(void)</span>
+<span class="lineNum">    1208 </span>            : {
+<span class="lineNum">    1209 </span>            :         tommy_trie trie;
+<span class="lineNum">    1210 </span>            :         tommy_allocator alloc;
+<span class="lineNum">    1211 </span>            :         struct object_trie* OBJ;
+<span class="lineNum">    1212 </span>            :         struct object_trie DUP[2];
+<span class="lineNum">    1213 </span>            :         unsigned i;
+<span class="lineNum">    1214 </span><span class="lineCov">          1 :         const unsigned size = TOMMY_SIZE * 4;</span>
+<span class="lineNum">    1215 </span>            : 
+<span class="lineNum">    1216 </span><span class="lineCov">          1 :         OBJ = malloc(size * sizeof(struct object_trie));</span>
+<span class="lineNum">    1217 </span>            : 
+<span class="lineNum">    1218 </span><span class="lineCov">    4000001 :         for(i=0;i&lt;size;++i)</span>
+<span class="lineNum">    1219 </span><span class="lineCov">    4000000 :                 OBJ[i].value = i;</span>
+<span class="lineNum">    1220 </span>            : 
+<span class="lineNum">    1221 </span><span class="lineCov">          1 :         START(&quot;trie&quot;);</span>
+<span class="lineNum">    1222 </span><span class="lineCov">          1 :         tommy_allocator_init(&amp;alloc, TOMMY_TRIE_BLOCK_SIZE, TOMMY_TRIE_BLOCK_SIZE);</span>
+<span class="lineNum">    1223 </span><span class="lineCov">          1 :         tommy_trie_init(&amp;trie, &amp;alloc);</span>
+<span class="lineNum">    1224 </span>            : 
+<span class="lineNum">    1225 </span>            :         /* insert */
+<span class="lineNum">    1226 </span><span class="lineCov">    4000001 :         for(i=0;i&lt;size;++i)</span>
+<span class="lineNum">    1227 </span><span class="lineCov">    4000000 :                 tommy_trie_insert(&amp;trie, &amp;OBJ[i].node, &amp;OBJ[i], OBJ[i].value);</span>
+<span class="lineNum">    1228 </span>            : 
+<span class="lineNum">    1229 </span><span class="lineCov">          1 :         if (tommy_trie_memory_usage(&amp;trie) &lt; size * sizeof(tommy_trie_node))</span>
+<span class="lineNum">    1230 </span><span class="lineNoCov">          0 :                 abort();</span>
+<span class="lineNum">    1231 </span>            : 
+<span class="lineNum">    1232 </span><span class="lineCov">          1 :         if (tommy_allocator_memory_usage(&amp;alloc) &lt; trie.node_count * TOMMY_TRIE_BLOCK_SIZE)</span>
+<span class="lineNum">    1233 </span><span class="lineNoCov">          0 :                 abort();</span>
+<span class="lineNum">    1234 </span>            : 
+<span class="lineNum">    1235 </span><span class="lineCov">          1 :         if (tommy_trie_count(&amp;trie) != size)</span>
+<span class="lineNum">    1236 </span><span class="lineNoCov">          0 :                 abort();</span>
+<span class="lineNum">    1237 </span>            : 
+<span class="lineNum">    1238 </span>            :         /* insert duplicate */
+<span class="lineNum">    1239 </span><span class="lineCov">          3 :         for(i=0;i&lt;2;++i) {</span>
+<span class="lineNum">    1240 </span><span class="lineCov">          2 :                 DUP[i].value = 0;</span>
+<span class="lineNum">    1241 </span><span class="lineCov">          2 :                 tommy_trie_insert(&amp;trie, &amp;DUP[i].node, &amp;DUP[i], DUP[i].value);</span>
+<span class="lineNum">    1242 </span>            :         }
+<span class="lineNum">    1243 </span>            : 
+<span class="lineNum">    1244 </span>            :         /* search present */
+<span class="lineNum">    1245 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
+<span class="lineNum">    1246 </span><span class="lineCov">    2000000 :                 if (tommy_trie_search(&amp;trie, OBJ[i].value) == 0)</span>
+<span class="lineNum">    1247 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">    1248 </span>            : 
+<span class="lineNum">    1249 </span>            :         /* remove first duplicate */
+<span class="lineNum">    1250 </span><span class="lineCov">          1 :         tommy_trie_remove_existing(&amp;trie, &amp;DUP[0].node);</span>
+<span class="lineNum">    1251 </span>            : 
+<span class="lineNum">    1252 </span>            :         /* remove existing */
+<span class="lineNum">    1253 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
+<span class="lineNum">    1254 </span><span class="lineCov">    2000000 :                 tommy_trie_remove_existing(&amp;trie, &amp;OBJ[i].node);</span>
+<span class="lineNum">    1255 </span>            : 
+<span class="lineNum">    1256 </span>            :         /* remove missing using the same bucket of the duplicate */
+<span class="lineNum">    1257 </span><span class="lineCov">          1 :         if (tommy_trie_remove(&amp;trie, 1) != 0)</span>
+<span class="lineNum">    1258 </span><span class="lineNoCov">          0 :                 abort();</span>
+<span class="lineNum">    1259 </span>            : 
+<span class="lineNum">    1260 </span>            :         /* search missing using the same bucket of the duplicate */
+<span class="lineNum">    1261 </span><span class="lineCov">          1 :         if (tommy_trie_search(&amp;trie, 1) != 0)</span>
+<span class="lineNum">    1262 </span><span class="lineNoCov">          0 :                 abort();</span>
+<span class="lineNum">    1263 </span>            : 
+<span class="lineNum">    1264 </span>            :         /* remove second duplicate */
+<span class="lineNum">    1265 </span><span class="lineCov">          1 :         tommy_trie_remove_existing(&amp;trie, &amp;DUP[1].node);</span>
+<span class="lineNum">    1266 </span>            : 
+<span class="lineNum">    1267 </span>            :         /* remove missing */
+<span class="lineNum">    1268 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
+<span class="lineNum">    1269 </span><span class="lineCov">    2000000 :                 if (tommy_trie_remove(&amp;trie, OBJ[i].value) != 0)</span>
+<span class="lineNum">    1270 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">    1271 </span>            : 
+<span class="lineNum">    1272 </span>            :         /* search missing */
+<span class="lineNum">    1273 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
+<span class="lineNum">    1274 </span><span class="lineCov">    2000000 :                 if (tommy_trie_search(&amp;trie, OBJ[i].value) != 0)</span>
+<span class="lineNum">    1275 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">    1276 </span>            : 
+<span class="lineNum">    1277 </span>            :         /* remove present */
+<span class="lineNum">    1278 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
+<span class="lineNum">    1279 </span><span class="lineCov">    2000000 :                 if (tommy_trie_remove(&amp;trie, OBJ[size/2+i].value) == 0)</span>
+<span class="lineNum">    1280 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">    1281 </span>            : 
+<span class="lineNum">    1282 </span><span class="lineCov">          1 :         tommy_allocator_done(&amp;alloc);</span>
+<span class="lineNum">    1283 </span><span class="lineCov">          1 :         STOP();</span>
+<a name="1284"><span class="lineNum">    1284 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">    1285 </span>            : 
+<span class="lineNum">    1286 </span><span class="lineCov">          1 : void test_trie_inplace(void)</span>
+<span class="lineNum">    1287 </span>            : {
+<span class="lineNum">    1288 </span>            :         tommy_trie_inplace trie_inplace;
+<span class="lineNum">    1289 </span>            :         struct object_trie_inplace* OBJ;
+<span class="lineNum">    1290 </span>            :         struct object_trie_inplace DUP[2];
+<span class="lineNum">    1291 </span>            :         unsigned i;
+<span class="lineNum">    1292 </span><span class="lineCov">          1 :         const unsigned size = TOMMY_SIZE * 4;</span>
+<span class="lineNum">    1293 </span>            : 
+<span class="lineNum">    1294 </span><span class="lineCov">          1 :         OBJ = malloc(size * sizeof(struct object_trie_inplace));</span>
+<span class="lineNum">    1295 </span>            : 
+<span class="lineNum">    1296 </span><span class="lineCov">    4000001 :         for(i=0;i&lt;size;++i)</span>
+<span class="lineNum">    1297 </span><span class="lineCov">    4000000 :                 OBJ[i].value = i;</span>
+<span class="lineNum">    1298 </span>            : 
+<span class="lineNum">    1299 </span><span class="lineCov">          1 :         START(&quot;trie_inplace&quot;);</span>
+<span class="lineNum">    1300 </span><span class="lineCov">          1 :         tommy_trie_inplace_init(&amp;trie_inplace);</span>
+<span class="lineNum">    1301 </span>            : 
+<span class="lineNum">    1302 </span>            :         /* insert */
+<span class="lineNum">    1303 </span><span class="lineCov">    4000001 :         for(i=0;i&lt;size;++i)</span>
+<span class="lineNum">    1304 </span><span class="lineCov">    4000000 :                 tommy_trie_inplace_insert(&amp;trie_inplace, &amp;OBJ[i].node, &amp;OBJ[i], OBJ[i].value);</span>
+<span class="lineNum">    1305 </span>            : 
+<span class="lineNum">    1306 </span><span class="lineCov">          1 :         if (tommy_trie_inplace_memory_usage(&amp;trie_inplace) &lt; size * sizeof(tommy_trie_inplace_node))</span>
+<span class="lineNum">    1307 </span><span class="lineNoCov">          0 :                 abort();</span>
+<span class="lineNum">    1308 </span>            : 
+<span class="lineNum">    1309 </span><span class="lineCov">          1 :         if (tommy_trie_inplace_count(&amp;trie_inplace) != size)</span>
+<span class="lineNum">    1310 </span><span class="lineNoCov">          0 :                 abort();</span>
+<span class="lineNum">    1311 </span>            : 
+<span class="lineNum">    1312 </span>            :         /* insert duplicates */
+<span class="lineNum">    1313 </span><span class="lineCov">          3 :         for(i=0;i&lt;2;++i) {</span>
+<span class="lineNum">    1314 </span><span class="lineCov">          2 :                 DUP[i].value = 0;</span>
+<span class="lineNum">    1315 </span><span class="lineCov">          2 :                 tommy_trie_inplace_insert(&amp;trie_inplace, &amp;DUP[i].node, &amp;DUP[i], DUP[i].value);</span>
+<span class="lineNum">    1316 </span>            :         }
+<span class="lineNum">    1317 </span>            : 
+<span class="lineNum">    1318 </span>            :         /* search present */
+<span class="lineNum">    1319 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
+<span class="lineNum">    1320 </span><span class="lineCov">    2000000 :                 if (tommy_trie_inplace_search(&amp;trie_inplace, OBJ[i].value) == 0)</span>
+<span class="lineNum">    1321 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">    1322 </span>            : 
+<span class="lineNum">    1323 </span>            :         /* remove first duplicate */
+<span class="lineNum">    1324 </span><span class="lineCov">          1 :         tommy_trie_inplace_remove_existing(&amp;trie_inplace, &amp;DUP[0].node);</span>
+<span class="lineNum">    1325 </span>            : 
+<span class="lineNum">    1326 </span>            :         /* remove existing */
+<span class="lineNum">    1327 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
+<span class="lineNum">    1328 </span><span class="lineCov">    2000000 :                 tommy_trie_inplace_remove_existing(&amp;trie_inplace, &amp;OBJ[i].node);</span>
+<span class="lineNum">    1329 </span>            : 
+<span class="lineNum">    1330 </span>            :         /* remove second duplicate */
+<span class="lineNum">    1331 </span><span class="lineCov">          1 :         tommy_trie_inplace_remove_existing(&amp;trie_inplace, &amp;DUP[1].node);</span>
+<span class="lineNum">    1332 </span>            : 
+<span class="lineNum">    1333 </span>            :         /* remove missing */
+<span class="lineNum">    1334 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
+<span class="lineNum">    1335 </span><span class="lineCov">    2000000 :                 if (tommy_trie_inplace_remove(&amp;trie_inplace, OBJ[i].value) != 0)</span>
+<span class="lineNum">    1336 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">    1337 </span>            : 
+<span class="lineNum">    1338 </span>            :         /* search missing */
+<span class="lineNum">    1339 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
+<span class="lineNum">    1340 </span><span class="lineCov">    2000000 :                 if (tommy_trie_inplace_search(&amp;trie_inplace, OBJ[i].value) != 0)</span>
+<span class="lineNum">    1341 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">    1342 </span>            : 
+<span class="lineNum">    1343 </span>            :         /* remove present */
+<span class="lineNum">    1344 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
+<span class="lineNum">    1345 </span><span class="lineCov">    2000000 :                 if (tommy_trie_inplace_remove(&amp;trie_inplace, OBJ[size/2+i].value) == 0)</span>
+<span class="lineNum">    1346 </span><span class="lineNoCov">          0 :                         abort();</span>
+<span class="lineNum">    1347 </span>            : 
+<span class="lineNum">    1348 </span><span class="lineCov">          1 :         STOP();</span>
+<a name="1349"><span class="lineNum">    1349 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">    1350 </span>            : 
+<span class="lineNum">    1351 </span><span class="lineCov">          1 : int main() {</span>
+<span class="lineNum">    1352 </span><span class="lineCov">          1 :         nano_init();</span>
+<span class="lineNum">    1353 </span>            : 
+<span class="lineNum">    1354 </span><span class="lineCov">          1 :         printf(&quot;Tommy check program.\n&quot;);</span>
+<span class="lineNum">    1355 </span>            : 
+<span class="lineNum">    1356 </span><span class="lineCov">          1 :         test_hash();</span>
+<span class="lineNum">    1357 </span><span class="lineCov">          1 :         test_alloc();</span>
+<span class="lineNum">    1358 </span><span class="lineCov">          1 :         test_list();</span>
+<span class="lineNum">    1359 </span><span class="lineCov">          1 :         test_array();</span>
+<span class="lineNum">    1360 </span><span class="lineCov">          1 :         test_arrayof();</span>
+<span class="lineNum">    1361 </span><span class="lineCov">          1 :         test_arrayblk();</span>
+<span class="lineNum">    1362 </span><span class="lineCov">          1 :         test_arrayblkof();</span>
+<span class="lineNum">    1363 </span><span class="lineCov">          1 :         test_hashtable();</span>
+<span class="lineNum">    1364 </span><span class="lineCov">          1 :         test_hashdyn();</span>
+<span class="lineNum">    1365 </span><span class="lineCov">          1 :         test_hashlin();</span>
+<span class="lineNum">    1366 </span><span class="lineCov">          1 :         test_trie();</span>
+<span class="lineNum">    1367 </span><span class="lineCov">          1 :         test_trie_inplace();</span>
+<span class="lineNum">    1368 </span>            : 
+<span class="lineNum">    1369 </span><span class="lineCov">          1 :         printf(&quot;OK\n&quot;);</span>
+<span class="lineNum">    1370 </span>            : 
+<span class="lineNum">    1371 </span><span class="lineCov">          1 :         return EXIT_SUCCESS;</span>
+<span class="lineNum">    1372 </span>            : }
+<span class="lineNum">    1373 </span>            : 
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.10</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>
