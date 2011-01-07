@@ -27,18 +27,6 @@
 
 /** \file
  * Double linked list for collisions into hashtables.
- */
-
-#ifndef __TOMMYLIST_H
-#define __TOMMYLIST_H
-
-#include "tommytypes.h"
-
-/******************************************************************************/
-/* list */
-
-/**
- * Double linked list for collisions into hashtables.
  *
  * This list is a double linked list mainly targetted for collisions into an hashtables,
  * but useable also as a generic list.
@@ -108,7 +96,19 @@
  *
  *     i = i_next; // goes to the next element
  * }
- * \endcode
+ * \endcode 
+ */
+
+#ifndef __TOMMYLIST_H
+#define __TOMMYLIST_H
+
+#include "tommytypes.h"
+
+/******************************************************************************/
+/* list */
+
+/**
+ * Double linked list for collisions into hashtables.
  */
 typedef tommy_node* tommy_list;
 

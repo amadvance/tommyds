@@ -27,6 +27,18 @@
  
 /** \file
  * Inplace trie.
+ *
+ * This trie is a inplace implementation not needing any external allocation.
+ *
+ * Elements are not stored in order, like ::tommy_trie, because some elements
+ * should be used to represent the inner nodes in the trie.
+ *
+ * You can control the number of branches of each node using the ::TOMMY_TRIE_INPLACE_TREE_MAX define.
+ * More branches imply more speed, but a bigger memory occupation.
+ *
+ * Compared to ::tommy_trie you should use a lower number of branches to limit the unused memory
+ * occupation of the leaf nodes. This imply a lower speed, but without the need of an external allocator.
+ 
  */
 
 #ifndef __TOMMYTRIEINP_H
@@ -74,17 +86,6 @@ typedef struct tommy_trie_inplace_node_struct {
 
 /**
  * Inplace trie.
- *
- * This trie is a inplace implementation not needing any external allocation.
- *
- * Elements are not stored in order, like ::tommy_trie, because some elements
- * should be used to represent the inner nodes in the trie.
- *
- * You can control the number of branches of each node using the ::TOMMY_TRIE_INPLACE_TREE_MAX define.
- * More branches imply more speed, but a bigger memory occupation.
- *
- * Compared to ::tommy_trie you should use a lower number of branches to limit the unused memory
- * occupation of the leaf nodes. This imply a lower speed, but without the need of an external allocator.
  */
 typedef struct tommy_trie_inplace_struct {
 	tommy_trie_inplace_node* bucket[TOMMY_TRIE_INPLACE_BUCKET_MAX]; /**< First tree level. */

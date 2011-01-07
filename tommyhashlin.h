@@ -27,35 +27,6 @@
 
 /** \file
  * Linear chained hashtable.
- */
-
-#ifndef __TOMMYHASHLIN_H
-#define __TOMMYHASHLIN_H
-
-#include "tommytypes.h"
-
-/******************************************************************************/
-/* hashlin */
-
-/** \internal
- * Initial and minimal size of the hashtable expressed as a power of 2.
- * The initial size is 2^TOMMY_HASHLIN_BIT.
- */
-#define TOMMY_HASHLIN_BIT 4
-
-/**
- * Linear hashtable node.
- * This is the node that you have to include inside your objects.
- */
-typedef tommy_node tommy_hashlin_node;
-
-/** \internal
- * Max number of elements as a power of 2.
- */
-#define TOMMY_HASHLIN_BIT_MAX 32
-
-/**
- * Linear chained hashtable.
  *
  * This hashtable resizes dynamically and progressively using a variation of the
  * linear hashing algorithm described in http://en.wikipedia.org/wiki/Linear_hashing
@@ -160,7 +131,36 @@ typedef tommy_node tommy_hashlin_node;
  *
  * Note that you cannot iterates over all the elements in the hashtable using the
  * hashtable itself. You have to insert all the elements also in a ::tommy_list,
- * and use the list to iterate. See the \ref multiindex example for more detail. 
+ * and use the list to iterate. See the \ref multiindex example for more detail.  
+ */
+
+#ifndef __TOMMYHASHLIN_H
+#define __TOMMYHASHLIN_H
+
+#include "tommytypes.h"
+
+/******************************************************************************/
+/* hashlin */
+
+/** \internal
+ * Initial and minimal size of the hashtable expressed as a power of 2.
+ * The initial size is 2^TOMMY_HASHLIN_BIT.
+ */
+#define TOMMY_HASHLIN_BIT 4
+
+/**
+ * Linear hashtable node.
+ * This is the node that you have to include inside your objects.
+ */
+typedef tommy_node tommy_hashlin_node;
+
+/** \internal
+ * Max number of elements as a power of 2.
+ */
+#define TOMMY_HASHLIN_BIT_MAX 32
+
+/**
+ * Linear chained hashtable.
  */
 typedef struct tommy_hashlin_struct {
 	tommy_hashlin_node** bucket[TOMMY_HASHLIN_BIT_MAX]; /**< Dynamic array of hash buckets. One list for each hash modulus. */

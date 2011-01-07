@@ -27,6 +27,11 @@
 
 /** \file
  * Fixed size chained hashtable.
+ *
+ * This hashtable is a standard implementation of a chained hashtable with a fixed size.
+ *
+ * Note that performances starts to degenerate after reaching a load factor greater than 0.75.
+ * The ::tommy_hashdyn and ::tommy_hashlin hashtables fix this problem growing dynamically.
  */
 
 #ifndef __TOMMYHASHTBL_H
@@ -45,11 +50,6 @@ typedef tommy_node tommy_hashtable_node;
 
 /**
  * Fixed size chained hashtable.
- *
- * This hashtable is a standard implementation of a chained hashtable with a fixed size.
- *
- * Note that performances starts to degenerate after reaching a load factor greater than 0.75.
- * The ::tommy_hashdyn and ::tommy_hashlin hashtables fix this problem growing dynamically.
  */
 typedef struct tommy_hashtable_struct {
 	tommy_hashtable_node** bucket; /**< Hash buckets. One list for each hash modulus. */

@@ -27,66 +27,16 @@
 
 /** \file
  * Trie optimized for cache utilization.
- */
-
-#ifndef __TOMMYTRIE_H
-#define __TOMMYTRIE_H
-
-#include "tommytypes.h"
-#include "tommyalloc.h"
-
-/******************************************************************************/
-/* trie */
-
-/**
- * Number of branchs on each inner node. It must be a power of 2.
- * Suggested values are 8, 16 and 32.
- * Any inner node, excluding leafs, contains a pointer to each branch.
- */
-#define TOMMY_TRIE_TREE_MAX 8
-
-/**
- * Trie node.
- * This is the node that you have to include inside your objects.
- */
-typedef tommy_node tommy_trie_node;
-
-/** 
- * Trie block size.
- * You must use this value to initialize the allocator.
- */
-#define TOMMY_TRIE_BLOCK_SIZE (TOMMY_TRIE_TREE_MAX * sizeof(void*))
-
-/** \internal
- * Number of bits for each branch.
- */
-#define TOMMY_TRIE_TREE_BIT TOMMY_ILOG2(TOMMY_TRIE_TREE_MAX)
-
-/** \internal
- * Number of bits of the first level.
- */
-#define TOMMY_TRIE_BUCKET_BIT ((TOMMY_KEY_BIT % TOMMY_TRIE_TREE_BIT) + TOMMY_TRIE_TREE_BIT)
-
-/** \internal
- * Number of branches of the first level.
- * It's like a inner branch, but bigger to get any remainder bits.
- */
-#define TOMMY_TRIE_BUCKET_MAX (1 << TOMMY_TRIE_BUCKET_BIT)
-
-/**
- * Trie optimized for cache utilization.
  *
- * This trie is a standard trie implementation optimized for the cache
- * utilization.
- *
- * Elements are stored in the order defined by the key.
+ * This trie is a standard implementation that stores elements in the order defined
+ * by the key.
  *
  * It needs an external allocator for the inner nodes in the trie.
  *
  * You can control the number of branches of each node using the ::TOMMY_TRIE_TREE_MAX
  * define. More branches imply more speed, but a bigger memory occupation.
  *
- * Compared to ::tommy_trie_inplace you need to provide a ::tommy_allocator allocator.
+ * Compared to ::tommy_trie_inplace you have to provide a ::tommy_allocator allocator.
  * Note that the C malloc() is too slow to futfill this role.
  *
  * To initialize the trie you have to call tommy_allocator_init() to initialize
@@ -168,7 +118,55 @@ typedef tommy_node tommy_trie_node;
  *
  * Note that you cannot iterates over all the elements in the trie using the
  * trie itself. You have to insert all the elements also in a ::tommy_list,
- * and use the list to iterate. See the \ref multiindex example for more detail.
+ * and use the list to iterate. See the \ref multiindex example for more detail. 
+ */
+
+#ifndef __TOMMYTRIE_H
+#define __TOMMYTRIE_H
+
+#include "tommytypes.h"
+#include "tommyalloc.h"
+
+/******************************************************************************/
+/* trie */
+
+/**
+ * Number of branchs on each inner node. It must be a power of 2.
+ * Suggested values are 8, 16 and 32.
+ * Any inner node, excluding leafs, contains a pointer to each branch.
+ */
+#define TOMMY_TRIE_TREE_MAX 8
+
+/**
+ * Trie node.
+ * This is the node that you have to include inside your objects.
+ */
+typedef tommy_node tommy_trie_node;
+
+/** 
+ * Trie block size.
+ * You must use this value to initialize the allocator.
+ */
+#define TOMMY_TRIE_BLOCK_SIZE (TOMMY_TRIE_TREE_MAX * sizeof(void*))
+
+/** \internal
+ * Number of bits for each branch.
+ */
+#define TOMMY_TRIE_TREE_BIT TOMMY_ILOG2(TOMMY_TRIE_TREE_MAX)
+
+/** \internal
+ * Number of bits of the first level.
+ */
+#define TOMMY_TRIE_BUCKET_BIT ((TOMMY_KEY_BIT % TOMMY_TRIE_TREE_BIT) + TOMMY_TRIE_TREE_BIT)
+
+/** \internal
+ * Number of branches of the first level.
+ * It's like a inner branch, but bigger to get any remainder bits.
+ */
+#define TOMMY_TRIE_BUCKET_MAX (1 << TOMMY_TRIE_BUCKET_BIT)
+
+/**
+ * Trie optimized for cache utilization.
  */
 typedef struct tommy_trie_struct {
 	tommy_trie_node* bucket[TOMMY_TRIE_BUCKET_MAX]; /**< First tree level. */   

@@ -26,7 +26,7 @@
  */
  
 /** \file
- * Hash functions.
+ * Hash functions for the use with ::tommy_hashtable, ::tommy_hashdyn and ::tommy_hashlin.
  */
 
 #ifndef __TOMMYHASH_H

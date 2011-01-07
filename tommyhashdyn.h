@@ -27,6 +27,21 @@
 
 /** \file
  * Dynamic chained hashtable.
+ *
+ * This hashtable resizes dynamically. It starts with the minimal size of 16 buckets, it doubles
+ * the size then it reaches a load factor greater than 0.5 and it halves the size with a load
+ * factor lower than 0.125.
+ *
+ * All the elements are reallocated in a single resize operation done inside 
+ * tommy_hashdyn_insert() or tommy_hashdyn_remove().
+ *
+ * Note that the resize operation takes approximatively 100 [ms] with 1 million of elements, 
+ * and 1 [second] with 10 millions. This could be a problem in real-time applications.
+ *
+ * The resize also fragment the heap, as it involves allocating a double-sized table, copy elements, 
+ * and deallocating the older table. Leaving a big hole in the heap.
+ * 
+ * The ::tommy_hashlin hashtable fixes both problems.
  */
 
 #ifndef __TOMMYHASHDYN_H
@@ -51,21 +66,6 @@ typedef tommy_node tommy_hashdyn_node;
 
 /**
  * Dynamic chained hashtable.
- *
- * This hashtable resizes dynamically. It starts with the minimal size of 16 buckets, it doubles
- * the size then it reaches a load factor greater than 0.5 and it halves the size with a load
- * factor lower than 0.125.
- *
- * All the elements are reallocated in a single resize operation done inside 
- * tommy_hashdyn_insert() or tommy_hashdyn_remove().
- *
- * Note that the resize operation takes approximatively 100 [ms] with 1 million of elements, 
- * and 1 [second] with 10 millions. This could be a problem in real-time applications.
- *
- * The resize also fragment the heap, as it involves allocating a double-sized table, copy elements, 
- * and deallocating the older table. Leaving a big hole in the heap.
- * 
- * The ::tommy_hashlin hashtable fixes both problems.
  */
 typedef struct tommy_hashdyn_struct {
 	tommy_hashdyn_node** bucket; /**< Hash buckets. One list for each hash modulus. */
