@@ -760,7 +760,7 @@ div.header {
 
 /* padding */
 
-p, .fragment, table {
+p, .fragment, .textblock, table {
 	padding-left: 40px;
 	padding-right: 40px;
 }
