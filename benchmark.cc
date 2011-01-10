@@ -1797,7 +1797,7 @@ void test_cache_miss(void)
 	unsigned size = 512*1024*1024;
 	unsigned char* DATA = (unsigned char*)malloc(size);
 	unsigned delta = 512;
-	unsigned miss_time;
+	tommy_uint64_t miss_time;
 	unsigned i, j;
 	tommy_uint64_t result = 0;
 
@@ -1819,7 +1819,7 @@ void test_cache_miss(void)
 
 	miss_time = result * delta / size;
 
-	printf("Cache miss %d [ns]\n", miss_time);
+	printf("Cache miss %d [ns]\n", (unsigned)miss_time);
 }
 
 int main(int argc, char * argv[])

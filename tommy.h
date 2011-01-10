@@ -152,15 +152,17 @@
  * \page benchmark Tommy Benchmarks
  *
  * To evaluate Tommy performances, an extensive benchmark was done,
- * comparing it to the best data structure libraries available.
+ * comparing it to the best hashtable and trie libraries available.
+ *
+ * \section thebenchmark The Benchmark
  *
  * The benchmark consists in storing a set of N pointers to objects and
  * searching them using an integer key.
  *
  * It's different than the simpler case of mapping integers to integers,
- * as objects are also dereferenced resulting in an additional cache misses.
- * This favorites implementations that store information in the objects itself,
- * as this additional cache miss is already implicit.
+ * as pointers to objects are also dereferenced resulting in additional cache
+ * misses. This benchmark favorites implementations that store information in the
+ * objects itself, as the additional cache misses are already implicit.
  *
  * The test dones are:
  *  - <b>Insert</b> Insert all the objects starting with an empty container.
@@ -215,14 +217,19 @@
  *  - <a href="http://judy.sourceforge.net/">judy</a> - Burst trie (JudyL) by Doug Baskins at HP.
  *  - <a href="http://www.nedprod.com/programs/portable/nedtries/">nedtrie</a> - Binary trie inplace by Niall Douglas.
  *
- * The most significative tests depend on your data usage model, but usually
+ * \section result Results
+ *
+ * The most significative tests depend on your data usage model, but if in doubt,
  * you should mostly look at <i>Random Hit</i> and <i>Random Change</i>.
+ *
+ * They are valuated the most significatives, because operating always with N elements
+ * in the data structure and with a random pattern, they mostly mimic real conditions.
  *
  * <img src="def/img_random_hit.png"/>
  *
- * In the <i>Random Hit</i> graph you can see a vertical split at the 50.000 elements limit.
- * Before this limit the cache is able to contains most of the data, and it allow a very fast access with the most of data structure. 
- * After this limit, the number of cache misses is the dominant factor, and the slope of the curve depends only on the number of cache 
+ * In the <i>Random Hit</i> graph you can see a vertical split at the 100.000 elements limit.
+ * Before this limit the cache of modern processor is able to contains most of the data, and it allow a very fast access with the most of data structure.
+ * After this limit, the number of cache misses is the dominant factor, and the curve depends mainly on the number of cache
  * miss required to reach the object.
  *
  * For rbtree and nedtrie, it's log2(N) as they have two branches on each node, log4(N) for ::tommy_trie_inplace, log8(N) for ::tommy_trie and 1 for hashtables.
@@ -230,17 +237,128 @@
  *
  * <img src="def/img_random_change.png"/>
  *
- * The <i>Random Change</i> graph confirms the vertical split at the 50.000 elements limit.
+ * The <i>Random Change</i> graph confirms the vertical split at the 100.000 elements limit.
  * It also show that hashtables are almost unbeatable with a random access.
+ *
+ * \section random Random order
+ * Here you can see the whole <i>Random</i> test results in different platforms.
+ *
+ * In <i>Random</i> tests hashtables are almost always winning, seconds are
+ * tries, and as last trees.
+ *  
+ * The best choices are ::tommy_hashlin, and goodledensehash, with
+ * ::tommy_hashlin having the advantage to be real-time friendly and not
+ * increasing the head fragmentation.
+ * <table border="0">
+ * <tr><td>
+ * <img src="core_2_duo_t9500_2G6/img_random_insert.png"/>
+ * </td><td>
+ * <img src="core_2_duo_e6600_2G4/img_random_insert.png"/>
+ * </td><td>
+ * <img src="xeon_e5430_2G6_64/img_random_insert.png"/>
+ * </td></tr><tr><td>
+ * <img src="core_2_duo_t9500_2G6/img_random_hit.png"/>
+ * </td><td>
+ * <img src="core_2_duo_e6600_2G4/img_random_hit.png"/>
+ * </td><td>
+ * <img src="xeon_e5430_2G6_64/img_random_hit.png"/>
+ * </td></tr><tr><td>
+ * <img src="core_2_duo_t9500_2G6/img_random_miss.png"/>
+ * </td><td>
+ * <img src="core_2_duo_e6600_2G4/img_random_miss.png"/>
+ * </td><td>
+ * <img src="xeon_e5430_2G6_64/img_random_miss.png"/>
+ * </td></tr><tr><td>
+ * <img src="core_2_duo_t9500_2G6/img_random_change.png"/>
+ * </td><td>
+ * <img src="core_2_duo_e6600_2G4/img_random_change.png"/>
+ * </td><td>
+ * <img src="xeon_e5430_2G6_64/img_random_change.png"/>
+ * </td></tr><tr><td>
+ * <img src="core_2_duo_t9500_2G6/img_random_remove.png"/>
+ * </td><td>
+ * <img src="core_2_duo_e6600_2G4/img_random_remove.png"/>
+ * </td><td>
+ * <img src="xeon_e5430_2G6_64/img_random_remove.png"/>
+ * </td></tr>
+ * </table>
+ * 
+ * \section forward Forward order
+ * Here you can see the whole <i>Forward</i> tests results in different platforms.
+ *
+ * In <i>Forward</i> tests tries are the winners. Hashtables are competitive
+ * until the cache limit, then they lose against tries. Trees are the slowest.
+ *  
+ * The best choices are ::tommy_trie and ::tommy_trie_inplace, where ::tommy_trie is
+ * a bit faster, and ::tommy_trie_inplace doesn't require a custom allocator.
+ *
+ * Note that also hashtables are faster in forward order than random. This may
+ * seem a bit surprising as the hash function randomizes the access even with
+ * consecutive keys. This happens because the objects are allocated in consecutive
+ * memory, and accessing them in order, improves the cache utilization, even if
+ * the hashed key is random.
+ * <table border="0">
+ * <tr><td>
+ * <img src="core_2_duo_t9500_2G6/img_forward_insert.png"/>
+ * </td><td>
+ * <img src="core_2_duo_e6600_2G4/img_forward_insert.png"/>
+ * </td><td>
+ * <img src="xeon_e5430_2G6_64/img_forward_insert.png"/>
+ * </td></tr><tr><td>
+ * <img src="core_2_duo_t9500_2G6/img_forward_hit.png"/>
+ * </td><td>
+ * <img src="core_2_duo_e6600_2G4/img_forward_hit.png"/>
+ * </td><td>
+ * <img src="xeon_e5430_2G6_64/img_forward_hit.png"/>
+ * </td></tr><tr><td>
+ * <img src="core_2_duo_t9500_2G6/img_forward_miss.png"/>
+ * </td><td>
+ * <img src="core_2_duo_e6600_2G4/img_forward_miss.png"/>
+ * </td><td>
+ * <img src="xeon_e5430_2G6_64/img_forward_miss.png"/>
+ * </td></tr><tr><td>
+ * <img src="core_2_duo_t9500_2G6/img_forward_change.png"/>
+ * </td><td>
+ * <img src="core_2_duo_e6600_2G4/img_forward_change.png"/>
+ * </td><td>
+ * <img src="xeon_e5430_2G6_64/img_forward_change.png"/>
+ * </td></tr><tr><td>
+ * <img src="core_2_duo_t9500_2G6/img_forward_remove.png"/>
+ * </td><td>
+ * <img src="core_2_duo_e6600_2G4/img_forward_remove.png"/>
+ * </td><td>
+ * <img src="xeon_e5430_2G6_64/img_forward_remove.png"/>
+ * </td></tr>
+ * </table>
+ * 
+ * \section size Size
+ * Here you can see the memory usage of the different data structures.
+ * <table border="0">
+ * <tr><td>
+ * <img src="core_2_duo_t9500_2G6/img_random_size.png"/>
+ * </td><td>
+ * <img src="core_2_duo_e6600_2G4/img_random_size.png"/>
+ * </td><td>
+ * <img src="xeon_e5430_2G6_64/img_random_size.png"/>
+ * </td></tr>
+ * </table>
+ *
+ * \section others Other benchmarks
+ * Here some links to other performance comparison:
+ *
+ * <a href="http://attractivechaos.wordpress.com/2008/08/28/comparison-of-hash-table-libraries/">Comparison of Hash Table Libraries</a>
+ *
+ * <a href="http://incise.org/hash-table-benchmarks.html">Hash Table Benchmarks</a>
  *
  * \section notes Notes
  * 
- * Here some notes about specific data structure.
+ * Here some notes about the data structure tested not part of Tommy.
  * 
  * \subsection cgoogledensehash Google C sparsehash and densehash
  * It's the C implementation located in the experimental/ directory of the googlesparsehash archive.
  * It has very bad performances in the <i>Change</i> test for some N values.
  * See for example this <a href="other/cgoogledensehash_problem.png">graph</a> with a lot of spikes.
+ * The C++ version doesn't suffer of this problem.
  * 
  * \subsection googledensehash Google C++ densehash
  * It doesn't release memory on deletion.
@@ -262,131 +380,6 @@
  * I've found a crash bug when inserting keys with the 0 value.
  * The <a href="https://github.com/ned14/nedtries/commit/21039696f27db4ffac70a82f89dc5d00ae74b332">fix</a> of this issue is now in the nedtries github.
  * We do not use the C++ implementation as it doesn't compile with gcc 4.4.3.
- *
- * \section random Random order
- * Here you can see the <i>Random</i> tests in different platforms.
- *
- * In <i>Random</i> tests hashtables are almost always winning, seconds are
- * tries, and as last trees.
- *  
- * The best choices are ::tommy_hashlin, and goodledensehash, with
- * ::tommy_hashlin having the advantage to be real-time friendly and not
- * increasing the head fragmentation.
- * <table border="0">
- * <tr><td>
- * <img src="test/img_random_insert.png"/>
- * </td><td>
- * <img src="core_2_duo_e6600_2G4/img_random_insert.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6/img_random_insert.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6_64/img_random_insert.png"/>
- * </td></tr><tr><td>
- * <img src="test/img_random_hit.png"/>
- * </td><td>
- * <img src="core_2_duo_e6600_2G4/img_random_hit.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6/img_random_hit.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6_64/img_random_hit.png"/>
- * </td></tr><tr><td>
- * <img src="test/img_random_miss.png"/>
- * </td><td>
- * <img src="core_2_duo_e6600_2G4/img_random_miss.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6/img_random_miss.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6_64/img_random_miss.png"/>
- * </td></tr><tr><td>
- * <img src="test/img_random_change.png"/>
- * </td><td>
- * <img src="core_2_duo_e6600_2G4/img_random_change.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6/img_random_change.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6_64/img_random_change.png"/>
- * </td></tr><tr><td>
- * <img src="test/img_random_remove.png"/>
- * </td><td>
- * <img src="core_2_duo_e6600_2G4/img_random_remove.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6/img_random_remove.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6_64/img_random_remove.png"/>
- * </td></tr>
- * </table>
- * 
- * \section forward Forward order
- * Here you can see the <i>Forward</i> tests in different platforms.
- *
- * In <i>Forward</i> tests tries are the winners. Hashtables are competitive
- * until the cache limit, then they lose against tries. Trees are the slowest.
- *  
- * The best choices are ::tommy_trie and ::tommy_trie_inplace, where ::tommy_trie is
- * a bit faster, and ::tommy_trie_inplace doesn't require a custom allocator.
- *
- * Note that also hashtables are faster in forward order than random. This may
- * seem a bit surprising as the hash function randomizes the access even with
- * consecutive keys. This happens because the objects are allocated in consecutive
- * memory, and accessing them in order, improves the cache utilization, even if
- * the hashed key is random.
- * <table border="0">
- * <tr><td>
- * <img src="test/img_forward_insert.png"/>
- * </td><td>
- * <img src="core_2_duo_e6600_2G4/img_forward_insert.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6/img_forward_insert.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6_64/img_forward_insert.png"/>
- * </td></tr><tr><td>
- * <img src="test/img_forward_hit.png"/>
- * </td><td>
- * <img src="core_2_duo_e6600_2G4/img_forward_hit.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6/img_forward_hit.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6_64/img_forward_hit.png"/>
- * </td></tr><tr><td>
- * <img src="test/img_forward_miss.png"/>
- * </td><td>
- * <img src="core_2_duo_e6600_2G4/img_forward_miss.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6/img_forward_miss.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6_64/img_forward_miss.png"/>
- * </td></tr><tr><td>
- * <img src="test/img_forward_change.png"/>
- * </td><td>
- * <img src="core_2_duo_e6600_2G4/img_forward_change.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6/img_forward_change.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6_64/img_forward_change.png"/>
- * </td></tr><tr><td>
- * <img src="test/img_forward_remove.png"/>
- * </td><td>
- * <img src="core_2_duo_e6600_2G4/img_forward_remove.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6/img_forward_remove.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6_64/img_forward_remove.png"/>
- * </td></tr>
- * </table>
- * 
- * \section size Size
- * Here you can see the memory usage of the different data structures.
- * <table border="0">
- * <tr><td>
- * <img src="test/img_random_size.png"/>
- * </td><td>
- * <img src="core_2_duo_e6600_2G4/img_random_size.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6/img_random_size.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6_64/img_random_size.png"/>
- * </td></tr>
- * </table>
  *
  * \page multiindex Tommy Multi Indexing
  *

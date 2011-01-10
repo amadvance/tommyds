@@ -14,7 +14,6 @@ description=
 run_cmd=./tommy
 
 [files]
-current_page=3
+current_page=1
 FILE_NAME_0=940;Make;0;16;1;1;0;/home/am/Desktop/tommy/Makefile;0
-FILE_NAME_2=38694;C++;0;0;1;1;0;/home/am/Desktop/tommy//benchmark.cc;0
-
+FILE_NAME_1=4126;C;0;16;1;1;0;/home/am/Desktop/tommy//tommyhash.c;0

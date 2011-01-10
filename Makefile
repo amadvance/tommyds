@@ -21,12 +21,12 @@ endif
 
 # Windows
 ifeq ($(UNAME),)
-LIB=benchmark/judy/src/judy.lib
+LIB=benchmark/lib/judy/src/judy.lib
 EXE=.exe
 O=.obj
 endif
 
-CHECK = ./tommybench -S 1000
+CHECK = ./tommybench -N 1000
 
 DEP = \
 	tommyalloc.c \
@@ -65,7 +65,7 @@ tommybench$(EXE): benchmark.cc $(DEP)
 
 check: tommycheck$(EXE) tommybench$(EXE)
 	./tommycheck$(EXE)
-	./tommybench$(EXE) -S 100000
+	./tommybench$(EXE) -N 100000
 	echo Check completed with success!
 
 valgrind:
@@ -136,6 +136,7 @@ dist:
 	cp -R doc $(DIST)
 	cp -R benchmark $(DIST)/benchmark
 	rm -f $(DIST)/benchmark/data/*/*.png
+	rm -f $(DIST)/benchmark/arial.ttf
 	rm -f $(DIST).tar.gz
 	tar cfzo $(DIST).tar.gz $(DIST)
 	rm -r $(DIST)

@@ -134,6 +134,10 @@
  * Number of branchs on each inner node. It must be a power of 2.
  * Suggested values are 8, 16 and 32.
  * Any inner node, excluding leafs, contains a pointer to each branch.
+ *
+ * The exact size in bytes of inner nodes is exactly
+ * 2^TOMMY_TRIE_TREE_MAX * sizeof(void*), allowing to fit a cache
+ * line with 16 pointers of 32 bits, or 8 pointers of 64 bits.
  */
 #define TOMMY_TRIE_TREE_MAX 8
 
