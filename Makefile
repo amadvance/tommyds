@@ -1,7 +1,7 @@
 #############################################################################
 # Tommy Makefile
 
-VERSION=0.1
+VERSION=0.2
 CFLAGS=-O3 -Wall -g
 UNAME=$(shell uname)
 
@@ -31,6 +31,8 @@ CHECK = ./tommybench -N 1000
 DEP = \
 	tommyalloc.c \
 	tommyalloc.h \
+	tommyarray.c \
+	tommyarray.h \
 	tommy.c \
 	tommy.h \
 	tommyhash.c \
@@ -95,6 +97,9 @@ cachegrind:
 
 phony:
 
+graph: phony
+	cd benchmark && sh gr_all.sh
+
 doc: phony tommy.doxygen tommy.css $(DEP)
 	rm -rf doc
 	mkdir doc
@@ -139,5 +144,6 @@ dist:
 	rm -f $(DIST)/benchmark/arial.ttf
 	rm -f $(DIST).tar.gz
 	tar cfzo $(DIST).tar.gz $(DIST)
+	zip -r $(DIST).zip $(DIST)
 	rm -r $(DIST)
 

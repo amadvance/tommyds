@@ -133,7 +133,7 @@
 #ifndef __TOMMYHASHDYN_H
 #define __TOMMYHASHDYN_H
 
-#include "tommytypes.h"
+#include "tommyhash.h"
 
 /******************************************************************************/
 /* hashdyn */

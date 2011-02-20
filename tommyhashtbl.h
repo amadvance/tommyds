@@ -124,7 +124,7 @@
 #ifndef __TOMMYHASHTBL_H
 #define __TOMMYHASHTBL_H
 
-#include "tommytypes.h"
+#include "tommyhash.h"
 
 /******************************************************************************/
 /* hashtable */

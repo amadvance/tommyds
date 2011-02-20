@@ -8,7 +8,7 @@ gnuplot gr_def_random_change.gnu
 gnuplot gr_other_judy_problem.gnu
 gnuplot gr_other_cgoogledensehash_problem.gnu
 
-DIR=data/core_2_duo_t9500_2G6
+DIR=data/core_i5_650_3G2
 gnuplot $DIR/gr_def.gnu gr_forward_insert.gnu
 gnuplot $DIR/gr_def.gnu gr_forward_hit.gnu
 gnuplot $DIR/gr_def.gnu gr_forward_insert.gnu

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Andrea Mazzoleni. All rights reserved.
+ * Copyright 2011 Andrea Mazzoleni. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -26,9 +26,14 @@
  */
 
 /** \file
- * Growing array.
+ * Dynamic array.
  *
- * This array grow dynamically.
+ * This array is able to grow dynamically upon request.
+ *
+ * The resize involve an allocation of a new array segment, without reallocating
+ * the already allocated memory, and then not increasing the heap fragmentation.
+ *
+ * This means that the address of the allocated segments never change.
  */
 
 #ifndef __TOMMYARRAY_H
@@ -38,6 +43,12 @@
 
 /******************************************************************************/
 /* array */
+
+/**
+ * Initial and minimal size of the array expressed as a power of 2.
+ * The initial size is 2^TOMMY_ARRAY_BIT.
+ */
+#define TOMMY_ARRAY_BIT 8
 
 /** \internal
  * Max number of elements as a power of 2.
@@ -52,11 +63,11 @@ typedef struct tommy_array_struct {
 	unsigned bucket_bit; /**< Bits used in the bit mask. */
 	unsigned bucket_max; /**< Number of buckets. */
 	unsigned bucket_mac; /**< Number of vectors allocated. */
+	unsigned size; /**< Currently allocated and initialized size. */
 } tommy_array;
 
 /**
  * Initializes the array.
- * All the elements are initialized with the 0 value.
  */
 void tommy_array_init(tommy_array* array);
 
@@ -66,14 +77,73 @@ void tommy_array_init(tommy_array* array);
 void tommy_array_done(tommy_array* array);
 
 /**
- * Set the element at the specified position.
+ * Grow the size up to the specified value.
+ * All the new elements in the array are initialized with the 0 value.
  */
-void tommy_array_set(tommy_array* array, unsigned pos, void* node);
+void tommy_array_grow(tommy_array* array, unsigned size);
 
 /**
- * Get the element at the specified position.
+ * Gets a reference of the element at the specified position.
+ * You must be sure that space for this position is already
+ * allocated calling tommy_array_grow().
  */
-void* tommy_array_get(tommy_array* array, unsigned pos);
+tommy_inline void** tommy_array_ref(tommy_array* array, unsigned pos)
+{
+	unsigned bsr;  
+ 
+	/* special case for the first bucket */
+	if (pos < (1 << TOMMY_ARRAY_BIT)) {
+		return &array->bucket[0][pos];
+	}
+
+	/* get the highest bit set */
+	bsr = tommy_ilog2_u32(pos);
+
+	/* clear the highest bit */
+	pos -= 1 << bsr;
+
+	return &array->bucket[bsr - TOMMY_ARRAY_BIT + 1][pos];
+}
+
+/**
+ * Sets the element at the specified position.
+ * You must be sure that space for this position is already
+ * allocated calling tommy_array_grow().
+ */
+tommy_inline void tommy_array_set(tommy_array* array, unsigned pos, void* node)
+{
+	*tommy_array_ref(array, pos) = node;
+}
+
+/**
+ * Gets the element at the specified position.
+ * You must be sure that space for this position is already
+ * allocated calling tommy_array_grow().
+ */
+tommy_inline void* tommy_array_get(tommy_array* array, unsigned pos)
+{
+	return *tommy_array_ref(array, pos);
+}
+
+/**
+ * Grows and inserts a new element at the end of the array.
+ */
+tommy_inline void tommy_array_insert(tommy_array* array, void* node)
+{
+	unsigned pos = array->size;
+
+	tommy_array_grow(array, pos + 1);
+
+	tommy_array_set(array, pos, node);
+}
+
+/**
+ * Gets the initialized size of the array.
+ */
+tommy_inline unsigned tommy_array_size(tommy_array* array)
+{
+	return array->size;
+}
 
 /**
  * Gets the size of allocated memory.

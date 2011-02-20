@@ -7,7 +7,7 @@ set GNUPLOT=..\contrib\gnuplot\binary\gnuplot.exe
 %GNUPLOT% gr_other_judy_problem.gnu
 %GNUPLOT% gr_other_cgoogledensehash_problem.gnu
 
-DIR=data\core_2_duo_t9500_2G6
+DIR=data\core_i5_650_3G2
 %GNUPLOT% %DIR%\gr_def.gnu gr_forward_insert.gnu
 %GNUPLOT% %DIR%\gr_def.gnu gr_forward_hit.gnu
 %GNUPLOT% %DIR%\gr_def.gnu gr_forward_insert.gnu

@@ -136,7 +136,7 @@
 #ifndef __TOMMYHASHLIN_H
 #define __TOMMYHASHLIN_H
 
-#include "tommytypes.h"
+#include "tommyhash.h"
 
 /******************************************************************************/
 /* hashlin */

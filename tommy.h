@@ -248,34 +248,34 @@
  *  
  * The best choices are ::tommy_hashlin, and goodledensehash, with
  * ::tommy_hashlin having the advantage to be real-time friendly and not
- * increasing the head fragmentation.
+ * increasing the heap fragmentation.
  * <table border="0">
  * <tr><td>
- * <img src="core_2_duo_t9500_2G6/img_random_insert.png"/>
+ * <img src="core_i5_650_3G2/img_random_insert.png"/>
  * </td><td>
  * <img src="core_2_duo_e6600_2G4/img_random_insert.png"/>
  * </td><td>
  * <img src="xeon_e5430_2G6_64/img_random_insert.png"/>
  * </td></tr><tr><td>
- * <img src="core_2_duo_t9500_2G6/img_random_hit.png"/>
+ * <img src="core_i5_650_3G2/img_random_hit.png"/>
  * </td><td>
  * <img src="core_2_duo_e6600_2G4/img_random_hit.png"/>
  * </td><td>
  * <img src="xeon_e5430_2G6_64/img_random_hit.png"/>
  * </td></tr><tr><td>
- * <img src="core_2_duo_t9500_2G6/img_random_miss.png"/>
+ * <img src="core_i5_650_3G2/img_random_miss.png"/>
  * </td><td>
  * <img src="core_2_duo_e6600_2G4/img_random_miss.png"/>
  * </td><td>
  * <img src="xeon_e5430_2G6_64/img_random_miss.png"/>
  * </td></tr><tr><td>
- * <img src="core_2_duo_t9500_2G6/img_random_change.png"/>
+ * <img src="core_i5_650_3G2/img_random_change.png"/>
  * </td><td>
  * <img src="core_2_duo_e6600_2G4/img_random_change.png"/>
  * </td><td>
  * <img src="xeon_e5430_2G6_64/img_random_change.png"/>
  * </td></tr><tr><td>
- * <img src="core_2_duo_t9500_2G6/img_random_remove.png"/>
+ * <img src="core_i5_650_3G2/img_random_remove.png"/>
  * </td><td>
  * <img src="core_2_duo_e6600_2G4/img_random_remove.png"/>
  * </td><td>
@@ -297,33 +297,41 @@
  * consecutive keys. This happens because the objects are allocated in consecutive
  * memory, and accessing them in order, improves the cache utilization, even if
  * the hashed key is random.
+ *
+ * Note also that you can easily get hashtables to reach tries performance tweaking
+ * the hash function to put near keys accessed nearby. For example, in the benchmark
+ * case using something like:
+ * \code
+ * #define hash(v) tommy_inthash32(v & ~0xF) + (v & 0xF)
+ * \endcode
+ *
  * <table border="0">
  * <tr><td>
- * <img src="core_2_duo_t9500_2G6/img_forward_insert.png"/>
+ * <img src="core_i5_650_3G2/img_forward_insert.png"/>
  * </td><td>
  * <img src="core_2_duo_e6600_2G4/img_forward_insert.png"/>
  * </td><td>
  * <img src="xeon_e5430_2G6_64/img_forward_insert.png"/>
  * </td></tr><tr><td>
- * <img src="core_2_duo_t9500_2G6/img_forward_hit.png"/>
+ * <img src="core_i5_650_3G2/img_forward_hit.png"/>
  * </td><td>
  * <img src="core_2_duo_e6600_2G4/img_forward_hit.png"/>
  * </td><td>
  * <img src="xeon_e5430_2G6_64/img_forward_hit.png"/>
  * </td></tr><tr><td>
- * <img src="core_2_duo_t9500_2G6/img_forward_miss.png"/>
+ * <img src="core_i5_650_3G2/img_forward_miss.png"/>
  * </td><td>
  * <img src="core_2_duo_e6600_2G4/img_forward_miss.png"/>
  * </td><td>
  * <img src="xeon_e5430_2G6_64/img_forward_miss.png"/>
  * </td></tr><tr><td>
- * <img src="core_2_duo_t9500_2G6/img_forward_change.png"/>
+ * <img src="core_i5_650_3G2/img_forward_change.png"/>
  * </td><td>
  * <img src="core_2_duo_e6600_2G4/img_forward_change.png"/>
  * </td><td>
  * <img src="xeon_e5430_2G6_64/img_forward_change.png"/>
  * </td></tr><tr><td>
- * <img src="core_2_duo_t9500_2G6/img_forward_remove.png"/>
+ * <img src="core_i5_650_3G2/img_forward_remove.png"/>
  * </td><td>
  * <img src="core_2_duo_e6600_2G4/img_forward_remove.png"/>
  * </td><td>
@@ -335,7 +343,7 @@
  * Here you can see the memory usage of the different data structures.
  * <table border="0">
  * <tr><td>
- * <img src="core_2_duo_t9500_2G6/img_random_size.png"/>
+ * <img src="core_i5_650_3G2/img_random_size.png"/>
  * </td><td>
  * <img src="core_2_duo_e6600_2G4/img_random_size.png"/>
  * </td><td>
@@ -535,6 +543,7 @@ extern "C" {
 #include "tommytypes.h"
 #include "tommyhash.h"
 #include "tommyalloc.h"
+#include "tommyarray.h"
 #include "tommylist.h"
 #include "tommytrie.h"
 #include "tommytrieinp.h"

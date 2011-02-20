@@ -27,6 +27,7 @@
  
 #include "tommyhash.c"
 #include "tommyalloc.c"
+#include "tommyarray.c"
 #include "tommylist.c"
 #include "tommytrie.c"
 #include "tommytrieinp.c"

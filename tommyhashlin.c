@@ -26,6 +26,7 @@
  */
 
 #include "tommyhashlin.h"
+#include "tommylist.h"
 
 #include <string.h> /* for memset */
 

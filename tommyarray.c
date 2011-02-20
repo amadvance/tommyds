@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Andrea Mazzoleni. All rights reserved.
+ * Copyright 2011 Andrea Mazzoleni. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -32,12 +32,6 @@
 /******************************************************************************/
 /* array */
 
-/**
- * Initial and minimal size of the array expressed as a power of 2.
- * The initial size is 2^TOMMY_ARRAY_BIT.
- */
-#define TOMMY_ARRAY_BIT 4
-
 void tommy_array_init(tommy_array* array)
 {
 	/* fixed initial size */
@@ -46,6 +40,7 @@ void tommy_array_init(tommy_array* array)
 	array->bucket[0] = tommy_cast(void**, tommy_malloc(array->bucket_max * sizeof(void*)));
 	memset(array->bucket[0], 0, array->bucket_max * sizeof(void*));
 	array->bucket_mac = 1;
+	array->size = 0;
 }
 
 void tommy_array_done(tommy_array* array)
@@ -55,30 +50,9 @@ void tommy_array_done(tommy_array* array)
 		tommy_free(array->bucket[i]);
 }
 
-/**
- * Return the bucket at the specified pos.
- */
-tommy_inline void** tommy_array_pos(tommy_array* array, unsigned pos)
-{  
-	unsigned bsr;  
- 
-	/* special case for the first bucket */
-	if (pos < (1 << TOMMY_ARRAY_BIT)) {
-		return &array->bucket[0][pos];
-	}
-
-	/* get the highest bit set */
-	bsr = tommy_ilog2_u32(pos);
-
-	/* clear the highest bit */
-	pos -= 1 << bsr;
-
-	return &array->bucket[bsr - TOMMY_ARRAY_BIT + 1][pos];
-}
-
-tommy_inline void tommy_array_reserve(tommy_array* array, unsigned pos)
+void tommy_array_grow(tommy_array* array, unsigned size)
 {
-	while (pos >= array->bucket_max) {
+	while (size > array->bucket_max) {
 		/* grow the hash size and allocate */
 		array->bucket[array->bucket_mac] = tommy_cast(void**, tommy_malloc(array->bucket_max * sizeof(void*)));
 		memset(array->bucket[array->bucket_mac], 0, array->bucket_max * sizeof(void*));
@@ -86,20 +60,9 @@ tommy_inline void tommy_array_reserve(tommy_array* array, unsigned pos)
 		++array->bucket_bit;
 		array->bucket_max = 1 << array->bucket_bit;
 	}
-}
 
-void tommy_array_set(tommy_array* array, unsigned pos, void* node)
-{
-	tommy_array_reserve(array, pos);
-
-	*tommy_array_pos(array, pos) = node;
-}
-
-void* tommy_array_get(tommy_array* array, unsigned pos)
-{
-	tommy_array_reserve(array, pos);
-
-	return *tommy_array_pos(array, pos);
+	if (array->size < size)
+		array->size = size;
 }
 
 tommy_size_t tommy_array_memory_usage(tommy_array* array)

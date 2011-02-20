@@ -296,12 +296,44 @@ void test_list(void)
 	free(LIST);
 }
 
+void test_array(void)
+{
+	tommy_array array;
+	unsigned i;
+
+	tommy_array_init(&array);
+
+	START("init");
+	for(i=0;i<MAX*10;++i) {
+		tommy_array_grow(&array, i + 1);
+		if (tommy_array_get(&array, i) != 0)
+			abort();
+	}
+	STOP();
+
+	START("set");
+	for(i=0;i<MAX*10;++i) {
+		tommy_array_set(&array, i, (void*)i);
+	}
+	STOP();
+
+	START("get");
+	for(i=0;i<MAX*10;++i) {
+		if (tommy_array_get(&array, i) != (void*)i)
+			abort();
+	}
+	STOP();
+
+	tommy_array_done(&array);
+}
+
 int main() {
 	nano_init();
 
 	printf("Tommy check program.\n");
 
 	test_list();
+	test_array();
 
 	printf("OK\n");
 
