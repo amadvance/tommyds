@@ -41,6 +41,8 @@
 
 #include "tommytypes.h"
 
+#include <assert.h> /* for assert */
+
 /******************************************************************************/
 /* array */
 
@@ -48,7 +50,7 @@
  * Initial and minimal size of the array expressed as a power of 2.
  * The initial size is 2^TOMMY_ARRAY_BIT.
  */
-#define TOMMY_ARRAY_BIT 8
+#define TOMMY_ARRAY_BIT 6
 
 /** \internal
  * Max number of elements as a power of 2.
@@ -90,7 +92,9 @@ void tommy_array_grow(tommy_array* array, unsigned size);
 tommy_inline void** tommy_array_ref(tommy_array* array, unsigned pos)
 {
 	unsigned bsr;  
- 
+
+	assert(pos < array->size);
+
 	/* special case for the first bucket */
 	if (pos < (1 << TOMMY_ARRAY_BIT)) {
 		return &array->bucket[0][pos];
