@@ -28,7 +28,7 @@
 #include "tommytrie.h"
 #include "tommylist.h"
 
-#include <assert.h>
+#include <assert.h> /* for assert */
 
 /******************************************************************************/
 /* trie */
