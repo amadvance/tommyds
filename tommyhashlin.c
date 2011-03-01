@@ -29,6 +29,7 @@
 #include "tommylist.h"
 
 #include <string.h> /* for memset */
+#include <assert.h> /* for assert */
 
 /******************************************************************************/
 /* hashlin */
@@ -46,9 +47,9 @@ void tommy_hashlin_init(tommy_hashlin* hashlin)
 	hashlin->bucket_bit = TOMMY_HASHLIN_BIT;
 	hashlin->bucket_max = 1 << hashlin->bucket_bit;
 	hashlin->bucket_mask = hashlin->bucket_max - 1;
-	hashlin->bucket_mac = 0;
 	hashlin->bucket[0] = tommy_cast(tommy_hashlin_node**, tommy_malloc(hashlin->bucket_max * sizeof(tommy_hashlin_node*)));
 	memset(hashlin->bucket[0], 0, hashlin->bucket_max * sizeof(tommy_hashlin_node*));
+	hashlin->bucket_mac = 1;
 
 	/* stable state */
 	hashlin->state = TOMMY_HASHLIN_STATE_STABLE;
@@ -58,8 +59,8 @@ void tommy_hashlin_init(tommy_hashlin* hashlin)
 
 void tommy_hashlin_done(tommy_hashlin* hashlin)
 {
-	/* we assume to be empty, so we free the only first bucket */
-	assert(hashlin->bucket_mac == 0);
+	/* we assume to be empty, so we free only the first bucket */
+	assert(hashlin->bucket_mac == 1);
 
 	tommy_free(hashlin->bucket[0]);
 }
@@ -127,9 +128,13 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 			tommy_hashlin_node* j;
 			unsigned mask;
 
-			/* get the low and high bucket */
+			/* get the low bucket */
 			split[0] = tommy_hashlin_pos(hashlin, hashlin->split);
-			split[1] = &hashlin->bucket[hashlin->bucket_mac][hashlin->split];
+
+			/* get the high bucket */
+			/* it's always in the second half, so we can index it directly */
+			/* without calling tommy_hashlin_pos() */
+			split[1] = &hashlin->bucket[hashlin->bucket_mac-1][hashlin->split];
 
 			/* save the low bucket */
 			j = *split[0];
@@ -176,8 +181,8 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 			++hashlin->bucket_bit;
 			hashlin->bucket_max = 1 << hashlin->bucket_bit;
 			hashlin->bucket_mask = hashlin->bucket_max - 1;
-			++hashlin->bucket_mac;
 			hashlin->bucket[hashlin->bucket_mac] = tommy_cast(tommy_hashlin_node**, tommy_malloc(hashlin->low_max * sizeof(tommy_hashlin_node*)));
+			++hashlin->bucket_mac;
 
 			/* start from the beginning going forward */
 			hashlin->split = 0;
@@ -205,9 +210,13 @@ tommy_inline void hashlin_shrink_step(tommy_hashlin* hashlin)
 			/* go backward position */
 			--hashlin->split;
    
-			/* get the low and high bucket */
+			/* get the low bucket */
 			split[0] = tommy_hashlin_pos(hashlin, hashlin->split);
-			split[1] = &hashlin->bucket[hashlin->bucket_mac][hashlin->split];
+
+			/* get the high bucket */
+			/* it's always in the second half, so we can index it directly */
+			/* without calling tommy_hashlin_pos() */
+			split[1] = &hashlin->bucket[hashlin->bucket_mac-1][hashlin->split];
 
 			/* concat the high bucket into the low one */
 			tommy_list_concat(split[0], split[1]);
@@ -222,8 +231,8 @@ tommy_inline void hashlin_shrink_step(tommy_hashlin* hashlin)
 				hashlin->bucket_mask = hashlin->bucket_max - 1;
 
 				/* free the last segment */
-				tommy_free(hashlin->bucket[hashlin->bucket_mac]);
 				--hashlin->bucket_mac;
+				tommy_free(hashlin->bucket[hashlin->bucket_mac]);
 				break;
 			}
 		}

@@ -145,7 +145,7 @@
  * Initial and minimal size of the hashtable expressed as a power of 2.
  * The initial size is 2^TOMMY_HASHLIN_BIT.
  */
-#define TOMMY_HASHLIN_BIT 4
+#define TOMMY_HASHLIN_BIT 6
 
 /**
  * Linear hashtable node.
@@ -166,7 +166,7 @@ typedef struct tommy_hashlin_struct {
 	unsigned bucket_bit; /**< Bits used in the bit mask. */
 	unsigned bucket_max; /**< Number of buckets. */
 	unsigned bucket_mask; /**< Bit mask to access the buckets. */
-	unsigned bucket_mac; /**< Number of vector allocated. */
+	unsigned bucket_mac; /**< Number of vectors allocated. */
 	unsigned low_max; /**< Low order max value. */
 	unsigned low_mask; /**< Low order mask value. */
 	unsigned split; /**< Split position. */
