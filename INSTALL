@@ -1,6 +1,5 @@
-                             ==========================
-                                 Tommy Installation
-                             ==========================
+Tommy INSTALL
+=============
 
 Tommy doesn't need any installation. You have only to import the required .c
 and .h files into your program and start using them.
