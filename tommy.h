@@ -40,6 +40,7 @@
  * The data structures provided are:
  *
  * - ::tommy_list - A double linked list.
+ * - ::tommy_array - A linear array. It doesn't fragment the heap.
  * - ::tommy_hashtable - A fixed size chained hashtable.
  * - ::tommy_hashdyn - A dynamic chained hashtable.
  * - ::tommy_hashlin - A linear chained hashtable. It doesn't have the
