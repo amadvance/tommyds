@@ -1,15 +1,17 @@
 TommyDS HISTORY
 ===============
 
+0.3 2011/03
+===========
+* Added tommy_list_foreach functions.
+
 
 0.2 2011/03
 ===========
-
 * Added tommy_array. A dynamic vector.
 
 
 0.1 2011/01
 ===========
-
 * First release of Tommy
 
