@@ -117,8 +117,8 @@
  *
  * \section Performance
  * Here you can see some timings compared to other common implementations in <i>Hit</i>
- * and <i>Change</i> performance. Hit is searching an object with success, and Change is removing it,
- * and reinsert with a different key value.
+ * and <i>Change</i> performance. Hit is searching an object with success, and Change is searching, removing
+ * and reinsert it with a different key value.
  *
  * Times are expressed in nanoseconds for element, so <b>lower is better</b>.
  *
@@ -301,7 +301,7 @@
  *
  * Note also that you can easily get hashtables to reach tries performance tweaking
  * the hash function to put near keys accessed nearby. For example, in the benchmark
- * case using something like:
+ * use something like:
  * \code
  * #define hash(v) tommy_inthash32(v & ~0xF) + (v & 0xF)
  * \endcode

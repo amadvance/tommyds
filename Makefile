@@ -1,7 +1,7 @@
 #############################################################################
 # Tommy Makefile
 
-VERSION=0.2
+VERSION=0.3
 CFLAGS=-O3 -Wall -g
 UNAME=$(shell uname)
 
@@ -110,6 +110,16 @@ doc: phony tommy.doxygen tommy.css $(DEP)
 	rm -f doc/doxygen.png
 	rm -f doc/tab_*.png
 
+web: phony tommyweb.doxygen tommy.css $(DEP)
+	rm -rf web
+	mkdir web
+	cp -a benchmark/data/* web/
+	rm -f web/*/*.lst
+	rm -f web/*/*.gnu
+	doxygen tommyweb.doxygen
+	rm -f web/doxygen.png
+	rm -f web/tab_*.png
+
 clean:
 	rm -f *.log *.s *.S *.lst *.o
 	rm -f *.ncb *.suo *.obj
@@ -121,7 +131,7 @@ distclean: clean
 	rm -f tommybench$(EXE) tommycheck$(EXE)
 
 maintainerclean: distclean
-	rm -rf doc
+	rm -rf doc web
 
 DIST=tommyds-$(VERSION)
 
