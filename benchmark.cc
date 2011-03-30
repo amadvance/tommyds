@@ -500,20 +500,9 @@ tommy_bool_t the_log;
  */
 tommy_bool_t is_listed(unsigned data)
 {
-/*
-#ifndef USE_JUDY
-	if (data == DATA_JUDY)
-		return 0;
-#endif
-#ifndef USE_CGOOGLE
-	if (data == DATA_CGOOGLE)
-		return 0;
-#endif
-#ifndef USE_CCGOOGLE
-	if (data == DATA_CCGOOGLE)
-		return 0;
-#endif
-*/
+	(void)data;
+
+	/* always have all the columns, we exclude them in the graphs */
 	return 1;
 }
 

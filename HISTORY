@@ -1,8 +1,9 @@
 TommyDS HISTORY
 ===============
 
-0.3 2011/03
+1.0 2011/03
 ===========
+* First official version of TommyDS.
 * Added tommy_list_foreach functions.
 
 

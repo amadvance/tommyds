@@ -53,6 +53,8 @@
  *
  * Tommy is released with a \ref license "2-clause BSD license".
  *
+ * The official site of TommyDS is <a href="http://tommyds.sourceforge.net/">http://tommyds.sourceforge.net/</a>,
+ *
  * \section Use
  *
  * All the data structures share the same interface that needs to embedded in the object to store
