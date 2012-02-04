@@ -38,7 +38,6 @@ void tommy_array_init(tommy_array* array)
 	array->bucket_bit = TOMMY_ARRAY_BIT;
 	array->bucket_max = 1 << array->bucket_bit;
 	array->bucket[0] = tommy_cast(void**, tommy_malloc(array->bucket_max * sizeof(void*)));
-	memset(array->bucket[0], 0, array->bucket_max * sizeof(void*));
 	array->bucket_mac = 1;
 	array->size = 0;
 }
@@ -55,7 +54,6 @@ void tommy_array_grow(tommy_array* array, unsigned size)
 	while (size > array->bucket_max) {
 		/* grow the hash size and allocate */
 		array->bucket[array->bucket_mac] = tommy_cast(void**, tommy_malloc(array->bucket_max * sizeof(void*)));
-		memset(array->bucket[array->bucket_mac], 0, array->bucket_max * sizeof(void*));
 		++array->bucket_mac;
 		++array->bucket_bit;
 		array->bucket_max = 1 << array->bucket_bit;

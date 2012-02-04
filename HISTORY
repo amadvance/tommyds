@@ -1,18 +1,21 @@
 TommyDS HISTORY
 ===============
 
+2.0 2012/02
+===========
+ * Changed tommy_array_grow() to DO NOT initialize data with 0.
+   Note that this makes this new version not backward compatible with v1.0.
+
 1.0 2011/03
 ===========
-* First official version of TommyDS.
-* Added tommy_list_foreach functions.
-
+ * First official version of TommyDS.
+ * Added tommy_list_foreach functions.
 
 0.2 2011/03
 ===========
-* Added tommy_array. A dynamic vector.
-
+ * Added tommy_array. A dynamic vector.
 
 0.1 2011/01
 ===========
-* First release of Tommy
+ * First release of Tommy
 

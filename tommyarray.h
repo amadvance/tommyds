@@ -80,7 +80,7 @@ void tommy_array_done(tommy_array* array);
 
 /**
  * Grow the size up to the specified value.
- * All the new elements in the array are initialized with the 0 value.
+ * All the new elements in the array are NOT initialized.
  */
 void tommy_array_grow(tommy_array* array, unsigned size);
 

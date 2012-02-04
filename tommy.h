@@ -134,7 +134,7 @@
  *
  * Tommy is 100% portable in all the platforms and operating systems.
  *
- * Tommy containers support multiple elemements with the same key.
+ * Tommy containers support multiple elements with the same key.
  *
  * \section Limitations
  *
@@ -167,7 +167,7 @@
  * misses. This benchmark favorites implementations that store information in the
  * objects itself, as the additional cache misses are already implicit.
  *
- * The test dones are:
+ * The test done are:
  *  - <b>Insert</b> Insert all the objects starting with an empty container.
  *  - <b>Hit</b> Find with success all the objects and derefence them.
  *  - <b>Miss</b> Find with failure all the objects.
@@ -178,7 +178,7 @@
  * objects in the containers.
  * The <i>Insert</i> test starts with an empty container, and the <i>Remove</i>
  * test ends with an empty container.
- * The objects are always deferenced, as we are supposing to use them. This
+ * The objects are always dereferenced, as we are supposing to use them. This
  * happens even in the remove case, as we are supposing to deallocate them.
  *
  * The tests are repeated using keys in <i>Random</i> order and then in <i>Forward</i> order.
@@ -202,7 +202,7 @@
  * The use of even numbers allows to have missing numbers inside the domain for
  * the <i>Miss</i> and <i>Change</i> tests.
  * Using missing numbers at the corners of the domain would have favorited tries
- * and trees as they implicitely keep track of the maximum and minimum value inserted.
+ * and trees as they implicitly keep track of the maximum and minimum value inserted.
  *
  * The use of the 0x80000000 base, allow to test a key domain not necessarily
  * starting at 0. Using a 0 base would have favorited some tries managing it as a special case.
