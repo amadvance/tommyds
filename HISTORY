@@ -1,10 +1,8 @@
 TommyDS HISTORY
 ===============
 
-2.0 2012/02
+1.1 2012/02
 ===========
- * Changed tommy_array_grow() to DO NOT initialize data with 0.
-   Note that this makes this new version not backward compatible with v1.0.
 
 1.0 2011/03
 ===========

@@ -1,7 +1,7 @@
 #############################################################################
 # Tommy Makefile
 
-VERSION=2.0
+VERSION=1.1
 CFLAGS=-O3 -Wall -Wextra -g
 UNAME=$(shell uname)
 
