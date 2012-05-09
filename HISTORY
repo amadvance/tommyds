@@ -1,8 +1,10 @@
 TommyDS HISTORY
 ===============
 
-1.1 2012/02
+1.1 2012/05
 ===========
+ * Fixed the tommy_hashdyn_remove() function. Now it shrinks the hashtable if required.
+ * Minor documentation changes.
 
 1.0 2011/03
 ===========
