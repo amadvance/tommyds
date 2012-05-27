@@ -47,10 +47,7 @@ typedef tommy_key_t tommy_hash_t;
  * Robert Jenkins "lookup3" hash,
  * from http://www.burtleburtle.net/bob/hash/doobs.html, function hashlittle().
  * \note
- * This function is platform independent as it read always in little endian format.
- * \param init_val Initial value. You can use this to concatenate hash. Otherwise set it at 0.
- * \param void_key Key to hash.
- * \param key_len Length of the key.
+ * This function is endianess independent.
  * \return The 32 bit hash value.
  */
 tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* void_key, tommy_size_t key_len);
@@ -60,7 +57,7 @@ tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* void_key, tom
  * Robert Jenkins "lookup3" hash,
  * from http://www.burtleburtle.net/bob/hash/doobs.html, function hashlittle2().
  * \note
- * This function is platform independent as it read always in little endian format. 
+ * This function is endianess independent.
  */
 tommy_uint64_t tommy_hash_u64(tommy_uint64_t init_val, const void* void_key, tommy_size_t key_len);
 
