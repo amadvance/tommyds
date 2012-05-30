@@ -55,15 +55,41 @@
 
 #define MAX 1000000
 
+#define PAYLOAD 16 /**< Size of payload data for objects */
+
 struct object {
 	tommy_node node;
 	int value;
+	char payload[PAYLOAD];
 };
+
+unsigned compare_counter;
 
 int compare(const void* void_a, const void* void_b)
 {
 	const struct object* a = void_a;
 	const struct object* b = void_b;
+
+	++compare_counter;
+
+	if (a->value < b->value)
+		return -1;
+	if (a->value > b->value)
+		return 1;
+	return 0;
+}
+
+struct object_vector {
+	int value;
+	char payload[PAYLOAD];
+};
+
+int compare_vector(const void* void_a, const void* void_b)
+{
+	const struct object_vector* a = void_a;
+	const struct object_vector* b = void_b;
+
+	++compare_counter;
 
 	if (a->value < b->value)
 		return -1;
@@ -180,8 +206,28 @@ loop:
 const char* the_str;
 tommy_uint64_t the_start;
 
+/**
+ * Cache clearing buffer.
+ */
+unsigned char CACHE[8*1024*1024];
+
+void cache_clear(void)
+{
+	unsigned i;
+
+	/* read & write */
+	for(i=0;i<sizeof(CACHE);i += 32)
+		CACHE[i] += 1;
+
+#ifdef WIN32
+	Sleep(0);
+#endif
+}
+
 void start(const char* str)
 {
+	cache_clear();
+	compare_counter = 0;
 	the_str = str;
 	the_start = nano();
 }
@@ -189,7 +235,7 @@ void start(const char* str)
 void stop()
 {
 	tommy_uint64_t stop = nano();
-	printf("%23s %8u [ms]\n", the_str, (unsigned)((stop - the_start) / 1000000));
+	printf("%25s %8u [ms], %8u [compare]\n", the_str, (unsigned)((stop - the_start) / 1000000), compare_counter);
 }
 
 #define START(s) start(s)
@@ -218,18 +264,20 @@ void test_list_order(tommy_node* list)
 void test_list(void)
 {
 	struct object* LIST;
+	struct object_vector* VECTOR;
 	tommy_node* list;
 	unsigned i;
 
 	LIST = malloc(MAX * sizeof(struct object));
+	VECTOR = malloc(MAX * sizeof(struct object_vector));
 
 	for(i=0;i<MAX;++i) {
-		LIST[i].value = 0;
+		VECTOR[i].value = LIST[i].value = 0;
 	}
 
 	list = 0;
 	for(i=0;i<MAX;++i) {
-		LIST[i].value = rnd(MAX);
+		VECTOR[i].value = LIST[i].value = rnd(MAX);
 		tommy_list_insert_tail(&list, &LIST[i].node, &LIST[i]);
 	}
 
@@ -237,14 +285,18 @@ void test_list(void)
 	tommy_list_sort(&list, compare);
 	STOP();
 
+	START("C qsort random");
+	qsort(VECTOR, MAX, sizeof(VECTOR[0]), compare_vector);
+	STOP();
+
 	test_list_order(list);
 
 	/* forward order with some (1%) random values */
 	list = 0;
 	for(i=0;i<MAX;++i) {
-		LIST[i].value = i;
+		VECTOR[i].value = LIST[i].value = i;
 		if (rnd(100) == 0)
-			LIST[i].value = rnd(MAX);
+			VECTOR[i].value = LIST[i].value = rnd(MAX);
 		tommy_list_insert_tail(&list, &LIST[i].node, &LIST[i]);
 	}
 
@@ -252,12 +304,16 @@ void test_list(void)
 	tommy_list_sort(&list, compare);
 	STOP();
 
+	START("C qsort partially ordered");
+	qsort(VECTOR, MAX, sizeof(VECTOR[0]), compare_vector);
+	STOP();
+
 	test_list_order(list);
 
 	/* forward order */
 	list = 0;
 	for(i=0;i<MAX;++i) {
-		LIST[i].value = i;
+		VECTOR[i].value = LIST[i].value = i;
 		tommy_list_insert_tail(&list, &LIST[i].node, &LIST[i]);
 	}
 
@@ -265,12 +321,16 @@ void test_list(void)
 	tommy_list_sort(&list, compare);
 	STOP();
 
+	START("C qsort forward");
+	qsort(VECTOR, MAX, sizeof(VECTOR[0]), compare_vector);
+	STOP();
+
 	test_list_order(list);
 
 	/* backward order */
 	list = 0;
 	for(i=0;i<MAX;++i) {
-		LIST[i].value = MAX - 1 - i;
+		VECTOR[i].value = LIST[i].value = MAX - 1 - i;
 		tommy_list_insert_tail(&list, &LIST[i].node, &LIST[i]);
 	}
 
@@ -278,12 +338,16 @@ void test_list(void)
 	tommy_list_sort(&list, compare);
 	STOP();
 
+	START("C qsort backward");
+	qsort(VECTOR, MAX, sizeof(VECTOR[0]), compare_vector);
+	STOP();
+
 	test_list_order(list);
 
 	/* use a small range of random value to insert a lot of duplicates */
 	list = 0;
 	for(i=0;i<MAX;++i) {
-		LIST[i].value = rnd(MAX / 1000 + 2);
+		VECTOR[i].value = LIST[i].value = rnd(MAX / 1000 + 2);
 		tommy_list_insert_tail(&list, &LIST[i].node, &LIST[i]);
 	}
 
@@ -291,9 +355,14 @@ void test_list(void)
 	tommy_list_sort(&list, compare);
 	STOP();
 
+	START("C qsort random duplicate");
+	qsort(VECTOR, MAX, sizeof(VECTOR[0]), compare_vector);
+	STOP();
+
 	test_list_order(list);
 
 	free(LIST);
+	free(VECTOR);
 }
 
 void test_array(void)

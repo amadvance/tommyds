@@ -1,7 +1,7 @@
 #############################################################################
 # Tommy Makefile
 
-VERSION=1.1
+VERSION=1.2
 CFLAGS=-O3 -Wall -Wextra -g
 UNAME=$(shell uname)
 
@@ -27,6 +27,7 @@ O=.obj
 endif
 
 CHECK = ./tommybench -N 1000
+#CHECK = ./tommycheck
 
 DEP = \
 	tommyalloc.c \

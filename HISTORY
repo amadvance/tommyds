@@ -4,6 +4,7 @@ TommyDS HISTORY
 1.2 2012/05
 ===========
  * Minor documentation changes.
+ * In the check application, added a speed comparison with the C qsort() implementation.
 
 1.1 2012/05
 ===========
