@@ -32,7 +32,7 @@
  * It's <b>faster</b> than all the similar libraries like
  * <a href="http://www.canonware.com/rb/">rbtree</a>,
  * <a href="http://judy.sourceforge.net/">judy</a>,
- * <a href="http://code.google.com/p/google-sparsehash/">goodledensehash</a>,
+ * <a href="http://code.google.com/p/google-sparsehash/">googledensehash</a>,
  * <a href="http://attractivechaos.awardspace.com/">khash</a>,
  * <a href="http://uthash.sourceforge.net/">uthash</a>,
  * <a href="http://www.nedprod.com/programs/portable/nedtries/">nedtrie</a> and others.
@@ -114,7 +114,7 @@
  * Dealing with hashtables, instead of the key, you have to provide the hash value of the object,
  * and a compare function able to differentiate objects with the same hash value.
  *
- * To compute the hash value, you can use the generic tommy_hash() function, or the
+ * To compute the hash value, you can use the generic tommy_hash_u32() function, or the
  * specialized integer hash function tommy_inthash_u32().
  *
  * \section Performance
@@ -215,7 +215,7 @@
  *  - ::tommy_trie_inplace - Trie completely inplace.
  *  - <a href="http://www.canonware.com/rb/">rbtree</a> - Red-black tree by Jason Evans.
  *  - <a href="http://attractivechaos.awardspace.com/">khash</a> - Dynamic open addressing hashtable by Attractive Chaos.
- *  - <a href="http://code.google.com/p/google-sparsehash/">goodledensehash</a> - Dynamic open addressing hashtable by Craig Silverstein at Google.
+ *  - <a href="http://code.google.com/p/google-sparsehash/">googledensehash</a> - Dynamic open addressing hashtable by Craig Silverstein at Google.
  *  - <a href="http://uthash.sourceforge.net/">uthash</a> - Dynamic chaining hashtable by Troy D. Hanson.
  *  - <a href="http://judy.sourceforge.net/">judy</a> - Burst trie (JudyL) by Doug Baskins at HP.
  *  - <a href="http://www.nedprod.com/programs/portable/nedtries/">nedtrie</a> - Binary trie inplace by Niall Douglas.
@@ -249,7 +249,7 @@
  * In <i>Random</i> tests hashtables are almost always winning, seconds are
  * tries, and as last trees.
  *  
- * The best choices are ::tommy_hashlin, and goodledensehash, with
+ * The best choices are ::tommy_hashlin, and googledensehash, with
  * ::tommy_hashlin having the advantage to be real-time friendly and not
  * increasing the heap fragmentation.
  * <table border="0">

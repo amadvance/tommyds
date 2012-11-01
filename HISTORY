@@ -1,6 +1,11 @@
 TommyDS HISTORY
 ===============
 
+1.3 2012/11
+===========
+ * Minor documentation changes.
+ * One warning removal with newer gcc.
+
 1.2 2012/05
 ===========
  * Minor documentation changes.
