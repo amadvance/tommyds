@@ -182,13 +182,6 @@
  * The objects are always dereferenced, as we are supposing to use them. This
  * happens even in the remove case, as we are supposing to deallocate them.
  *
- * The tests are repeated using keys in <i>Random</i> order and then in <i>Forward</i> order.
- * The random order favorites hashtables, as the hash function already randomizes the key. 
- * The forward order favorites tries and trees as they use the key directly and they have a
- * cache advantage on using consecutive keys.
- * Usually real uses case are in between, where the random one is the
- * worst case.
- *
  * All the objects are preallocated in the heap, and this allocation time is not
  * included in the test.
  *
@@ -196,17 +189,29 @@
  * <i>payload</i> field of 16 bytes, and any other data required by the data
  * structure.
  *
- * The objects are identified and stored using integers and unique <i>keys</i>.
+ * The objects are identified and stored using integer and unique <i>keys</i>.
  * The key domain used is <strong>dense</strong>, and it's defined by the set
  * of N even numbers starting from 0x80000000 to 0x80000000+2*N.
  *
- * The use of even numbers allows to have missing numbers inside the domain for
+ * The use of only even numbers allows to have missing numbers inside the domain for
  * the <i>Miss</i> and <i>Change</i> tests.
- * Using missing numbers at the corners of the domain would have favorited tries
- * and trees as they implicitly keep track of the maximum and minimum value inserted.
+ * In such tests it's used the key domain defined by the set of N odd numbers
+ * starting from 0x80000001 to 0x80000001+2*N.
+ * Note that using missing keys at the corners of the domain would have favorited tries
+ * and trees as they implicitly keep track of the maximum and minimum key values inserted.
  *
  * The use of the 0x80000000 base, allow to test a key domain not necessarily
  * starting at 0. Using a 0 base would have favorited some tries managing it as a special case.
+ *
+ * The tests are repeated using keys in <i>Random</i> order and then in <i>Forward</i> order.
+ * In the forward order the key values are used from the lowest to the uppest.
+ * The forward order favorites tries and trees as they use the key directly and they have a
+ * cache advantage on using consecutive keys.
+ * In the random order the key values are used in random order. Note that in the
+ * <i>Change</i> test, the order of the two key domains is completely different and uncorrelated.
+ * The random order favorites hashtables, as the hash function already randomizes the key.
+ * Usually real uses case are in between, where the random one is the
+ * worst case.
  *
  * The following data structures are tested:
  *  - ::tommy_hashtable - Fixed size chained hashtable.

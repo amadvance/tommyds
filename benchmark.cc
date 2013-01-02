@@ -639,10 +639,10 @@ void order_init(int max, int sparse)
 			FORWARD[i] = 0x80000000 + i * 2;
 			RAND0[i] = FORWARD[i];
 			RAND1[i] = FORWARD[i];
-		}	
+		}
 	}
 
-	/* randomize using the Fisher–Yates shuffle, http://en.wikipedia.org/wiki/Fisher-Yates_shuffle */
+	/* randomize using the Fisher-Yates shuffle, http://en.wikipedia.org/wiki/Fisher-Yates_shuffle */
 	for(i=max-1;i>=0;--i) {
 		unsigned j, t;
 		j = rnd(i+1);
@@ -660,7 +660,7 @@ void order_init(int max, int sparse)
 void order_done(void)
 {
 	free(FORWARD);
-	free(RAND0); 
+	free(RAND0);
 	free(RAND1); 
 }
 
