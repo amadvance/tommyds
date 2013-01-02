@@ -60,6 +60,8 @@
 #if defined(_M_IX86) || defined(__i386__)
 #define USE_JUDY
 #endif
+#else
+#define USE_JUDY
 #endif
 
 #ifdef __cplusplus
@@ -131,8 +133,14 @@
 /* http://judy.sourceforge.net/ */
 /* Disabled on 64 bits platform in Windows as it's not supported */
 #ifdef USE_JUDY
-#include "benchmark/lib/judy/judy.h"
+#include "benchmark/lib/judy/Judy.h"
 #endif
+
+/* JudyArray */
+/* http://code.google.com/p/judyarray/ */
+/* Ensuse to use the version "judy64na.c". previous ones are not not working with integers key. */
+#include "benchmark/lib/judyarray/judy64na.c"
+#define USE_JUDYARRAY 1
 
 /******************************************************************************/
 /* objects */
@@ -184,6 +192,11 @@ struct judy_object {
 	char payload[PAYLOAD];
 };
 
+struct judyarray_object {
+	unsigned value;
+	char payload[PAYLOAD];
+};
+
 struct nedtrie_object {
 	NEDTRIE_ENTRY(nedtrie_object) link;
 	unsigned value;   
@@ -209,6 +222,9 @@ struct uthash_object* UTHASH;
 struct nedtrie_object* NEDTRIE;
 #ifdef USE_JUDY
 struct judy_object* JUDY;
+#endif
+#ifdef USE_JUDYARRAY
+struct judyarray_object* JUDYARRAY;
 #endif
 
 /******************************************************************************/
@@ -279,6 +295,9 @@ ccgoogle_t* ccgoogle;
 #endif
 #ifdef USE_JUDY
 Pvoid_t judy = 0;
+#endif
+#ifdef USE_JUDYARRAY
+Judy* judyarray = 0;
 #endif
 
 /******************************************************************************/
@@ -444,7 +463,8 @@ const char* ORDER_NAME[ORDER_MAX] = {
 #define DATA_UTHASH 9
 #define DATA_NEDTRIE 10
 #define DATA_JUDY 11
-#define DATA_MAX 12
+#define DATA_JUDYARRAY 12
+#define DATA_MAX 13
 
 const char* DATA_NAME[DATA_MAX] = {
 	"tommy-hashtable",
@@ -459,6 +479,7 @@ const char* DATA_NAME[DATA_MAX] = {
 	"uthash",
 	"nedtrie",
 	"judy",
+	"judyarray",
 };
 
 /** 
@@ -711,6 +732,13 @@ void test_alloc(void)
 		JUDY = (struct judy_object*)malloc(sizeof(struct judy_object) * the_max);
 	}
 #endif
+
+#ifdef USE_JUDYARRAY
+	COND(DATA_JUDYARRAY) {
+		JUDYARRAY = (struct judyarray_object*)malloc(sizeof(struct judyarray_object) * the_max);
+		judyarray = judy_open(1024, 1);
+	}
+#endif
 }
 
 void test_free(void)
@@ -784,6 +812,13 @@ void test_free(void)
 #ifdef USE_JUDY
 	COND(DATA_JUDY) {
 		free(JUDY);
+	}
+#endif
+
+#ifdef USE_JUDYARRAY
+	COND(DATA_JUDYARRAY) {
+		free(JUDYARRAY);
+		judy_close(judyarray);
 	}
 #endif
 }
@@ -885,6 +920,16 @@ void test_insert(unsigned* INSERT)
 		JUDY[i].value = key;
 		JLI(PValue, judy, key);
 		*(struct judy_object**)PValue = &JUDY[i];
+	} STOP();
+#endif
+
+#ifdef USE_JUDYARRAY
+	START(DATA_JUDYARRAY) {
+		judyvalue key = INSERT[i];
+		JudySlot* pvalue;
+		JUDYARRAY[i].value = key;
+		pvalue = judy_cell(judyarray, (uchar*)&key, 0);
+		*(struct judyarray_object**)pvalue = &JUDYARRAY[i];
 	} STOP();
 #endif
 }
@@ -1045,6 +1090,21 @@ void test_hit(unsigned* SEARCH)
 	} STOP();
 #endif
 
+#ifdef USE_JUDYARRAY
+	START(DATA_JUDYARRAY) {
+		judyvalue key = SEARCH[i];
+		JudySlot* pvalue;
+		pvalue = judy_slot(judyarray, (uchar*)&key, 0);
+		if (!pvalue)
+			abort();
+		if (dereference) {
+			struct judyarray_object* obj = *(struct judyarray_object**)pvalue;
+			if (obj->value != key)
+				abort();
+		}
+	} STOP();
+#endif
+
 	START(DATA_NEDTRIE) {
 		unsigned key = SEARCH[i];
 		struct nedtrie_object key_obj;
@@ -1154,6 +1214,16 @@ void test_miss(unsigned* SEARCH, unsigned DELTA)
 		Pvoid_t PValue;
 		JLG(PValue, judy, key);
 		if (PValue)
+			abort();
+	} STOP();
+#endif
+
+#ifdef USE_JUDYARRAY
+	START(DATA_JUDYARRAY) {
+		judyvalue key = SEARCH[i] + DELTA;
+		JudySlot* pvalue;
+		pvalue = judy_slot(judyarray, (uchar*)&key, 0);
+		if (pvalue)
 			abort();
 	} STOP();
 #endif
@@ -1345,6 +1415,25 @@ void test_change(unsigned* REMOVE, unsigned* INSERT)
 		obj->value = key;
 		JLI(PValue, judy, key);
 		*(struct judy_object**)PValue = obj;
+	} STOP();
+#endif
+
+#ifdef USE_JUDYARRAY
+	START(DATA_JUDYARRAY) {
+		judyvalue key = REMOVE[i];
+		struct judyarray_object* obj;
+		int r;
+		JudySlot* pvalue;
+		pvalue = judy_slot(judyarray, (uchar*)&key, 0);
+		if (!pvalue)
+			abort();
+		obj = *(struct judyarray_object**)pvalue;
+		judy_del(judyarray);
+
+		key = INSERT[i] + DELTA;
+		obj->value = key;
+		pvalue = judy_cell(judyarray, (uchar*)&key, 0);
+		*(struct judyarray_object**)pvalue = obj;
 	} STOP();
 #endif
 
@@ -1544,6 +1633,23 @@ void test_remove(unsigned* REMOVE)
 	} STOP();
 #endif
 
+#ifdef USE_JUDYARRAY
+	START(DATA_JUDYARRAY) {
+		judyvalue key = REMOVE[i] + DELTA;
+		struct judyarray_object* obj;
+		JudySlot* pvalue;
+		pvalue = judy_slot(judyarray, (uchar*)&key, 0);
+		if (!pvalue)
+			abort();
+		obj = *(struct judyarray_object**)pvalue;
+		judy_del(judyarray);
+		if (dereference) {
+			if (obj->value != key)
+				abort();
+		}
+	} STOP();
+#endif
+
 	START(DATA_NEDTRIE) {
 		unsigned key = REMOVE[i] + DELTA;
 		struct nedtrie_object key_obj;
@@ -1621,6 +1727,9 @@ void test_size(void)
 #ifdef USE_JUDY
 	JLMU(w, judy);
 	MEM(DATA_JUDY, w);
+#endif
+#ifdef USE_JUDYARRAY
+	MEM(DATA_JUDYARRAY,judy_size(judyarray));
 #endif
 }
 

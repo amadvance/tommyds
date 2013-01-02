@@ -35,7 +35,8 @@
  * <a href="http://code.google.com/p/google-sparsehash/">googledensehash</a>,
  * <a href="http://attractivechaos.awardspace.com/">khash</a>,
  * <a href="http://uthash.sourceforge.net/">uthash</a>,
- * <a href="http://www.nedprod.com/programs/portable/nedtries/">nedtrie</a> and others.
+ * <a href="http://www.nedprod.com/programs/portable/nedtries/">nedtrie</a>,
+ * <a href="http://code.google.com/p/judyarray/">judyarray</a> and others.
  *
  * The data structures provided are:
  *
@@ -217,8 +218,9 @@
  *  - <a href="http://attractivechaos.awardspace.com/">khash</a> - Dynamic open addressing hashtable by Attractive Chaos.
  *  - <a href="http://code.google.com/p/google-sparsehash/">googledensehash</a> - Dynamic open addressing hashtable by Craig Silverstein at Google.
  *  - <a href="http://uthash.sourceforge.net/">uthash</a> - Dynamic chaining hashtable by Troy D. Hanson.
- *  - <a href="http://judy.sourceforge.net/">judy</a> - Burst trie (JudyL) by Doug Baskins at HP.
  *  - <a href="http://www.nedprod.com/programs/portable/nedtries/">nedtrie</a> - Binary trie inplace by Niall Douglas.
+ *  - <a href="http://judy.sourceforge.net/">judy</a> - Burst trie (JudyL) by Doug Baskins.
+  *  - <a href="http://code.google.com/p/judyarray/">judyarray</a> - Burst trie by Karl Malbrain.
  *
  * \section result Results
  *
@@ -379,18 +381,18 @@
  * 
  * \subsection khash khash
  * It doesn't release memory on deletion. This gives an unfair advantage on the <i>Remove</i> test.
- * 
+ *
+ * \subsection nedtrie nedtrie
+ * I've found a crash bug when inserting keys with the 0 value.
+ * The <a href="https://github.com/ned14/nedtries/commit/21039696f27db4ffac70a82f89dc5d00ae74b332">fix</a> of this issue is now in the nedtries github.
+ * We do not use the C++ implementation as it doesn't compile with gcc 4.4.3.
+ *
  * \subsection judy Judy
  * Sometimes it has bad performances in some specific platform
  * and for some specific input data size.
  * This makes difficult to predict the performance, as it is usually good until
  * you get one of these cases.
  * See for example this <a href="other/judy_problem.png">graph</a> with a big replicable spike at 50.000 elements.
- * 
- * \subsection nedtrie nedtrie
- * I've found a crash bug when inserting keys with the 0 value.
- * The <a href="https://github.com/ned14/nedtries/commit/21039696f27db4ffac70a82f89dc5d00ae74b332">fix</a> of this issue is now in the nedtries github.
- * We do not use the C++ implementation as it doesn't compile with gcc 4.4.3.
  *
  * \page multiindex Tommy Multi Indexing
  *

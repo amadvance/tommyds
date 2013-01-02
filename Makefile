@@ -3,11 +3,12 @@
 
 VERSION=1.3
 CFLAGS=-O3 -Wall -Wextra -g
+CCFLAGS=$(CFLAGS) -fpermissive
 UNAME=$(shell uname)
 
 # Linux
 ifeq ($(UNAME),Linux)
-LIB=-lrt
+LIB=-lrt benchmark/lib/judy/libJudyL.a benchmark/lib/judy/libJudyMalloc.a
 EXE=
 O=.o
 endif
@@ -64,7 +65,7 @@ tommycheck$(EXE): check.c tommy$(O)
 	gcc $(CFLAGS) check.c tommy.o -o tommycheck$(EXE) $(LIB)
 
 tommybench$(EXE): benchmark.cc $(DEP)
-	g++ $(CFLAGS) benchmark.cc -o tommybench$(EXE) $(LIB)
+	g++ $(CCFLAGS) benchmark.cc -o tommybench$(EXE) $(LIB)
 
 check: tommycheck$(EXE) tommybench$(EXE)
 	./tommycheck$(EXE)
