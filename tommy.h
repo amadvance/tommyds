@@ -203,15 +203,16 @@
  * The use of the 0x80000000 base, allow to test a key domain not necessarily
  * starting at 0. Using a 0 base would have favorited some tries managing it as a special case.
  *
- * The tests are repeated using keys in <i>Random</i> order and then in <i>Forward</i> order.
- * In the forward order the key values are used from the lowest to the uppest.
+ * The tests are repeated using keys in <i>Random</i> mode and in <i>Forward</i> mode.
+ * In the forward mode the key values are used from the lowest to the uppest.
+ * In the random mode the key values are used in a completely random order.
+ * In the <i>Change</i> test in forward mode, each object is reinserted using the same key, just incremented by 1.
+ * Instead, in random mode, each object is reinserted using a completely different and uncorrelated key.
+ *
  * The forward order favorites tries and trees as they use the key directly and they have a
  * cache advantage on using consecutive keys.
- * In the random order the key values are used in random order. Note that in the
- * <i>Change</i> test, the order of the two key domains is completely different and uncorrelated.
  * The random order favorites hashtables, as the hash function already randomizes the key.
- * Usually real uses case are in between, where the random one is the
- * worst case.
+ * Usually real uses case are in between, and the random one is the worst one.
  *
  * The following data structures are tested:
  *  - ::tommy_hashtable - Fixed size chained hashtable.
@@ -233,7 +234,7 @@
  * you should mostly look at <i>Random Hit</i> and <i>Random Change</i>.
  *
  * They are valuated the most significatives, because operating always with N elements
- * in the data structure and with a random pattern, they mostly mimic real conditions.
+ * in the data structure and with a random patterns. They represent the real world worst conditions.
  *
  * <img src="def/img_random_hit.png"/>
  *
@@ -309,7 +310,7 @@
  * the hashed key is random.
  *
  * Note also that you can easily get hashtables to reach tries performance tweaking
- * the hash function to put near keys accessed nearby. For example, in the benchmark
+ * the hash function to put accessed near keys nearby. For example, in the benchmark
  * use something like:
  * \code
  * #define hash(v) tommy_inthash32(v & ~0xF) + (v & 0xF)
