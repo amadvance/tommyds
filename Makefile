@@ -156,6 +156,7 @@ dist:
 	rm -f $(DIST)/benchmark/arial.ttf
 	rm -f $(DIST).tar.gz
 	tar cfzo $(DIST).tar.gz $(DIST)
+	rm -f $(DIST).zip
 	zip -r $(DIST).zip $(DIST)
 	rm -r $(DIST)
 
