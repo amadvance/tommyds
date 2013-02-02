@@ -98,6 +98,12 @@ int compare_vector(const void* void_a, const void* void_b)
 	return 0;
 }
 
+struct object_hash {
+	int value;
+	tommy_node node;
+	tommy_node hashnode;
+};
+
 /******************************************************************************/
 /* time */
 
@@ -372,7 +378,7 @@ void test_array(void)
 
 	tommy_array_init(&array);
 
-	START("init");
+	START("array init");
 	for(i=0;i<MAX*10;++i) {
 		tommy_array_grow(&array, i + 1);
 		if (tommy_array_get(&array, i) != 0)
@@ -380,13 +386,13 @@ void test_array(void)
 	}
 	STOP();
 
-	START("set");
+	START("array set");
 	for(i=0;i<MAX*10;++i) {
 		tommy_array_set(&array, i, (void*)i);
 	}
 	STOP();
 
-	START("get");
+	START("array get");
 	for(i=0;i<MAX*10;++i) {
 		if (tommy_array_get(&array, i) != (void*)i)
 			abort();
@@ -396,6 +402,44 @@ void test_array(void)
 	tommy_array_done(&array);
 }
 
+void test_hashlin(void)
+{
+	tommy_list list;
+	tommy_hashlin hashlin;
+	struct object_hash* HASH;
+	unsigned i, n;
+
+	HASH = malloc(MAX * sizeof(struct object_hash));
+
+	for(i=0;i<MAX;++i) {
+		HASH[i].value = i;
+	}
+
+	START("hashlin");
+	for(n=0;n<MAX/100;++n) {
+		tommy_list_init(&list);
+		tommy_hashlin_init(&hashlin);
+		tommy_node* j;
+
+		for(i=0;i<n;++i) {
+			tommy_list_insert_tail(&list, &HASH[i].node, &HASH[i]);
+			tommy_hashlin_insert(&hashlin, &HASH[i].hashnode, &HASH[i], HASH[i].value);
+		}
+
+		j = tommy_list_head(&list);
+		while (j) {
+			struct object_hash* obj = j->data;
+
+			j = j->next;
+
+			tommy_hashlin_remove_existing(&hashlin, &obj->hashnode);
+		}
+
+		tommy_hashlin_done(&hashlin);
+	}
+	STOP();
+}
+
 int main() {
 	nano_init();
 
@@ -403,6 +447,7 @@ int main() {
 
 	test_list();
 	test_array();
+	test_hashlin();
 
 	printf("OK\n");
 

@@ -6,6 +6,7 @@ TommyDS HISTORY
  * Minor documentation changes.
  * One warning removal with newer gcc.
  * Added benchmark comparison with the judy array implementation of Karl Malbrain.
+ * Fixed a Segmentation Fault bug in the hashlin container if exact power of 2 sizes were used.
 
 1.2 2012/05
 ===========
