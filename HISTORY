@@ -1,12 +1,12 @@
 TommyDS HISTORY
 ===============
 
-1.3 2013/01
+1.3 2013/02
 ===========
- * Minor documentation changes.
- * One warning removal with newer gcc.
- * Added benchmark comparison with the judy array implementation of Karl Malbrain.
  * Fixed a Segmentation Fault bug in the hashlin container if exact power of 2 sizes were used.
+ * Removed some warnings with newer gcc.
+ * Minor documentation changes.
+ * Added benchmark comparison with the judy array implementation of Karl Malbrain.
 
 1.2 2012/05
 ===========
@@ -29,5 +29,5 @@ TommyDS HISTORY
 
 0.1 2011/01
 ===========
- * First release of Tommy
+ * First release of Tommy.
 

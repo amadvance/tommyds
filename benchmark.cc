@@ -1422,7 +1422,6 @@ void test_change(unsigned* REMOVE, unsigned* INSERT)
 	START(DATA_JUDYARRAY) {
 		judyvalue key = REMOVE[i];
 		struct judyarray_object* obj;
-		int r;
 		JudySlot* pvalue;
 		pvalue = judy_slot(judyarray, (uchar*)&key, 0);
 		if (!pvalue)

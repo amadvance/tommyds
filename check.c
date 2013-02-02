@@ -402,12 +402,14 @@ void test_array(void)
 	tommy_array_done(&array);
 }
 
-void test_hashlin(void)
+void test_hashdyn(void)
 {
 	tommy_list list;
-	tommy_hashlin hashlin;
+	tommy_hashdyn hashdyn;
 	struct object_hash* HASH;
 	unsigned i, n;
+	tommy_node* p;
+	unsigned limit;
 
 	HASH = malloc(MAX * sizeof(struct object_hash));
 
@@ -415,28 +417,152 @@ void test_hashlin(void)
 		HASH[i].value = i;
 	}
 
-	START("hashlin");
-	for(n=0;n<MAX/100;++n) {
+	START("hashdyn stack");
+	limit = sqrt(MAX);
+	for(n=0;n<limit;++n) {
+		tommy_list_init(&list);
+		tommy_hashdyn_init(&hashdyn);
+
+		/* insert */
+		for(i=0;i<n;++i) {
+			tommy_list_insert_head(&list, &HASH[i].node, &HASH[i]);
+			tommy_hashdyn_insert(&hashdyn, &HASH[i].hashnode, &HASH[i], HASH[i].value);
+		}
+
+		/* remove */
+		p = tommy_list_head(&list);
+		while (p) {
+			struct object_hash* obj = p->data;
+			p = p->next;
+			tommy_hashdyn_remove_existing(&hashdyn, &obj->hashnode);
+		}
+
+		tommy_hashdyn_done(&hashdyn);
+	}
+	STOP();
+
+	tommy_list_init(&list);
+	tommy_hashdyn_init(&hashdyn);
+
+	START("hashdyn queue");
+	for(i=0;i<MAX;) {
+		unsigned run;
+		unsigned j;
+
+		/* insert */
+		run = 100;
+		if (MAX - i + 1 < run)
+			run = MAX - i + 1;
+		n = rand() % run;
+		for(j=0;j<n;++j,++i) {
+			tommy_list_insert_tail(&list, &HASH[i].node, &HASH[i]);
+			tommy_hashdyn_insert(&hashdyn, &HASH[i].hashnode, &HASH[i], HASH[i].value);
+		}
+
+		/* remove */
+		run = 100;
+		if (tommy_hashdyn_count(&hashdyn) < run)
+			run = tommy_hashdyn_count(&hashdyn);
+		n = rand() % run;
+		for(j=0;j<n;++j) {
+			tommy_node* p = tommy_list_head(&list);
+			struct object_hash* obj = p->data;
+			tommy_hashdyn_remove_existing(&hashdyn, &obj->hashnode);
+			tommy_list_remove_existing(&list, &obj->node);
+		}
+	}
+
+	/* remove remaining */
+	p = tommy_list_head(&list);
+	while (p) {
+		struct object_hash* obj = p->data;
+		p = p->next;
+		tommy_hashdyn_remove_existing(&hashdyn, &obj->hashnode);
+	}
+
+	tommy_hashdyn_done(&hashdyn);
+	STOP();
+}
+
+void test_hashlin(void)
+{
+	tommy_list list;
+	tommy_hashlin hashlin;
+	struct object_hash* HASH;
+	unsigned i, n;
+	tommy_node* p;
+	unsigned limit;
+
+	HASH = malloc(MAX * sizeof(struct object_hash));
+
+	for(i=0;i<MAX;++i) {
+		HASH[i].value = i;
+	}
+
+	START("hashlin stack");
+	limit = sqrt(MAX);
+	for(n=0;n<limit;++n) {
 		tommy_list_init(&list);
 		tommy_hashlin_init(&hashlin);
-		tommy_node* j;
 
+		/* insert */
 		for(i=0;i<n;++i) {
-			tommy_list_insert_tail(&list, &HASH[i].node, &HASH[i]);
+			tommy_list_insert_head(&list, &HASH[i].node, &HASH[i]);
 			tommy_hashlin_insert(&hashlin, &HASH[i].hashnode, &HASH[i], HASH[i].value);
 		}
 
-		j = tommy_list_head(&list);
-		while (j) {
-			struct object_hash* obj = j->data;
-
-			j = j->next;
-
+		/* remove */
+		p = tommy_list_head(&list);
+		while (p) {
+			struct object_hash* obj = p->data;
+			p = p->next;
 			tommy_hashlin_remove_existing(&hashlin, &obj->hashnode);
 		}
 
 		tommy_hashlin_done(&hashlin);
 	}
+	STOP();
+
+	tommy_list_init(&list);
+	tommy_hashlin_init(&hashlin);
+
+	START("hashlin queue");
+	for(i=0;i<MAX;) {
+		unsigned run;
+		unsigned j;
+
+		/* insert */
+		run = 100;
+		if (MAX - i + 1 < run)
+			run = MAX - i + 1;
+		n = rand() % run;
+		for(j=0;j<n;++j,++i) {
+			tommy_list_insert_tail(&list, &HASH[i].node, &HASH[i]);
+			tommy_hashlin_insert(&hashlin, &HASH[i].hashnode, &HASH[i], HASH[i].value);
+		}
+
+		/* remove */
+		run = 100;
+		if (tommy_hashlin_count(&hashlin) < run)
+			run = tommy_hashlin_count(&hashlin);
+		n = rand() % run;
+		for(j=0;j<n;++j) {
+			tommy_node* p = tommy_list_head(&list);
+			struct object_hash* obj = p->data;
+			tommy_hashlin_remove_existing(&hashlin, &obj->hashnode);
+			tommy_list_remove_existing(&list, &obj->node);
+		}
+	}
+
+	/* remove remaining */
+	p = tommy_list_head(&list);
+	while (p) {
+		struct object_hash* obj = p->data;
+		p = p->next;
+		tommy_hashlin_remove_existing(&hashlin, &obj->hashnode);
+	}
+
+	tommy_hashlin_done(&hashlin);
 	STOP();
 }
 
@@ -447,6 +573,7 @@ int main() {
 
 	test_list();
 	test_array();
+	test_hashdyn();
 	test_hashlin();
 
 	printf("OK\n");
