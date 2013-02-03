@@ -117,6 +117,33 @@ tommy_inline tommy_hashlin_node** tommy_hashlin_bucket_ptr(tommy_hashlin* hashli
  */
 tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 {
+	/* grow if more than 50% full */
+	if (hashlin->state != TOMMY_HASHLIN_STATE_GROW
+		&& hashlin->count > hashlin->bucket_max / 2
+	) {
+		/* if we are stable, setup a new grow state */
+		/* otherwise continue with the already setup shrink one */
+		/* but in backward direction */
+		if (hashlin->state == TOMMY_HASHLIN_STATE_STABLE) {
+			/* set the lower size */
+			hashlin->low_max = hashlin->bucket_max;
+			hashlin->low_mask = hashlin->bucket_mask;
+
+			/* grow the hash size and allocate */
+			++hashlin->bucket_bit;
+			hashlin->bucket_max = 1 << hashlin->bucket_bit;
+			hashlin->bucket_mask = hashlin->bucket_max - 1;
+			hashlin->bucket[hashlin->bucket_mac] = tommy_cast(tommy_hashlin_node**, tommy_malloc(hashlin->low_max * sizeof(tommy_hashlin_node*)));
+			++hashlin->bucket_mac;
+
+			/* start from the beginning going forward */
+			hashlin->split = 0;
+		}
+
+		/* grow state */
+		hashlin->state = TOMMY_HASHLIN_STATE_GROW;
+	}
+
 	/* if we are growing */
 	if (hashlin->state == TOMMY_HASHLIN_STATE_GROW) {
 		/* compute the split target required to finish the reallocation before the next resize */
@@ -167,40 +194,6 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 			}
 		}
 	}
-
-	/* grow if more than 50% full */
-	if (hashlin->state != TOMMY_HASHLIN_STATE_GROW
-		&& hashlin->count >= hashlin->bucket_max / 2)
-	{
-		/* if we are at the first shrink step, roll back it */
-		if (hashlin->state == TOMMY_HASHLIN_STATE_SHRINK
-			&& hashlin->split == hashlin->low_max
-		) {
-			hashlin->state = TOMMY_HASHLIN_STATE_STABLE;
-		}
-
-		/* if we are stable, setup a new grow state */
-		/* otherwise continue with the already setup shrink one */
-		/* but in backward direction */
-		if (hashlin->state == TOMMY_HASHLIN_STATE_STABLE) {
-			/* set the lower size */
-			hashlin->low_max = hashlin->bucket_max;
-			hashlin->low_mask = hashlin->bucket_mask;
-
-			/* grow the hash size and allocate */
-			++hashlin->bucket_bit;
-			hashlin->bucket_max = 1 << hashlin->bucket_bit;
-			hashlin->bucket_mask = hashlin->bucket_max - 1;
-			hashlin->bucket[hashlin->bucket_mac] = tommy_cast(tommy_hashlin_node**, tommy_malloc(hashlin->low_max * sizeof(tommy_hashlin_node*)));
-			++hashlin->bucket_mac;
-
-			/* start from the beginning going forward */
-			hashlin->split = 0;
-		}
-
-		/* grow state */
-		hashlin->state = TOMMY_HASHLIN_STATE_GROW;
-	}
 }
 
 /**
@@ -208,6 +201,29 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
  */
 tommy_inline void hashlin_shrink_step(tommy_hashlin* hashlin)
 {
+	/* shrink if less than 12.5% full */
+	if (hashlin->state != TOMMY_HASHLIN_STATE_SHRINK
+		&& hashlin->count < hashlin->bucket_max / 8
+	) {
+		/* avoid to shrink the first bucket */
+		if (hashlin->bucket_bit > TOMMY_HASHLIN_BIT) {
+			/* if we are stable, setup a new shrink state */
+			/* otherwise continue with the already setup grow one */
+			/* but in backward direction */
+			if (hashlin->state == TOMMY_HASHLIN_STATE_STABLE) {
+				/* set the lower size */
+				hashlin->low_max = hashlin->bucket_max / 2;
+				hashlin->low_mask = hashlin->bucket_mask / 2;
+
+				/* start from the half going backward */
+				hashlin->split = hashlin->low_max;
+			}
+
+			/* start reallocation */
+			hashlin->state = TOMMY_HASHLIN_STATE_SHRINK;
+		}
+	}
+
 	/* if we are shrinking */
 	if (hashlin->state == TOMMY_HASHLIN_STATE_SHRINK) {
 		/* compute the split target required to finish the reallocation before the next resize */
@@ -245,45 +261,6 @@ tommy_inline void hashlin_shrink_step(tommy_hashlin* hashlin)
 				tommy_free(hashlin->bucket[hashlin->bucket_mac]);
 				break;
 			}
-		}
-	}
-
-	/* shrink if less than 12.5% full */
-	if (hashlin->state != TOMMY_HASHLIN_STATE_SHRINK
-		&& hashlin->count <= hashlin->bucket_max / 8
-	) {
-		/* if we are at the first grow step, roll back it */
-		if (hashlin->state == TOMMY_HASHLIN_STATE_GROW
-			&& hashlin->split == 0
-		) {
-			/* shrink the hash size */
-			--hashlin->bucket_bit;
-			hashlin->bucket_max = 1 << hashlin->bucket_bit;
-			hashlin->bucket_mask = hashlin->bucket_max - 1;
-
-			/* free the last segment */
-			--hashlin->bucket_mac;
-			tommy_free(hashlin->bucket[hashlin->bucket_mac]);
-
-			hashlin->state = TOMMY_HASHLIN_STATE_STABLE;
-		}
-
-		/* avoid to shrink the first bucket */
-		if (hashlin->bucket_bit > TOMMY_HASHLIN_BIT) {
-			/* if we are stable, setup a new shrink state */
-			/* otherwise continue with the already setup grow one */
-			/* but in backward direction */
-			if (hashlin->state == TOMMY_HASHLIN_STATE_STABLE) {
-				/* set the lower size */
-				hashlin->low_max = hashlin->bucket_max / 2;
-				hashlin->low_mask = hashlin->bucket_mask / 2;
-
-				/* start from the half going backward */
-				hashlin->split = hashlin->low_max;
-			}
-
-			/* start reallocation */
-			hashlin->state = TOMMY_HASHLIN_STATE_SHRINK;
 		}
 	}
 }
