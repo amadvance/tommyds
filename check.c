@@ -418,7 +418,7 @@ void test_hashdyn(void)
 	}
 
 	START("hashdyn stack");
-	limit = sqrt(MAX);
+	limit = 10 * sqrt(MAX);
 	for(n=0;n<limit;++n) {
 		tommy_list_init(&list);
 		tommy_hashdyn_init(&hashdyn);
@@ -441,46 +441,43 @@ void test_hashdyn(void)
 	}
 	STOP();
 
-	tommy_list_init(&list);
-	tommy_hashdyn_init(&hashdyn);
-
 	START("hashdyn queue");
-	for(i=0;i<MAX;) {
-		unsigned run;
-		unsigned j;
+	limit = sqrt(MAX) / 2;
+	for(n=0;n<limit;++n) {
+		tommy_list_init(&list);
+		tommy_hashdyn_init(&hashdyn);
 
-		/* insert */
-		run = 100;
-		if (MAX - i + 1 < run)
-			run = MAX - i + 1;
-		n = rand() % run;
-		for(j=0;j<n;++j,++i) {
-			tommy_list_insert_tail(&list, &HASH[i].node, &HASH[i]);
+		/* insert first run */
+		for(i=0;i<n;++i) {
+			tommy_list_insert_head(&list, &HASH[i].node, &HASH[i]);
 			tommy_hashdyn_insert(&hashdyn, &HASH[i].hashnode, &HASH[i], HASH[i].value);
 		}
 
-		/* remove */
-		run = 100;
-		if (tommy_hashdyn_count(&hashdyn) < run)
-			run = tommy_hashdyn_count(&hashdyn);
-		n = rand() % run;
-		for(j=0;j<n;++j) {
-			tommy_node* p = tommy_list_head(&list);
-			struct object_hash* obj = p->data;
+		/* insert all the others */
+		for(;i<MAX;++i) {
+			struct object_hash* obj;
+			
+			/* insert one */
+			tommy_list_insert_head(&list, &HASH[i].node, &HASH[i]);
+			tommy_hashdyn_insert(&hashdyn, &HASH[i].hashnode, &HASH[i], HASH[i].value);
+
+			/* remove one */
+			p = tommy_list_head(&list);
+			obj = p->data;
+			tommy_list_remove_existing(&list, p);
 			tommy_hashdyn_remove_existing(&hashdyn, &obj->hashnode);
-			tommy_list_remove_existing(&list, &obj->node);
 		}
-	}
 
-	/* remove remaining */
-	p = tommy_list_head(&list);
-	while (p) {
-		struct object_hash* obj = p->data;
-		p = p->next;
-		tommy_hashdyn_remove_existing(&hashdyn, &obj->hashnode);
-	}
+		/* remove remaining */
+		p = tommy_list_head(&list);
+		while (p) {
+			struct object_hash* obj = p->data;
+			p = p->next;
+			tommy_hashdyn_remove_existing(&hashdyn, &obj->hashnode);
+		}
 
-	tommy_hashdyn_done(&hashdyn);
+		tommy_hashdyn_done(&hashdyn);
+	}
 	STOP();
 }
 
@@ -500,7 +497,7 @@ void test_hashlin(void)
 	}
 
 	START("hashlin stack");
-	limit = sqrt(MAX);
+	limit = 10 * sqrt(MAX);
 	for(n=0;n<limit;++n) {
 		tommy_list_init(&list);
 		tommy_hashlin_init(&hashlin);
@@ -523,46 +520,43 @@ void test_hashlin(void)
 	}
 	STOP();
 
-	tommy_list_init(&list);
-	tommy_hashlin_init(&hashlin);
-
 	START("hashlin queue");
-	for(i=0;i<MAX;) {
-		unsigned run;
-		unsigned j;
+	limit = sqrt(MAX) / 2;
+	for(n=0;n<limit;++n) {
+		tommy_list_init(&list);
+		tommy_hashlin_init(&hashlin);
 
-		/* insert */
-		run = 100;
-		if (MAX - i + 1 < run)
-			run = MAX - i + 1;
-		n = rand() % run;
-		for(j=0;j<n;++j,++i) {
-			tommy_list_insert_tail(&list, &HASH[i].node, &HASH[i]);
+		/* insert first run */
+		for(i=0;i<n;++i) {
+			tommy_list_insert_head(&list, &HASH[i].node, &HASH[i]);
 			tommy_hashlin_insert(&hashlin, &HASH[i].hashnode, &HASH[i], HASH[i].value);
 		}
 
-		/* remove */
-		run = 100;
-		if (tommy_hashlin_count(&hashlin) < run)
-			run = tommy_hashlin_count(&hashlin);
-		n = rand() % run;
-		for(j=0;j<n;++j) {
-			tommy_node* p = tommy_list_head(&list);
-			struct object_hash* obj = p->data;
+		/* insert all the others */
+		for(;i<MAX;++i) {
+			struct object_hash* obj;
+			
+			/* insert one */
+			tommy_list_insert_head(&list, &HASH[i].node, &HASH[i]);
+			tommy_hashlin_insert(&hashlin, &HASH[i].hashnode, &HASH[i], HASH[i].value);
+
+			/* remove one */
+			p = tommy_list_head(&list);
+			obj = p->data;
+			tommy_list_remove_existing(&list, p);
 			tommy_hashlin_remove_existing(&hashlin, &obj->hashnode);
-			tommy_list_remove_existing(&list, &obj->node);
 		}
-	}
 
-	/* remove remaining */
-	p = tommy_list_head(&list);
-	while (p) {
-		struct object_hash* obj = p->data;
-		p = p->next;
-		tommy_hashlin_remove_existing(&hashlin, &obj->hashnode);
-	}
+		/* remove remaining */
+		p = tommy_list_head(&list);
+		while (p) {
+			struct object_hash* obj = p->data;
+			p = p->next;
+			tommy_hashlin_remove_existing(&hashlin, &obj->hashnode);
+		}
 
-	tommy_hashlin_done(&hashlin);
+		tommy_hashlin_done(&hashlin);
+	}
 	STOP();
 }
 
