@@ -179,8 +179,8 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 			hashlin->state = TOMMY_HASHLIN_STATE_STABLE;
 		}
 
-		/* if we are stable, setup a new shrink state */
-		/* otherwise continue with the already setup grow one */
+		/* if we are stable, setup a new grow state */
+		/* otherwise continue with the already setup shrink one */
 		/* but in backward direction */
 		if (hashlin->state == TOMMY_HASHLIN_STATE_STABLE) {
 			/* set the lower size */
@@ -270,8 +270,8 @@ tommy_inline void hashlin_shrink_step(tommy_hashlin* hashlin)
 
 		/* avoid to shrink the first bucket */
 		if (hashlin->bucket_bit > TOMMY_HASHLIN_BIT) {
-			/* if we are stable, setup a new grow state */
-			/* otherwise continue with the already setup shrink one */
+			/* if we are stable, setup a new shrink state */
+			/* otherwise continue with the already setup grow one */
 			/* but in backward direction */
 			if (hashlin->state == TOMMY_HASHLIN_STATE_STABLE) {
 				/* set the lower size */
