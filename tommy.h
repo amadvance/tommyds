@@ -226,7 +226,8 @@
  *  - <a href="http://uthash.sourceforge.net/">uthash</a> - Dynamic chaining hashtable by Troy D. Hanson.
  *  - <a href="http://www.nedprod.com/programs/portable/nedtries/">nedtrie</a> - Binary trie inplace by Niall Douglas.
  *  - <a href="http://judy.sourceforge.net/">judy</a> - Burst trie (JudyL) by Doug Baskins.
-  *  - <a href="http://code.google.com/p/judyarray/">judyarray</a> - Burst trie by Karl Malbrain.
+ *  - <a href="http://code.google.com/p/judyarray/">judyarray</a> - Burst trie by Karl Malbrain.
+ *  - <a href="https://code.google.com/p/cpp-btree/">googlebtree</a> - Btree by Google.
  *
  * \section result Results
  *
@@ -369,8 +370,16 @@
  *
  * <a href="http://incise.org/hash-table-benchmarks.html">Hash Table Benchmarks</a>
  *
+ * \section compilers Compilers
+ *
+ * The compilers used in the benchmark are gcc 4.7.1 in Linux, and Visual C 2010 in Windows.
+ *
+ * In Linux are used the optimization options: -O3 -march=pentium4 -mtune=generic
+ *
+ * In Windows are used the optimization options: /Ox /GL /GS- /arch:SSE2
+ *
  * \section notes Notes
- * 
+ *
  * Here some notes about the data structure tested not part of Tommy.
  * 
  * \subsection cgoogledensehash Google C sparsehash and densehash

@@ -1,9 +1,10 @@
 #############################################################################
 # Tommy Makefile
 
-VERSION=1.3
-CFLAGS=-O3 -Wall -Wextra -g
-CCFLAGS=$(CFLAGS) -fpermissive
+VERSION=1.4
+CFLAGS=-O3 -march=pentium4 -mtune=generic -Wall -Wextra -g 
+# -std=c++11 required by Google btree
+CCFLAGS=$(CFLAGS) -fpermissive -std=c++11
 UNAME=$(shell uname)
 
 # Linux
@@ -27,7 +28,7 @@ EXE=.exe
 O=.obj
 endif
 
-CHECK = ./tommybench -N 1000
+CHECK = ./tommybench -N 1000000 -d tommy-hashlin
 #CHECK = ./tommycheck
 
 DEP = \
@@ -142,7 +143,7 @@ DISTFILES=\
 	README LICENSE AUTHORS INSTALL HISTORY \
 	tommy.doxygen tommy.css tommy-header.html tommy-footer.html \
 	benchmark.cc \
-	benchmark.vcproj benchmark.sln \
+	benchmark.vcxproj benchmark.sln \
 	benchmark.geany \
 	check.c
 

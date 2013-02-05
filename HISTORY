@@ -1,6 +1,12 @@
 TommyDS HISTORY
 ===============
 
+1.4 2013/02
+===========
+ * Added benchmark comparison with Google BTree.
+ * Benchmark for Linux is now compiled with "-O3 -march=pentium4 -mtune=generic",
+   and the Windows one with "/Ox /GL /GS- /arch:SSE2".
+
 1.3 2013/02
 ===========
  * Fixed a Segmentation Fault bug in the hashlin container if exact power of 2 sizes were used.

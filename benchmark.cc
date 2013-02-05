@@ -65,11 +65,9 @@
 #endif
 
 #ifdef __cplusplus
-#if !defined(__MACH__)
-#define USE_CCGOOGLE
-#endif
-#else
-#define USE_CGOOGLE
+/* Available only in C++ */
+#define USE_GOOGLEDENSEHASH
+#define USE_GOOGLEBTREE
 #endif
 
 /******************************************************************************/
@@ -85,7 +83,7 @@
 /* http://code.google.com/p/google-sparsehash/ in the experimental/ directory */
 /* Disabled by default because it's superseeded by the C++ version. */
 /* Note that it has a VERY BAD performance on the "Change" test. Consider to use khash if you need a C implementation. */
-#ifdef USE_CGOOGLE
+#ifdef USE_CGOOGLEDENSEHASH
 #define htonl(x) 0
 #define ntohl(x) 0
 #define Table(x) Dense##x /* Use google dense tables */
@@ -97,8 +95,20 @@
 /* Note that after erasing we always call resize(0) to possibly trigger a table resize to free some space */
 /* Otherwise, it would be an unfair advantage never shrinking on deletion. */
 /* The shrink is triggered only sometimes, so the performance doesn't suffer to much */
-#ifdef USE_CCGOOGLE
+#ifdef USE_GOOGLEDENSEHASH
 #include <google/dense_hash_map>
+#endif
+
+/* Google BTree */
+/* https://code.google.com/p/cpp-btree/ */
+#ifdef USE_GOOGLEBTREE
+#if defined(_MSC_VER) /* Allow compilation in MSVC 2010 */
+#include <stdint.h>
+typedef size_t ssize_t;
+#endif
+#undef min
+#undef max
+#include "benchmark/lib/cpp-btree/btree_map.h"
 #endif
 
 /* UTHASH */
@@ -281,17 +291,21 @@ tommy_trie_inplace trie_inplace;
 struct uthash_object* uthash = 0;
 struct nedtrie_t nedtrie;
 khash_t(word)* khash;
-#ifdef USE_CGOOGLE
-struct HashTable* cgoogle;
+#ifdef USE_CGOOGLEDENSEHASH
+struct HashTable* cgoogledensehash;
 #endif
-#ifdef USE_CCGOOGLE
+#ifdef USE_GOOGLEDENSEHASH
 /* use a specialized hash, otherwise the performance depends on the STL implementation used. */
 class custom_hash_compare {
 public:
 	size_t operator()(const tommy_key_t key) const { return tommy_inthash_u32(key); }
 };
-typedef google::dense_hash_map<unsigned, struct google_object*, custom_hash_compare> ccgoogle_t;
-ccgoogle_t* ccgoogle;
+typedef google::dense_hash_map<unsigned, struct google_object*, custom_hash_compare> googledensehash_t;
+googledensehash_t* googledensehash;
+#endif
+#ifdef USE_GOOGLEBTREE
+typedef btree::btree_map<unsigned, struct google_object*> googlebtree_t;
+googlebtree_t* googlebtree;
 #endif
 #ifdef USE_JUDY
 Pvoid_t judy = 0;
@@ -414,7 +428,12 @@ loop:
 /**
  * Max number of retries.
  */
-#define RETRY_MAX 3
+#define RETRY_MAX 7
+
+/**
+ * Max total number of test for retries.
+ */
+#define MIN_TRY 2000000
 
 /**
  * Operations.
@@ -458,12 +477,12 @@ const char* ORDER_NAME[ORDER_MAX] = {
 #define DATA_TRIE_INPLACE 4
 #define DATA_TREE 5
 #define DATA_KHASH 6
-#define DATA_CGOOGLE 7
-#define DATA_CCGOOGLE 8
-#define DATA_UTHASH 9
-#define DATA_NEDTRIE 10
-#define DATA_JUDY 11
-#define DATA_JUDYARRAY 12
+#define DATA_GOOGLEDENSEHASH 7
+#define DATA_UTHASH 8
+#define DATA_NEDTRIE 9
+#define DATA_JUDY 10
+#define DATA_JUDYARRAY 11
+#define DATA_GOOGLEBTREE 12
 #define DATA_MAX 13
 
 const char* DATA_NAME[DATA_MAX] = {
@@ -474,12 +493,12 @@ const char* DATA_NAME[DATA_MAX] = {
 	"tommy-trie-inplace",
 	"rbtree",
 	"khash",
-	"cgoogledensehash",
 	"googledensehash",
 	"uthash",
 	"nedtrie",
 	"judy",
 	"judyarray",
+	"googlebtree"
 };
 
 /** 
@@ -702,19 +721,26 @@ void test_alloc(void)
 		khash = kh_init(word);
 	}
 
-#ifdef USE_CGOOGLE
+#ifdef USE_CGOOGLEDENSEHASH
 	COND(DATA_CGOOGLE) {
 		GOOGLE = (struct google_object*)malloc(sizeof(struct google_object) * the_max);
-		cgoogle = AllocateHashTable(sizeof(void*), 0);
+		cgoogledensehash = AllocateHashTable(sizeof(void*), 0);
 	}
 #endif
 
-#ifdef USE_CCGOOGLE
-	COND(DATA_CCGOOGLE) {
+#ifdef USE_GOOGLEDENSEHASH
+	COND(DATA_GOOGLEDENSEHASH) {
 		GOOGLE = (struct google_object*)malloc(sizeof(struct google_object) * the_max);
-		ccgoogle = new ccgoogle_t;
-		ccgoogle->set_empty_key(-1);
-		ccgoogle->set_deleted_key(-2);
+		googledensehash = new googledensehash_t;
+		googledensehash->set_empty_key(-1);
+		googledensehash->set_deleted_key(-2);
+	}
+#endif
+
+#ifdef USE_GOOGLEBTREE
+	COND(DATA_GOOGLEBTREE) {
+		GOOGLE = (struct google_object*)malloc(sizeof(struct google_object) * the_max);
+		googlebtree = new googlebtree_t;
 	}
 #endif
 
@@ -736,7 +762,7 @@ void test_alloc(void)
 #ifdef USE_JUDYARRAY
 	COND(DATA_JUDYARRAY) {
 		JUDYARRAY = (struct judyarray_object*)malloc(sizeof(struct judyarray_object) * the_max);
-		judyarray = judy_open(1024, 1);
+		judyarray = (Judy*)judy_open(1024, 1);
 	}
 #endif
 }
@@ -787,17 +813,24 @@ void test_free(void)
 		free(KHASH);
 	}
 
-#ifdef USE_CGOOGLE
+#ifdef USE_CGOOGLEDENSEHASH
 	COND(DATA_CGOOGLE) {
-		FreeHashTable(cgoogle);
+		FreeHashTable(cgoogledensehash);
 		free(GOOGLE);
 	}
 #endif
 
-#ifdef USE_CCGOOGLE
-	COND(DATA_CCGOOGLE) {
+#ifdef USE_GOOGLEDENSEHASH
+	COND(DATA_GOOGLEDENSEHASH) {
 		free(GOOGLE);
-		delete ccgoogle;
+		delete googledensehash;
+	}
+#endif
+
+#ifdef USE_GOOGLEBTREE
+	COND(DATA_GOOGLEBTREE) {
+		free(GOOGLE);
+		delete googlebtree;
 	}
 #endif
 
@@ -879,24 +912,33 @@ void test_insert(unsigned* INSERT)
 		kh_value(khash, k) = &KHASH[i];
 	} STOP();
 
-#ifdef USE_CGOOGLE
+#ifdef USE_CGOOGLEDENSEHASH
 	START(DATA_CGOOGLE) {
 		unsigned key = INSERT[i];
 		HTItem* r;
 		u_long ptr_value = (u_long)&GOOGLE[i];
 		GOOGLE[i].value = key;
-		r = HashInsert(cgoogle, key, ptr_value);
+		r = HashInsert(cgoogledensehash, key, ptr_value);
 		if (!r)
 			abort();
 	} STOP();
 #endif
 
-#ifdef USE_CCGOOGLE
-	START(DATA_CCGOOGLE) {
+#ifdef USE_GOOGLEDENSEHASH
+	START(DATA_GOOGLEDENSEHASH) {
 		unsigned key = INSERT[i];
 		struct google_object* obj = &GOOGLE[i];
 		GOOGLE[i].value = key;
-		(*ccgoogle)[key] = obj;
+		(*googledensehash)[key] = obj;
+	} STOP();
+#endif
+
+#ifdef USE_GOOGLEBTREE
+	START(DATA_GOOGLEBTREE) {
+		unsigned key = INSERT[i];
+		struct google_object* obj = &GOOGLE[i];
+		GOOGLE[i].value = key;
+		(*googlebtree)[key] = obj;
 	} STOP();
 #endif
 
@@ -1034,11 +1076,11 @@ void test_hit(unsigned* SEARCH)
 		}
 	} STOP();
 
-#ifdef USE_CGOOGLE
+#ifdef USE_CGOOGLEDENSEHASH
 	START(DATA_CGOOGLE) {
 		unsigned key = SEARCH[i];
 		HTItem* ptr;
-		ptr = HashFind(cgoogle, key);
+		ptr = HashFind(cgoogledensehash, key);
 		if (!ptr)
 			abort();
 		if (dereference) {
@@ -1049,11 +1091,25 @@ void test_hit(unsigned* SEARCH)
 	} STOP();
 #endif
 
-#ifdef USE_CCGOOGLE
-	START(DATA_CCGOOGLE) {
+#ifdef USE_GOOGLEDENSEHASH
+	START(DATA_GOOGLEDENSEHASH) {
 		unsigned key = SEARCH[i];
-		ccgoogle_t::const_iterator ptr = ccgoogle->find(key);
-		if (ptr == ccgoogle->end())
+		googledensehash_t::const_iterator ptr = googledensehash->find(key);
+		if (ptr == googledensehash->end())
+			abort();
+		if (dereference) {
+			struct google_object* obj = ptr->second;
+			if (obj->value != key)
+				abort();
+		}
+	} STOP();
+#endif
+
+#ifdef USE_GOOGLEBTREE
+	START(DATA_GOOGLEBTREE) {
+		unsigned key = SEARCH[i];
+		googlebtree_t::const_iterator ptr = googlebtree->find(key);
+		if (ptr == googlebtree->end())
 			abort();
 		if (dereference) {
 			struct google_object* obj = ptr->second;
@@ -1181,21 +1237,30 @@ void test_miss(unsigned* SEARCH, unsigned DELTA)
 			abort();
 	} STOP();
 
-#ifdef USE_CGOOGLE
+#ifdef USE_CGOOGLEDENSEHASH
 	START(DATA_CGOOGLE) {
 		unsigned key = SEARCH[i] + DELTA;
 		HTItem* ptr;
-		ptr = HashFind(cgoogle, key);
+		ptr = HashFind(cgoogledensehash, key);
 		if (ptr)
 			abort();
 	} STOP();
 #endif
 
-#ifdef USE_CCGOOGLE
-	START(DATA_CCGOOGLE) {
+#ifdef USE_GOOGLEDENSEHASH
+	START(DATA_GOOGLEDENSEHASH) {
 		unsigned key = SEARCH[i] + DELTA;
-		ccgoogle_t::const_iterator ptr = ccgoogle->find(key);
-		if (ptr != ccgoogle->end())
+		googledensehash_t::const_iterator ptr = googledensehash->find(key);
+		if (ptr != googledensehash->end())
+			abort();
+	} STOP();
+#endif
+
+#ifdef USE_GOOGLEBTREE
+	START(DATA_GOOGLEBTREE) {
+		unsigned key = SEARCH[i] + DELTA;
+		googlebtree_t::const_iterator ptr = googlebtree->find(key);
+		if (ptr != googlebtree->end())
 			abort();
 	} STOP();
 #endif
@@ -1347,40 +1412,56 @@ void test_change(unsigned* REMOVE, unsigned* INSERT)
 		kh_value(khash, k) = obj;
 	} STOP();
 
-#ifdef USE_CGOOGLE
+#ifdef USE_CGOOGLEDENSEHASH
 	START(DATA_CGOOGLE) {
 		unsigned key = REMOVE[i];
 		HTItem* ptr;
 		struct google_object* obj;
 		u_long ptr_value;
-		ptr = HashFind(cgoogle, key);
+		ptr = HashFind(cgoogledensehash, key);
 		if (!ptr)
 			abort();
 		obj = (void*)ptr->data;
-		HashDeleteLast(cgoogle);
+		HashDeleteLast(cgoogledensehash);
 
 		key = INSERT[i] + DELTA;
 		obj->value = key;
 		ptr_value = (u_long)obj;
-		ptr = HashInsert(cgoogle, key, ptr_value);
+		ptr = HashInsert(cgoogledensehash, key, ptr_value);
 		if (!ptr)
 			abort();
 	} STOP();
 #endif
 
-#ifdef USE_CCGOOGLE
-	START(DATA_CCGOOGLE) {
+#ifdef USE_GOOGLEDENSEHASH
+	START(DATA_GOOGLEDENSEHASH) {
 		unsigned key = REMOVE[i];
-		ccgoogle_t::iterator ptr = ccgoogle->find(key);
+		googledensehash_t::iterator ptr = googledensehash->find(key);
 		struct google_object* obj;
-		if (ptr == ccgoogle->end())
+		if (ptr == googledensehash->end())
 			abort();
 		obj = ptr->second;
-		ccgoogle->erase(ptr);
+		googledensehash->erase(ptr);
 
 		key = INSERT[i] + DELTA;
 		obj->value = key;
-		(*ccgoogle)[key] = obj;
+		(*googledensehash)[key] = obj;
+	} STOP();
+#endif
+
+#ifdef USE_GOOGLEBTREE
+	START(DATA_GOOGLEBTREE) {
+		unsigned key = REMOVE[i];
+		googlebtree_t::iterator ptr = googlebtree->find(key);
+		struct google_object* obj;
+		if (ptr == googlebtree->end())
+			abort();
+		obj = ptr->second;
+		googlebtree->erase(ptr);
+
+		key = INSERT[i] + DELTA;
+		obj->value = key;
+		(*googlebtree)[key] = obj;
 	} STOP();
 #endif
 
@@ -1560,16 +1641,16 @@ void test_remove(unsigned* REMOVE)
 		}
 	} STOP();
 
-#ifdef USE_CGOOGLE
+#ifdef USE_CGOOGLEDENSEHASH
 	START(DATA_CGOOGLE) {
 		unsigned key = REMOVE[i] + DELTA;
 		HTItem* ptr;
 		struct google_object* obj;
-		ptr = HashFind(cgoogle, key);
+		ptr = HashFind(cgoogledensehash, key);
 		if (!ptr)
 			abort();
 		obj = (struct google_object*)ptr->data;
-		HashDeleteLast(cgoogle);
+		HashDeleteLast(cgoogledensehash);
 		if (dereference) {
 			if (obj->value != key)
 				abort();
@@ -1577,18 +1658,35 @@ void test_remove(unsigned* REMOVE)
 	} STOP();
 #endif
 
-#ifdef USE_CCGOOGLE
-	START(DATA_CCGOOGLE) {
+#ifdef USE_GOOGLEDENSEHASH
+	START(DATA_GOOGLEDENSEHASH) {
 		unsigned key = REMOVE[i] + DELTA;
 		struct google_object* obj;
-		ccgoogle_t::iterator ptr = ccgoogle->find(key);
-		if (ptr == ccgoogle->end())
+		googledensehash_t::iterator ptr = googledensehash->find(key);
+		if (ptr == googledensehash->end())
 			abort();
 		obj = ptr->second;
-		ccgoogle->erase(ptr);
+		googledensehash->erase(ptr);
 
 		/* force a progressive deallocation, it's done when reaching a 20% occupation */
-		ccgoogle->resize(0);
+		googledensehash->resize(0);
+
+		if (dereference) {
+			if (obj->value != key)
+				abort();
+		}
+	} STOP();
+#endif
+
+#ifdef USE_GOOGLEBTREE
+	START(DATA_GOOGLEBTREE) {
+		unsigned key = REMOVE[i] + DELTA;
+		struct google_object* obj;
+		googlebtree_t::iterator ptr = googlebtree->find(key);
+		if (ptr == googlebtree->end())
+			abort();
+		obj = ptr->second;
+		googlebtree->erase(ptr);
 
 		if (dereference) {
 			if (obj->value != key)
@@ -1690,11 +1788,18 @@ tommy_size_t khash_size(khash_t(word)* khash)
 		+ (khash->n_buckets >> 4) * sizeof(uint32_t); /* flags */
 }
 
-#ifdef USE_CCGOOGLE
-tommy_size_t ccgoogle_size(ccgoogle_t* ccgoogle)
+#ifdef USE_GOOGLEDENSEHASH
+tommy_size_t googledensehash_size(googledensehash_t* googledensehash)
 {
-	ccgoogle_t::value_type element;
-	return ccgoogle->bucket_count() * sizeof(element);
+	googledensehash_t::value_type element;
+	return googledensehash->bucket_count() * sizeof(element);
+}
+#endif
+
+#ifdef USE_GOOGLEBTREE
+tommy_size_t googlebtree_size(googlebtree_t* googlebtree)
+{
+	return googlebtree->bytes_used();
 }
 #endif
 
@@ -1718,8 +1823,11 @@ void test_size(void)
 	MEM(DATA_TRIE, tommy_trie_memory_usage(&trie));
 	MEM(DATA_TRIE_INPLACE, tommy_trie_inplace_memory_usage(&trie_inplace));
 	MEM(DATA_KHASH, khash_size(khash));
-#ifdef USE_CCGOOGLE
-	MEM(DATA_CCGOOGLE, ccgoogle_size(ccgoogle));
+#ifdef USE_GOOGLEDENSEHASH
+	MEM(DATA_GOOGLEDENSEHASH, googledensehash_size(googledensehash));
+#endif
+#ifdef USE_GOOGLEBTREE
+	MEM(DATA_GOOGLEBTREE, googlebtree_size(googlebtree));
 #endif
 	MEM(DATA_UTHASH, uthash_size(uthash));
 	MEM(DATA_NEDTRIE, nedtrie_size(&nedtrie));
@@ -1798,7 +1906,7 @@ void test(unsigned size, unsigned data, int log, int sparse)
 		unsigned retry;
 	
 		/* number of retries to avoid spikes */
-		retry = 500000 / the_max;
+		retry = MIN_TRY / the_max;
 		if (retry < 1)
 			retry = 1;
 		if (retry > RETRY_MAX)
