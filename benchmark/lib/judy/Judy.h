@@ -47,7 +47,11 @@ typedef unsigned __int64 uint64_t;
 #else /* ================ ! JU_WIN ============================= */
 
 // ISO C99: 7.8 Format conversion of integer types <inttypes.h>
+#ifdef _MSC_VER
+#include <stdint.h>  
+#else
 #include <inttypes.h>  /* if this FAILS, try #include <stdint.h> */ 
+#endif
 
 // ISO C99: 7.18 Integer types uint*_t 
 //#include <stdint.h>  

@@ -8,4 +8,4 @@ set title "Random Change (Remove + Insert)".tsub
 data = bdir.tdir.'cgoogledensehash_problem.lst'
 
 plot data using 1:2 title columnheader(2), \
-	for [i=3:14] '' using 1:i title columnheader(i)
+	for [i=3:16] '' using 1:i title columnheader(i)

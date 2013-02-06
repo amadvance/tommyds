@@ -3,7 +3,7 @@ TommyDS HISTORY
 
 1.4 2013/02
 ===========
- * Added benchmark comparison with Google BTree.
+ * Added benchmark comparison with Google BTree, and C++ map and unordered_map.
  * Benchmark for Linux is now compiled with "-O3 -march=pentium4 -mtune=generic",
    and the Windows one with "/Ox /GL /GS- /arch:SSE2".
 
