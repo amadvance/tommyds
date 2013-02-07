@@ -193,10 +193,10 @@
  * The key domain used is <strong>dense</strong>, and it's defined by the set
  * of N even numbers starting from 0x80000000 to 0x80000000+2*N.
  *
- * The use of only even numbers allows to have missing numbers inside the domain for
+ * The use of only even numbers allows to have missing keys inside the domain for
  * the <i>Miss</i> and <i>Change</i> tests.
  * In such tests it's used the key domain defined by the set of N odd numbers
- * starting from 0x80000001 to 0x80000001+2*N.
+ * starting from 0x80000000+1 to 0x80000000+2*N+1.
  * Note that using missing keys at the corners of the domain would have favorited tries
  * and trees as they implicitly keep track of the maximum and minimum key values inserted.
  *
@@ -204,7 +204,7 @@
  * starting at 0. Using a 0 base would have favorited some tries managing it as a special case.
  *
  * The tests are repeated using keys in <i>Random</i> mode and in <i>Forward</i> mode.
- * In the forward mode the key values are used from the lowest to the uppest.
+ * In the forward mode the key values are used from the lowest to the highest.
  * In the random mode the key values are used in a completely random order.
  * In the <i>Change</i> test in forward mode, each object is reinserted using the same key, just incremented by 1.
  * Instead, in random mode, each object is reinserted using a completely different and uncorrelated key.
@@ -221,28 +221,30 @@
  *  - ::tommy_trie - Trie optimized for cache usage.
  *  - ::tommy_trie_inplace - Trie completely inplace.
  *  - <a href="http://www.canonware.com/rb/">rbtree</a> - Red-black tree by Jason Evans.
- *  - <a href="http://attractivechaos.awardspace.com/">khash</a> - Dynamic open addressing hashtable by Attractive Chaos.
- *  - <a href="http://code.google.com/p/google-sparsehash/">googledensehash</a> - Dynamic open addressing hashtable by Craig Silverstein at Google.
- *  - <a href="http://uthash.sourceforge.net/">uthash</a> - Dynamic chaining hashtable by Troy D. Hanson.
  *  - <a href="http://www.nedprod.com/programs/portable/nedtries/">nedtrie</a> - Binary trie inplace by Niall Douglas.
+ *  - <a href="http://attractivechaos.awardspace.com/">khash</a> - Dynamic open addressing hashtable by Attractive Chaos.
+ *  - <a href="http://uthash.sourceforge.net/">uthash</a> - Dynamic chaining hashtable by Troy D. Hanson.
  *  - <a href="http://judy.sourceforge.net/">judy</a> - Burst trie (JudyL) by Doug Baskins.
  *  - <a href="http://code.google.com/p/judyarray/">judyarray</a> - Burst trie by Karl Malbrain.
- *  - <a href="https://code.google.com/p/cpp-btree/">googlebtree</a> - Btree by Google.
+ *  - <a href="http://code.google.com/p/google-sparsehash/">googledensehash</a> - Dynamic open addressing hashtable by Craig Silverstein at Google. 
+ *  - <a href="http://code.google.com/p/cpp-btree/">googlebtree</a> - Btree by Google.
+ *  - <a href="http://www.cplusplus.com/reference/unordered_map/unordered_map/">c++unordered_map</a> - C++ STL unordered_map<> template.
+ *  - <a href="http://www.cplusplus.com/reference/map/map/">c++map</a> - C++ STL map<> template.
  *
  * \section result Results
  *
  * The most significative tests depend on your data usage model, but if in doubt,
  * you should mostly look at <i>Random Hit</i> and <i>Random Change</i>.
  *
- * They are valuated the most significatives, because operating always with N elements
- * in the data structure and with a random patterns. They represent the real world worst conditions.
+ * They are assumed to be the most significatives, because operating always with N elements
+ * in the data structure and with a random patterns. They represent the real world worst condition.
  *
  * <img src="def/img_random_hit.png"/>
  *
  * In the <i>Random Hit</i> graph you can see a vertical split at the 100.000 elements limit.
- * Before this limit the cache of modern processor is able to contains most of the data, and it allow a very fast access with the most of data structure.
- * After this limit, the number of cache misses is the dominant factor, and the curve depends mainly on the number of cache
- * miss required to reach the object.
+ * Before this limit the cache of modern processor is able to contains most of the data, and it allow a very fast access with almost all data structures.
+ * After this limit, the number of cache misses is the dominant factor, and the curve depends mainly on the number of cache-miss
+ * required.
  *
  * For rbtree and nedtrie, it's log2(N) as they have two branches on each node, log4(N) for ::tommy_trie_inplace, log8(N) for ::tommy_trie and 1 for hashtables.
  * For ::tommy_trie_inplace and ::tommy_trie you can change the slope configuring a different number of branches for node.
@@ -255,10 +257,10 @@
  * \section random Random order
  * Here you can see the whole <i>Random</i> test results in different platforms.
  *
- * In <i>Random</i> tests hashtables are almost always winning, seconds are
+ * In the <i>Random</i> test, hashtables are almost always winning, seconds are
  * tries, and as last trees.
  *  
- * The best choices are ::tommy_hashlin, and googledensehash, with
+ * The best choices are ::tommy_hashdyn, ::tommy_hashlin, and googledensehash, with
  * ::tommy_hashlin having the advantage to be real-time friendly and not
  * increasing the heap fragmentation.
  * <table border="0">
@@ -296,9 +298,9 @@
  * </table>
  * 
  * \section forward Forward order
- * Here you can see the whole <i>Forward</i> tests results in different platforms.
+ * Here you can see the whole <i>Forward</i> test results in different platforms.
  *
- * In <i>Forward</i> tests tries are the winners. Hashtables are competitive
+ * In the <i>Forward</i> test, tries are the winners. Hashtables are competitive
  * until the cache limit, then they lose against tries. Trees are the slowest.
  *  
  * The best choices are ::tommy_trie and ::tommy_trie_inplace, where ::tommy_trie is
@@ -310,8 +312,8 @@
  * memory, and accessing them in order, improves the cache utilization, even if
  * the hashed key is random.
  *
- * Note also that you can easily get hashtables to reach tries performance tweaking
- * the hash function to put accessed near keys nearby. For example, in the benchmark
+ * Note that you can make hashtables to reach tries performance tweaking
+ * the hash function to put near keys allocated nearby. For example, in the benchmark
  * use something like:
  * \code
  * #define hash(v) tommy_inthash32(v & ~0xF) + (v & 0xF)
@@ -363,20 +365,147 @@
  * </td></tr>
  * </table>
  *
+ * \section code Code
+ *
+ * The following the pseudo code of the benchmark used. In this case it's written for the C++ unordered_map.
+ *
+ * The compilers used in the benchmark are:
+ *  - <b>gcc 4.7.1</b> in Linux 32 bit with options: -O3 -march=pentium4 -mtune=generic
+ *  - <b>Visual C 2010</b> in Windows 32 bit with options: /Ox /GL /GS- /arch:SSE2
+ *  - <b>Visual C 2012</b> in Windows 64 bit with options: /Ox /GL /GS-
+ *
+ * \code
+ * #define N 10000000 // Number of elements
+ * #define PAYLOAD 16 // Size of the object
+ *
+ * // Basic object inserted in the colletion
+ * struct obj {
+ *     unsigned value; // Key used for searching
+ *     char payload[PAYLOAD];
+ * };
+ *
+ * // Custom hash function to avoid to use the STL one
+ * class custom_hash {
+ * public:
+ *     size_t operator()(unsigned key) const { return tommy_inthash_u32(key); }
+ * };
+ * 
+ * // Map collection from "unsigned" to "pointer to object"
+ * typedef std::unordered_map<unsigned, obj*, custom_hash> bag_t;
+ * bag_t bag;
+ * 
+ * // Preallocated objects
+ * obj* OBJ = new obj[N];
+ *
+ * // Keys used for inserting and searching elements
+ * unsigned INSERT[N];
+ * unsigned SEARCH[N];
+ *
+ * // Initializes the keys
+ * for(i=0;i<N;++i) {
+ *     INSERT[i] = 0x80000000 + i * 2;
+ *     SEARCH[i] = 0x80000000 + i * 2;
+ * }
+ *
+ * // If random order is required, shuffle the keys
+ * // The resulting key orders are not correlated
+ * if (test_random) {
+ *     std::random_shuffle(INSERT, INSERT + N);
+ *     std::random_shuffle(SEARCH, SEARCH + N);
+ * }
+ * \endcode
+ *
+ * \subsection insertion Insert benchmark
+ * \code
+ * for(i=0;i<N;++i) {
+ *     // Setup the element to insert
+ *     unsigned key = INSERT[i];
+ *     obj* element = &OBJ[i];
+ *     element->value = key;
+ *
+ *     // Insert it
+ *     bag[key] = element;
+ * }
+ * \endcode
+ *
+ * \subsection hit Hit benchmark
+ * \code
+ * for(i=0;i<N;++i) {
+ *     // Search the element
+ *     // Use a different key order than insertion
+ *     unsigned key = SEARCH[i];
+ *     bag_t::const_iterator j = bag.find(key);
+ *     if (j == bag.end())
+ *         abort();
+ *
+ *     // Ensure that it's the correct element.
+ *     // This operation is like using the object after finding it,
+ *     // and likely involves a cache-miss operation.
+ *     obj* element = j->second;
+ *     if (element->value != key)
+ *         abort();
+ * }
+ * \endcode
+ *
+ * \subsection miss Miss benchmark
+ * \code
+ * for(i=0;i<N;++i) {
+ *     // Search the element
+ *     // Use +1 in the key to ensure that nothing is found
+ *     unsigned key = SEARCH[i] + 1;
+ *     bag_t::const_iterator j = bag.find(key);
+ *     if (j != bag.end())
+ *         abort();
+ * }
+ * \endcode
+ *
+ * \subsection change Change benchmark
+ * \code
+ * for(i=0;i<N;++i) {
+ *     // Search the element
+ *     unsigned key = SEARCH[i];
+ *     bag_t::iterator j = bag.find(key);
+ *     if (j == bag.end())
+ *         abort();
+ *
+ *     // Remove it
+ *     obj* element = j->second;
+ *     bag.erase(j);
+ *
+ *     // Reinsert the element with a new key
+ *     // Use +1 in the key to ensure that the new key is unique
+ *     key = INSERT[i] + 1;
+ *     element->value = key;
+ *     bag[key] = element;
+ * }
+ * \endcode
+ *
+ * \subsection remove Remove benchmark
+ * \code
+ * for(i=0;i<N;++i) {
+ *     // Search the element
+ *     // Use +1 in the key because we run after the "Change" test
+ *     unsigned key = SEARCH[i] + 1;
+ *     bag_t::iterator j = bag.find(key);
+ *     if (j == bag.end())
+ *         abort();
+ *
+ *     // Remove it
+ *     bag.erase(j);
+ *
+ *     // Ensure that it's the correct element.
+ *     obj* element = j->second; 
+ *     if (element->value != key)
+ *         abort();
+ * }
+ * \endcode
+ *
  * \section others Other benchmarks
  * Here some links to other performance comparison:
  *
  * <a href="http://attractivechaos.wordpress.com/2008/08/28/comparison-of-hash-table-libraries/">Comparison of Hash Table Libraries</a>
  *
  * <a href="http://incise.org/hash-table-benchmarks.html">Hash Table Benchmarks</a>
- *
- * \section compilers Compilers
- *
- * The compilers used in the benchmark are gcc 4.7.1 in Linux, and Visual C 2010 in Windows.
- *
- * In Linux are used the optimization options: -O3 -march=pentium4 -mtune=generic
- *
- * In Windows are used the optimization options: /Ox /GL /GS- /arch:SSE2
  *
  * \section notes Notes
  *
