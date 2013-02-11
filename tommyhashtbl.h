@@ -227,7 +227,7 @@ tommy_inline unsigned tommy_hashtable_count(tommy_hashtable* hashtable)
 
 /**
  * Gets the size of allocated memory.
- * It includes the size of the ::tommy_trie_node of the stored elements.
+ * It includes the size of the ::tommy_hashtable_node of the stored elements.
  */
 tommy_size_t tommy_hashtable_memory_usage(tommy_hashtable* hashtable);
 

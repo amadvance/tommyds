@@ -374,6 +374,8 @@
  *  - <b>Visual C 2010</b> in Windows 32 bit with options: /Ox /GL /GS- /arch:SSE2
  *  - <b>Visual C 2012</b> in Windows 64 bit with options: /Ox /GL /GS-
  *
+ * Visual C 2012 is not used in the 32 bit platform, because compiled programs don't run in Windows XP.
+ *
  * \code
  * #define N 10000000 // Number of elements
  * #define PAYLOAD 16 // Size of the object
@@ -387,28 +389,28 @@
  * // Custom hash function to avoid to use the STL one
  * class custom_hash {
  * public:
- *     size_t operator()(unsigned key) const { return tommy_inthash_u32(key); }
+ *     unsigned operator()(unsigned key) const { return tommy_inthash_u32(key); }
  * };
  * 
  * // Map collection from "unsigned" to "pointer to object"
  * typedef std::unordered_map<unsigned, obj*, custom_hash> bag_t;
  * bag_t bag;
  * 
- * // Preallocated objects
+ * // Preallocate objects
  * obj* OBJ = new obj[N];
  *
  * // Keys used for inserting and searching elements
  * unsigned INSERT[N];
  * unsigned SEARCH[N];
  *
- * // Initializes the keys
+ * // Initialize the keys
  * for(i=0;i<N;++i) {
  *     INSERT[i] = 0x80000000 + i * 2;
  *     SEARCH[i] = 0x80000000 + i * 2;
  * }
  *
- * // If random order is required, shuffle the keys
- * // The resulting key orders are not correlated
+ * // If random order is required, shuffle the keys with Fisher-Yates
+ * // The two key orders are not correlated
  * if (test_random) {
  *     std::random_shuffle(INSERT, INSERT + N);
  *     std::random_shuffle(SEARCH, SEARCH + N);
@@ -511,8 +513,8 @@
  *
  * Here some notes about the data structure tested not part of Tommy.
  * 
- * \subsection cgoogledensehash Google C sparsehash and densehash
- * It's the C implementation located in the experimental/ directory of the googlesparsehash archive.
+ * \subsection cgoogledensehash Google C densehash
+ * It's the C implementation located in the <i>experimental/</i> directory of the googlesparsehash archive.
  * It has very bad performances in the <i>Change</i> test for some N values.
  * See for example this <a href="other/cgoogledensehash_problem.png">graph</a> with a lot of spikes.
  * The C++ version doesn't suffer of this problem.
