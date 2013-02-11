@@ -5,6 +5,8 @@ VERSION=1.4
 CFLAGS=-O3 -march=pentium4 -mtune=generic -Wall -Wextra -g 
 # -std=c++11 required by Google btree
 CCFLAGS=$(CFLAGS) -fpermissive -std=c++11
+CC=gcc
+CXX=g++
 UNAME=$(shell uname)
 
 # Linux
@@ -58,15 +60,15 @@ DEP = \
 all: tommycheck$(EXE) tommybench$(EXE)
 
 tommy$(O): $(DEP)
-	gcc $(CFLAGS) -c tommy.c -o tommy$(O)
-	gcc $(CFLAGS) -S -fverbose-asm tommy.c -o tommy.s
+	$(CC) $(CFLAGS) -c tommy.c -o tommy$(O)
+	$(CC) $(CFLAGS) -S -fverbose-asm tommy.c -o tommy.s
 	objdump -S tommy$(O) > tommy.S
 
 tommycheck$(EXE): check.c tommy$(O)
-	gcc $(CFLAGS) check.c tommy.o -o tommycheck$(EXE) $(LIB)
+	$(CC) $(CFLAGS) check.c tommy.o -o tommycheck$(EXE) $(LIB)
 
 tommybench$(EXE): benchmark.cc $(DEP)
-	g++ $(CCFLAGS) benchmark.cc -o tommybench$(EXE) $(LIB)
+	$(CXX) $(CCFLAGS) benchmark.cc -o tommybench$(EXE) $(LIB)
 
 check: tommycheck$(EXE) tommybench$(EXE)
 	./tommycheck$(EXE)
