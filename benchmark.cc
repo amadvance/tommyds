@@ -1047,10 +1047,12 @@ void test_hit(unsigned* SEARCH)
 	/* always dereference the object found. It has cache effect. */
 	/* considering we are dealing with objects, it makes sense to simulate an access to it */
 	/* this favorites data structures that store part of the information in the object itself */
-	const int dereference = 1; 
+	const int dereference = 1;
+
+	const unsigned DELTA = 1;
 
 	START(DATA_TREE) {
-		unsigned key = SEARCH[i];
+		unsigned key = SEARCH[i] + DELTA;
 		struct rbt_object key_obj;
 		struct rbt_object* obj;
 		key_obj.value = key;
@@ -1064,7 +1066,7 @@ void test_hit(unsigned* SEARCH)
 	} STOP();
 
 	START(DATA_HASHTABLE) {
-		unsigned key = SEARCH[i];
+		unsigned key = SEARCH[i] + DELTA;
 		unsigned hash_key = hash(key);
 		struct hashtable_object* obj;
 		obj = (struct hashtable_object*)tommy_hashtable_search(&hashtable, tommy_hashtable_compare, &key, hash_key);
@@ -1077,7 +1079,7 @@ void test_hit(unsigned* SEARCH)
 	} STOP();
 
 	START(DATA_HASHDYN) {
-		unsigned key = SEARCH[i];
+		unsigned key = SEARCH[i] + DELTA;
 		unsigned hash_key = hash(key);
 		struct hashtable_object* obj;
 		obj = (struct hashtable_object*)tommy_hashdyn_search(&hashdyn, tommy_hashtable_compare, &key, hash_key);
@@ -1090,7 +1092,7 @@ void test_hit(unsigned* SEARCH)
 	} STOP();
 
 	START(DATA_HASHLIN) {
-		unsigned key = SEARCH[i];
+		unsigned key = SEARCH[i] + DELTA;
 		unsigned hash_key = hash(key);
 		struct hashtable_object* obj;
 		obj = (struct hashtable_object*)tommy_hashlin_search(&hashlin, tommy_hashtable_compare, &key, hash_key);
@@ -1103,7 +1105,7 @@ void test_hit(unsigned* SEARCH)
 	} STOP();
 
 	START(DATA_TRIE) {
-		unsigned key = SEARCH[i];
+		unsigned key = SEARCH[i] + DELTA;
 		struct trie_object* obj;
 		obj = (struct trie_object*)tommy_trie_search(&trie, key);
 		if (!obj)
@@ -1115,7 +1117,7 @@ void test_hit(unsigned* SEARCH)
 	} STOP();
 
 	START(DATA_TRIE_INPLACE) {
-		unsigned key = SEARCH[i];
+		unsigned key = SEARCH[i] + DELTA;
 		struct trie_inplace_object* obj;
 		obj = (struct trie_inplace_object*)tommy_trie_inplace_search(&trie_inplace, key);
 		if (!obj)
@@ -1127,7 +1129,7 @@ void test_hit(unsigned* SEARCH)
 	} STOP();
 
 	START(DATA_KHASH) {
-		unsigned key = SEARCH[i];
+		unsigned key = SEARCH[i] + DELTA;
 		unsigned hash_key = hash(key);
 		khiter_t k;
 		k = kh_get(word, khash, hash_key);
@@ -1142,7 +1144,7 @@ void test_hit(unsigned* SEARCH)
 
 #ifdef USE_CGOOGLEDENSEHASH
 	START(DATA_CGOOGLE) {
-		unsigned key = SEARCH[i];
+		unsigned key = SEARCH[i] + DELTA;
 		HTItem* ptr;
 		ptr = HashFind(cgoogledensehash, key);
 		if (!ptr)
@@ -1157,7 +1159,7 @@ void test_hit(unsigned* SEARCH)
 
 #ifdef USE_GOOGLEDENSEHASH
 	START(DATA_GOOGLEDENSEHASH) {
-		unsigned key = SEARCH[i];
+		unsigned key = SEARCH[i] + DELTA;
 		googledensehash_t::const_iterator ptr = googledensehash->find(key);
 		if (ptr == googledensehash->end())
 			abort();
@@ -1171,7 +1173,7 @@ void test_hit(unsigned* SEARCH)
 
 #ifdef USE_GOOGLEBTREE
 	START(DATA_GOOGLEBTREE) {
-		unsigned key = SEARCH[i];
+		unsigned key = SEARCH[i] + DELTA;
 		googlebtree_t::const_iterator ptr = googlebtree->find(key);
 		if (ptr == googlebtree->end())
 			abort();
@@ -1185,7 +1187,7 @@ void test_hit(unsigned* SEARCH)
 
 #ifdef USE_CPPMAP
 	START(DATA_CPPMAP) {
-		unsigned key = SEARCH[i];
+		unsigned key = SEARCH[i] + DELTA;
 		cppmap_t::const_iterator ptr = cppmap->find(key);
 		if (ptr == cppmap->end())
 			abort();
@@ -1199,7 +1201,7 @@ void test_hit(unsigned* SEARCH)
 
 #ifdef USE_CPPUNORDEREDMAP
 	START(DATA_CPPUNORDEREDMAP) {
-		unsigned key = SEARCH[i];
+		unsigned key = SEARCH[i] + DELTA;
 		cppunorderedmap_t::const_iterator ptr = cppunorderedmap->find(key);
 		if (ptr == cppunorderedmap->end())
 			abort();
@@ -1212,7 +1214,7 @@ void test_hit(unsigned* SEARCH)
 #endif
 
 	START(DATA_UTHASH) {
-		unsigned key = SEARCH[i];
+		unsigned key = SEARCH[i] + DELTA;
 		struct uthash_object* obj;
 		HASH_FIND_INT(uthash, &key, obj);  
 		if (!obj)
@@ -1225,7 +1227,7 @@ void test_hit(unsigned* SEARCH)
 
 #ifdef USE_JUDY
 	START(DATA_JUDY) {
-		Word_t key = SEARCH[i];
+		Word_t key = SEARCH[i] + DELTA;
 		Pvoid_t PValue;
 		JLG(PValue, judy, key);
 		if (!PValue)
@@ -1240,7 +1242,7 @@ void test_hit(unsigned* SEARCH)
 
 #ifdef USE_JUDYARRAY
 	START(DATA_JUDYARRAY) {
-		judyvalue key = SEARCH[i];
+		judyvalue key = SEARCH[i] + DELTA;
 		JudySlot* pvalue;
 		pvalue = judy_slot(judyarray, (uchar*)&key, 0);
 		if (!pvalue)
@@ -1254,7 +1256,7 @@ void test_hit(unsigned* SEARCH)
 #endif
 
 	START(DATA_NEDTRIE) {
-		unsigned key = SEARCH[i];
+		unsigned key = SEARCH[i] + DELTA;
 		struct nedtrie_object key_obj;
 		struct nedtrie_object* obj;
 		key_obj.value = key;
@@ -1268,9 +1270,11 @@ void test_hit(unsigned* SEARCH)
 	} STOP();
 }
 
-void test_miss(unsigned* SEARCH, unsigned DELTA)
+void test_miss(unsigned* SEARCH)
 {
 	unsigned i;
+
+	const unsigned DELTA = 0;
 
 	START(DATA_TREE) {
 		struct rbt_object key;
@@ -1398,8 +1402,12 @@ void test_miss(unsigned* SEARCH, unsigned DELTA)
 		judyvalue key = SEARCH[i] + DELTA;
 		JudySlot* pvalue;
 		pvalue = judy_slot(judyarray, (uchar*)&key, 0);
-		if (pvalue)
-			abort();
+		if (pvalue) {
+			/* workaround for a judyarray bug. Sometimes it returns a pvalue pointing to NULL */
+			void* obj = *(void**)pvalue;
+			if (obj)
+				abort();
+		}
 	} STOP();
 #endif
 
@@ -1679,13 +1687,13 @@ void test_remove(unsigned* REMOVE)
 {
 	unsigned i;
 
-	const unsigned DELTA = 1;
-
 	/* always dereference the object deleted. It has cache effect. */
 	/* considering we are dealing with objects, it makes sense to simulate an access to it */
 	/* even on deletion, because you have at least to do a free() call. */
 	/* this favorites data structures that store part of the information in the object itself */
-	const int dereference = 1; 
+	const int dereference = 1;
+
+	const unsigned DELTA = 1;
 
 	START(DATA_TREE) {
 		unsigned key = REMOVE[i] + DELTA;
@@ -2023,14 +2031,14 @@ void test_operation(unsigned* INSERT, unsigned* SEARCH)
 	OPERATION(OPERATION_INSERT);
 	test_insert(INSERT);
 
+	OPERATION(OPERATION_CHANGE);
+	test_change(SEARCH, INSERT);
+
 	OPERATION(OPERATION_HIT);
 	test_hit(SEARCH);
 
 	OPERATION(OPERATION_MISS);
-	test_miss(SEARCH, 1);
-
-	OPERATION(OPERATION_CHANGE);
-	test_change(SEARCH, INSERT);
+	test_miss(SEARCH);
 
 	OPERATION(OPERATION_SIZE);
 	test_size();

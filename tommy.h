@@ -170,12 +170,12 @@
  *
  * The test done are:
  *  - <b>Insert</b> Insert all the objects starting with an empty container.
+ *  - <b>Change</b> Find and remove one object and reinsert it with a different key, repeated for all the objects.
  *  - <b>Hit</b> Find with success all the objects and derefence them.
  *  - <b>Miss</b> Find with failure all the objects.
- *  - <b>Change</b> Find and remove one object and reinsert it with a different key, repeated for all the objects.
  *  - <b>Remove</b> Remove all the objects end dereference them.
  *
- * The <i>Hit</i>, <i>Miss</i> and <i>Change</i> tests operate always with N
+ * The <i>Change</i>, <i>Hit</i> and <i>Miss</i> tests operate always with N
  * objects in the containers.
  * The <i>Insert</i> test starts with an empty container, and the <i>Remove</i>
  * test ends with an empty container.
@@ -194,10 +194,10 @@
  * of N even numbers starting from 0x80000000 to 0x80000000+2*N.
  *
  * The use of only even numbers allows to have missing keys inside the domain for
- * the <i>Miss</i> and <i>Change</i> tests.
+ * the <i>Change</i> test.
  * In such tests it's used the key domain defined by the set of N odd numbers
  * starting from 0x80000000+1 to 0x80000000+2*N+1.
- * Note that using missing keys at the corners of the domain would have favorited tries
+ * Note that using additional keys at the corners of the domain would have favorited tries
  * and trees as they implicitly keep track of the maximum and minimum key values inserted.
  *
  * The use of the 0x80000000 base, allow to test a key domain not necessarily
@@ -430,37 +430,6 @@
  * }
  * \endcode
  *
- * \subsection hit Hit benchmark
- * \code
- * for(i=0;i<N;++i) {
- *     // Search the element
- *     // Use a different key order than insertion
- *     unsigned key = SEARCH[i];
- *     bag_t::const_iterator j = bag.find(key);
- *     if (j == bag.end())
- *         abort();
- *
- *     // Ensure that it's the correct element.
- *     // This operation is like using the object after finding it,
- *     // and likely involves a cache-miss operation.
- *     obj* element = j->second;
- *     if (element->value != key)
- *         abort();
- * }
- * \endcode
- *
- * \subsection miss Miss benchmark
- * \code
- * for(i=0;i<N;++i) {
- *     // Search the element
- *     // Use +1 in the key to ensure that nothing is found
- *     unsigned key = SEARCH[i] + 1;
- *     bag_t::const_iterator j = bag.find(key);
- *     if (j != bag.end())
- *         abort();
- * }
- * \endcode
- *
  * \subsection change Change benchmark
  * \code
  * for(i=0;i<N;++i) {
@@ -479,6 +448,38 @@
  *     key = INSERT[i] + 1;
  *     element->value = key;
  *     bag[key] = element;
+ * }
+ * \endcode
+ *
+ * \subsection hit Hit benchmark
+ * \code
+ * for(i=0;i<N;++i) {
+ *     // Search the element
+ *     // Use a different key order than insertion
+ *     // Use +1 in the key because we run after the "Change" test
+ *     unsigned key = SEARCH[i] + 1;
+ *     bag_t::const_iterator j = bag.find(key);
+ *     if (j == bag.end())
+ *         abort();
+ *
+ *     // Ensure that it's the correct element.
+ *     // This operation is like using the object after finding it,
+ *     // and likely involves a cache-miss operation.
+ *     obj* element = j->second;
+ *     if (element->value != key)
+ *         abort();
+ * }
+ * \endcode
+ *
+ * \subsection miss Miss benchmark
+ * \code
+ * for(i=0;i<N;++i) {
+ *     // Search the element
+ *     // All the keys are now shifted by +1 by the "Change" test, and we'll find nothing
+ *     unsigned key = SEARCH[i];
+ *     bag_t::const_iterator j = bag.find(key);
+ *     if (j != bag.end())
+ *         abort();
  * }
  * \endcode
  *
