@@ -27,6 +27,8 @@
 
 #include "tommytrieinp.h"
 
+#include <assert.h> /* for assert */
+
 /******************************************************************************/
 /* trie_inplace */
 
