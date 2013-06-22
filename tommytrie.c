@@ -140,7 +140,7 @@ expand:
 	i = (node->key >> shift) & TOMMY_TRIE_TREE_MASK;
 	j = (key >> shift) & TOMMY_TRIE_TREE_MASK;
 
-	/* if they don't collied */
+	/* if they don't collide */
 	if (i != j) {
 		/* insert the already existing element */
 		tree->map[i] = node;

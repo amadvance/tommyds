@@ -367,14 +367,14 @@
  *
  * \section code Code
  *
- * The following the pseudo code of the benchmark used. In this case it's written for the C++ unordered_map.
- *
  * The compilers used in the benchmark are:
  *  - <b>gcc 4.7.1</b> in Linux 32 bit with options: -O3 -march=pentium4 -mtune=generic
  *  - <b>Visual C 2010</b> in Windows 32 bit with options: /Ox /GL /GS- /arch:SSE2
  *  - <b>Visual C 2012</b> in Windows 64 bit with options: /Ox /GL /GS-
  *
  * Visual C 2012 is not used in the 32 bit platform, because compiled programs don't run in Windows XP.
+ *
+ * The following is pseudo code of the benchmark used. In this case it's written for the C++ unordered_map.
  *
  * \code
  * #define N 10000000 // Number of elements
