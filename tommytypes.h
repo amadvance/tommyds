@@ -84,23 +84,10 @@ typedef int tommy_bool_t; /**< Generic boolean type. */
  * Definition of the inline keyword if available.
  */
 #if !defined(tommy_inline)
-#if __STDC_VERSION__ >= 199901L || defined(__cplusplus)
-#define tommy_inline inline
-#elif defined(_MSC_VER) || defined(__GNUC__)
+#if defined(_MSC_VER) || defined(__GNUC__)
 #define tommy_inline static __inline
 #else
 #define tommy_inline static
-#endif
-#endif
-
-/** \internal
- * Definition of the always_inline keyword if available.
- */
-#if !defined(tommy_always_inline)
-#if defined(__GNUC__)
-#define tommy_always_inline static __attribute__((always_inline)) __inline
-#else
-#define tommy_always_inline tommy_inline
 #endif
 #endif
 
