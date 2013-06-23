@@ -696,6 +696,7 @@ extern "C" {
 #include "tommyhash.h"
 #include "tommyalloc.h"
 #include "tommyarray.h"
+#include "tommyarrayof.h"
 #include "tommylist.h"
 #include "tommytrie.h"
 #include "tommytrieinp.h"

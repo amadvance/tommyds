@@ -1,6 +1,11 @@
 TommyDS HISTORY
 ===============
 
+1.5 2013/06
+===========
+ * Fixed inline declaration to allow building with clang.
+ * Added a new tommy_arrayof type to store in an array elements of arbitrary size.
+
 1.4 2013/03
 ===========
  * Added benchmark comparison with Google BTree, and C++ map and unordered_map.

@@ -1,7 +1,7 @@
 #############################################################################
 # Tommy Makefile
 
-VERSION=1.4
+VERSION=1.5
 CFLAGS=-O3 -march=pentium4 -mtune=generic -Wall -Wextra -g 
 # -std=c++11 required by Google btree
 CCFLAGS=$(CFLAGS) -fpermissive -std=c++11
