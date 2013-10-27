@@ -33,7 +33,7 @@
 /**
  * Basic allocation segment.
  * Smaller of a memory page, to allow also a little heap overread.
- * An heap manager may put it in a single memory page.
+ * The heap manager may put it in a single memory page.
  */
 #define TOMMY_ALLOCATOR_BLOCK_SIZE (4096-64)
 

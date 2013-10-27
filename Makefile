@@ -1,7 +1,7 @@
 #############################################################################
 # Tommy Makefile
 
-VERSION=1.5
+VERSION=1.6
 CFLAGS=-O3 -march=pentium4 -mtune=generic -Wall -Wextra -g 
 # -std=c++11 required by Google btree
 CCFLAGS=$(CFLAGS) -fpermissive -std=c++11
@@ -38,6 +38,12 @@ DEP = \
 	tommyalloc.h \
 	tommyarray.c \
 	tommyarray.h \
+	tommyarrayof.c \
+	tommyarrayof.h \
+	tommyarrayblk.c \
+	tommyarrayblk.h \
+	tommyarrayblkof.c \
+	tommyarrayblkof.h \
 	tommy.c \
 	tommy.h \
 	tommyhash.c \

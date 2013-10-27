@@ -379,7 +379,7 @@ void test_array(void)
 	tommy_array_init(&array);
 
 	START("array init");
-	for(i=0;i<MAX*10;++i) {
+	for(i=0;i<MAX*100;++i) {
 		tommy_array_grow(&array, i + 1);
 		if (tommy_array_get(&array, i) != 0)
 			abort();
@@ -387,13 +387,13 @@ void test_array(void)
 	STOP();
 
 	START("array set");
-	for(i=0;i<MAX*10;++i) {
+	for(i=0;i<MAX*100;++i) {
 		tommy_array_set(&array, i, (void*)i);
 	}
 	STOP();
 
 	START("array get");
-	for(i=0;i<MAX*10;++i) {
+	for(i=0;i<MAX*100;++i) {
 		if (tommy_array_get(&array, i) != (void*)i)
 			abort();
 	}
@@ -401,6 +401,38 @@ void test_array(void)
 
 	tommy_array_done(&array);
 }
+
+void test_arrayblk(void)
+{
+	tommy_arrayblk arrayblk;
+	unsigned i;
+
+	tommy_arrayblk_init(&arrayblk);
+
+	START("arrayblk init");
+	for(i=0;i<MAX*100;++i) {
+		tommy_arrayblk_grow(&arrayblk, i + 1);
+		if (tommy_arrayblk_get(&arrayblk, i) != 0)
+			abort();
+	}
+	STOP();
+
+	START("arrayblk set");
+	for(i=0;i<MAX*100;++i) {
+		tommy_arrayblk_set(&arrayblk, i, (void*)i);
+	}
+	STOP();
+
+	START("arrayblk get");
+	for(i=0;i<MAX*100;++i) {
+		if (tommy_arrayblk_get(&arrayblk, i) != (void*)i)
+			abort();
+	}
+	STOP();
+
+	tommy_arrayblk_done(&arrayblk);
+}
+
 
 void test_hashdyn(void)
 {
@@ -567,6 +599,7 @@ int main() {
 
 	test_list();
 	test_array();
+	test_arrayblk();
 	test_hashdyn();
 	test_hashlin();
 

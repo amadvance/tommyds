@@ -1,10 +1,16 @@
 TommyDS HISTORY
 ===============
 
+1.6 2013/11
+===========
+ * Added a new tommy_arrayblk and tommy_arrayblkof types to store elements
+   in an array minimizing memory occupation.
+
 1.5 2013/06
 ===========
  * Fixed inline declaration to allow building with clang.
- * Added a new tommy_arrayof type to store in an array elements of arbitrary size.
+ * Added a new tommy_arrayof type to store in an array elements of arbitrary
+   size.
 
 1.4 2013/03
 ===========
@@ -14,7 +20,8 @@ TommyDS HISTORY
 
 1.3 2013/02
 ===========
- * Fixed a Segmentation Fault bug in the hashlin container if exact power of 2 sizes were used.
+ * Fixed a Segmentation Fault bug in the hashlin container if exact power
+   of 2 sizes were used.
  * Removed some warnings with newer gcc.
  * Minor documentation changes.
  * Added benchmark comparison with the judy array implementation of Karl Malbrain.
@@ -22,7 +29,8 @@ TommyDS HISTORY
 1.2 2012/05
 ===========
  * Minor documentation changes.
- * In the check application, added a speed comparison with the C qsort() implementation.
+ * In the check application, added a speed comparison with the C qsort()
+   implementation.
 
 1.1 2012/05
 ===========

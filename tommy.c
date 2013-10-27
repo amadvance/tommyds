@@ -29,6 +29,8 @@
 #include "tommyalloc.c"
 #include "tommyarray.c"
 #include "tommyarrayof.c"
+#include "tommyarrayblk.c"
+#include "tommyarrayblkof.c"
 #include "tommylist.c"
 #include "tommytrie.c"
 #include "tommytrieinp.c"
