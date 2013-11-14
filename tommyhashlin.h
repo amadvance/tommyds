@@ -81,9 +81,10 @@
  * \code
  * int compare(const void* arg, const void* obj)
  * {
- *     return (*(const unsigned*)arg != ((const struct object*)obj)->value;
+ *     return *(const int*)arg != ((const struct object*)obj)->value;
  * }
  *
+ * int value_to_find = 1; 
  * struct object* obj = tommy_hashlin_search(&hashlin, compare, &value_to_find, tommy_inthash_u32(value_to_find));
  * if (!obj) {
  *     // not found
@@ -98,6 +99,7 @@
  * different keys.
  *
  * \code
+ * int value_to_find = 1; 
  * tommy_node* i = tommy_hashlin_bucket(&hashlin, tommy_inthash_u32(value_to_find));
  * while (i) {
  *     struct object* obj = i->data; // gets the object pointer
@@ -201,7 +203,7 @@ void tommy_hashlin_insert(tommy_hashlin* hashlin, tommy_hashlin_node* node, void
  * \param hash Hash of the element to find and remove.
  * \return The removed element, or 0 if not found.
  */
-void* tommy_hashlin_remove(tommy_hashlin* hashlin, tommy_compare_func* cmp, const void* cmp_arg, tommy_hash_t hash);
+void* tommy_hashlin_remove(tommy_hashlin* hashlin, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash);
 
 /**
  * Gets the bucket of the specified hash.
@@ -223,7 +225,7 @@ tommy_hashlin_node* tommy_hashlin_bucket(tommy_hashlin* hashlin, tommy_hash_t ha
  * \param hash Hash of the element to find.
  * \return The first element found, or 0 if none.
  */
-tommy_inline void* tommy_hashlin_search(tommy_hashlin* hashlin, tommy_compare_func* cmp, const void* cmp_arg, tommy_hash_t hash)
+tommy_inline void* tommy_hashlin_search(tommy_hashlin* hashlin, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)
 {
 	tommy_hashlin_node* i = tommy_hashlin_bucket(hashlin, hash);
 	while (i) {

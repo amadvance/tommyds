@@ -292,7 +292,7 @@ tommy_hashlin_node* tommy_hashlin_bucket(tommy_hashlin* hashlin, tommy_hash_t ha
 	return *tommy_hashlin_bucket_ptr(hashlin, hash);
 }
 
-void* tommy_hashlin_remove(tommy_hashlin* hashlin, tommy_compare_func* cmp, const void* cmp_arg, tommy_hash_t hash)
+void* tommy_hashlin_remove(tommy_hashlin* hashlin, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)
 {
 	tommy_hashlin_node** let_ptr = tommy_hashlin_bucket_ptr(hashlin, hash);
 	tommy_hashlin_node* i = *let_ptr;

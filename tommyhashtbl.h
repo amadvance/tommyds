@@ -69,9 +69,10 @@
  * \code
  * int compare(const void* arg, const void* obj)
  * {
- *     return (*(const unsigned*)arg != ((const struct object*)obj)->value;
+ *     return *(const int*)arg != ((const struct object*)obj)->value;
  * }
  *
+ * int value_to_find = 1;
  * struct object* obj = tommy_hashtable_search(&hashtable, compare, &value_to_find, tommy_inthash_u32(value_to_find));
  * if (!obj) {
  *     // not found
@@ -173,7 +174,7 @@ void tommy_hashtable_insert(tommy_hashtable* hashtable, tommy_hashtable_node* no
  * \param hash Hash of the element to find and remove.
  * \return The removed element, or 0 if not found.
  */
-void* tommy_hashtable_remove(tommy_hashtable* hashtable, tommy_compare_func* cmp, const void* cmp_arg, tommy_hash_t hash);
+void* tommy_hashtable_remove(tommy_hashtable* hashtable, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash);
 
 /**
  * Gets the bucket of the specified hash.
@@ -198,7 +199,7 @@ tommy_inline tommy_hashtable_node* tommy_hashtable_bucket(tommy_hashtable* hasht
  * \param hash Hash of the element to find.
  * \return The first element found, or 0 if none.
  */
-tommy_inline void* tommy_hashtable_search(tommy_hashtable* hashtable, tommy_compare_func* cmp, const void* cmp_arg, tommy_hash_t hash)
+tommy_inline void* tommy_hashtable_search(tommy_hashtable* hashtable, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)
 {
 	tommy_hashtable_node* i = tommy_hashtable_bucket(hashtable, hash);
 	while (i) {

@@ -82,6 +82,7 @@
  *
  * To search an object you have to provide the key and call the search function.
  * \code
+ * int value_to_find = 1;
  * struct object* obj = tommy_trie_search(..., value_to_find);
  * if (!obj) {
  *   // not found
@@ -93,6 +94,7 @@
  * To access all the objects with the same keys you have to iterate over the bucket
  * assigned at the specified key.
  * \code
+ * int value_to_find = 1; 
  * tommy_trie_node* i = tommy_trie_bucket(..., value_to_find);
  *
  * while (i) {

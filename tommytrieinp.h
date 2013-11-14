@@ -72,6 +72,7 @@
  * the key to search.
  *
  * \code
+ * int value_to_find = 1; 
  * struct object* obj = tommy_trie_inplace_search(&trie_inplace, value_to_find);
  * if (!obj) {
  *     // not found
@@ -84,6 +85,7 @@
  * use tommy_trie_inplace_bucket() and follow the tommy_node::next pointer until NULL.
  *
  * \code
+ * int value_to_find = 1; 
  * tommy_node* i = tommy_trie_inplace_bucket(&trie_inplace, value_to_find);
  * while (i) {
  *     struct object* obj = i->data; // gets the object pointer

@@ -76,7 +76,7 @@ void* tommy_hashtable_remove_existing(tommy_hashtable* hashtable, tommy_hashtabl
 	return node->data;
 }
 
-void* tommy_hashtable_remove(tommy_hashtable* hashtable, tommy_compare_func* cmp, const void* cmp_arg, tommy_hash_t hash)
+void* tommy_hashtable_remove(tommy_hashtable* hashtable, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)
 {
 	unsigned pos = hash & hashtable->bucket_mask;
 	tommy_hashtable_node* i = hashtable->bucket[pos];
