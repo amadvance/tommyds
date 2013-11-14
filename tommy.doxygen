@@ -602,6 +602,9 @@ INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          = tommy.h \
                          tommyalloc.h \
                          tommyarray.h \
+                         tommyarrayof.h \
+                         tommyarrayblk.h \
+                         tommyarrayblkof.h \
                          tommyhash.h \
                          tommyhashdyn.h \
                          tommyhashlin.h \
