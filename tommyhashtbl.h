@@ -154,6 +154,9 @@ void tommy_hashtable_init(tommy_hashtable* hashtable, unsigned bucket_max);
 
 /**
  * Deinitializes the hashtable.
+ *
+ * You can call this function with elements still contained,
+ * but such elements are not going to be freed by this call.
  */
 void tommy_hashtable_done(tommy_hashtable* hashtable);
 

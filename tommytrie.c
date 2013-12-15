@@ -87,12 +87,6 @@ void tommy_trie_init(tommy_trie* trie, tommy_allocator* alloc)
 	trie->alloc = alloc;
 }
 
-void tommy_trie_done(tommy_trie* trie)
-{
-    /* we assume to be empty, and if we are empty all the bucket are 0 */
-    assert(trie->count == 0);
-}
-
 static void trie_bucket_insert(tommy_trie* trie, unsigned shift, tommy_trie_node** let_ptr, tommy_trie_node* insert, tommy_key_t key)
 {
 	tommy_trie_tree* tree;

@@ -185,14 +185,11 @@ typedef struct tommy_trie_struct {
  * Initializes the trie.
  * You have to provide an allocator initialized with *both* the size and align with TOMMY_TRIE_BLOCK_SIZE.
  * You can share this allocator with other tries.
+ *
+ * The tries is completely allocated through the allocator, and it doesn't need to be deinitialized.
  * \param alloc Allocator initialized with *both* the size and align with TOMMY_TRIE_BLOCK_SIZE.
  */
 void tommy_trie_init(tommy_trie* trie, tommy_allocator* alloc);
-
-/**
- * Deinitializes the trie.
- */
-void tommy_trie_done(tommy_trie* trie);
 
 /**
  * Inserts an element in the trie.

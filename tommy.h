@@ -554,64 +554,67 @@
  * different search keys.
  *
  * See the next example, for an object that is inserted in a ::tommy_list, and in
- * two ::tommy_trie using different keys.
+ * two ::tommy_hashdyn using different keys.
  *
  * \code
  * struct object {
- *     tommy_node list_node; // node for the list
- *     tommy_node trie_node_0; // node for the first trie
- *     tommy_node trie_node_1; // node for the second trie
- *     // other fields
+ *     // data fields
  *     int value_0;
  *     int value_1;
+ *
+ *     // for containers
+ *     tommy_node list_node; // node for the list
+ *     tommy_node hash_node_0; // node for the first hash
+ *     tommy_node hash_node_1; // node for the second hash
  * };
  *
- * tommy_allocator alloc;
- * tommy_trie trie_0;
- * tommy_trie trie_1;
+ * // search function
+ * int search_1(const void* arg, const void* obj)
+ * {
+ *     return *(const int*)arg != ((const struct object*)obj)->value_1;
+ * }
+ *
+ * tommy_hashdyn hash_0;
+ * tommy_hashdyn hash_1;
  * tommy_list list;
  *
- * // initializes the allocator, the tries and the list
- * tommy_allocator_init(&alloc, TOMMY_TRIE_BLOCK_SIZE, TOMMY_TRIE_BLOCK_SIZE);
- * tommy_trie_init(&trie_0, &alloc);
- * tommy_trie_init(&trie_1, &alloc);
+ * // initializes the allocator, the hash tables and the list
+ * tommy_hashdyn_init(&hash_0);
+ * tommy_hashdyn_init(&hash_1);
  * tommy_list_init(&list);
  *
  * ...
  *
+ * // creates an object
+ * struct object* obj = malloc(sizeof(struct object));
+ * obj->value_0 = ...;
+ * obj->value_1 = ...;
+ *
  * // inserts an object
- * struct object* obj = ...
- * tommy_trie_insert(&trie_0, &obj->trie_node_0, obj, obj->value0); // inserts in the first trie
- * tommy_trie_insert(&trie_1, &obj->trie_node_1, obj, obj->value1); // inserts in the second trie
+ * tommy_hashdyn_insert(&hash_0, &obj->hash_node_0, obj, tommy_inthash_u32(obj->value0)); // inserts in the first hash table
+ * tommy_hashdyn_insert(&hash_1, &obj->hash_node_1, obj, tommy_inthash_u32(obj->value1)); // inserts in the second hash table
  * tommy_list_insert_tail(&list, &obj->list_node, obj); // inserts in the list
  *
  * ...
  *
- * // searches an object and delete it
- * struct object* obj = tommy_trie_search(&trie_1, value1_to_find);
+ * // searches an object by value_1 and delete it
+ * int value1_to_find = ...;
+ * struct object* obj = tommy_hashdyn_search(&hash_1, search_1, &value1_to_find, tommy_inthash_u32(value1_to_find));
  * if (obj) {
  *     // if found removes all the references
- *     tommy_trie_remove_existing(&trie_0, &obj->trie_node_0);
- *     tommy_trie_remove_existing(&trie_1, &obj->trie_node_1);
+ *     tommy_hashdyn_remove_existing(&hash_0, &obj->hash_node_0);
+ *     tommy_hashdyn_remove_existing(&hash_1, &obj->hash_node_1);
  *     tommy_list_remove_existing(&list, &obj->list_node);
  * }
  *
  * ...
  *
- * // iterates over all the elements using the list, and delete them
- * tommy_node* i = tommy_list_head(&list);
- * while (i) {
- *     tommy_node* i_next = i->next; // saves the next element before freeing
+ * // deallocate all the objects iterating the list
+ * tommy_list_foreach(&list, free);
  *
- *     // removes all the references
- *     tommy_trie_remove_existing(&trie_0, &obj->trie_node_0);
- *     tommy_trie_remove_existing(&trie_1, &obj->trie_node_1);
- *     tommy_list_remove_existing(&list, &obj->list_node);
- *
- *     free(i->data); // frees the object allocated memory
- *
- *     i = i_next; // goes to the next element
- * }
+ * // deallocate all the hash tables
+ * tommy_hashdyn_done(&hash_0);
+ * tommy_hashdyn_done(&hash_1);
  * \endcode
  *
  * \page design Tommy Design

@@ -183,6 +183,9 @@ void tommy_hashlin_init(tommy_hashlin* hashlin);
 
 /**
  * Deinitializes the hashtable.
+ *
+ * You can call this function with elements still contained,
+ * but such elements are not going to be freed by this call.
  */
 void tommy_hashlin_done(tommy_hashlin* hashlin);
 

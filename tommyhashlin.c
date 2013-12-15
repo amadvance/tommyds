@@ -60,8 +60,6 @@ void tommy_hashlin_init(tommy_hashlin* hashlin)
 void tommy_hashlin_done(tommy_hashlin* hashlin)
 {
 	unsigned i;
-
-	/* free all the used buckets */
 	for(i=0;i<hashlin->bucket_mac;++i)
 		tommy_free(hashlin->bucket[i]);
 }

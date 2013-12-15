@@ -830,7 +830,6 @@ void test_free(void)
 		if (tommy_trie_count(&trie) != 0)
 			abort();
 		tommy_allocator_done(&trie_allocator);
-		tommy_trie_done(&trie);
 		free(TRIE);
 	}
 

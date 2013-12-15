@@ -167,7 +167,8 @@ typedef struct tommy_trie_inplace_struct {
 
 /**
  * Initializes the trie.
- * The tries is completely inplace, so it doesn't need to be deinitialized.
+ *
+ * The tries is completely inplace, and it doesn't need to be deinitialized.
  */
 void tommy_trie_inplace_init(tommy_trie_inplace* trie_inplace);
 
