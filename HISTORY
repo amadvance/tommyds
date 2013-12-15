@@ -3,8 +3,9 @@ TommyDS HISTORY
 
 1.7 2013/12
 ===========
- * tommy_hashlin_done() now works also if the hashtable is not empty.
-   But takes care that contained elements are not freed.
+ * Makes tommy_hashlin_done() to work also if the hashtable is not empty.
+ * Removes tommy_trie_done() because the real deallocation is done
+   by the allocator.
 
 1.6 2013/11
 ===========

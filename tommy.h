@@ -568,7 +568,7 @@
  *     tommy_node hash_node_1; // node for the second hash
  * };
  *
- * // search function
+ * // search function for value_1
  * int search_1(const void* arg, const void* obj)
  * {
  *     return *(const int*)arg != ((const struct object*)obj)->value_1;
@@ -578,26 +578,24 @@
  * tommy_hashdyn hash_1;
  * tommy_list list;
  *
- * // initializes the allocator, the hash tables and the list
+ * // initializes the the hash tables and the list
  * tommy_hashdyn_init(&hash_0);
  * tommy_hashdyn_init(&hash_1);
  * tommy_list_init(&list);
  *
  * ...
  *
- * // creates an object
+ * // creates an object and inserts it
  * struct object* obj = malloc(sizeof(struct object));
  * obj->value_0 = ...;
  * obj->value_1 = ...;
- *
- * // inserts an object
  * tommy_hashdyn_insert(&hash_0, &obj->hash_node_0, obj, tommy_inthash_u32(obj->value0)); // inserts in the first hash table
  * tommy_hashdyn_insert(&hash_1, &obj->hash_node_1, obj, tommy_inthash_u32(obj->value1)); // inserts in the second hash table
  * tommy_list_insert_tail(&list, &obj->list_node, obj); // inserts in the list
  *
  * ...
  *
- * // searches an object by value_1 and delete it
+ * // searches an object by value_1 and deletes it
  * int value1_to_find = ...;
  * struct object* obj = tommy_hashdyn_search(&hash_1, search_1, &value1_to_find, tommy_inthash_u32(value1_to_find));
  * if (obj) {
@@ -609,10 +607,10 @@
  *
  * ...
  *
- * // deallocate all the objects iterating the list
+ * // deallocates all the objects iterating the list
  * tommy_list_foreach(&list, free);
  *
- * // deallocate all the hash tables
+ * // deallocates all the hash tables
  * tommy_hashdyn_done(&hash_0);
  * tommy_hashdyn_done(&hash_1);
  * \endcode
