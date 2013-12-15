@@ -59,10 +59,11 @@ void tommy_hashlin_init(tommy_hashlin* hashlin)
 
 void tommy_hashlin_done(tommy_hashlin* hashlin)
 {
-	/* we assume to be empty, so we free only the first bucket */
-	assert(hashlin->bucket_mac == 1);
+	unsigned i;
 
-	tommy_free(hashlin->bucket[0]);
+	/* free all the used buckets */
+	for(i=0;i<hashlin->bucket_mac;++i)
+		tommy_free(hashlin->bucket[i]);
 }
 
 /**

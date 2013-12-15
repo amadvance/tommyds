@@ -1,6 +1,11 @@
 TommyDS HISTORY
 ===============
 
+1.7 2013/12
+===========
+ * tommy_hashlin_done() now works also if the hashtable is not empty.
+   But takes care that contained elements are not freed.
+
 1.6 2013/11
 ===========
  * Added a new tommy_arrayblk and tommy_arrayblkof types to store elements
