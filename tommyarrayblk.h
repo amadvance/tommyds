@@ -31,7 +31,8 @@
  * This array is able to grow dynamically upon request.
  *
  * The resize involve an allocation of a new array block, without reallocating
- * the already allocated memory, and then not increasing the heap fragmentation.
+ * the already allocated memory, and then not increasing the heap fragmentation,
+ * and minimize the space occupation.
  * This means that the address of the allocated blocks never change.
  *
  * Allocated blocks are always of the same fixed size of 64 Ki pointers.

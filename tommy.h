@@ -41,16 +41,19 @@
  * The data structures provided are:
  *
  * - ::tommy_list - A double linked list.
- * - ::tommy_array - A linear array. It doesn't fragment the heap.
+ * - ::tommy_array, ::tommy_arrayof - A linear array.
+ * It doesn't fragment the heap.
+ * - ::tommy_arrayblk, ::tommy_arrayblkof - A blocked linear array.
+ * It doesn't fragment the heap and minimize the space occupation.
  * - ::tommy_hashtable - A fixed size chained hashtable.
  * - ::tommy_hashdyn - A dynamic chained hashtable.
- * - ::tommy_hashlin - A linear chained hashtable. It doesn't have the
- * problem of the delay when resizing and it doesn't fragment
- * the heap.
+ * - ::tommy_hashlin - A linear chained hashtable.
+ * It doesn't have the problem of the delay when resizing and
+ * it doesn't fragment the heap.
  * - ::tommy_trie - A trie optimized for cache utilization.
  * - ::tommy_trie_inplace - A trie completely inplace.
  *
- * The most interesting are ::tommy_hashlin, ::tommy_trie and ::tommy_trie_inplace.
+ * The most interesting are ::tommy_array, ::tommy_hashdyn, ::tommy_hashlin, ::tommy_trie and ::tommy_trie_inplace.
  *
  * Tommy is released with a \ref license "2-clause BSD license".
  *
@@ -596,8 +599,8 @@
  * ...
  *
  * // searches an object by value_1 and deletes it
- * int value1_to_find = ...;
- * struct object* obj = tommy_hashdyn_search(&hash_1, search_1, &value1_to_find, tommy_inthash_u32(value1_to_find));
+ * int value_to_find = ...;
+ * struct object* obj = tommy_hashdyn_search(&hash_1, search_1, &value_to_find, tommy_inthash_u32(value_to_find));
  * if (obj) {
  *     // if found removes all the references
  *     tommy_hashdyn_remove_existing(&hash_0, &obj->hash_node_0);
