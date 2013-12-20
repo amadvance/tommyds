@@ -1,6 +1,11 @@
 TommyDS HISTORY
 ===============
 
+1.8 2013/12
+===========
+ * Fixed build of tommy_arrayblk in C++.
+ * Added benchmark comparison with STX BTree.
+
 1.7 2013/12
 ===========
  * Extends tommy_hashlin_done() to work also if the hashtable is not empty.
