@@ -89,7 +89,7 @@ tommy_inline void** tommy_arrayblk_ref(tommy_arrayblk* array, unsigned pos)
 
 	assert(pos < array->size);
 
-	ptr = tommy_array_get(&array->block, pos / TOMMY_ARRAYBLK_SIZE);
+	ptr = tommy_cast(void**, tommy_array_get(&array->block, pos / TOMMY_ARRAYBLK_SIZE));
 
 	return &ptr[pos % TOMMY_ARRAYBLK_SIZE];
 }

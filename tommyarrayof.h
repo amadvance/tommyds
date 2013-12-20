@@ -100,7 +100,7 @@ tommy_inline void* tommy_arrayof_ref(tommy_arrayof* array, unsigned pos)
 
 	/* special case for the first bucket */
 	if (pos < (1 << TOMMY_ARRAYOF_BIT)) {
-		base = array->bucket[0];
+		base = tommy_cast(unsigned char*, array->bucket[0]);
 	} else {
 		/* get the highest bit set */
 		unsigned bsr = tommy_ilog2_u32(pos);
@@ -108,7 +108,7 @@ tommy_inline void* tommy_arrayof_ref(tommy_arrayof* array, unsigned pos)
 		/* clear the highest bit */
 		pos -= 1 << bsr;
 
-		base = array->bucket[bsr - TOMMY_ARRAYOF_BIT + 1];
+		base = tommy_cast(unsigned char*, array->bucket[bsr - TOMMY_ARRAYOF_BIT + 1]);
 	}
 
 	return base + pos * array->element_size;
