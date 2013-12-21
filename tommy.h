@@ -128,7 +128,7 @@
  * and <i>Change</i> performance. Hit is searching an object with success, and Change is searching, removing
  * and reinsert it with a different key value.
  *
- * Times are expressed in nanoseconds for element, so <b>lower is better</b>.
+ * Times are expressed in nanoseconds for element, and <b>lower is better</b>.
  *
  * A complete analysis is available in the \ref benchmark page.
  *
@@ -170,15 +170,15 @@
  *
  * It's different than the simpler case of mapping integers to integers,
  * as pointers to objects are also dereferenced resulting in additional cache
- * misses. This benchmark favorites implementations that store information in the
- * objects itself, as the additional cache misses are already implicit.
+ * misses. This benchmark gives a boost to implementations that store information
+ * in the objects itself, as the additional cache misses are already implicit.
  *
  * The test done are:
  *  - <b>Insert</b> Insert all the objects starting with an empty container.
  *  - <b>Change</b> Find and remove one object and reinsert it with a different key, repeated for all the objects.
  *  - <b>Hit</b> Find with success all the objects and derefence them.
  *  - <b>Miss</b> Find with failure all the objects.
- *  - <b>Remove</b> Remove all the objects end dereference them.
+ *  - <b>Remove</b> Remove all the objects and dereference them.
  *
  * The <i>Change</i>, <i>Hit</i> and <i>Miss</i> tests operate always with N
  * objects in the containers.
@@ -190,9 +190,9 @@
  * All the objects are preallocated in the heap, and this allocation time is not
  * included in the test.
  *
- * The objects contain an integer <i>value</i> field used for consistency checks, an unused
- * <i>payload</i> field of 16 bytes, and any other data required by the data
- * structure.
+ * The objects contain an integer <i>value</i> field used for consistency checks,
+ * an unused <i>payload</i> field of 16 bytes, and any other data required by the
+ * data structure.
  *
  * The objects are identified and stored using integer and unique <i>keys</i>.
  * The key domain used is <strong>dense</strong>, and it's defined by the set
@@ -202,21 +202,24 @@
  * the <i>Change</i> test.
  * In such tests it's used the key domain defined by the set of N odd numbers
  * starting from 0x80000000+1 to 0x80000000+2*N+1.
- * Note that using additional keys at the corners of the domain would have favorited tries
- * and trees as they implicitly keep track of the maximum and minimum key values inserted.
+ * Note that using additional keys at the corners of the domain would have pushed
+ * tries and trees as they implicitly keep track of the maximum and minimum key values
+ * inserted.
  *
  * The use of the 0x80000000 base, allow to test a key domain not necessarily
- * starting at 0. Using a 0 base would have favorited some tries managing it as a special case.
+ * starting at 0. Using a 0 base would have pushed some tries managing it as
+ * a special case.
  *
  * The tests are repeated using keys in <i>Random</i> mode and in <i>Forward</i> mode.
- * In the forward mode the key values are used from the lowest to the highest.
+ * In the forward mode the key values are used in order from the lowest to the highest.
  * In the random mode the key values are used in a completely random order.
- * In the <i>Change</i> test in forward mode, each object is reinserted using the same key, just incremented by 1.
- * Instead, in random mode, each object is reinserted using a completely different and uncorrelated key.
+ * In the <i>Change</i> test in forward mode, each object is reinserted using the previous
+ * key incremented by 1. In random mode each object is reinserted using a completely
+ * different and uncorrelated key.
  *
- * The forward order favorites tries and trees as they use the key directly and they have a
+ * The forward order pushes tries and trees as they use the key directly and they have a
  * cache advantage on using consecutive keys.
- * The random order favorites hashtables, as the hash function already randomizes the key.
+ * The random order pushes hashtables, as the hash function already randomizes the key.
  * Usually real uses case are in between, and the random one is the worst one.
  *
  * The following data structures are tested:
@@ -233,16 +236,18 @@
  *  - <a href="http://code.google.com/p/judyarray/">judyarray</a> - Burst trie by Karl Malbrain.
  *  - <a href="http://code.google.com/p/google-sparsehash/">googledensehash</a> - Dynamic open addressing hashtable by Craig Silverstein at Google. 
  *  - <a href="http://code.google.com/p/cpp-btree/">googlebtree</a> - Btree by Google.
+ *  - <a href="http://panthema.net/2007/stx-btree/">stxbtree</a> - STX Btree by Timo Bingmann.
  *  - <a href="http://www.cplusplus.com/reference/unordered_map/unordered_map/">c++unordered_map</a> - C++ STL unordered_map<> template.
  *  - <a href="http://www.cplusplus.com/reference/map/map/">c++map</a> - C++ STL map<> template.
  *
  * \section result Results
  *
- * The most significative tests depend on your data usage model, but if in doubt,
+ * The most significant tests depend on your data usage model, but if in doubt,
  * you should mostly look at <i>Random Hit</i> and <i>Random Change</i>.
  *
- * They are assumed to be the most significatives, because operating always with N elements
- * in the data structure and with a random patterns. They represent the real world worst condition.
+ * They are the most significant, because operating always with N elements
+ * in the data structure and with a random patterns.
+ * They represent the real world worst condition.
  *
  * <img src="def/img_random_hit.png"/>
  *
@@ -270,35 +275,25 @@
  * increasing the heap fragmentation.
  * <table border="0">
  * <tr><td>
- * <img src="core_i5_650_3G2/img_random_insert.png"/>
+ * <img src="core_i5_650_3G2_linux/img_random_insert.png"/>
  * </td><td>
- * <img src="core_2_duo_e6600_2G4/img_random_insert.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6_64/img_random_insert.png"/>
+ * <img src="core_i7_3740_2G7_win/img_random_insert.png"/>
  * </td></tr><tr><td>
- * <img src="core_i5_650_3G2/img_random_hit.png"/>
+ * <img src="core_i5_650_3G2_linux/img_random_hit.png"/>
  * </td><td>
- * <img src="core_2_duo_e6600_2G4/img_random_hit.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6_64/img_random_hit.png"/>
+ * <img src="core_i7_3740_2G7_win/img_random_hit.png"/>
  * </td></tr><tr><td>
- * <img src="core_i5_650_3G2/img_random_miss.png"/>
+ * <img src="core_i5_650_3G2_linux/img_random_miss.png"/>
  * </td><td>
- * <img src="core_2_duo_e6600_2G4/img_random_miss.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6_64/img_random_miss.png"/>
+ * <img src="core_i7_3740_2G7_win/img_random_miss.png"/>
  * </td></tr><tr><td>
- * <img src="core_i5_650_3G2/img_random_change.png"/>
+ * <img src="core_i5_650_3G2_linux/img_random_change.png"/>
  * </td><td>
- * <img src="core_2_duo_e6600_2G4/img_random_change.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6_64/img_random_change.png"/>
+ * <img src="core_i7_3740_2G7_win/img_random_change.png"/>
  * </td></tr><tr><td>
- * <img src="core_i5_650_3G2/img_random_remove.png"/>
+ * <img src="core_i5_650_3G2_linux/img_random_remove.png"/>
  * </td><td>
- * <img src="core_2_duo_e6600_2G4/img_random_remove.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6_64/img_random_remove.png"/>
+ * <img src="core_i7_3740_2G7_win/img_random_remove.png"/>
  * </td></tr>
  * </table>
  * 
@@ -318,43 +313,34 @@
  * the hashed key is random.
  *
  * Note that you can make hashtables to reach tries performance tweaking
- * the hash function to put near keys allocated nearby. For example, in the benchmark
- * use something like:
+ * the hash function to put near keys allocated nearby.
+ * This is possible if you have some information about the distribution
+ * of keys. For example, in the benchmark you use something like:
  * \code
  * #define hash(v) tommy_inthash32(v & ~0xF) + (v & 0xF)
  * \endcode
  *
  * <table border="0">
  * <tr><td>
- * <img src="core_i5_650_3G2/img_forward_insert.png"/>
+ * <img src="core_i5_650_3G2_linux/img_forward_insert.png"/>
  * </td><td>
- * <img src="core_2_duo_e6600_2G4/img_forward_insert.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6_64/img_forward_insert.png"/>
+ * <img src="core_i7_3740_2G7_win/img_forward_insert.png"/>
  * </td></tr><tr><td>
- * <img src="core_i5_650_3G2/img_forward_hit.png"/>
+ * <img src="core_i5_650_3G2_linux/img_forward_hit.png"/>
  * </td><td>
- * <img src="core_2_duo_e6600_2G4/img_forward_hit.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6_64/img_forward_hit.png"/>
+ * <img src="core_i7_3740_2G7_win/img_forward_hit.png"/>
  * </td></tr><tr><td>
- * <img src="core_i5_650_3G2/img_forward_miss.png"/>
+ * <img src="core_i5_650_3G2_linux/img_forward_miss.png"/>
  * </td><td>
- * <img src="core_2_duo_e6600_2G4/img_forward_miss.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6_64/img_forward_miss.png"/>
+ * <img src="core_i7_3740_2G7_win/img_forward_miss.png"/>
  * </td></tr><tr><td>
- * <img src="core_i5_650_3G2/img_forward_change.png"/>
+ * <img src="core_i5_650_3G2_linux/img_forward_change.png"/>
  * </td><td>
- * <img src="core_2_duo_e6600_2G4/img_forward_change.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6_64/img_forward_change.png"/>
+ * <img src="core_i7_3740_2G7_win/img_forward_change.png"/>
  * </td></tr><tr><td>
- * <img src="core_i5_650_3G2/img_forward_remove.png"/>
+ * <img src="core_i5_650_3G2_linux/img_forward_remove.png"/>
  * </td><td>
- * <img src="core_2_duo_e6600_2G4/img_forward_remove.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6_64/img_forward_remove.png"/>
+ * <img src="core_i7_3740_2G7_win/img_forward_remove.png"/>
  * </td></tr>
  * </table>
  * 
@@ -362,22 +348,17 @@
  * Here you can see the memory usage of the different data structures.
  * <table border="0">
  * <tr><td>
- * <img src="core_i5_650_3G2/img_random_size.png"/>
+ * <img src="core_i5_650_3G2_linux/img_random_size.png"/>
  * </td><td>
- * <img src="core_2_duo_e6600_2G4/img_random_size.png"/>
- * </td><td>
- * <img src="xeon_e5430_2G6_64/img_random_size.png"/>
+ * <img src="core_i7_3740_2G7_win/img_random_size.png"/>
  * </td></tr>
  * </table>
  *
  * \section code Code
  *
  * The compilers used in the benchmark are:
- *  - <b>gcc 4.7.1</b> in Linux 32 bit with options: -O3 -march=pentium4 -mtune=generic
- *  - <b>Visual C 2010</b> in Windows 32 bit with options: /Ox /GL /GS- /arch:SSE2
- *  - <b>Visual C 2012</b> in Windows 64 bit with options: /Ox /GL /GS-
- *
- * Visual C 2012 is not used in the 32 bit platform, because compiled programs don't run in Windows XP.
+ *  - <b>gcc 4.7.1</b> in Linux with options: -O3 -march=pentium4 -mtune=generic
+ *  - <b>Visual C 2012</b> in Windows with options: /Ox /GL /GS-
  *
  * The following is pseudo code of the benchmark used. In this case it's written for the C++ unordered_map.
  *
