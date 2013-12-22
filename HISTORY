@@ -4,6 +4,7 @@ TommyDS HISTORY
 1.8 2013/12
 ===========
  * Fixed build of tommy_arrayblk in C++.
+ * Changed the default node size of tommy_trie to fit a cache line of 64 bytes.
  * Added benchmark comparison with STX BTree.
 
 1.7 2013/12
