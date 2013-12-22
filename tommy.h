@@ -33,6 +33,8 @@
  * <a href="http://www.canonware.com/rb/">rbtree</a>,
  * <a href="http://judy.sourceforge.net/">judy</a>,
  * <a href="http://code.google.com/p/google-sparsehash/">googledensehash</a>,
+ * <a href="http://code.google.com/p/cpp-btree/">googlebtree</a>,
+ * <a href="http://panthema.net/2007/stx-btree/">stxbtree</a>,
  * <a href="http://attractivechaos.awardspace.com/">khash</a>,
  * <a href="http://uthash.sourceforge.net/">uthash</a>,
  * <a href="http://www.nedprod.com/programs/portable/nedtries/">nedtrie</a>,
@@ -161,7 +163,25 @@
  * \page benchmark Tommy Benchmarks
  *
  * To evaluate Tommy performances, an extensive benchmark was done,
- * comparing it to the best hashtable and trie libraries available.
+ * comparing it to the best libraries of data structures available:
+ *
+ * Specifically we have tested:
+ *  - ::tommy_hashtable - Fixed size chained hashtable.
+ *  - ::tommy_hashdyn - Dynamic chained hashtable.
+ *  - ::tommy_hashlin - Linear chained hashtable.
+ *  - ::tommy_trie - Trie optimized for cache usage.
+ *  - ::tommy_trie_inplace - Trie completely inplace.
+ *  - <a href="http://www.canonware.com/rb/">rbtree</a> - Red-black tree by Jason Evans.
+ *  - <a href="http://www.nedprod.com/programs/portable/nedtries/">nedtrie</a> - Binary trie inplace by Niall Douglas.
+ *  - <a href="http://attractivechaos.awardspace.com/">khash</a> - Dynamic open addressing hashtable by Attractive Chaos.
+ *  - <a href="http://uthash.sourceforge.net/">uthash</a> - Dynamic chaining hashtable by Troy D. Hanson.
+ *  - <a href="http://judy.sourceforge.net/">judy</a> - Burst trie (JudyL) by Doug Baskins.
+ *  - <a href="http://code.google.com/p/judyarray/">judyarray</a> - Burst trie by Karl Malbrain.
+ *  - <a href="http://code.google.com/p/google-sparsehash/">googledensehash</a> - Dynamic open addressing hashtable by Craig Silverstein at Google. 
+ *  - <a href="http://code.google.com/p/cpp-btree/">googlebtree</a> - Btree by Google.
+ *  - <a href="http://panthema.net/2007/stx-btree/">stxbtree</a> - STX Btree by Timo Bingmann.
+ *  - <a href="http://www.cplusplus.com/reference/unordered_map/unordered_map/">c++unordered_map</a> - C++ STL unordered_map<> template.
+ *  - <a href="http://www.cplusplus.com/reference/map/map/">c++map</a> - C++ STL map<> template.
  *
  * \section thebenchmark The Benchmark
  *
@@ -221,24 +241,6 @@
  * cache advantage on using consecutive keys.
  * The random order pushes hashtables, as the hash function already randomizes the key.
  * Usually real uses case are in between, and the random one is the worst one.
- *
- * The following data structures are tested:
- *  - ::tommy_hashtable - Fixed size chained hashtable.
- *  - ::tommy_hashdyn - Dynamic chained hashtable.
- *  - ::tommy_hashlin - Linear chained hashtable.
- *  - ::tommy_trie - Trie optimized for cache usage.
- *  - ::tommy_trie_inplace - Trie completely inplace.
- *  - <a href="http://www.canonware.com/rb/">rbtree</a> - Red-black tree by Jason Evans.
- *  - <a href="http://www.nedprod.com/programs/portable/nedtries/">nedtrie</a> - Binary trie inplace by Niall Douglas.
- *  - <a href="http://attractivechaos.awardspace.com/">khash</a> - Dynamic open addressing hashtable by Attractive Chaos.
- *  - <a href="http://uthash.sourceforge.net/">uthash</a> - Dynamic chaining hashtable by Troy D. Hanson.
- *  - <a href="http://judy.sourceforge.net/">judy</a> - Burst trie (JudyL) by Doug Baskins.
- *  - <a href="http://code.google.com/p/judyarray/">judyarray</a> - Burst trie by Karl Malbrain.
- *  - <a href="http://code.google.com/p/google-sparsehash/">googledensehash</a> - Dynamic open addressing hashtable by Craig Silverstein at Google. 
- *  - <a href="http://code.google.com/p/cpp-btree/">googlebtree</a> - Btree by Google.
- *  - <a href="http://panthema.net/2007/stx-btree/">stxbtree</a> - STX Btree by Timo Bingmann.
- *  - <a href="http://www.cplusplus.com/reference/unordered_map/unordered_map/">c++unordered_map</a> - C++ STL unordered_map<> template.
- *  - <a href="http://www.cplusplus.com/reference/map/map/">c++map</a> - C++ STL map<> template.
  *
  * \section result Results
  *
@@ -314,11 +316,14 @@
  *
  * Note that you can make hashtables to reach tries performance tweaking
  * the hash function to put near keys allocated nearby.
- * This is possible if you have some information about the distribution
- * of keys. For example, in the benchmark you use something like:
+ * This is possible if you know in advance the distribution of keys.
+ * For example, in the benchmark you could use something like:
  * \code
  * #define hash(v) tommy_inthash32(v & ~0xF) + (v & 0xF)
  * \endcode
+ * and make keys that differ only by the lowest bits
+ * to have hashes with the same property, resulting in
+ * objects stored nearby, and improving cache utilization.
  *
  * <table border="0">
  * <tr><td>

@@ -123,7 +123,7 @@
 /* trie_inplace */
 
 /**
- * Number of branchs on each node. It must be a power of 2.
+ * Number of branches on each node. It must be a power of 2.
  * Suggested values are 2, 4 and 8.
  * Any node, including leafs, contains a pointer to each branch.
  */
@@ -154,7 +154,7 @@ typedef struct tommy_trie_inplace_node_struct {
 	struct tommy_trie_inplace_node_struct* prev; /**< Circular previous element. */
 	void* data; /**< Pointer at the data. */
 	tommy_key_t key; /**< Used to store the key or the hash. */
-	struct tommy_trie_inplace_node_struct* map[TOMMY_TRIE_INPLACE_TREE_MAX]; /** Branchs of the node. */
+	struct tommy_trie_inplace_node_struct* map[TOMMY_TRIE_INPLACE_TREE_MAX]; /** Branches of the node. */
 } tommy_trie_inplace_node;
 
 /**
