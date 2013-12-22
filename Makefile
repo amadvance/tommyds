@@ -162,6 +162,7 @@ dist:
 	cp -R doc $(DIST)
 	cp -R benchmark $(DIST)/benchmark
 	rm -f $(DIST)/benchmark/data/*/*.png
+	rm -rf $(DIST)/benchmark/data/test
 	rm -f $(DIST)/benchmark/arial.ttf
 	rm -f $(DIST).tar.gz
 	tar cfzo $(DIST).tar.gz $(DIST)
