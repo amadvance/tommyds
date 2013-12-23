@@ -7,7 +7,7 @@ set GNUPLOT=..\contrib\gnuplot\binary\gnuplot.exe
 %GNUPLOT% gr_other_judy_problem.gnu
 %GNUPLOT% gr_other_cgoogledensehash_problem.gnu
 
-DIR=data\core_i5_650_3G2
+DIR=data\core_i5_650_3G2_linux
 %GNUPLOT% %DIR%\gr_def.gnu gr_forward_insert.gnu
 %GNUPLOT% %DIR%\gr_def.gnu gr_forward_hit.gnu
 %GNUPLOT% %DIR%\gr_def.gnu gr_forward_insert.gnu
@@ -22,7 +22,7 @@ DIR=data\core_i5_650_3G2
 %GNUPLOT% %DIR%\gr_def.gnu gr_random_remove.gnu
 %GNUPLOT% %DIR%\gr_def.gnu gr_random_size.gnu
 
-DIR=data\core_2_duo_e6600_2G4
+DIR=data\core_i7_3740_2G7_win
 %GNUPLOT% %DIR%\gr_def.gnu gr_forward_insert.gnu
 %GNUPLOT% %DIR%\gr_def.gnu gr_forward_hit.gnu
 %GNUPLOT% %DIR%\gr_def.gnu gr_forward_insert.gnu
@@ -37,7 +37,7 @@ DIR=data\core_2_duo_e6600_2G4
 %GNUPLOT% %DIR%\gr_def.gnu gr_random_remove.gnu
 %GNUPLOT% %DIR%\gr_def.gnu gr_random_size.gnu
 
-DIR=data\xeon_e5430_2G6_64
+DIR=data\test
 %GNUPLOT% %DIR%\gr_def.gnu gr_forward_insert.gnu
 %GNUPLOT% %DIR%\gr_def.gnu gr_forward_hit.gnu
 %GNUPLOT% %DIR%\gr_def.gnu gr_forward_insert.gnu
