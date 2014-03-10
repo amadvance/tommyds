@@ -2,7 +2,7 @@
 # Tommy Makefile
 
 VERSION=1.8
-CFLAGS=-m32 -O3 -march=pentium4 -mtune=generic -Wall -Wextra -g
+CFLAGS=-m32 -O3 -march=pentium4 -mtune=generic -Wall -Wextra -Wshadow -Wcast-qual -g
 # -std=c++11 required by Google btree
 CCFLAGS=$(CFLAGS) -fpermissive -std=c++11
 CC=gcc

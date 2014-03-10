@@ -240,8 +240,8 @@ void start(const char* str)
 
 void stop()
 {
-	tommy_uint64_t stop = nano();
-	printf("%25s %8u [ms], %8u [compare]\n", the_str, (unsigned)((stop - the_start) / 1000000), compare_counter);
+	tommy_uint64_t the_stop = nano();
+	printf("%25s %8u [ms], %8u [compare]\n", the_str, (unsigned)((the_stop - the_start) / 1000000), compare_counter);
 }
 
 #define START(s) start(s)
