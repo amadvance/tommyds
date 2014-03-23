@@ -1,10 +1,10 @@
 #############################################################################
 # Tommy Makefile
 
-VERSION=1.8
+VERSION=1.9
 CFLAGS=-m32 -O3 -march=pentium4 -mtune=generic -Wall -Wextra -Wshadow -Wcast-qual -g
 # -std=c++11 required by Google btree
-CCFLAGS=$(CFLAGS) -fpermissive -std=c++11
+CXXFLAGS=$(CFLAGS) -fpermissive -std=c++11
 CC=gcc
 CXX=g++
 UNAME=$(shell uname)
@@ -34,47 +34,51 @@ CHECK = ./tommybench -N 1000000 -d tommy-hashlin
 #CHECK = ./tommycheck
 
 DEP = \
-	tommyalloc.c \
-	tommyalloc.h \
-	tommyarray.c \
-	tommyarray.h \
-	tommyarrayof.c \
-	tommyarrayof.h \
-	tommyarrayblk.c \
-	tommyarrayblk.h \
-	tommyarrayblkof.c \
-	tommyarrayblkof.h \
-	tommy.c \
-	tommy.h \
-	tommyhash.c \
-	tommyhashdyn.c \
-	tommyhashdyn.h \
-	tommyhash.h \
-	tommyhashlin.c \
-	tommyhashlin.h \
-	tommyhashtbl.c \
-	tommyhashtbl.h \
-	tommylist.c \
-	tommylist.h \
-	tommytrie.c \
-	tommytrie.h \
-	tommytrieinp.c \
-	tommytrieinp.h \
-	tommytypes.h \
-	tommychain.h
+	tommyds/tommyalloc.c \
+	tommyds/tommyalloc.h \
+	tommyds/tommyarray.c \
+	tommyds/tommyarray.h \
+	tommyds/tommyarrayof.c \
+	tommyds/tommyarrayof.h \
+	tommyds/tommyarrayblk.c \
+	tommyds/tommyarrayblk.h \
+	tommyds/tommyarrayblkof.c \
+	tommyds/tommyarrayblkof.h \
+	tommyds/tommy.c \
+	tommyds/tommy.h \
+	tommyds/tommyhash.c \
+	tommyds/tommyhashdyn.c \
+	tommyds/tommyhashdyn.h \
+	tommyds/tommyhash.h \
+	tommyds/tommyhashlin.c \
+	tommyds/tommyhashlin.h \
+	tommyds/tommyhashtbl.c \
+	tommyds/tommyhashtbl.h \
+	tommyds/tommylist.c \
+	tommyds/tommylist.h \
+	tommyds/tommytrie.c \
+	tommyds/tommytrie.h \
+	tommyds/tommytrieinp.c \
+	tommyds/tommytrieinp.h \
+	tommyds/tommytypes.h \
+	tommyds/tommychain.h
+
+DEPTEST = \
+	check.c \
+	benchmark.cc
 
 all: tommycheck$(EXE) tommybench$(EXE)
 
 tommy$(O): $(DEP)
-	$(CC) $(CFLAGS) -c tommy.c -o tommy$(O)
-	$(CC) $(CFLAGS) -S -fverbose-asm tommy.c -o tommy.s
+	$(CC) $(CFLAGS) -c tommyds/tommy.c -o tommy$(O)
+	$(CC) $(CFLAGS) -S -fverbose-asm tommyds/tommy.c -o tommy.s
 	objdump -S tommy$(O) > tommy.S
 
 tommycheck$(EXE): check.c tommy$(O)
-	$(CC) $(CFLAGS) check.c tommy.o -o tommycheck$(EXE) $(LIB)
+	$(CC) $(CFLAGS) check.c tommy$(O) -o tommycheck$(EXE) $(LIB)
 
 tommybench$(EXE): benchmark.cc $(DEP)
-	$(CXX) $(CCFLAGS) benchmark.cc -o tommybench$(EXE) $(LIB)
+	$(CXX) $(CXXFLAGS) benchmark.cc -o tommybench$(EXE) $(LIB)
 
 check: tommycheck$(EXE) tommybench$(EXE)
 	./tommycheck$(EXE)
@@ -150,15 +154,17 @@ DISTFILES=\
 	Makefile \
 	README LICENSE AUTHORS INSTALL HISTORY \
 	tommy.doxygen tommy.css tommy-header.html tommy-footer.html \
-	benchmark.cc \
 	benchmark.vcxproj benchmark.sln \
 	benchmark.geany \
+	benchmark.cc \
 	check.c
 
 dist:
 	mkdir $(DIST)
+	mkdir $(DIST)/tommyds
 	cp $(DISTFILES) $(DIST)
-	cp $(DEP) $(DIST)
+	cp $(DEP) $(DIST)/tommyds
+	cp $(DEPTEST) $(DIST)
 	cp -R doc $(DIST)
 	cp -R benchmark $(DIST)/benchmark
 	rm -f $(DIST)/benchmark/data/*/*.png

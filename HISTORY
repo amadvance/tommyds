@@ -1,6 +1,10 @@
 TommyDS HISTORY
 ===============
 
+1.9 2014/03 (BETA)
+==================
+ * Different source organization.
+
 1.8 2013/12
 ===========
  * Fixed build of tommy_arrayblk in C++.

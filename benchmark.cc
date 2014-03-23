@@ -79,8 +79,8 @@
 /* Tommy data structures */
 /* We directly include the C file to have functions automatically */
 /* expanded inline by the compiler like other implementations */
-#include "tommy.h"
-#include "tommy.c"
+#include "tommyds/tommy.h"
+#include "tommyds/tommy.c"
 
 /* C++ Btree */
 #ifdef USE_CPPMAP

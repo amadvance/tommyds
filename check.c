@@ -51,7 +51,7 @@
 #include <mach/mach_time.h>
 #endif
 
-#include "tommy.h"
+#include "tommyds/tommy.h"
 
 #define MAX 1000000
 
