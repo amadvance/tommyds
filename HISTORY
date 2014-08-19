@@ -1,9 +1,10 @@
 TommyDS HISTORY
 ===============
 
-1.9 2014/03 (BETA)
+1.9 2014/08
 ==================
- * Different source organization.
+ * Added new hashtable functions to iterate over all the elements.
+ * Different source code organization.
 
 1.8 2013/12
 ===========

@@ -79,22 +79,55 @@ void* tommy_hashtable_remove_existing(tommy_hashtable* hashtable, tommy_hashtabl
 void* tommy_hashtable_remove(tommy_hashtable* hashtable, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)
 {
 	unsigned pos = hash & hashtable->bucket_mask;
-	tommy_hashtable_node* i = hashtable->bucket[pos];
+	tommy_hashtable_node* node = hashtable->bucket[pos];
 
-	while (i) {
+	while (node) {
 		/* we first check if the hash matches, as in the same bucket we may have multiples hash values */
-		if (i->key == hash && cmp(cmp_arg, i->data) == 0) {
-			tommy_list_remove_existing(&hashtable->bucket[pos], i);
+		if (node->key == hash && cmp(cmp_arg, node->data) == 0) {
+			tommy_list_remove_existing(&hashtable->bucket[pos], node);
 
 			--hashtable->count;
 
-			return i->data;
+			return node->data;
 		}
-		/* we assume that i->next is still valid also after removing */
-		i = i->next;
+		node = node->next;
 	}
 
 	return 0;
+}
+
+void tommy_hashtable_foreach(tommy_hashtable* hashtable, tommy_foreach_func* func)
+{
+	unsigned bucket_max = hashtable->bucket_max;
+	tommy_hashtable_node** bucket = hashtable->bucket;
+	unsigned pos;
+
+	for(pos=0;pos<bucket_max;++pos) {
+		tommy_hashtable_node* node = bucket[pos];
+
+		while (node) {
+			void* data = node->data;
+			node = node->next;
+			func(data);
+		}
+	}
+}
+
+void tommy_hashtable_foreach_arg(tommy_hashtable* hashtable, tommy_foreach_arg_func* func, void* arg)
+{
+	unsigned bucket_max = hashtable->bucket_max;
+	tommy_hashtable_node** bucket = hashtable->bucket;
+	unsigned pos;
+
+	for(pos=0;pos<bucket_max;++pos) {
+		tommy_hashtable_node* node = bucket[pos];
+
+		while (node) {
+			void* data = node->data;
+			node = node->next;
+			func(arg, data);
+		}
+	}
 }
 
 tommy_size_t tommy_hashtable_memory_usage(tommy_hashtable* hashtable)

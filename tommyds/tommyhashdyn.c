@@ -165,23 +165,57 @@ void* tommy_hashdyn_remove_existing(tommy_hashdyn* hashdyn, tommy_hashdyn_node* 
 void* tommy_hashdyn_remove(tommy_hashdyn* hashdyn, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)
 {
 	unsigned pos = hash % hashdyn->bucket_max;
-	tommy_hashdyn_node* i = hashdyn->bucket[pos];
+	tommy_hashdyn_node* node = hashdyn->bucket[pos];
 
-	while (i) {
+	while (node) {
 		/* we first check if the hash matches, as in the same bucket we may have multiples hash values */
-		if (i->key == hash && cmp(cmp_arg, i->data) == 0) {
-			tommy_list_remove_existing(&hashdyn->bucket[pos], i);
+		if (node->key == hash && cmp(cmp_arg, node->data) == 0) {
+			tommy_list_remove_existing(&hashdyn->bucket[pos], node);
 
 			--hashdyn->count;
 
 			hashdyn_shrink_step(hashdyn);
 
-			return i->data;
+			return node->data;
 		}
-		i = i->next;
+		node = node->next;
 	}
 
 	return 0;
+}
+
+void tommy_hashdyn_foreach(tommy_hashdyn* hashdyn, tommy_foreach_func* func)
+{
+	unsigned bucket_max = hashdyn->bucket_max;
+	tommy_hashdyn_node** bucket = hashdyn->bucket;
+	unsigned pos;
+
+	for(pos=0;pos<bucket_max;++pos) {
+		tommy_hashdyn_node* node = bucket[pos];
+
+		while (node) {
+			void* data = node->data;
+			node = node->next;
+			func(data);
+		}
+	}
+}
+
+void tommy_hashdyn_foreach_arg(tommy_hashdyn* hashdyn, tommy_foreach_arg_func* func, void* arg)
+{
+	unsigned bucket_max = hashdyn->bucket_max;
+	tommy_hashdyn_node** bucket = hashdyn->bucket;
+	unsigned pos;
+
+	for(pos=0;pos<bucket_max;++pos) {
+		tommy_hashdyn_node* node = bucket[pos];
+
+		while (node) {
+			void* data = node->data;
+			node = node->next;
+			func(arg, data);
+		}
+	}
 }
 
 tommy_size_t tommy_hashdyn_memory_usage(tommy_hashdyn* hashdyn)

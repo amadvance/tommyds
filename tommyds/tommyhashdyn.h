@@ -238,6 +238,16 @@ tommy_inline void* tommy_hashdyn_search(tommy_hashdyn* hashdyn, tommy_search_fun
 void* tommy_hashdyn_remove_existing(tommy_hashdyn* hashdyn, tommy_hashdyn_node* node);
 
 /**
+ * Calls the specified function for each element in the hashtable.
+ */
+void tommy_hashdyn_foreach(tommy_hashdyn* hashdyn, tommy_foreach_func* func);
+
+/**
+ * Calls the specified function with argument for each element in the hashtable.
+ */
+void tommy_hashdyn_foreach_arg(tommy_hashdyn* hashdyn, tommy_foreach_arg_func* func, void* arg);
+
+/**
  * Gets the number of elements.
  */
 tommy_inline unsigned tommy_hashdyn_count(tommy_hashdyn* hashdyn)

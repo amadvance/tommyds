@@ -222,6 +222,16 @@ tommy_inline void* tommy_hashtable_search(tommy_hashtable* hashtable, tommy_sear
 void* tommy_hashtable_remove_existing(tommy_hashtable* hashtable, tommy_hashtable_node* node);
 
 /**
+ * Calls the specified function for each element in the hashtable.
+ */
+void tommy_hashtable_foreach(tommy_hashtable* hashtable, tommy_foreach_func* func);
+
+/**
+ * Calls the specified function with argument for each element in the hashtable.
+ */
+void tommy_hashtable_foreach_arg(tommy_hashtable* hashtable, tommy_foreach_arg_func* func, void* arg);
+
+/**
  * Gets the number of elements.
  */
 tommy_inline unsigned tommy_hashtable_count(tommy_hashtable* hashtable)

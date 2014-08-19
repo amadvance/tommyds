@@ -433,6 +433,102 @@ void test_arrayblk(void)
 	tommy_arrayblk_done(&arrayblk);
 }
 
+void count_arg(void* arg, void* data)
+{
+	unsigned* count = arg;
+	(void)data;
+	++*count;
+}
+
+void test_hashtable(void)
+{
+	tommy_list list;
+	tommy_hashtable hashtable;
+	struct object_hash* HASH;
+	unsigned i, n;
+	tommy_node* p;
+	unsigned limit;
+	unsigned count;
+
+	HASH = malloc(MAX * sizeof(struct object_hash));
+
+	for(i=0;i<MAX;++i) {
+		HASH[i].value = i;
+	}
+
+	START("hashtable stack");
+	limit = 10 * sqrt(MAX);
+	for(n=0;n<limit;++n) {
+		tommy_list_init(&list);
+		tommy_hashtable_init(&hashtable, limit / 2);
+
+		/* insert */
+		for(i=0;i<n;++i) {
+			tommy_list_insert_head(&list, &HASH[i].node, &HASH[i]);
+			tommy_hashtable_insert(&hashtable, &HASH[i].hashnode, &HASH[i], HASH[i].value);
+		}
+
+		count = 0;
+		tommy_hashtable_foreach_arg(&hashtable, count_arg, &count);
+		if (count != n)
+			abort();
+
+		/* remove */
+		p = tommy_list_head(&list);
+		while (p) {
+			struct object_hash* obj = p->data;
+			p = p->next;
+			tommy_hashtable_remove_existing(&hashtable, &obj->hashnode);
+		}
+
+		tommy_hashtable_done(&hashtable);
+	}
+	STOP();
+
+	START("hashtable queue");
+	limit = sqrt(MAX) / 8;
+	for(n=0;n<limit;++n) {
+		tommy_list_init(&list);
+		tommy_hashtable_init(&hashtable, limit / 2);
+
+		/* insert first run */
+		for(i=0;i<n;++i) {
+			tommy_list_insert_head(&list, &HASH[i].node, &HASH[i]);
+			tommy_hashtable_insert(&hashtable, &HASH[i].hashnode, &HASH[i], HASH[i].value);
+		}
+
+		count = 0;
+		tommy_hashtable_foreach_arg(&hashtable, count_arg, &count);
+		if (count != n)
+			abort();
+
+		/* insert all the others */
+		for(;i<MAX;++i) {
+			struct object_hash* obj;
+
+			/* insert one */
+			tommy_list_insert_head(&list, &HASH[i].node, &HASH[i]);
+			tommy_hashtable_insert(&hashtable, &HASH[i].hashnode, &HASH[i], HASH[i].value);
+
+			/* remove one */
+			p = tommy_list_head(&list);
+			obj = p->data;
+			tommy_list_remove_existing(&list, p);
+			tommy_hashtable_remove_existing(&hashtable, &obj->hashnode);
+		}
+
+		/* remove remaining */
+		p = tommy_list_head(&list);
+		while (p) {
+			struct object_hash* obj = p->data;
+			p = p->next;
+			tommy_hashtable_remove_existing(&hashtable, &obj->hashnode);
+		}
+
+		tommy_hashtable_done(&hashtable);
+	}
+	STOP();
+}
 
 void test_hashdyn(void)
 {
@@ -442,6 +538,7 @@ void test_hashdyn(void)
 	unsigned i, n;
 	tommy_node* p;
 	unsigned limit;
+	unsigned count;
 
 	HASH = malloc(MAX * sizeof(struct object_hash));
 
@@ -461,6 +558,11 @@ void test_hashdyn(void)
 			tommy_hashdyn_insert(&hashdyn, &HASH[i].hashnode, &HASH[i], HASH[i].value);
 		}
 
+		count = 0;
+		tommy_hashdyn_foreach_arg(&hashdyn, count_arg, &count);
+		if (count != n)
+			abort();
+
 		/* remove */
 		p = tommy_list_head(&list);
 		while (p) {
@@ -474,7 +576,7 @@ void test_hashdyn(void)
 	STOP();
 
 	START("hashdyn queue");
-	limit = sqrt(MAX) / 2;
+	limit = sqrt(MAX) / 8;
 	for(n=0;n<limit;++n) {
 		tommy_list_init(&list);
 		tommy_hashdyn_init(&hashdyn);
@@ -485,10 +587,15 @@ void test_hashdyn(void)
 			tommy_hashdyn_insert(&hashdyn, &HASH[i].hashnode, &HASH[i], HASH[i].value);
 		}
 
+		count = 0;
+		tommy_hashdyn_foreach_arg(&hashdyn, count_arg, &count);
+		if (count != n)
+			abort();
+
 		/* insert all the others */
 		for(;i<MAX;++i) {
 			struct object_hash* obj;
-			
+
 			/* insert one */
 			tommy_list_insert_head(&list, &HASH[i].node, &HASH[i]);
 			tommy_hashdyn_insert(&hashdyn, &HASH[i].hashnode, &HASH[i], HASH[i].value);
@@ -521,6 +628,7 @@ void test_hashlin(void)
 	unsigned i, n;
 	tommy_node* p;
 	unsigned limit;
+	unsigned count;
 
 	HASH = malloc(MAX * sizeof(struct object_hash));
 
@@ -540,6 +648,11 @@ void test_hashlin(void)
 			tommy_hashlin_insert(&hashlin, &HASH[i].hashnode, &HASH[i], HASH[i].value);
 		}
 
+		count = 0;
+		tommy_hashlin_foreach_arg(&hashlin, count_arg, &count);
+		if (count != n)
+			abort();
+
 		/* remove */
 		p = tommy_list_head(&list);
 		while (p) {
@@ -553,7 +666,7 @@ void test_hashlin(void)
 	STOP();
 
 	START("hashlin queue");
-	limit = sqrt(MAX) / 2;
+	limit = sqrt(MAX) / 8;
 	for(n=0;n<limit;++n) {
 		tommy_list_init(&list);
 		tommy_hashlin_init(&hashlin);
@@ -564,10 +677,15 @@ void test_hashlin(void)
 			tommy_hashlin_insert(&hashlin, &HASH[i].hashnode, &HASH[i], HASH[i].value);
 		}
 
+		count = 0;
+		tommy_hashlin_foreach_arg(&hashlin, count_arg, &count);
+		if (count != n)
+			abort();
+
 		/* insert all the others */
 		for(;i<MAX;++i) {
 			struct object_hash* obj;
-			
+
 			/* insert one */
 			tommy_list_insert_head(&list, &HASH[i].node, &HASH[i]);
 			tommy_hashlin_insert(&hashlin, &HASH[i].hashnode, &HASH[i], HASH[i].value);
@@ -600,6 +718,7 @@ int main() {
 	test_list();
 	test_array();
 	test_arrayblk();
+	test_hashtable();
 	test_hashdyn();
 	test_hashlin();
 

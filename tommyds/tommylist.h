@@ -313,6 +313,7 @@ tommy_inline tommy_bool_t tommy_list_empty(tommy_list* list)
 tommy_inline void tommy_list_foreach(tommy_list* list, tommy_foreach_func* func)
 {
 	tommy_node* node = tommy_list_head(list);
+
 	while (node) {
 		void* data = node->data;
 		node = node->next;
@@ -326,6 +327,7 @@ tommy_inline void tommy_list_foreach(tommy_list* list, tommy_foreach_func* func)
 tommy_inline void tommy_list_foreach_arg(tommy_list* list, tommy_foreach_arg_func* func, void* arg)
 {
 	tommy_node* node = tommy_list_head(list);
+
 	while (node) {
 		void* data = node->data;
 		node = node->next;

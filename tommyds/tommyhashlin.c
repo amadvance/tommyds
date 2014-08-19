@@ -294,23 +294,69 @@ tommy_hashlin_node* tommy_hashlin_bucket(tommy_hashlin* hashlin, tommy_hash_t ha
 void* tommy_hashlin_remove(tommy_hashlin* hashlin, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)
 {
 	tommy_hashlin_node** let_ptr = tommy_hashlin_bucket_ptr(hashlin, hash);
-	tommy_hashlin_node* i = *let_ptr;
+	tommy_hashlin_node* node = *let_ptr;
 
-	while (i) {
+	while (node) {
 		/* we first check if the hash matches, as in the same bucket we may have multiples hash values */
-		if (i->key == hash && cmp(cmp_arg, i->data) == 0) {
-			tommy_list_remove_existing(let_ptr, i);
+		if (node->key == hash && cmp(cmp_arg, node->data) == 0) {
+			tommy_list_remove_existing(let_ptr, node);
 
 			--hashlin->count;
 
 			hashlin_shrink_step(hashlin);
 
-			return i->data;
+			return node->data;
 		}
-		i = i->next;
+		node = node->next;
 	}
 
 	return 0;
+}
+
+void tommy_hashlin_foreach(tommy_hashlin* hashlin, tommy_foreach_func* func)
+{
+	unsigned bucket_max;
+	unsigned pos;
+
+	/* if we are reallocating */
+	if (hashlin->state != TOMMY_HASHLIN_STATE_STABLE) {
+		bucket_max = hashlin->low_max + hashlin->split;
+	} else {
+		bucket_max = hashlin->bucket_max;
+	}
+
+	for(pos=0;pos<bucket_max;++pos) {
+		tommy_hashlin_node* node = *tommy_hashlin_pos(hashlin, pos);
+
+		while (node) {
+			void* data = node->data;
+			node = node->next;
+			func(data);
+		}
+	}
+}
+
+void tommy_hashlin_foreach_arg(tommy_hashlin* hashlin, tommy_foreach_arg_func* func, void* arg)
+{
+	unsigned bucket_max;
+	unsigned pos;
+
+	/* if we are reallocating */
+	if (hashlin->state != TOMMY_HASHLIN_STATE_STABLE) {
+		bucket_max = hashlin->low_max + hashlin->split;
+	} else {
+		bucket_max = hashlin->bucket_max;
+	}
+
+	for(pos=0;pos<bucket_max;++pos) {
+		tommy_hashlin_node* node = *tommy_hashlin_pos(hashlin, pos);
+
+		while (node) {
+			void* data = node->data;
+			node = node->next;
+			func(arg, data);
+		}
+	}
 }
 
 tommy_size_t tommy_hashlin_memory_usage(tommy_hashlin* hashlin)
