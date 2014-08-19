@@ -171,6 +171,11 @@ typedef size_t ssize_t;
 #include "benchmark/lib/judyarray/judy64na.c"
 #define USE_JUDYARRAY 1
 
+/* Binary Search Cube */
+/* https://sites.google.com/site/binarysearchcube/ */
+#include "benchmark/lib/cube/binary-search-tesseract-1.0-1.c"
+#define USE_CUBE 1
+
 /******************************************************************************/
 /* objects */
 
@@ -242,6 +247,11 @@ struct cpp_object {
 	char payload[PAYLOAD];
 };
 
+struct cube_object {
+	unsigned value;
+	char payload[PAYLOAD];
+};
+
 struct rbt_object* RBTREE;
 struct hashtable_object* HASHTABLE;
 struct hashtable_object* HASHDYN;
@@ -259,6 +269,9 @@ struct judy_object* JUDY;
 #endif
 #ifdef USE_JUDYARRAY
 struct judyarray_object* JUDYARRAY;
+#endif
+#ifdef USE_CUBE
+struct cube_object* CUBE;
 #endif
 
 /******************************************************************************/
@@ -350,6 +363,9 @@ Pvoid_t judy = 0;
 #endif
 #ifdef USE_JUDYARRAY
 Judy* judyarray = 0;
+#endif
+#ifdef USE_CUBE
+struct cube* cube = 0;
 #endif
 
 /******************************************************************************/
@@ -524,7 +540,8 @@ const char* ORDER_NAME[ORDER_MAX] = {
 #define DATA_STXBTREE 13
 #define DATA_CPPUNORDEREDMAP 14
 #define DATA_CPPMAP 15
-#define DATA_MAX 16
+#define DATA_CUBE 16
+#define DATA_MAX 17
 
 const char* DATA_NAME[DATA_MAX] = {
 	"tommy-hashtable",
@@ -543,6 +560,7 @@ const char* DATA_NAME[DATA_MAX] = {
 	"stxbtree",
 	"c++unorderedmap",
 	"c++map",
+	"tesseract"
 };
 
 /** 
@@ -830,6 +848,13 @@ void test_alloc(void)
 		judyarray = (Judy*)judy_open(1024, 1);
 	}
 #endif
+
+#ifdef USE_CUBE
+	COND(DATA_CUBE) {
+		CUBE = (struct cube_object*)malloc(sizeof(struct cube_object) * the_max);
+		cube = create_cube();
+	}
+#endif
 }
 
 void test_free(void)
@@ -937,6 +962,13 @@ void test_free(void)
 	COND(DATA_JUDYARRAY) {
 		free(JUDYARRAY);
 		judy_close(judyarray);
+	}
+#endif
+
+#ifdef USE_CUBE
+	COND(DATA_CUBE) {
+		free(CUBE);
+		destroy_cube(cube);
 	}
 #endif
 }
@@ -1084,6 +1116,14 @@ void test_insert(unsigned* INSERT)
 		JUDYARRAY[i].value = key;
 		pvalue = judy_cell(judyarray, (uchar*)&key, 0);
 		*(struct judyarray_object**)pvalue = &JUDYARRAY[i];
+	} STOP();
+#endif
+
+#ifdef USE_CUBE
+	START(DATA_CUBE) {
+		unsigned key = INSERT[i];
+		CUBE[i].value = key;
+		set_key(cube, key, &CUBE[i]);
 	} STOP();
 #endif
 }
@@ -1317,6 +1357,21 @@ void test_hit(unsigned* SEARCH)
 	} STOP();
 #endif
 
+#ifdef USE_CUBE
+	START(DATA_CUBE) {
+		unsigned key = SEARCH[i] + DELTA;
+		struct z_node* pvalue;
+		pvalue = get_key(cube, key);
+		if (!pvalue)
+			abort();
+		if (dereference) {
+			struct cube_object* obj = (struct cube_object*)pvalue->val;
+			if (obj->value != key)
+				abort();
+		}
+	} STOP();
+#endif
+
 	START(DATA_NEDTRIE) {
 		unsigned key = SEARCH[i] + DELTA;
 		struct nedtrie_object key_obj;
@@ -1480,6 +1535,16 @@ void test_miss(unsigned* SEARCH)
 			if (obj)
 				abort();
 		}
+	} STOP();
+#endif
+
+#ifdef USE_CUBE
+	START(DATA_CUBE) {
+		unsigned key = SEARCH[i] + DELTA;
+		struct z_node* pvalue;
+		pvalue = get_key(cube, key);
+		if (pvalue)
+			abort();
 	} STOP();
 #endif
 
@@ -1752,6 +1817,24 @@ void test_change(unsigned* REMOVE, unsigned* INSERT)
 		obj->value = key;
 		pvalue = judy_cell(judyarray, (uchar*)&key, 0);
 		*(struct judyarray_object**)pvalue = obj;
+	} STOP();
+#endif
+
+#ifdef USE_CUBE
+	START(DATA_CUBE) {
+		unsigned key = REMOVE[i];
+		struct cube_object* obj;
+		struct z_node* pvalue;
+		short w_index, x_index, y_index, z_index;
+		pvalue = find_key(cube, key, &w_index, &x_index, &y_index, &z_index);
+		if (!pvalue)
+			abort();
+		obj = (struct cube_object*)pvalue->val;
+		remove_z_node(cube, w_index, x_index, y_index, z_index);
+
+		key = INSERT[i] + DELTA;
+		obj->value = key;
+		set_key(cube, key, obj);
 	} STOP();
 #endif
 
@@ -2029,6 +2112,24 @@ void test_remove(unsigned* REMOVE)
 			abort();
 		obj = *(struct judyarray_object**)pvalue;
 		judy_del(judyarray);
+		if (dereference) {
+			if (obj->value != key)
+				abort();
+		}
+	} STOP();
+#endif
+
+#ifdef USE_CUBE
+	START(DATA_CUBE) {
+		unsigned key = REMOVE[i] + DELTA;
+		struct cube_object* obj;
+		struct z_node* pvalue;
+		short w_index, x_index, y_index, z_index;
+		pvalue = find_key(cube, key, &w_index, &x_index, &y_index, &z_index);
+		if (!pvalue)
+			abort();
+		obj = (struct cube_object*)pvalue->val;
+		remove_z_node(cube, w_index, x_index, y_index, z_index);
 		if (dereference) {
 			if (obj->value != key)
 				abort();

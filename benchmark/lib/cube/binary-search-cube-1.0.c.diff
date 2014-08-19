@@ -1,0 +1,90 @@
+--- binary-search-cube-1.0.c.ori	2014-07-07 23:28:10.545374788 +0200
++++ binary-search-cube-1.0.c	2014-07-07 23:17:16.060416283 +0200
+@@ -50,7 +50,7 @@
+ struct z_node
+ {
+ 	int key;
+-	char *val;
++	void* val;
+ };
+ 
+ struct z_node *find_index(struct cube *cube, int index, short *x_index, short *y_index, short *z_index);
+@@ -62,7 +62,7 @@
+ void split_y_node(struct cube *cube, short x_index, short y_index);
+ void merge_y_node(struct cube *cube, short x_index, short y_index1, short y_index2);
+ 
+-void insert_z_node(struct cube *cube, short x_index, short y_index, short z_index, int key, char *val);
++void insert_z_node(struct cube *cube, short x_index, short y_index, short z_index, int key, void *val);
+ void remove_z_node(struct cube *cube, short x_index, short y_index, short z_index);
+ 
+ void inflate_x_axis(struct cube *cube);
+@@ -71,7 +71,7 @@
+ void inflate_y_axis(struct cube *cube, short x_index);
+ void deflate_y_axis(struct cube *cube, short x_index);
+ 
+-void set_key(struct cube *cube, int key, char *val)
++void set_key(struct cube *cube, int key, void *val)
+ {
+ 	struct z_node *z_node;
+ 	short x_index, y_index, z_index;
+@@ -80,8 +80,7 @@
+ 
+ 	if (z_node)
+ 	{
+-		free(z_node->val);
+-		z_node->val = strdup(val);
++		z_node->val = val;
+ 	}
+ 	else
+ 	{
+@@ -149,10 +148,6 @@
+ 			{
+ 				y_node = x_node->y_axis[y];
+ 				
+-				for (z = y_node->z_size - 1 ; z >= 0 ; z--)
+-				{
+-					free(y_node->z_axis[z].val);
+-				}
+ 				free(y_node->z_axis);
+ 				free(y_node);
+ 			}
+@@ -449,7 +444,7 @@
+ 	}
+ }
+ 
+-void insert_z_node(struct cube *cube, short x_index, short y_index, short z_index, int key, char *val)
++void insert_z_node(struct cube *cube, short x_index, short y_index, short z_index, int key, void *val)
+ {
+ 	struct x_node *x_node;
+ 	struct y_node *y_node;
+@@ -497,7 +492,7 @@
+ 	z_node = &y_node->z_axis[z_index];
+ 
+ 	z_node->key = key;
+-	z_node->val = strdup(val);
++	z_node->val = val;
+ 
+ 	if (z_index == 0)
+ 	{
+@@ -531,8 +526,6 @@
+ 
+ 	y_node->z_size--;
+ 
+-	free(y_node->z_axis[z_index].val);
+-
+ 	if (y_node->z_size != z_index)
+ 	{
+ 		memmove(&y_node->z_axis[z_index], &y_node->z_axis[z_index + 1], (y_node->z_size - z_index) * sizeof(struct z_node));
+@@ -750,6 +743,7 @@
+ 	}
+ }
+ 
++#if 0
+ void show_cube(struct cube *cube, short depth)
+ {
+ 	struct x_node *x_node;
+@@ -845,3 +839,4 @@
+ 
+ 	return 0;
+ }
++#endif
