@@ -43,13 +43,17 @@
 
 void tommy_hashlin_init(tommy_hashlin* hashlin)
 {
+	unsigned i;
+
 	/* fixed initial size */
 	hashlin->bucket_bit = TOMMY_HASHLIN_BIT;
 	hashlin->bucket_max = 1 << hashlin->bucket_bit;
 	hashlin->bucket_mask = hashlin->bucket_max - 1;
 	hashlin->bucket[0] = tommy_cast(tommy_hashlin_node**, tommy_malloc(hashlin->bucket_max * sizeof(tommy_hashlin_node*)));
+	for(i=1;i<TOMMY_HASHLIN_BIT;++i)
+		hashlin->bucket[i] = hashlin->bucket[0];
 	memset(hashlin->bucket[0], 0, hashlin->bucket_max * sizeof(tommy_hashlin_node*));
-	hashlin->bucket_mac = 1;
+	hashlin->bucket_mac = TOMMY_HASHLIN_BIT;
 
 	/* stable state */
 	hashlin->state = TOMMY_HASHLIN_STATE_STABLE;
@@ -60,8 +64,11 @@ void tommy_hashlin_init(tommy_hashlin* hashlin)
 void tommy_hashlin_done(tommy_hashlin* hashlin)
 {
 	unsigned i;
-	for(i=0;i<hashlin->bucket_mac;++i)
-		tommy_free(hashlin->bucket[i]);
+	tommy_free(hashlin->bucket[0]);
+	for(i=TOMMY_HASHLIN_BIT;i<hashlin->bucket_mac;++i) {
+		tommy_hashlin_node** segment = hashlin->bucket[i];
+		tommy_free(&segment[1 << i]);
+	}
 }
 
 /**
@@ -70,19 +77,11 @@ void tommy_hashlin_done(tommy_hashlin* hashlin)
 tommy_inline tommy_hashlin_node** tommy_hashlin_pos(tommy_hashlin* hashlin, tommy_hash_t pos)
 {  
 	unsigned bsr;  
- 
-	/* special case for the first bucket */
-	if (pos < (1 << TOMMY_HASHLIN_BIT)) {
-		return &hashlin->bucket[0][pos];
-	}
 
-	/* get the highest bit set */
-	bsr = tommy_ilog2_u32(pos);
+	/* get the highest bit set, in case of all 0, return 0 */
+	bsr = tommy_ilog2_u32(pos | 1);
 
-	/* clear the highest bit */
-	pos -= 1 << bsr;
-
-	return &hashlin->bucket[bsr - TOMMY_HASHLIN_BIT + 1][pos];
+	return &hashlin->bucket[bsr][pos];
 }
 
 /**
@@ -124,6 +123,8 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 		/* otherwise continue with the already setup shrink one */
 		/* but in backward direction */
 		if (hashlin->state == TOMMY_HASHLIN_STATE_STABLE) {
+			tommy_hashlin_node** segment;
+
 			/* set the lower size */
 			hashlin->low_max = hashlin->bucket_max;
 			hashlin->low_mask = hashlin->bucket_mask;
@@ -132,7 +133,8 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 			++hashlin->bucket_bit;
 			hashlin->bucket_max = 1 << hashlin->bucket_bit;
 			hashlin->bucket_mask = hashlin->bucket_max - 1;
-			hashlin->bucket[hashlin->bucket_mac] = tommy_cast(tommy_hashlin_node**, tommy_malloc(hashlin->low_max * sizeof(tommy_hashlin_node*)));
+			segment = tommy_cast(tommy_hashlin_node**, tommy_malloc(hashlin->low_max * sizeof(tommy_hashlin_node*)));
+			hashlin->bucket[hashlin->bucket_mac] = &segment[-hashlin->low_max];
 			++hashlin->bucket_mac;
 
 			/* start from the beginning going forward */
@@ -158,9 +160,7 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 			split[0] = tommy_hashlin_pos(hashlin, hashlin->split);
 
 			/* get the high bucket */
-			/* it's always in the second half, so we can index it directly */
-			/* without calling tommy_hashlin_pos() */
-			split[1] = &hashlin->bucket[hashlin->bucket_mac-1][hashlin->split];
+			split[1] = tommy_hashlin_pos(hashlin, hashlin->split + hashlin->low_max);
 
 			/* save the low bucket */
 			j = *split[0];
@@ -239,15 +239,15 @@ tommy_inline void hashlin_shrink_step(tommy_hashlin* hashlin)
 			split[0] = tommy_hashlin_pos(hashlin, hashlin->split);
 
 			/* get the high bucket */
-			/* it's always in the second half, so we can index it directly */
-			/* without calling tommy_hashlin_pos() */
-			split[1] = &hashlin->bucket[hashlin->bucket_mac-1][hashlin->split];
+			split[1] = tommy_hashlin_pos(hashlin, hashlin->split + hashlin->low_max);
 
 			/* concat the high bucket into the low one */
 			tommy_list_concat(split[0], split[1]);
 
 			/* if we have finished, clean up and change the state */
 			if (hashlin->split == 0) {
+				tommy_hashlin_node** segment;
+
 				hashlin->state = TOMMY_HASHLIN_STATE_STABLE;
 
 				/* shrink the hash size */
@@ -257,7 +257,8 @@ tommy_inline void hashlin_shrink_step(tommy_hashlin* hashlin)
 
 				/* free the last segment */
 				--hashlin->bucket_mac;
-				tommy_free(hashlin->bucket[hashlin->bucket_mac]);
+				segment = hashlin->bucket[hashlin->bucket_mac];
+				tommy_free(&segment[1 << hashlin->bucket_bit]);
 				break;
 			}
 		}

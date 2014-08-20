@@ -94,24 +94,17 @@ void tommy_arrayof_grow(tommy_arrayof* array, unsigned size);
  */
 tommy_inline void* tommy_arrayof_ref(tommy_arrayof* array, unsigned pos)
 {
-	unsigned char* base;
+	unsigned char* ptr;
+	unsigned bsr;
 
 	assert(pos < array->size);
 
-	/* special case for the first bucket */
-	if (pos < (1 << TOMMY_ARRAYOF_BIT)) {
-		base = tommy_cast(unsigned char*, array->bucket[0]);
-	} else {
-		/* get the highest bit set */
-		unsigned bsr = tommy_ilog2_u32(pos);
+	/* get the highest bit set, in case of all 0, return 0 */
+	bsr = tommy_ilog2_u32(pos | 1);
 
-		/* clear the highest bit */
-		pos -= 1 << bsr;
+	ptr = tommy_cast(unsigned char*, array->bucket[bsr]);
 
-		base = tommy_cast(unsigned char*, array->bucket[bsr - TOMMY_ARRAYOF_BIT + 1]);
-	}
-
-	return base + pos * array->element_size;
+	return ptr + pos * array->element_size;
 }
 
 /**

@@ -34,34 +34,46 @@
 
 void tommy_arrayof_init(tommy_arrayof* array, unsigned element_size)
 {
+	unsigned i;
+
 	/* fixed initial size */
 	array->element_size = element_size;
 	array->bucket_bit = TOMMY_ARRAYOF_BIT;
 	array->bucket_max = 1 << array->bucket_bit;
 	array->bucket[0] = tommy_malloc(array->bucket_max * array->element_size);
+	for(i=1;i<TOMMY_ARRAYOF_BIT;++i)
+		array->bucket[i] = array->bucket[0];
 
 	/* initializes it with zeros */
 	memset(array->bucket[0], 0, array->bucket_max * array->element_size);
 
-	array->bucket_mac = 1;
+	array->bucket_mac = TOMMY_ARRAYOF_BIT;
 	array->size = 0;
 }
 
 void tommy_arrayof_done(tommy_arrayof* array)
 {
 	unsigned i;
-	for(i=0;i<array->bucket_mac;++i)
-		tommy_free(array->bucket[i]);
+	tommy_free(array->bucket[0]);
+	for(i=TOMMY_ARRAYOF_BIT;i<array->bucket_mac;++i) {
+		void* segment = array->bucket[i];
+		tommy_free(tommy_cast(unsigned char*, segment) + (1 << i) * array->element_size);
+	}
 }
 
 void tommy_arrayof_grow(tommy_arrayof* array, unsigned size)
 {
 	while (size > array->bucket_max) {
-		/* allocate one more bucket */
-		array->bucket[array->bucket_mac] = tommy_malloc(array->bucket_max * array->element_size);
+		void* segment;
+
+		/* allocate one more segment */
+		segment = tommy_malloc(array->bucket_max * array->element_size);
 
 		/* initializes it with zeros */
-		memset(array->bucket[array->bucket_mac], 0, array->bucket_max * array->element_size);
+		memset(segment, 0, array->bucket_max * array->element_size);
+
+		/* store it adjusting the offset */
+		array->bucket[array->bucket_mac] = tommy_cast(unsigned char*, segment) - array->bucket_max * array->element_size;
 
 		++array->bucket_mac;
 		++array->bucket_bit;
