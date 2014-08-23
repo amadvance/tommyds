@@ -27,8 +27,6 @@
 
 #include "tommyarray.h"
 
-#include <string.h> /* for memset */
-
 /******************************************************************************/
 /* array */
 
@@ -39,12 +37,9 @@ void tommy_array_init(tommy_array* array)
 	/* fixed initial size */
 	array->bucket_bit = TOMMY_ARRAY_BIT;
 	array->bucket_max = 1 << array->bucket_bit;
-	array->bucket[0] = tommy_cast(void**, tommy_malloc(array->bucket_max * sizeof(void*)));
+	array->bucket[0] = tommy_cast(void**, tommy_calloc(array->bucket_max, sizeof(void*)));
 	for(i=1;i<TOMMY_ARRAY_BIT;++i)
 		array->bucket[i] = array->bucket[0];
-
-	/* initializes it with zeros */
-	memset(array->bucket[0], 0, array->bucket_max * sizeof(void*));
 
 	array->bucket_mac = TOMMY_ARRAY_BIT;
 	array->size = 0;
@@ -66,10 +61,7 @@ void tommy_array_grow(tommy_array* array, unsigned size)
 		void** segment;
 
 		/* allocate one more segment */
-		segment = tommy_cast(void**, tommy_malloc(array->bucket_max * sizeof(void*)));
-
-		/* initializes it with zeros */
-		memset(segment, 0, array->bucket_max * sizeof(void*));
+		segment = tommy_cast(void**, tommy_calloc(array->bucket_max, sizeof(void*)));
 
 		/* store it adjusting the offset */
 		array->bucket[array->bucket_mac] = &segment[-array->bucket_max];

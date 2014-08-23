@@ -27,8 +27,6 @@
 
 #include "tommyarrayblkof.h"
 
-#include <string.h> /* for memset */
-
 /******************************************************************************/
 /* array */
 
@@ -60,10 +58,7 @@ void tommy_arrayblkof_grow(tommy_arrayblkof* array, unsigned size)
 
 		/* allocate new blocks */
 		while (block_mac < block_max) {
-			void* ptr = tommy_malloc(TOMMY_ARRAYBLK_SIZE * array->element_size);
-
-			/* initializes it with zeros */
-			memset(ptr, 0, TOMMY_ARRAYBLK_SIZE * array->element_size);
+			void* ptr = tommy_calloc(TOMMY_ARRAYBLK_SIZE, array->element_size);
 
 			/* set the new block */
 			tommy_array_set(&array->block, block_mac, ptr);

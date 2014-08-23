@@ -64,16 +64,25 @@ typedef int tommy_bool_t; /**< Generic boolean type. */
 /******************************************************************************/
 /* heap */
 
-/* by default uses malloc/realloc/free */
+/* by default uses malloc/calloc/realloc/free */
 
 /**
- * Generic malloc(), realloc() and free() functions.
- * Redefine them to what you need. By default they map to the C malloc(), realloc() and free().
+ * Generic malloc(), calloc(), realloc() and free() functions.
+ * Redefine them to what you need. By default they map to the C malloc(), calloc(), realloc() and free().
  */
-#if !defined(tommy_malloc) && !defined(tommy_realloc) && !defined(tommy_free)
+#if !defined(tommy_malloc) || !defined(tommy_calloc) || !defined(tommy_realloc) || !defined(tommy_free)
 #include <stdlib.h>
+#endif
+#if !defined(tommy_malloc)
 #define tommy_malloc malloc
+#endif
+#if !defined(tommy_calloc)
+#define tommy_calloc calloc
+#endif
+#if !defined(tommy_realloc)
 #define tommy_realloc realloc
+#endif
+#if !defined(tommy_free)
 #define tommy_free free
 #endif
 

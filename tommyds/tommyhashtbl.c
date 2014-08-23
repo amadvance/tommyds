@@ -43,6 +43,11 @@ void tommy_hashtable_init(tommy_hashtable* hashtable, unsigned bucket_max)
 
 	hashtable->bucket_max = bucket_max;
 	hashtable->bucket_mask = hashtable->bucket_max - 1;
+
+	/* initialize the vector using malloc()+memset() instead of calloc() */
+	/* to ensure that all the memory in really allocated immediately */
+	/* by the OS, and not deferred at later time. */
+	/* this improves performance, because we start with a fully initialized hashtable. */
 	hashtable->bucket = tommy_cast(tommy_hashtable_node**, tommy_malloc(hashtable->bucket_max * sizeof(tommy_hashtable_node*)));
 	memset(hashtable->bucket, 0, hashtable->bucket_max * sizeof(tommy_hashtable_node*));
 

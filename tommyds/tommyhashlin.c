@@ -28,7 +28,6 @@
 #include "tommyhashlin.h"
 #include "tommylist.h"
 
-#include <string.h> /* for memset */
 #include <assert.h> /* for assert */
 
 /******************************************************************************/
@@ -49,10 +48,9 @@ void tommy_hashlin_init(tommy_hashlin* hashlin)
 	hashlin->bucket_bit = TOMMY_HASHLIN_BIT;
 	hashlin->bucket_max = 1 << hashlin->bucket_bit;
 	hashlin->bucket_mask = hashlin->bucket_max - 1;
-	hashlin->bucket[0] = tommy_cast(tommy_hashlin_node**, tommy_malloc(hashlin->bucket_max * sizeof(tommy_hashlin_node*)));
+	hashlin->bucket[0] = tommy_cast(tommy_hashlin_node**, tommy_calloc(hashlin->bucket_max, sizeof(tommy_hashlin_node*)));
 	for(i=1;i<TOMMY_HASHLIN_BIT;++i)
 		hashlin->bucket[i] = hashlin->bucket[0];
-	memset(hashlin->bucket[0], 0, hashlin->bucket_max * sizeof(tommy_hashlin_node*));
 	hashlin->bucket_mac = TOMMY_HASHLIN_BIT;
 
 	/* stable state */
@@ -133,6 +131,8 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 			++hashlin->bucket_bit;
 			hashlin->bucket_max = 1 << hashlin->bucket_bit;
 			hashlin->bucket_mask = hashlin->bucket_max - 1;
+			/* allocate the new vector using malloc() and not calloc() */
+			/* because data is fully initialized in the split process */
 			segment = tommy_cast(tommy_hashlin_node**, tommy_malloc(hashlin->low_max * sizeof(tommy_hashlin_node*)));
 			hashlin->bucket[hashlin->bucket_mac] = &segment[-hashlin->low_max];
 			++hashlin->bucket_mac;

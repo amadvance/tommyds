@@ -28,8 +28,6 @@
 #include "tommyhashdyn.h"
 #include "tommylist.h"
 
-#include <string.h> /* for memset */
-
 /******************************************************************************/
 /* hashdyn */
 
@@ -39,8 +37,7 @@ void tommy_hashdyn_init(tommy_hashdyn* hashdyn)
 	hashdyn->bucket_bit = TOMMY_HASHDYN_BIT;
 	hashdyn->bucket_max = 1 << hashdyn->bucket_bit;
 	hashdyn->bucket_mask = hashdyn->bucket_max - 1;
-	hashdyn->bucket = tommy_cast(tommy_hashdyn_node**, tommy_malloc(hashdyn->bucket_max * sizeof(tommy_hashdyn_node*)));
-	memset(hashdyn->bucket, 0, hashdyn->bucket_max * sizeof(tommy_hashdyn_node*));
+	hashdyn->bucket = tommy_cast(tommy_hashdyn_node**, tommy_calloc(hashdyn->bucket_max, sizeof(tommy_hashdyn_node*)));
 
 	hashdyn->count = 0;
 }
@@ -66,6 +63,9 @@ static void tommy_hashdyn_resize(tommy_hashdyn* hashdyn, unsigned new_bucket_bit
 
 	new_bucket_max = 1 << new_bucket_bit;
 	new_bucket_mask = new_bucket_max - 1;
+
+	/* allocate the new vector using malloc() and not calloc() */
+	/* because data is fully initialized in the update process */
 	new_bucket = tommy_cast(tommy_hashdyn_node**, tommy_malloc(new_bucket_max * sizeof(tommy_hashdyn_node*)));
 
 	/* reinsert all the elements */
