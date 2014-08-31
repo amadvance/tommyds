@@ -58,6 +58,10 @@ void tommy_arrayof_done(tommy_arrayof* array)
 
 void tommy_arrayof_grow(tommy_arrayof* array, unsigned size)
 {
+	if (array->size >= size)
+		return;
+	array->size = size;
+
 	while (size > array->bucket_max) {
 		void* segment;
 
@@ -71,9 +75,6 @@ void tommy_arrayof_grow(tommy_arrayof* array, unsigned size)
 		++array->bucket_bit;
 		array->bucket_max = 1 << array->bucket_bit;
 	}
-
-	if (array->size < size)
-		array->size = size;
 }
 
 tommy_size_t tommy_arrayof_memory_usage(tommy_arrayof* array)

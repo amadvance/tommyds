@@ -49,8 +49,15 @@ void tommy_arrayblk_done(tommy_arrayblk* array)
 
 void tommy_arrayblk_grow(tommy_arrayblk* array, unsigned size)
 {
-	unsigned block_max = (size + TOMMY_ARRAYBLK_SIZE - 1) / TOMMY_ARRAYBLK_SIZE;
-	unsigned block_mac = tommy_array_size(&array->block);
+	unsigned block_max;
+	unsigned block_mac;
+
+	if (array->size >= size)
+		return;
+	array->size = size;
+
+	block_max = (size + TOMMY_ARRAYBLK_SIZE - 1) / TOMMY_ARRAYBLK_SIZE;
+	block_mac = tommy_array_size(&array->block);
 
 	if (block_mac < block_max) {
 		/* grow the block array */
@@ -66,9 +73,6 @@ void tommy_arrayblk_grow(tommy_arrayblk* array, unsigned size)
 			++block_mac;
 		}
 	}
-
-	if (array->size < size)
-		array->size = size;
 }
 
 tommy_size_t tommy_arrayblk_memory_usage(tommy_arrayblk* array)
