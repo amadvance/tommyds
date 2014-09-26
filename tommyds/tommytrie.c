@@ -36,7 +36,7 @@
 /**
  * Mask for the inner branches.
  */
-#define TOMMY_TRIE_TREE_MASK (TOMMY_TRIE_TREE_MAX-1)
+#define TOMMY_TRIE_TREE_MASK (TOMMY_TRIE_TREE_MAX - 1)
 
 /**
  * Shift for the first level of branches.
@@ -78,9 +78,9 @@ void tommy_trie_init(tommy_trie* trie, tommy_allocator* alloc)
 {
 	unsigned i;
 
-	for(i=0;i<TOMMY_TRIE_BUCKET_MAX;++i)
+	for (i = 0; i < TOMMY_TRIE_BUCKET_MAX; ++i)
 		trie->bucket[i] = 0;
-   
+
 	trie->count = 0;
 	trie->node_count = 0;
 
@@ -126,7 +126,7 @@ expand:
 	*let_ptr = tommy_cast(tommy_trie_node*, trie_set_tree(tree));
 
 	/* initialize it */
-	for(i=0;i<TOMMY_TRIE_TREE_MAX;++i) {
+	for (i = 0; i < TOMMY_TRIE_TREE_MAX; ++i) {
 		tree->map[i] = 0;
 	}
 
@@ -169,7 +169,7 @@ static tommy_trie_node* trie_bucket_remove_existing(tommy_trie* trie, unsigned s
 	tommy_trie_node* node;
 	tommy_trie_tree* tree;
 	void* ptr;
-	tommy_trie_node** let_back[TOMMY_TRIE_LEVEL_MAX+1];
+	tommy_trie_node** let_back[TOMMY_TRIE_LEVEL_MAX + 1];
 	unsigned level;
 	unsigned i;
 	unsigned count;
@@ -222,7 +222,7 @@ reduce:
 	/* check if there is only one child node */
 	count = 0;
 	last = 0;
-	for(i=0;i<TOMMY_TRIE_TREE_MAX;++i) {
+	for (i = 0; i < TOMMY_TRIE_TREE_MAX; ++i) {
 		if (tree->map[i]) {
 			/* if we have a sub tree, we cannot reduce */
 			if (trie_get_type(tree->map[i]) != TOMMY_TRIE_TYPE_NODE)
@@ -307,7 +307,7 @@ recurse:
 		if (node->key != key)
 			return 0;
 		return node;
-	default:
+	default :
 	case TOMMY_TRIE_TYPE_TREE :
 		ptr = trie_get_tree(ptr)->map[(key >> shift) & TOMMY_TRIE_TREE_MASK];
 		shift -= TOMMY_TRIE_TREE_BIT;
@@ -318,6 +318,6 @@ recurse:
 tommy_size_t tommy_trie_memory_usage(tommy_trie* trie)
 {
 	return tommy_trie_count(trie) * (tommy_size_t)sizeof(tommy_trie_node)
-		+ trie->node_count * (tommy_size_t)TOMMY_TRIE_BLOCK_SIZE;
+	       + trie->node_count * (tommy_size_t)TOMMY_TRIE_BLOCK_SIZE;
 }
 

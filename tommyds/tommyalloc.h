@@ -37,7 +37,7 @@
 /******************************************************************************/
 /* allocator */
 
-/** \internal 
+/** \internal
  * Allocator entry.
  */
 struct tommy_allocator_entry_struct {

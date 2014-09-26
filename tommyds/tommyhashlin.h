@@ -84,7 +84,7 @@
  *     return *(const int*)arg != ((const struct object*)obj)->value;
  * }
  *
- * int value_to_find = 1; 
+ * int value_to_find = 1;
  * struct object* obj = tommy_hashlin_search(&hashlin, compare, &value_to_find, tommy_inthash_u32(value_to_find));
  * if (!obj) {
  *     // not found
@@ -99,7 +99,7 @@
  * different keys.
  *
  * \code
- * int value_to_find = 1; 
+ * int value_to_find = 1;
  * tommy_node* i = tommy_hashlin_bucket(&hashlin, tommy_inthash_u32(value_to_find));
  * while (i) {
  *     struct object* obj = i->data; // gets the object pointer
@@ -132,7 +132,7 @@
  *
  * Note that you cannot iterates over all the elements in the hashtable using the
  * hashtable itself. You have to insert all the elements also in a ::tommy_list,
- * and use the list to iterate. See the \ref multiindex example for more detail.  
+ * and use the list to iterate. See the \ref multiindex example for more detail.
  */
 
 #ifndef __TOMMYHASHLIN_H
@@ -231,6 +231,7 @@ tommy_hashlin_node* tommy_hashlin_bucket(tommy_hashlin* hashlin, tommy_hash_t ha
 tommy_inline void* tommy_hashlin_search(tommy_hashlin* hashlin, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)
 {
 	tommy_hashlin_node* i = tommy_hashlin_bucket(hashlin, hash);
+
 	while (i) {
 		/* we first check if the hash matches, as in the same bucket we may have multiples hash values */
 		if (i->key == hash && cmp(cmp_arg, i->data) == 0)

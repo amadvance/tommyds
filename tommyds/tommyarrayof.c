@@ -39,7 +39,7 @@ void tommy_arrayof_init(tommy_arrayof* array, unsigned element_size)
 	array->bucket_bit = TOMMY_ARRAYOF_BIT;
 	array->bucket_max = 1 << array->bucket_bit;
 	array->bucket[0] = tommy_calloc(array->bucket_max, array->element_size);
-	for(i=1;i<TOMMY_ARRAYOF_BIT;++i)
+	for (i = 1; i < TOMMY_ARRAYOF_BIT; ++i)
 		array->bucket[i] = array->bucket[0];
 
 	array->bucket_mac = TOMMY_ARRAYOF_BIT;
@@ -49,8 +49,9 @@ void tommy_arrayof_init(tommy_arrayof* array, unsigned element_size)
 void tommy_arrayof_done(tommy_arrayof* array)
 {
 	unsigned i;
+
 	tommy_free(array->bucket[0]);
-	for(i=TOMMY_ARRAYOF_BIT;i<array->bucket_mac;++i) {
+	for (i = TOMMY_ARRAYOF_BIT; i < array->bucket_mac; ++i) {
 		void* segment = array->bucket[i];
 		tommy_free(tommy_cast(unsigned char*, segment) + (1 << i) * array->element_size);
 	}

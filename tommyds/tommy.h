@@ -99,7 +99,7 @@
  * To access all the objects with the same keys you have to iterate over the bucket
  * assigned at the specified key.
  * \code
- * int value_to_find = 1; 
+ * int value_to_find = 1;
  * tommy_trie_node* i = tommy_trie_bucket(..., value_to_find);
  *
  * while (i) {
@@ -177,7 +177,7 @@
  *  - <a href="http://uthash.sourceforge.net/">uthash</a> - Dynamic chaining hashtable by Troy D. Hanson.
  *  - <a href="http://judy.sourceforge.net/">judy</a> - Burst trie (JudyL) by Doug Baskins.
  *  - <a href="http://code.google.com/p/judyarray/">judyarray</a> - Burst trie by Karl Malbrain.
- *  - <a href="http://code.google.com/p/google-sparsehash/">googledensehash</a> - Dynamic open addressing hashtable by Craig Silverstein at Google. 
+ *  - <a href="http://code.google.com/p/google-sparsehash/">googledensehash</a> - Dynamic open addressing hashtable by Craig Silverstein at Google.
  *  - <a href="http://code.google.com/p/cpp-btree/">googlebtree</a> - Btree by Google.
  *  - <a href="http://panthema.net/2007/stx-btree/">stxbtree</a> - STX Btree by Timo Bingmann.
  *  - <a href="http://www.cplusplus.com/reference/unordered_map/unordered_map/">c++unordered_map</a> - C++ STL unordered_map<> template.
@@ -271,7 +271,7 @@
  *
  * In the <i>Random</i> test, hashtables are almost always winning, seconds are
  * tries, and as last trees.
- *  
+ *
  * The best choices are ::tommy_hashdyn, ::tommy_hashlin, and googledensehash, with
  * ::tommy_hashlin having the advantage to be real-time friendly and not
  * increasing the heap fragmentation.
@@ -298,13 +298,13 @@
  * <img src="core_i7_3740_2G7_win/img_random_remove.png"/>
  * </td></tr>
  * </table>
- * 
+ *
  * \section forward Forward order
  * Here you can see the whole <i>Forward</i> test results in different platforms.
  *
  * In the <i>Forward</i> test, tries are the winners. Hashtables are competitive
  * until the cache limit, then they lose against tries. Trees are the slowest.
- *  
+ *
  * The best choices are ::tommy_trie and ::tommy_trie_inplace, where ::tommy_trie is
  * a bit faster, and ::tommy_trie_inplace doesn't require a custom allocator.
  *
@@ -348,7 +348,7 @@
  * <img src="core_i7_3740_2G7_win/img_forward_remove.png"/>
  * </td></tr>
  * </table>
- * 
+ *
  * \section size Size
  * Here you can see the memory usage of the different data structures.
  * <table border="0">
@@ -382,11 +382,11 @@
  * public:
  *     unsigned operator()(unsigned key) const { return tommy_inthash_u32(key); }
  * };
- * 
+ *
  * // Map collection from "unsigned" to "pointer to object"
  * typedef std::unordered_map<unsigned, obj*, custom_hash> bag_t;
  * bag_t bag;
- * 
+ *
  * // Preallocate objects
  * obj* OBJ = new obj[N];
  *
@@ -488,7 +488,7 @@
  *     bag.erase(j);
  *
  *     // Ensure that it's the correct element.
- *     obj* element = j->second; 
+ *     obj* element = j->second;
  *     if (element->value != key)
  *         abort();
  * }
@@ -504,19 +504,19 @@
  * \section notes Notes
  *
  * Here some notes about the data structure tested not part of Tommy.
- * 
+ *
  * \subsection cgoogledensehash Google C densehash
  * It's the C implementation located in the <i>experimental/</i> directory of the googlesparsehash archive.
  * It has very bad performances in the <i>Change</i> test for some N values.
  * See for example this <a href="other/cgoogledensehash_problem.png">graph</a> with a lot of spikes.
  * The C++ version doesn't suffer of this problem.
- * 
+ *
  * \subsection googledensehash Google C++ densehash
  * It doesn't release memory on deletion.
  * To avoid an unfair advantage in the <i>Remove</i> test, we force a periodic
  * resize calling resize(0) after any deallocation.
  * The resize is executed when the load factor is lower than 20%.
- * 
+ *
  * \subsection khash khash
  * It doesn't release memory on deletion. This gives an unfair advantage on the <i>Remove</i> test.
  *

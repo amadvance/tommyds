@@ -89,7 +89,7 @@
  * use tommy_trie_bucket() and follow the tommy_node::next pointer until NULL.
  *
  * \code
- * int value_to_find = 1; 
+ * int value_to_find = 1;
  * tommy_node* i = tommy_trie_bucket(&trie, value_to_find);
  * while (i) {
  *     struct object* obj = i->data; // gets the object pointer
@@ -120,7 +120,7 @@
  *
  * Note that you cannot iterates over all the elements in the trie using the
  * trie itself. You have to insert all the elements also in a ::tommy_list,
- * and use the list to iterate. See the \ref multiindex example for more detail. 
+ * and use the list to iterate. See the \ref multiindex example for more detail.
  */
 
 #ifndef __TOMMYTRIE_H
@@ -147,7 +147,7 @@
  */
 typedef tommy_node tommy_trie_node;
 
-/** 
+/**
  * Trie block size.
  * You must use this value to initialize the allocator.
  */
@@ -173,7 +173,7 @@ typedef tommy_node tommy_trie_node;
  * Trie optimized for cache utilization.
  */
 typedef struct tommy_trie_struct {
-	tommy_trie_node* bucket[TOMMY_TRIE_BUCKET_MAX]; /**< First tree level. */   
+	tommy_trie_node* bucket[TOMMY_TRIE_BUCKET_MAX]; /**< First tree level. */
 	unsigned count; /**< Number of elements. */
 	unsigned node_count; /**< Number of nodes. */
 	tommy_allocator* alloc; /**< Allocator for internal nodes. */
@@ -202,7 +202,7 @@ void tommy_trie_insert(tommy_trie* trie, tommy_trie_node* node, void* data, tomm
 /**
  * Searches and removes the first element with the specified key.
  * If the element is not found, 0 is returned.
- * If more equal elements are present, the first one is removed. 
+ * If more equal elements are present, the first one is removed.
  * This operation is faster than calling tommy_trie_bucket() and tommy_trie_remove_existing() separately.
  * \param key Key of the element to find and remove.
  * \return The removed element, or 0 if not found.
@@ -213,7 +213,7 @@ void* tommy_trie_remove(tommy_trie* trie, tommy_key_t key);
  * Gets the bucket of the specified key.
  * The bucket is guaranteed to contain ALL and ONLY the elements with the specified key.
  * You can access elements in the bucket following the ::next pointer until 0.
- * \param key Key of the element to find.  
+ * \param key Key of the element to find.
  * \return The head of the bucket, or 0 if empty.
  */
 tommy_trie_node* tommy_trie_bucket(tommy_trie* trie, tommy_key_t key);

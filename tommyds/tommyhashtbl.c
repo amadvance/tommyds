@@ -107,7 +107,7 @@ void tommy_hashtable_foreach(tommy_hashtable* hashtable, tommy_foreach_func* fun
 	tommy_hashtable_node** bucket = hashtable->bucket;
 	unsigned pos;
 
-	for(pos=0;pos<bucket_max;++pos) {
+	for (pos = 0; pos < bucket_max; ++pos) {
 		tommy_hashtable_node* node = bucket[pos];
 
 		while (node) {
@@ -124,7 +124,7 @@ void tommy_hashtable_foreach_arg(tommy_hashtable* hashtable, tommy_foreach_arg_f
 	tommy_hashtable_node** bucket = hashtable->bucket;
 	unsigned pos;
 
-	for(pos=0;pos<bucket_max;++pos) {
+	for (pos = 0; pos < bucket_max; ++pos) {
 		tommy_hashtable_node* node = bucket[pos];
 
 		while (node) {
@@ -138,6 +138,6 @@ void tommy_hashtable_foreach_arg(tommy_hashtable* hashtable, tommy_foreach_arg_f
 tommy_size_t tommy_hashtable_memory_usage(tommy_hashtable* hashtable)
 {
 	return hashtable->bucket_max * (tommy_size_t)sizeof(hashtable->bucket[0])
-		+ tommy_hashtable_count(hashtable) * (tommy_size_t)sizeof(tommy_hashtable_node);
+	       + tommy_hashtable_count(hashtable) * (tommy_size_t)sizeof(tommy_hashtable_node);
 }
 

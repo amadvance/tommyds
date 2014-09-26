@@ -24,7 +24,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 /** \file
  * Inplace trie.
  *
@@ -72,7 +72,7 @@
  * the key to search.
  *
  * \code
- * int value_to_find = 1; 
+ * int value_to_find = 1;
  * struct object* obj = tommy_trie_inplace_search(&trie_inplace, value_to_find);
  * if (!obj) {
  *     // not found
@@ -85,7 +85,7 @@
  * use tommy_trie_inplace_bucket() and follow the tommy_node::next pointer until NULL.
  *
  * \code
- * int value_to_find = 1; 
+ * int value_to_find = 1;
  * tommy_node* i = tommy_trie_inplace_bucket(&trie_inplace, value_to_find);
  * while (i) {
  *     struct object* obj = i->data; // gets the object pointer
@@ -182,7 +182,7 @@ void tommy_trie_inplace_insert(tommy_trie_inplace* trie_inplace, tommy_trie_inpl
  * If the element is not found, 0 is returned.
  * If more equal elements are present, the first one is removed.
  * This operation is faster than calling tommy_trie_inplace_bucket() and tommy_trie_inplace_remove_existing() separately.
- * \param key Key of the element to find and remove. 
+ * \param key Key of the element to find and remove.
  * \return The removed element, or 0 if not found.
  */
 void* tommy_trie_inplace_remove(tommy_trie_inplace* trie_inplace, tommy_key_t key);

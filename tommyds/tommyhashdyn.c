@@ -73,7 +73,7 @@ static void tommy_hashdyn_resize(tommy_hashdyn* hashdyn, unsigned new_bucket_bit
 		unsigned i;
 
 		/* grow */
-		for(i=0;i<bucket_max;++i) {
+		for (i = 0; i < bucket_max; ++i) {
 			tommy_hashdyn_node* j;
 
 			/* setup the new two buckets */
@@ -96,7 +96,7 @@ static void tommy_hashdyn_resize(tommy_hashdyn* hashdyn, unsigned new_bucket_bit
 		unsigned i;
 
 		/* shrink */
-		for(i=0;i<new_bucket_max;++i) {
+		for (i = 0; i < new_bucket_max; ++i) {
 			/* setup the new bucket with the lower bucket*/
 			new_bucket[i] = hashdyn->bucket[i];
 
@@ -190,7 +190,7 @@ void tommy_hashdyn_foreach(tommy_hashdyn* hashdyn, tommy_foreach_func* func)
 	tommy_hashdyn_node** bucket = hashdyn->bucket;
 	unsigned pos;
 
-	for(pos=0;pos<bucket_max;++pos) {
+	for (pos = 0; pos < bucket_max; ++pos) {
 		tommy_hashdyn_node* node = bucket[pos];
 
 		while (node) {
@@ -207,7 +207,7 @@ void tommy_hashdyn_foreach_arg(tommy_hashdyn* hashdyn, tommy_foreach_arg_func* f
 	tommy_hashdyn_node** bucket = hashdyn->bucket;
 	unsigned pos;
 
-	for(pos=0;pos<bucket_max;++pos) {
+	for (pos = 0; pos < bucket_max; ++pos) {
 		tommy_hashdyn_node* node = bucket[pos];
 
 		while (node) {
@@ -221,6 +221,6 @@ void tommy_hashdyn_foreach_arg(tommy_hashdyn* hashdyn, tommy_foreach_arg_func* f
 tommy_size_t tommy_hashdyn_memory_usage(tommy_hashdyn* hashdyn)
 {
 	return hashdyn->bucket_max * (tommy_size_t)sizeof(hashdyn->bucket[0])
-		+ tommy_hashdyn_count(hashdyn) * (tommy_size_t)sizeof(tommy_hashdyn_node);
+	       + tommy_hashdyn_count(hashdyn) * (tommy_size_t)sizeof(tommy_hashdyn_node);
 }
 

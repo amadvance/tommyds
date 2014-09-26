@@ -92,7 +92,7 @@ void tommy_array_grow(tommy_array* array, unsigned size);
  */
 tommy_inline void** tommy_array_ref(tommy_array* array, unsigned pos)
 {
-	unsigned bsr;  
+	unsigned bsr;
 
 	assert(pos < array->size);
 

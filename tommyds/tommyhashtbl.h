@@ -119,7 +119,7 @@
  *
  * Note that you cannot iterates over all the elements in the hashtable using the
  * hashtable itself. You have to insert all the elements also in a ::tommy_list,
- * and use the list to iterate. See the \ref multiindex example for more detail.   
+ * and use the list to iterate. See the \ref multiindex example for more detail.
  */
 
 #ifndef __TOMMYHASHTBL_H
@@ -184,7 +184,7 @@ void* tommy_hashtable_remove(tommy_hashtable* hashtable, tommy_search_func* cmp,
  * The bucket is guaranteed to contain ALL the elements with the specified hash,
  * but it can contain also others.
  * You can access elements in the bucket following the ::next pointer until 0.
- * \param hash Hash of the element to find. 
+ * \param hash Hash of the element to find.
  * \return The head of the bucket, or 0 if empty.
  */
 tommy_inline tommy_hashtable_node* tommy_hashtable_bucket(tommy_hashtable* hashtable, tommy_hash_t hash)
@@ -205,6 +205,7 @@ tommy_inline tommy_hashtable_node* tommy_hashtable_bucket(tommy_hashtable* hasht
 tommy_inline void* tommy_hashtable_search(tommy_hashtable* hashtable, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)
 {
 	tommy_hashtable_node* i = tommy_hashtable_bucket(hashtable, hash);
+
 	while (i) {
 		/* we first check if the hash matches, as in the same bucket we may have multiples hash values */
 		if (i->key == hash && cmp(cmp_arg, i->data) == 0)

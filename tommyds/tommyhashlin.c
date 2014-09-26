@@ -49,7 +49,7 @@ void tommy_hashlin_init(tommy_hashlin* hashlin)
 	hashlin->bucket_max = 1 << hashlin->bucket_bit;
 	hashlin->bucket_mask = hashlin->bucket_max - 1;
 	hashlin->bucket[0] = tommy_cast(tommy_hashlin_node**, tommy_calloc(hashlin->bucket_max, sizeof(tommy_hashlin_node*)));
-	for(i=1;i<TOMMY_HASHLIN_BIT;++i)
+	for (i = 1; i < TOMMY_HASHLIN_BIT; ++i)
 		hashlin->bucket[i] = hashlin->bucket[0];
 	hashlin->bucket_mac = TOMMY_HASHLIN_BIT;
 
@@ -62,8 +62,9 @@ void tommy_hashlin_init(tommy_hashlin* hashlin)
 void tommy_hashlin_done(tommy_hashlin* hashlin)
 {
 	unsigned i;
+
 	tommy_free(hashlin->bucket[0]);
-	for(i=TOMMY_HASHLIN_BIT;i<hashlin->bucket_mac;++i) {
+	for (i = TOMMY_HASHLIN_BIT; i < hashlin->bucket_mac; ++i) {
 		tommy_hashlin_node** segment = hashlin->bucket[i];
 		tommy_free(&segment[1 << i]);
 	}
@@ -73,8 +74,8 @@ void tommy_hashlin_done(tommy_hashlin* hashlin)
  * Return the bucket at the specified pos.
  */
 tommy_inline tommy_hashlin_node** tommy_hashlin_pos(tommy_hashlin* hashlin, tommy_hash_t pos)
-{  
-	unsigned bsr;  
+{
+	unsigned bsr;
 
 	/* get the highest bit set, in case of all 0, return 0 */
 	bsr = tommy_ilog2_u32(pos | 1);
@@ -86,7 +87,7 @@ tommy_inline tommy_hashlin_node** tommy_hashlin_pos(tommy_hashlin* hashlin, tomm
  * Return the bucket to use.
  */
 tommy_inline tommy_hashlin_node** tommy_hashlin_bucket_ptr(tommy_hashlin* hashlin, tommy_hash_t hash)
-{  
+{
 	unsigned pos;
 
 	/* if we are reallocating */
@@ -94,7 +95,7 @@ tommy_inline tommy_hashlin_node** tommy_hashlin_bucket_ptr(tommy_hashlin* hashli
 		/* compute the old position */
 		pos = hash & hashlin->low_mask;
 
-		/* if we have not reallocated this position yet */ 
+		/* if we have not reallocated this position yet */
 		if (pos >= hashlin->split) {
 
 			/* use it as it was before */
@@ -234,7 +235,7 @@ tommy_inline void hashlin_shrink_step(tommy_hashlin* hashlin)
 
 			/* go backward position */
 			--hashlin->split;
-   
+
 			/* get the low bucket */
 			split[0] = tommy_hashlin_pos(hashlin, hashlin->split);
 
@@ -326,7 +327,7 @@ void tommy_hashlin_foreach(tommy_hashlin* hashlin, tommy_foreach_func* func)
 		bucket_max = hashlin->bucket_max;
 	}
 
-	for(pos=0;pos<bucket_max;++pos) {
+	for (pos = 0; pos < bucket_max; ++pos) {
 		tommy_hashlin_node* node = *tommy_hashlin_pos(hashlin, pos);
 
 		while (node) {
@@ -349,7 +350,7 @@ void tommy_hashlin_foreach_arg(tommy_hashlin* hashlin, tommy_foreach_arg_func* f
 		bucket_max = hashlin->bucket_max;
 	}
 
-	for(pos=0;pos<bucket_max;++pos) {
+	for (pos = 0; pos < bucket_max; ++pos) {
 		tommy_hashlin_node* node = *tommy_hashlin_pos(hashlin, pos);
 
 		while (node) {
@@ -363,6 +364,6 @@ void tommy_hashlin_foreach_arg(tommy_hashlin* hashlin, tommy_foreach_arg_func* f
 tommy_size_t tommy_hashlin_memory_usage(tommy_hashlin* hashlin)
 {
 	return hashlin->bucket_max * (tommy_size_t)sizeof(hashlin->bucket[0][0])
-		+ hashlin->count * (tommy_size_t)sizeof(tommy_hashlin_node);
+	       + hashlin->count * (tommy_size_t)sizeof(tommy_hashlin_node);
 }
 

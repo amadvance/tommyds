@@ -38,7 +38,7 @@ void tommy_array_init(tommy_array* array)
 	array->bucket_bit = TOMMY_ARRAY_BIT;
 	array->bucket_max = 1 << array->bucket_bit;
 	array->bucket[0] = tommy_cast(void**, tommy_calloc(array->bucket_max, sizeof(void*)));
-	for(i=1;i<TOMMY_ARRAY_BIT;++i)
+	for (i = 1; i < TOMMY_ARRAY_BIT; ++i)
 		array->bucket[i] = array->bucket[0];
 
 	array->bucket_mac = TOMMY_ARRAY_BIT;
@@ -48,8 +48,9 @@ void tommy_array_init(tommy_array* array)
 void tommy_array_done(tommy_array* array)
 {
 	unsigned i;
+
 	tommy_free(array->bucket[0]);
-	for(i=TOMMY_ARRAY_BIT;i<array->bucket_mac;++i) {
+	for (i = TOMMY_ARRAY_BIT; i < array->bucket_mac; ++i) {
 		void** segment = array->bucket[i];
 		tommy_free(&segment[1 << i]);
 	}

@@ -35,7 +35,7 @@
  * Smaller of a memory page, to allow also a little heap overread.
  * The heap manager may put it in a single memory page.
  */
-#define TOMMY_ALLOCATOR_BLOCK_SIZE (4096-64)
+#define TOMMY_ALLOCATOR_BLOCK_SIZE (4096 - 64)
 
 void tommy_allocator_init(tommy_allocator* alloc, unsigned block_size, unsigned align_size)
 {
@@ -58,10 +58,11 @@ void tommy_allocator_init(tommy_allocator* alloc, unsigned block_size, unsigned 
 
 /**
  * Reset the allocator and free all.
- */ 
+ */
 static void allocator_reset(tommy_allocator* alloc)
 {
 	tommy_allocator_entry* block = alloc->used_segment;
+
 	while (block) {
 		tommy_allocator_entry* block_next = block->next;
 		tommy_free(block);
@@ -116,7 +117,7 @@ void* tommy_allocator_alloc(tommy_allocator* alloc)
 	/* remove one from the free list */
 	ptr = alloc->free_block;
 	alloc->free_block = alloc->free_block->next;
-	
+
 	++alloc->count;
 
 	return ptr;
@@ -125,7 +126,7 @@ void* tommy_allocator_alloc(tommy_allocator* alloc)
 void tommy_allocator_free(tommy_allocator* alloc, void* ptr)
 {
 	tommy_allocator_entry* free_block = tommy_cast(tommy_allocator_entry*, ptr);
-	
+
 	/* put it in the free list */
 	free_block->next = alloc->free_block;
 	alloc->free_block = free_block;

@@ -35,7 +35,7 @@
 /**
  * Mask for the inner branches.
  */
-#define TOMMY_TRIE_INPLACE_TREE_MASK (TOMMY_TRIE_INPLACE_TREE_MAX-1)
+#define TOMMY_TRIE_INPLACE_TREE_MASK (TOMMY_TRIE_INPLACE_TREE_MAX - 1)
 
 /**
  * Shift for the first level of branches.
@@ -47,7 +47,7 @@
  */
 tommy_inline tommy_trie_inplace_node* tommy_trie_inplace_list_insert_first(tommy_trie_inplace_node* node)
 {
-	/* one element "circular" prev list */   
+	/* one element "circular" prev list */
 	node->prev = node;
 
 	/* one element "0 terminated" next list */
@@ -81,7 +81,7 @@ tommy_inline void tommy_trie_inplace_list_remove(tommy_trie_inplace_node** let_p
 	tommy_trie_inplace_node* head = *let_ptr;
 
 	/* remove from the "circular" prev list */
-	if (node->next) { 
+	if (node->next) {
 		node->next->prev = node->prev;
 	} else {
 		head->prev = node->prev; /* the last */
@@ -99,9 +99,9 @@ void tommy_trie_inplace_init(tommy_trie_inplace* trie_inplace)
 {
 	unsigned i;
 
-	for(i=0;i<TOMMY_TRIE_INPLACE_BUCKET_MAX;++i)
+	for (i = 0; i < TOMMY_TRIE_INPLACE_BUCKET_MAX; ++i)
 		trie_inplace->bucket[i] = 0;
-	
+
 	trie_inplace->count = 0;
 }
 
@@ -134,7 +134,7 @@ void tommy_trie_inplace_insert(tommy_trie_inplace* trie_inplace, tommy_trie_inpl
 	node->data = data;
 	node->key = key;
 	/* clear the child pointers */
-	for(i=0;i<TOMMY_TRIE_INPLACE_TREE_MAX;++i)
+	for (i = 0; i < TOMMY_TRIE_INPLACE_TREE_MAX; ++i)
 		node->map[i] = 0;
 
 	let_ptr = &trie_inplace->bucket[key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT];
@@ -145,7 +145,7 @@ void tommy_trie_inplace_insert(tommy_trie_inplace* trie_inplace, tommy_trie_inpl
 }
 
 static tommy_trie_inplace_node* trie_inplace_bucket_remove(unsigned shift, tommy_trie_inplace_node** let_ptr, tommy_trie_inplace_node* remove, tommy_key_t key)
-{  
+{
 	tommy_trie_inplace_node* node;
 	int i;
 	tommy_trie_inplace_node** leaf_let_ptr;
@@ -173,7 +173,7 @@ static tommy_trie_inplace_node* trie_inplace_bucket_remove(unsigned shift, tommy
 	if (*let_ptr != 0) {
 		/* copy the child pointers to the new one */
 		node = *let_ptr;
-		for(i=0;i<TOMMY_TRIE_INPLACE_TREE_MAX;++i) {
+		for (i = 0; i < TOMMY_TRIE_INPLACE_TREE_MAX; ++i) {
 			node->map[i] = remove->map[i];
 		}
 		return remove;
@@ -184,12 +184,12 @@ static tommy_trie_inplace_node* trie_inplace_bucket_remove(unsigned shift, tommy
 	leaf = remove;
 
 	/* search backward, statistically we have more zeros than ones */
-	i = TOMMY_TRIE_INPLACE_TREE_MAX-1;
+	i = TOMMY_TRIE_INPLACE_TREE_MAX - 1;
 	while (i >= 0) {
 		if (leaf->map[i]) {
 			leaf_let_ptr = &leaf->map[i];
 			leaf = *leaf_let_ptr;
-			i = TOMMY_TRIE_INPLACE_TREE_MAX-1;
+			i = TOMMY_TRIE_INPLACE_TREE_MAX - 1;
 			continue;
 		}
 		--i;
@@ -204,7 +204,7 @@ static tommy_trie_inplace_node* trie_inplace_bucket_remove(unsigned shift, tommy
 	*leaf_let_ptr = 0;
 
 	/* copy the child pointers */
-	for(i=0;i<TOMMY_TRIE_INPLACE_TREE_MAX;++i) {
+	for (i = 0; i < TOMMY_TRIE_INPLACE_TREE_MAX; ++i) {
 		leaf->map[i] = remove->map[i];
 	}
 

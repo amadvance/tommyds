@@ -41,7 +41,7 @@ void tommy_arrayblk_done(tommy_arrayblk* array)
 {
 	unsigned i;
 
-	for(i=0;i<tommy_array_size(&array->block);++i)
+	for (i = 0; i < tommy_array_size(&array->block); ++i)
 		tommy_free(tommy_array_get(&array->block, i));
 
 	tommy_array_done(&array->block);
