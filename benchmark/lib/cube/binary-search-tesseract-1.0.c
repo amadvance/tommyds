@@ -17,72 +17,71 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
+	Binary Search Tesseract v1.0
+*/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/time.h>
 
-#define BSC_X 64
-#define BSC_Y 32
-#define BSC_Z 8
+#define BSC_M 64
 
-#define BSC_L 3
+#define BSC_X_MAX 128
+#define BSC_Y_MAX 64
+#define BSC_Z_MAX 32
+
+#define BSC_X_MIN 32
+#define BSC_Y_MIN 16
+#define BSC_Z_MIN 8
 
 struct cube
 {
-	int volume;
-	short w_size;
 	int *w_floor;
 	struct w_node **w_axis;
+	unsigned char *x_size;
+	int *w_volume;
+	int volume;
+	short w_size;
 };
 
 struct w_node
 {
-	int volume;
-	short x_size;
-	int *x_floor;
-	struct x_node **x_axis;
+	int x_floor[BSC_X_MAX];
+	struct x_node *x_axis[BSC_X_MAX];
+	unsigned char y_size[BSC_X_MAX];
+	short x_volume[BSC_X_MAX];
 };
 
 struct x_node
 {
-	int volume;
-	short y_size;
-	int *y_floor;
-	struct y_node **y_axis;
+	int y_floor[BSC_Y_MAX];
+	struct y_node *y_axis[BSC_Y_MAX];
+	unsigned char z_size[BSC_Y_MAX];
 };
 
 struct y_node
 {
-	short z_size;
-	struct z_node *z_axis;
+	int z_keys[BSC_Z_MAX];
+	void *z_vals[BSC_Z_MAX];
 };
 
-struct z_node
-{
-	int key;
-	void* val;
-};
+void *find_key(struct cube *cube, int key, short *w, short *x, short *y, short *z);
 
-struct z_node *find_key(struct cube *cube, int key, short *w_index, short *x_index, short *y_index, short *z_index);
+void split_w_node(struct cube *cube, short w);
+void merge_w_node(struct cube *cube, short w1, short w2);
 
-void split_w_node(struct cube *cube, short w_index);
-void merge_w_node(struct cube *cube, short w_index1, short w_index2);
+void split_x_node(struct cube *cube, short w, short x);
+void merge_x_node(struct cube *cube, short w, short x1, short x2);
 
-void split_x_node(struct cube *cube, short w_index, short x_index);
-void merge_x_node(struct cube *cube, short w_index, short x_index1, short x_index2);
+void split_y_node(struct cube *cube, short w, short x, short y);
+void merge_y_node(struct cube *cube, short w, short x, short y1, short y2);
 
-void split_y_node(struct cube *cube, short w_index, short x_index, short y_index);
-void merge_y_node(struct cube *cube, short w_index, short x_index, short y_index1, short y_index2);
+void insert_z_node(struct cube *cube, short w, short x, short y, short z, int key, void *val);
+void *remove_z_node(struct cube *cube, short w, short x, short y, short z);
 
-void insert_z_node(struct cube *cube, short w_index, short x_index, short y_index, short z_index, int key, void *val);
-void remove_z_node(struct cube *cube, short w_index, short x_index, short y_index, short z_index);
-
-void deflate_cube(struct cube *cube);
-void deflate_w_axis(struct cube *cube, short w_index);
-void deflate_x_axis(struct cube *cube, short w_index, short x_index);
-
-struct z_node *find_index(struct cube *cube, int index, short *w_index, short *x_index, short *y_index, short *z_index)
+inline void *find_index(struct cube *cube, int index, short *w_index, short *x_index, short *y_index, short *z_index)
 {
 	struct w_node *w_node;
 	struct x_node *x_node;
@@ -90,14 +89,8 @@ struct z_node *find_index(struct cube *cube, int index, short *w_index, short *x
 	register short w, x, y;
 	int total;
 
-	if (index <= 0 || index >= cube->volume)
+	if (index < 0 || index >= cube->volume)
 	{
-		if (cube->volume && index == 0)
-		{
-			*w_index = *x_index = *y_index = *z_index = 0;
-
-			return &cube->w_axis[0]->x_axis[0]->y_axis[0]->z_axis[0];
-		}
 		return NULL;
 	}
 
@@ -109,50 +102,50 @@ struct z_node *find_index(struct cube *cube, int index, short *w_index, short *x
 		{
 			w_node = cube->w_axis[w];
 
-			if (total + w_node->volume > index)
+			if (total + cube->w_volume[w] > index)
 			{
-				if (index > total + w_node->volume / 2)
+				if (index > total + cube->w_volume[w] / 2)
 				{
-					total += w_node->volume;
+					total += cube->w_volume[w];
 
 					goto backward_x;
 				}
 				forward_x:
 
-				for (x = 0 ; x < w_node->x_size ; x++)
+				for (x = 0 ; x < cube->x_size[w] ; x++)
 				{
 					x_node = w_node->x_axis[x];
 
-					if (total + x_node->volume > index)
+					if (total + w_node->x_volume[x] > index)
 					{
-						if (index > total + x_node->volume / 2)
+						if (index > total + w_node->x_volume[x] / 2)
 						{
-							total += x_node->volume;
+							total += w_node->x_volume[x];
 
 							goto backward_y;
 						}
 						forward_y:
 
-						for (y = 0 ; y < x_node->y_size ; y++)
+						for (y = 0 ; y < w_node->y_size[x] ; y++)
 						{
 							y_node = x_node->y_axis[y];
 
-							if (total + y_node->z_size > index)
+							if (total + x_node->z_size[y] > index)
 							{
 								*w_index = w;
 								*x_index = x;
 								*y_index = y;
 								*z_index = index - total;
 
-								return &y_node->z_axis[index - total];
+								return y_node->z_vals[index - total];
 							}
-							total += y_node->z_size;
+							total += x_node->z_size[y];
 						}
 					}
-					total += x_node->volume;
+					total += w_node->x_volume[x];
 				}
 			}
-			total += w_node->volume;
+			total += cube->w_volume[w];
 		}
 	}
 	else
@@ -163,104 +156,90 @@ struct z_node *find_index(struct cube *cube, int index, short *w_index, short *x
 		{
 			w_node = cube->w_axis[w];
 
-			if (total - w_node->volume <= index)
+			if (total - cube->w_volume[w] <= index)
 			{
-				if (index < total - w_node->volume / 2)
+				if (index < total - cube->w_volume[w] / 2)
 				{
-					total -= w_node->volume;
+					total -= cube->w_volume[w];
 
 					goto forward_x;
 				}
 				backward_x:
 
-				for (x = w_node->x_size - 1 ; x >= 0 ; x--)
+				for (x = cube->x_size[w] - 1 ; x >= 0 ; x--)
 				{
 					x_node = w_node->x_axis[x];
 
-					if (total - x_node->volume <= index)
+					if (total - w_node->x_volume[x] <= index)
 					{
-						if (index < total - x_node->volume / 2)
+						if (index < total - w_node->x_volume[x] / 2)
 						{
-							total -= x_node->volume;
+							total -= w_node->x_volume[x];
 
 							goto forward_y;
 						}
 						backward_y:
 
-						for (y = x_node->y_size - 1 ; y >= 0 ; y--)
+						for (y = w_node->y_size[x] - 1 ; y >= 0 ; y--)
 						{
 							y_node = x_node->y_axis[y];
 
-							if (total - y_node->z_size <= index)
+							if (total - x_node->z_size[y] <= index)
 							{
 								*w_index = w;
 								*x_index = x;
 								*y_index = y;
-								*z_index = y_node->z_size - (total - index);
+								*z_index = x_node->z_size[y] - (total - index);
 
-								return &y_node->z_axis[y_node->z_size - (total - index)];
+								return y_node->z_vals[x_node->z_size[y] - (total - index)];
 							}
-							total -= y_node->z_size;
+							total -= x_node->z_size[y];
 						}
 					}
-					total -= x_node->volume;
+					total -= w_node->x_volume[x];
 				}
 			}
-			total -= w_node->volume;
+			total -= cube->w_volume[w];
 		}
 	}
 	return NULL;
 }
 
-void set_key(struct cube *cube, int key, void *val)
+
+void *get_key(struct cube *cube, int key)
 {
-	struct z_node *z_node;
-	short w_index, x_index, y_index, z_index;
+	short w, x, y, z;
 
-	z_node = find_key(cube, key, &w_index, &x_index, &y_index, &z_index);
-
-	if (z_node)
-	{
-		z_node->val = val;
-	}
-	else
-	{
-		insert_z_node(cube, w_index, x_index, y_index, z_index, key, val);
-	}
+	return find_key(cube, key, &w, &x, &y, &z);
 }
 
-struct z_node *get_key(struct cube *cube, int key)
+void *del_key(struct cube *cube, int key)
 {
-	short w_index, x_index, y_index, z_index;
+	short w, x, y, z;
 
-	return find_key(cube, key, &w_index, &x_index, &y_index, &z_index);
-}
-
-void del_key(struct cube *cube, int key)
-{
-	short w_index, x_index, y_index, z_index;
-
-	if (find_key(cube, key, &w_index, &x_index, &y_index, &z_index))
+	if (find_key(cube, key, &w, &x, &y, &z))
 	{
-		remove_z_node(cube, w_index, x_index, y_index, z_index);
+		return remove_z_node(cube, w, x, y, z);
 	}
+	return NULL;
 }
 
-struct z_node *get_index(struct cube *cube, int index)
+void *get_index(struct cube *cube, int index)
 {
-	short w_index, x_index, y_index, z_index;
+	short w, x, y, z;
 
-	return find_index(cube, index, &w_index, &x_index, &y_index, &z_index);
+	return find_index(cube, index, &w, &x, &y, &z);
 }
 
-void del_index(struct cube *cube, int index)
+void *del_index(struct cube *cube, int index)
 {
-	short w_index, x_index, y_index, z_index;
+	short w, x, y, z;
 
-	if (find_index(cube, index, &w_index, &x_index, &y_index, &z_index))
+	if (find_index(cube, index, &w, &x, &y, &z))
 	{
-		remove_z_node(cube, w_index, x_index, y_index, z_index);
+		return remove_z_node(cube, w, x, y, z);
 	}
+	return NULL;
 }
 
 struct cube *create_cube(void)
@@ -274,775 +253,672 @@ struct cube *create_cube(void)
 
 void destroy_cube(struct cube *cube)
 {
-	if (cube->volume)
+	if (cube->w_size)
 	{
 		struct w_node *w_node;
 		struct x_node *x_node;
 		struct y_node *y_node;
 
-		register short w, x, y, z;
+		register short w, x, y;
 
 		for (w = cube->w_size - 1 ; w >= 0 ; w--)
 		{
 			w_node = cube->w_axis[w];
 
-			for (x = w_node->x_size - 1 ; x >= 0 ; x--)
+			for (x = cube->x_size[w] - 1 ; x >= 0 ; x--)
 			{
 				x_node = w_node->x_axis[x];
 			
-				for (y = x_node->y_size - 1 ; y >= 0 ; y--)
+				for (y = w_node->y_size[x] - 1 ; y >= 0 ; y--)
 				{
 					y_node = x_node->y_axis[y];
 				
-					free(y_node->z_axis);
 					free(y_node);
 				}
-				free(x_node->y_floor);
-				free(x_node->y_axis);
 				free(x_node);
 			}
-			free(w_node->x_floor);
-			free(w_node->x_axis);
 			free(w_node);
 		}
 		free(cube->w_floor);
 		free(cube->w_axis);
+		free(cube->w_volume);
+		free(cube->x_size);
 	}
 	free(cube);
 }
 
-struct z_node *find_key(struct cube *cube, int key, short *w_index, short *x_index, short *y_index, short *z_index)
+void set_key(struct cube *cube, int key, void *val)
 {
 	struct w_node *w_node;
 	struct x_node *x_node;
 	struct y_node *y_node;
 
-	register short bot, mid, w, x, y, z;
+	short mid, w, x, y, z;
 
-	if (cube->volume == 0 || key < cube->w_floor[0])
+	if (cube->w_size == 0)
+	{
+		cube->w_floor = (int *) malloc(BSC_M * sizeof(int));
+		cube->w_axis = (struct w_node **) malloc(BSC_M * sizeof(struct w_node *));
+		cube->w_volume = (int *) malloc(BSC_M * sizeof(int));
+		cube->x_size = (unsigned char *) malloc(BSC_M * sizeof(unsigned char));
+
+		w_node = cube->w_axis[0] = (struct w_node *) malloc(sizeof(struct w_node));
+
+		x_node = w_node->x_axis[0] = (struct x_node *) malloc(sizeof(struct x_node));
+
+		y_node = x_node->y_axis[0] = (struct y_node *) malloc(sizeof(struct y_node));
+
+		x_node->z_size[0] = 0;
+
+		cube->w_size = cube->x_size[0] = w_node->y_size[0] = 1;
+		cube->volume = cube->w_volume[0] = w_node->x_volume[0] = 0;
+
+		w = x = y = z = 0;
+		
+		cube->w_floor[0] = w_node->x_floor[0] = x_node->y_floor[0] = key;
+
+		goto insert;
+	}
+
+	if (key < cube->w_floor[0])
+	{
+		w_node = cube->w_axis[0];
+		x_node = w_node->x_axis[0];
+		y_node = x_node->y_axis[0];
+
+		w = x = y = z = 0;
+
+		cube->w_floor[0] = w_node->x_floor[0] = x_node->y_floor[0] = key;
+
+		goto insert;
+	}
+
+	mid = w = cube->w_size - 1;
+
+	while (mid > 3)
+	{
+		mid /= 2;
+
+		if (key < cube->w_floor[w - mid]) w -= mid;
+	}
+	while (key < cube->w_floor[w]) --w;
+
+	w_node = cube->w_axis[w];
+
+	// x
+
+	mid = x = cube->x_size[w] - 1;
+
+	while (mid > 3)
+	{
+		mid /= 2;
+
+		if (key < w_node->x_floor[x - mid]) x -= mid;
+	}
+	while (key < w_node->x_floor[x]) --x;
+
+	x_node = w_node->x_axis[x];
+
+	// y
+
+	mid = y = w_node->y_size[x] - 1;
+
+	while (mid > 7)
+	{
+		mid /= 4;
+
+		if (key < x_node->y_floor[y - mid])
+		{
+			y -= mid;
+			if (key < x_node->y_floor[y - mid])
+			{
+				y -= mid;
+				if (key < x_node->y_floor[y - mid])
+				{
+					y -= mid;
+				}
+			}
+		}
+	}
+	while (key < x_node->y_floor[y]) --y;
+
+	y_node = x_node->y_axis[y];
+
+	// z
+
+	mid = z = x_node->z_size[y] - 1;
+
+	while (mid > 7)
+	{
+		mid /= 4;
+
+		if (key < y_node->z_keys[z - mid])
+		{
+			z -= mid;
+			if (key < y_node->z_keys[z - mid])
+			{
+				z -= mid;
+				if (key < y_node->z_keys[z - mid])
+				{
+					z -= mid;
+				}
+			}
+		}
+	}
+	while (key < y_node->z_keys[z]) --z;
+
+	if (key == y_node->z_keys[z])
+	{
+		y_node->z_vals[z] = val;
+	}
+
+	++z;
+
+	insert:
+
+	++cube->volume;
+	++cube->w_volume[w];
+	++w_node->x_volume[x];
+
+	++x_node->z_size[y];
+
+	if (z + 1 != x_node->z_size[y])
+	{
+		memmove(&y_node->z_keys[z + 1], &y_node->z_keys[z], (x_node->z_size[y] - z - 1) * sizeof(int));
+		memmove(&y_node->z_vals[z + 1], &y_node->z_vals[z], (x_node->z_size[y] - z - 1) * sizeof(void *));
+	}
+
+	y_node->z_keys[z] = key;
+	y_node->z_vals[z] = val;
+
+	if (x_node->z_size[y] == BSC_Z_MAX)
+	{
+		split_y_node(cube, w, x, y);
+
+		if (w_node->y_size[x] == BSC_Y_MAX)
+		{
+			split_x_node(cube, w, x);
+
+			if (cube->x_size[w] == BSC_X_MAX)
+			{
+				split_w_node(cube, w);
+			}
+		}
+	}
+}
+
+inline void *find_key(struct cube *cube, int key, short *w_index, short *x_index, short *y_index, short *z_index)
+{
+	struct w_node *w_node;
+	struct x_node *x_node;
+	struct y_node *y_node;
+
+	short mid, w, x, y, z;
+
+	if (cube->w_size == 0 || key < cube->w_floor[0])
 	{
 		*w_index = *x_index = *y_index = *z_index = 0;
 
 		return NULL;
 	}
 
-	bot = 0;
 	mid = w = cube->w_size - 1;
 
-	while (1)
+	while (mid > 3)
 	{
-		if (key < cube->w_floor[mid])
-		{
-			w = mid - 1;
-		}
-		else
-		{
-			bot = mid;
-		}
+		mid /= 2;
 
-		if (bot + BSC_L > w)
-		{
-			break;
-		}
-		mid = w - (w - bot) / 2;
+		if (key < cube->w_floor[w - mid]) w -= mid;
 	}
+	while (key < cube->w_floor[w]) --w;
 
-	while (key < cube->w_floor[w]) w--;
+	*w_index = w;
 
 	w_node = cube->w_axis[w];
 
-	bot = 0;
-	mid = x = w_node->x_size - 1;
+	// x
 
-	while (1)
+	mid = x = cube->x_size[w] - 1;
+
+	while (mid > 3)
 	{
-		if (key < w_node->x_floor[mid])
-		{
-			x = mid - 1;
-		}
-		else
-		{
-			bot = mid;
-		}
+		mid /= 2;
 
-		if (bot + BSC_L > x)
-		{
-			break;
-		}
-		mid = x - (x - bot) / 2;
+		if (key < w_node->x_floor[x - mid]) x -= mid;
 	}
+	while (key < w_node->x_floor[x]) --x;
 
-	while (key < w_node->x_floor[x]) x--;
+	*x_index = x;
 
 	x_node = w_node->x_axis[x];
 
-	bot = 0;
-	mid = y = x_node->y_size - 1;
+	// y
 
-	while (1)
+	mid = y = w_node->y_size[x] - 1;
+
+	while (mid > 7)
 	{
-		if (key < x_node->y_floor[mid])
-		{
-			y = mid - 1;
-		}
-		else
-		{
-			bot = mid;
-		}
+		mid /= 4;
 
-		if (bot + BSC_L > y)
+		if (key < x_node->y_floor[y - mid])
 		{
-			break;
+			y -= mid;
+			if (key < x_node->y_floor[y - mid])
+			{
+				y -= mid;
+				if (key < x_node->y_floor[y - mid])
+				{
+					y -= mid;
+				}
+			}
 		}
-		mid = y - (y - bot) / 2;
 	}
+	while (key < x_node->y_floor[y]) --y;
 
-	while (key < x_node->y_floor[y]) y--;
+	*y_index = y;
 
 	y_node = x_node->y_axis[y];
 
-	bot = 0;
-	mid = z = y_node->z_size - 1;
+	// z
 
-	while (1)
+	mid = z = x_node->z_size[y] - 1;
+
+	while (mid > 7)
 	{
-		if (key < y_node->z_axis[mid].key)
-		{
-			z = mid - 1;
-		}
-		else
-		{
-			bot = mid;
-		}
+		mid /= 4;
 
-		if (bot + BSC_L > z)
+		if (key < y_node->z_keys[z - mid])
 		{
-			break;
+			z -= mid;
+			if (key < y_node->z_keys[z - mid])
+			{
+				z -= mid;
+				if (key < y_node->z_keys[z - mid])
+				{
+					z -= mid;
+				}
+			}
 		}
-
-		mid = z - (z - bot) / 2;
 	}
+	while (key < y_node->z_keys[z]) --z;
 
-	while (key < y_node->z_axis[z].key) z--;
-
-	if (key == y_node->z_axis[z].key)
+	if (key == y_node->z_keys[z])
 	{
-
-		*w_index = w;
-		*x_index = x;
-		*y_index = y;
 		*z_index = z;
 
-		return &y_node->z_axis[z];
+		return y_node->z_vals[z];
 	}
 
-	*w_index = w;
-	*x_index = x;
-	*y_index = y;
 	*z_index = z + 1;
 
 	return NULL;
 }
 
-void insert_w_node(struct cube *cube, short w_index)
+inline void insert_w_node(struct cube *cube, short w)
 {
-	cube->w_size++;
+	++cube->w_size;
 
-	cube->w_floor = (int *) realloc(cube->w_floor, cube->w_size * sizeof(int));
-	cube->w_axis = (struct w_node **) realloc(cube->w_axis, cube->w_size * sizeof(struct w_node *));
-
-	if (w_index + 1 != cube->w_size)
+	if (cube->w_size % BSC_M == 0)
 	{
-		memmove(&cube->w_floor[w_index + 1], &cube->w_floor[w_index], (cube->w_size - w_index - 1) * sizeof(int));
-		memmove(&cube->w_axis[w_index + 1], &cube->w_axis[w_index], (cube->w_size - w_index - 1) * sizeof(struct w_node *));
+		cube->w_floor = (int *) realloc(cube->w_floor, (cube->w_size + BSC_M) * sizeof(int));
+		cube->w_axis = (struct w_node **) realloc(cube->w_axis, (cube->w_size + BSC_M) * sizeof(struct w_node *));
+		cube->w_volume = (int *) realloc(cube->w_volume, (cube->w_size + BSC_M) * sizeof(int));
+		cube->x_size = (unsigned char *) realloc(cube->x_size, (cube->w_size + BSC_M) * sizeof(unsigned char));
 	}
 
-	cube->w_axis[w_index] = (struct w_node *) calloc(1, sizeof(struct w_node));
+	if (w + 1 != cube->w_size)
+	{
+		memmove(&cube->w_floor[w + 1], &cube->w_floor[w], (cube->w_size - w - 1) * sizeof(int));
+		memmove(&cube->w_axis[w + 1], &cube->w_axis[w], (cube->w_size - w - 1) * sizeof(struct w_node *));
+		memmove(&cube->w_volume[w + 1], &cube->w_volume[w], (cube->w_size - w - 1) * sizeof(int));
+		memmove(&cube->x_size[w + 1], &cube->x_size[w], (cube->w_size - w - 1) * sizeof(unsigned char));
+	}
+
+	cube->w_axis[w] = (struct w_node *) malloc(sizeof(struct w_node));
 }
 
-void remove_w_node(struct cube *cube, short w_index)
+void remove_w_node(struct cube *cube, short w)
 {
 	cube->w_size--;
 
-	free(cube->w_axis[w_index]->x_floor);
-	free(cube->w_axis[w_index]->x_axis);
-	free(cube->w_axis[w_index]);
+	free(cube->w_axis[w]);
 
 	if (cube->w_size)
 	{
-		if (cube->w_size != w_index)
+		if (cube->w_size != w)
 		{
-			memmove(&cube->w_floor[w_index], &cube->w_floor[w_index + 1], (cube->w_size - w_index) * sizeof(int));			
-			memmove(&cube->w_axis[w_index], &cube->w_axis[w_index + 1], (cube->w_size - w_index) * sizeof(struct w_node *));
+			memmove(&cube->w_floor[w], &cube->w_floor[w + 1], (cube->w_size - w) * sizeof(int));
+			memmove(&cube->w_axis[w], &cube->w_axis[w + 1], (cube->w_size - w) * sizeof(struct w_node *));
+			memmove(&cube->w_volume[w], &cube->w_volume[w + 1], (cube->w_size - w) * sizeof(int));
+			memmove(&cube->x_size[w], &cube->x_size[w + 1], (cube->w_size - w) * sizeof(unsigned char));
 		}
-
-		cube->w_floor = (int *) realloc(cube->w_floor, cube->w_size * sizeof(int));
-		cube->w_axis = (struct w_node **) realloc(cube->w_axis, cube->w_size * sizeof(struct w_node *));
 	}
 	else
 	{
+		free(cube->w_floor);
 		free(cube->w_axis);
+		free(cube->w_volume);
+		free(cube->x_size);
 	}
 }
 
-void insert_x_node(struct cube *cube, short w_index, short x_index)
+inline void insert_x_node(struct cube *cube, short w, short x)
 {
-	struct w_node *w_node = cube->w_axis[w_index];
+	struct w_node *w_node = cube->w_axis[w];
 
-	w_node->x_size++;
+	short x_size = ++cube->x_size[w];
 
-	w_node->x_floor = (int *) realloc(w_node->x_floor, w_node->x_size * sizeof(int));
-	w_node->x_axis = (struct x_node **) realloc(w_node->x_axis, w_node->x_size * sizeof(struct x_node *));
-
-	if (w_node->x_size != x_index + 1)
+	if (x_size != x + 1)
 	{
-		memmove(&w_node->x_floor[x_index + 1], &w_node->x_floor[x_index], (w_node->x_size - x_index - 1) * sizeof(int));
-		memmove(&w_node->x_axis[x_index + 1], &w_node->x_axis[x_index], (w_node->x_size - x_index - 1) * sizeof(struct x_node *));
+		memmove(&w_node->x_floor[x + 1], &w_node->x_floor[x], (x_size - x - 1) * sizeof(int));
+		memmove(&w_node->x_axis[x + 1], &w_node->x_axis[x], (x_size - x - 1) * sizeof(struct x_node *));
+		memmove(&w_node->x_volume[x + 1], &w_node->x_volume[x], (x_size - x - 1) * sizeof(short));
+		memmove(&w_node->y_size[x + 1], &w_node->y_size[x], (x_size - x - 1) * sizeof(unsigned char));
 	}
 
-	w_node->x_axis[x_index] = (struct x_node *) calloc(1, sizeof(struct x_node));
+	w_node->x_axis[x] = (struct x_node *) malloc(sizeof(struct x_node));
 }
 
-void remove_x_node(struct cube *cube, short w_index, short x_index)
+void remove_x_node(struct cube *cube, short w, short x)
 {
-	struct w_node *w_node = cube->w_axis[w_index];
+	struct w_node *w_node = cube->w_axis[w];
 
-	w_node->x_size--;
+	cube->x_size[w]--;
 
-	free(w_node->x_axis[x_index]->y_floor);
-	free(w_node->x_axis[x_index]->y_axis);
+	free(w_node->x_axis[x]);
 
-	free(w_node->x_axis[x_index]);
-
-	if (w_node->x_size)
+	if (cube->x_size[w])
 	{
-		if (w_node->x_size != x_index)
+		if (cube->x_size[w] != x)
 		{
-			memmove(&w_node->x_floor[x_index], &w_node->x_floor[x_index + 1], (w_node->x_size - x_index ) * sizeof(int));
-			memmove(&w_node->x_axis[x_index], &w_node->x_axis[x_index + 1], (w_node->x_size - x_index ) * sizeof(struct x_node *));
+			memmove(&w_node->x_floor[x], &w_node->x_floor[x + 1], (cube->x_size[w] - x ) * sizeof(int));
+			memmove(&w_node->x_axis[x], &w_node->x_axis[x + 1], (cube->x_size[w] - x ) * sizeof(struct x_node *));
+			memmove(&w_node->x_volume[x], &w_node->x_volume[x + 1], (cube->x_size[w] - x ) * sizeof(short));
+			memmove(&w_node->y_size[x], &w_node->y_size[x + 1], (cube->x_size[w] - x ) * sizeof(unsigned char));
 		}
 
-		w_node->x_floor = (int *) realloc(w_node->x_floor, w_node->x_size * sizeof(int));
-		w_node->x_axis = (struct x_node **) realloc(w_node->x_axis, w_node->x_size * sizeof(struct x_node *));
-
-		if (x_index == 0)
+		if (x == 0)
 		{
-			cube->w_floor[w_index] = w_node->x_floor[0];
+			cube->w_floor[w] = w_node->x_floor[0];
 		}
 	}
 	else
 	{
-		remove_w_node(cube, w_index);
+		remove_w_node(cube, w);
 	}
 }
 
-void insert_y_node(struct cube *cube, short w_index, short x_index, short y_index)
+inline void insert_y_node(struct cube *cube, short w, short x, short y)
 {
-	struct x_node *x_node = cube->w_axis[w_index]->x_axis[x_index];
+	struct x_node *x_node = cube->w_axis[w]->x_axis[x];
 
-	x_node->y_size++;
+	short y_size = ++cube->w_axis[w]->y_size[x];
 
-	x_node->y_floor = (int *) realloc(x_node->y_floor, x_node->y_size * sizeof(int));
-	x_node->y_axis  = (struct y_node **) realloc(x_node->y_axis, x_node->y_size * sizeof(struct y_node *));
-
-	if (x_node->y_size != y_index + 1)
+	if (y_size != y + 1)
 	{
-		memmove(&x_node->y_floor[y_index + 1], &x_node->y_floor[y_index], (x_node->y_size - y_index - 1) * sizeof(int));
-		memmove(&x_node->y_axis[y_index + 1], &x_node->y_axis[y_index], (x_node->y_size - y_index - 1) * sizeof(struct y_node *));
+		memmove(&x_node->y_floor[y + 1], &x_node->y_floor[y], (y_size - y - 1) * sizeof(int));
+		memmove(&x_node->y_axis[y + 1], &x_node->y_axis[y], (y_size - y - 1) * sizeof(struct y_node *));
+		memmove(&x_node->z_size[y + 1], &x_node->z_size[y], (y_size - y - 1) * sizeof(unsigned char));
 	}
 
-	x_node->y_axis[y_index] = (struct y_node *) calloc(1, sizeof(struct y_node));
+	x_node->y_axis[y] = (struct y_node *) malloc(sizeof(struct y_node));
 }
 
-void remove_y_node(struct cube *cube, short w_index, short x_index, short y_index)
+void remove_y_node(struct cube *cube, short w, short x, short y)
 {
-	struct x_node *x_node = cube->w_axis[w_index]->x_axis[x_index];
+	struct w_node *w_node = cube->w_axis[w];
+	struct x_node *x_node = w_node->x_axis[x];
 
-	x_node->y_size--;
+	w_node->y_size[x]--;
 
-	free(x_node->y_axis[y_index]->z_axis);
+	free(x_node->y_axis[y]);
 
-	free(x_node->y_axis[y_index]);
-
-	if (x_node->y_size)
+	if (w_node->y_size[x])
 	{
-		if (x_node->y_size != y_index)
+		if (w_node->y_size[x] != y)
 		{
 
-			memmove(&x_node->y_floor[y_index], &x_node->y_floor[y_index + 1], (x_node->y_size - y_index ) * sizeof(int));
-			memmove(&x_node->y_axis[y_index], &x_node->y_axis[y_index + 1], (x_node->y_size - y_index ) * sizeof(struct y_node *));
+			memmove(&x_node->y_floor[y], &x_node->y_floor[y + 1], (w_node->y_size[x] - y ) * sizeof(int));
+			memmove(&x_node->y_axis[y], &x_node->y_axis[y + 1], (w_node->y_size[x] - y ) * sizeof(struct y_node *));
+			memmove(&x_node->z_size[y], &x_node->z_size[y + 1], (w_node->y_size[x] - y ) * sizeof(unsigned char));
 		}
-		x_node->y_floor = (int *) realloc(x_node->y_floor, x_node->y_size * sizeof(int));
-		x_node->y_axis = (struct y_node **) realloc(x_node->y_axis, x_node->y_size * sizeof(struct y_node *));
 
-		if (y_index == 0)
+		if (y == 0)
 		{
-			cube->w_axis[w_index]->x_floor[x_index] = x_node->y_floor[0];
+			cube->w_axis[w]->x_floor[x] = x_node->y_floor[0];
 
-			if (x_index == 0)
+			if (x == 0)
 			{
-				cube->w_floor[w_index] = x_node->y_floor[0];
+				cube->w_floor[w] = x_node->y_floor[0];
 			}
 		}
 	}
 	else
 	{
-		remove_x_node(cube, w_index, x_index);
+		remove_x_node(cube, w, x);
 	}
 }
 
-void insert_z_node(struct cube *cube, short w_index, short x_index, short y_index, short z_index, int key, void *val)
+inline void *remove_z_node(struct cube *cube, short w, short x, short y, short z)
 {
-	struct w_node *w_node;
-	struct x_node *x_node;
-	struct y_node *y_node;
-	struct z_node *z_node;
-
-	if (cube->volume == 0)
-	{
-		cube->w_floor = (int *) calloc(1, sizeof(int));
-		cube->w_axis = (struct w_node **) calloc(1, sizeof(struct w_node *));
-
-		w_node = cube->w_axis[0] = (struct w_node *) calloc(1, sizeof(struct w_node));
-
-		w_node->x_floor = (int *) calloc(1, sizeof(int));
-		w_node->x_axis = (struct x_node **) calloc(1, sizeof(struct x_node *));
-
-		x_node = w_node->x_axis[0] = (struct x_node *) calloc(1, sizeof(struct x_node));
-
-		x_node->y_floor = (int *) calloc(1, sizeof(int));
-		x_node->y_axis = (struct y_node **) calloc(1, sizeof(struct y_node *));
-
-		y_node = x_node->y_axis[0] = (struct y_node *) calloc(1, sizeof(struct y_node));
-
-		cube->w_size = w_node->x_size = x_node->y_size = 1;
-	}
-	else
-	{
-		w_node = cube->w_axis[w_index];
-		x_node = w_node->x_axis[x_index];
-		y_node = x_node->y_axis[y_index];
-	}
-
-	cube->volume++;
-	w_node->volume++;
-	x_node->volume++;
-
-	y_node->z_size++;
-
-	y_node->z_axis = (struct z_node *) realloc(y_node->z_axis, y_node->z_size * sizeof(struct z_node));
-
-	if (z_index + 1 != y_node->z_size)
-	{
-		memmove(&y_node->z_axis[z_index + 1], &y_node->z_axis[z_index], (y_node->z_size - z_index - 1) * sizeof(struct z_node));
-	}
-
-	z_node = &y_node->z_axis[z_index];
-
-	z_node->key = key;
-	z_node->val = val;
-
-	if (z_index == 0)
-	{
-		cube->w_floor[0] = w_node->x_floor[0] = x_node->y_floor[0] = z_node->key;
-	}
-
-	if (y_node->z_size >= BSC_Z * 4)
-	{
-		split_y_node(cube, w_index, x_index, y_index);
-
-		if (x_node->y_size > BSC_Y * 4)
-		{
-			split_x_node(cube, w_index, x_index);
-
-			if (w_node->x_size > BSC_X * 4)
-			{
-				split_w_node(cube, w_index);
-			}
-		}
-	}
-
-	if (x_node->volume + BSC_Z < x_node->y_size * BSC_Z)
-	{
-		deflate_x_axis(cube, w_index, x_index);
-
-		if (w_node->volume + BSC_Z * BSC_Y < w_node->x_size * BSC_Z * BSC_Y)
-		{
-			deflate_w_axis(cube, w_index);
-
-			if (cube->volume + BSC_Z * BSC_Y * BSC_X < cube->w_size * BSC_Z * BSC_Y * BSC_X)
-			{
-				deflate_cube(cube);
-			}
-		}
-	}
-}
-
-void remove_z_node(struct cube *cube, short w_index, short x_index, short y_index, short z_index)
-{
-	struct w_node *w_node = cube->w_axis[w_index];
-	struct x_node *x_node = w_node->x_axis[x_index];
-	struct y_node *y_node = x_node->y_axis[y_index];
+	struct w_node *w_node = cube->w_axis[w];
+	struct x_node *x_node = w_node->x_axis[x];
+	struct y_node *y_node = x_node->y_axis[y];
+	void *val;
 
 	cube->volume--;
 
-	w_node->volume--;
-	x_node->volume--;
+	cube->w_volume[w]--;
+	w_node->x_volume[x]--;
 
-	y_node->z_size--;
+	x_node->z_size[y]--;
 
-	if (y_node->z_size != z_index)
+	val = y_node->z_vals[z];
+
+	if (x_node->z_size[y] != z)
 	{
-		memmove(&y_node->z_axis[z_index], &y_node->z_axis[z_index + 1], (y_node->z_size - z_index) * sizeof(struct z_node));
+		memmove(&y_node->z_keys[z], &y_node->z_keys[z + 1], (x_node->z_size[y] - z) * sizeof(int));
+		memmove(&y_node->z_vals[z], &y_node->z_vals[z + 1], (x_node->z_size[y] - z) * sizeof(void *));
 	}
-	y_node->z_axis = (struct z_node *) realloc(y_node->z_axis, y_node->z_size * sizeof(struct z_node));
 
-	if (y_node->z_size)
+	if (x_node->z_size[y])
 	{
-		if (z_index == 0)
+		if (z == 0)
 		{
-			x_node->y_floor[y_index] = y_node->z_axis[z_index].key;
+			x_node->y_floor[y] = y_node->z_keys[z];
 
-			if (y_index == 0)
+			if (y == 0)
 			{
-				w_node->x_floor[x_index] = y_node->z_axis[z_index].key;
+				w_node->x_floor[x] = y_node->z_keys[z];
 
-				if (x_index == 0)
+				if (x == 0)
 				{
-					cube->w_floor[w_index] = y_node->z_axis[z_index].key;
+					cube->w_floor[w] = y_node->z_keys[z];
 				}
 			}
 		}
 
-		if (x_node->volume + BSC_Z < x_node->y_size * BSC_Z)
+		if (y && x_node->z_size[y] < BSC_Z_MIN && x_node->z_size[y - 1] < BSC_Z_MIN)
 		{
-			deflate_x_axis(cube, w_index, x_index);
+			merge_y_node(cube, w, x, y - 1, y);
 
-			if (w_node->volume + BSC_Z * BSC_Y < w_node->x_size * BSC_Z * BSC_Y)
+			if (x && w_node->y_size[x] < BSC_Y_MIN && w_node->y_size[x - 1] < BSC_Y_MIN)
 			{
-				deflate_w_axis(cube, w_index);
+				merge_x_node(cube, w, x - 1, x);
 
-				if (cube->volume + BSC_Z * BSC_Y * BSC_X < cube->w_size * BSC_Z * BSC_Y * BSC_X)
+				if (w && cube->x_size[w] < BSC_X_MIN && cube->x_size[w - 1] < BSC_X_MIN)
 				{
-					deflate_cube(cube);
+					merge_w_node(cube, w - 1, w);
 				}
 			}
 		}
 	}
 	else
 	{
-		remove_y_node(cube, w_index, x_index, y_index);
+		remove_y_node(cube, w, x, y);
 	}
+	return val;
 }
 
-void split_w_node(struct cube *cube, short w_index)
+void split_w_node(struct cube *cube, short w)
 {
 	struct w_node *w_node1, *w_node2;
 	short x;
 	int volume;
 
-	insert_w_node(cube, w_index + 1);
+	insert_w_node(cube, w + 1);
 
-	w_node1 = cube->w_axis[w_index];
-	w_node2 = cube->w_axis[w_index + 1];
+	w_node1 = cube->w_axis[w];
+	w_node2 = cube->w_axis[w + 1];
 
-	w_node2->x_size = w_node1->x_size / 2;
-	w_node1->x_size = w_node1->x_size - w_node2->x_size;
+	cube->x_size[w + 1] = cube->x_size[w] / 2;
+	cube->x_size[w] -= cube->x_size[w + 1];
 
-	w_node2->x_floor = (int *) realloc(w_node2->x_floor, w_node2->x_size * sizeof(int));
-	w_node2->x_axis = (struct x_node **) realloc(w_node2->x_axis, w_node2->x_size * sizeof(struct x_node *));
+	memcpy(&w_node2->x_floor[0], &w_node1->x_floor[cube->x_size[w]], cube->x_size[w + 1] * sizeof(int));
+	memcpy(&w_node2->x_axis[0], &w_node1->x_axis[cube->x_size[w]], cube->x_size[w + 1] * sizeof(struct x_node *));
+	memcpy(&w_node2->x_volume[0], &w_node1->x_volume[cube->x_size[w]], cube->x_size[w + 1] * sizeof(short));
+	memcpy(&w_node2->y_size[0], &w_node1->y_size[cube->x_size[w]], cube->x_size[w + 1] * sizeof(unsigned char));
 
-	memcpy(&w_node2->x_floor[0], &w_node1->x_floor[w_node1->x_size], w_node2->x_size * sizeof(int));
-	memcpy(&w_node2->x_axis[0], &w_node1->x_axis[w_node1->x_size], w_node2->x_size * sizeof(struct x_node *));
-
-	w_node1->x_floor = (int *) realloc(w_node1->x_floor, w_node1->x_size * sizeof(int));	
-	w_node1->x_axis = (struct x_node **) realloc(w_node1->x_axis, w_node1->x_size * sizeof(struct x_node *));
-
-	for (x = volume = 0 ; x < w_node1->x_size ; x++)
+	for (x = volume = 0 ; x < cube->x_size[w] ; x++)
 	{
-		volume += w_node1->x_axis[x]->volume;
+		volume += w_node1->x_volume[x];
 	}
 
-	w_node2->volume = w_node1->volume - volume;
-	w_node1->volume = volume;
+	cube->w_volume[w + 1] = cube->w_volume[w] - volume;
+	cube->w_volume[w] = volume;
 
-	cube->w_floor[w_index + 1] = w_node2->x_floor[0];
+	cube->w_floor[w + 1] = w_node2->x_floor[0];
 }
 
-void merge_w_node(struct cube *cube, short w_index1, short w_index2)
+void merge_w_node(struct cube *cube, short w1, short w2)
 {
-	struct w_node *w_node1 = cube->w_axis[w_index1];
-	struct w_node *w_node2 = cube->w_axis[w_index2];
+	struct w_node *w_node1 = cube->w_axis[w1];
+	struct w_node *w_node2 = cube->w_axis[w2];
 
-	w_node1->x_floor = (int *) realloc(w_node1->x_floor, (w_node1->x_size + w_node2->x_size) * sizeof(int));
-	w_node1->x_axis = (struct x_node **) realloc(w_node1->x_axis, (w_node1->x_size + w_node2->x_size) * sizeof(struct x_node *));
+	memcpy(&w_node1->x_floor[cube->x_size[w1]], &w_node2->x_floor[0], cube->x_size[w2] * sizeof(int));
+	memcpy(&w_node1->x_axis[cube->x_size[w1]], &w_node2->x_axis[0], cube->x_size[w2] * sizeof(struct x_node *));
+	memcpy(&w_node1->x_volume[cube->x_size[w1]], &w_node2->x_volume[0], cube->x_size[w2] * sizeof(short));
+	memcpy(&w_node1->y_size[cube->x_size[w1]], &w_node2->y_size[0], cube->x_size[w2] * sizeof(unsigned char));
 
-	memcpy(&w_node1->x_floor[w_node1->x_size], &w_node2->x_floor[0], w_node2->x_size * sizeof(int));
-	memcpy(&w_node1->x_axis[w_node1->x_size], &w_node2->x_axis[0], w_node2->x_size * sizeof(struct x_node *));
+	cube->x_size[w1] += cube->x_size[w2];
 
-	w_node1->x_size = w_node1->x_size + w_node2->x_size;
+	cube->w_volume[w1] += cube->w_volume[w2];
 
-	w_node1->volume += w_node2->volume;
-
-	remove_w_node(cube, w_index2);
+	remove_w_node(cube, w2);
 }
 
-void split_x_node(struct cube *cube, short w_index, short x_index)
+void split_x_node(struct cube *cube, short w, short x)
 {
+	struct w_node *w_node = cube->w_axis[w];
 	struct x_node *x_node1, *x_node2;
 	short y;
 	int volume;
 
-	insert_x_node(cube, w_index, x_index + 1);
+	insert_x_node(cube, w, x + 1);
 
-	x_node1 = cube->w_axis[w_index]->x_axis[x_index];
-	x_node2 = cube->w_axis[w_index]->x_axis[x_index + 1];
+	x_node1 = w_node->x_axis[x];
+	x_node2 = w_node->x_axis[x + 1];
 
-	x_node2->y_size = x_node1->y_size / 2;
-	x_node1->y_size = x_node1->y_size - x_node2->y_size;
+	w_node->y_size[x + 1] = w_node->y_size[x] / 2;
+	w_node->y_size[x] -= w_node->y_size[x + 1];
 
-	x_node2->y_floor = (int *) realloc(x_node2->y_floor, x_node2->y_size * sizeof(int));
-	x_node2->y_axis = (struct y_node **) realloc(x_node2->y_axis, x_node2->y_size * sizeof(struct y_node *));
+	memcpy(&x_node2->y_floor[0], &x_node1->y_floor[w_node->y_size[x]], w_node->y_size[x + 1] * sizeof(int));
+	memcpy(&x_node2->y_axis[0], &x_node1->y_axis[w_node->y_size[x]], w_node->y_size[x + 1] * sizeof(struct y_node *));
+	memcpy(&x_node2->z_size[0], &x_node1->z_size[w_node->y_size[x]], w_node->y_size[x + 1] * sizeof(unsigned char));
 
-	memcpy(&x_node2->y_floor[0], &x_node1->y_floor[x_node1->y_size], x_node2->y_size * sizeof(int));
-	memcpy(&x_node2->y_axis[0], &x_node1->y_axis[x_node1->y_size], x_node2->y_size * sizeof(struct y_node *));
-
-	x_node1->y_floor = (int *) realloc(x_node1->y_floor, x_node1->y_size * sizeof(int));
-	x_node1->y_axis = (struct y_node **) realloc(x_node1->y_axis, x_node1->y_size * sizeof(struct y_node *));
-
-	for (y = volume = 0 ; y < x_node1->y_size ; y++)
+	for (y = volume = 0 ; y < w_node->y_size[x] ; y++)
 	{
-		volume += x_node1->y_axis[y]->z_size;
+		volume += x_node1->z_size[y];
 	}
 
-	x_node2->volume = x_node1->volume - volume;
-	x_node1->volume = volume;
+	w_node->x_volume[x + 1] = w_node->x_volume[x] - volume;
+	w_node->x_volume[x] = volume;
 
-	cube->w_axis[w_index]->x_floor[x_index + 1] = x_node2->y_floor[0];
+	cube->w_axis[w]->x_floor[x + 1] = x_node2->y_floor[0];
 }
 
-void merge_x_node(struct cube *cube, short w_index, short x_index1, short x_index2)
+void merge_x_node(struct cube *cube, short w, short x1, short x2)
 {
-	struct x_node *x_node1 = cube->w_axis[w_index]->x_axis[x_index1];
-	struct x_node *x_node2 = cube->w_axis[w_index]->x_axis[x_index2];
+	struct w_node *w_node = cube->w_axis[w];
+	struct x_node *x_node1 = w_node->x_axis[x1];
+	struct x_node *x_node2 = w_node->x_axis[x2];
 
-	x_node1->y_floor = (int *) realloc(x_node1->y_floor, (x_node1->y_size + x_node2->y_size) * sizeof(int));
-	x_node1->y_axis = (struct y_node **) realloc(x_node1->y_axis, (x_node1->y_size + x_node2->y_size) * sizeof(struct y_node *));
+	memcpy(&x_node1->y_floor[w_node->y_size[x1]], &x_node2->y_floor[0], w_node->y_size[x2] * sizeof(int));
+	memcpy(&x_node1->y_axis[w_node->y_size[x1]], &x_node2->y_axis[0], w_node->y_size[x2] * sizeof(struct y_node *));
+	memcpy(&x_node1->z_size[w_node->y_size[x1]], &x_node2->z_size[0], w_node->y_size[x2] * sizeof(unsigned char));
 
-	memcpy(&x_node1->y_floor[x_node1->y_size], &x_node2->y_floor[0], x_node2->y_size * sizeof(int));
-	memcpy(&x_node1->y_axis[x_node1->y_size], &x_node2->y_axis[0], x_node2->y_size * sizeof(struct y_node *));
+	w_node->y_size[x1] += w_node->y_size[x2];
 
-	x_node1->y_size = x_node1->y_size + x_node2->y_size;
+	w_node->x_volume[x1] += w_node->x_volume[x2];
 
-	x_node1->volume += x_node2->volume;
-
-	remove_x_node(cube, w_index, x_index2);
+	remove_x_node(cube, w, x2);
 }
 
-
-void split_y_node(struct cube *cube, short w_index, short x_index, short y_index)
+void split_y_node(struct cube *cube, short w, short x, short y)
 {
-	struct x_node *x_node = cube->w_axis[w_index]->x_axis[x_index];
+	struct x_node *x_node = cube->w_axis[w]->x_axis[x];
 	struct y_node *y_node1, *y_node2;
 
-	insert_y_node(cube, w_index, x_index, y_index + 1);
+	insert_y_node(cube, w, x, y + 1);
 
-	y_node1 = x_node->y_axis[y_index];
-	y_node2 = x_node->y_axis[y_index + 1];
+	y_node1 = x_node->y_axis[y];
+	y_node2 = x_node->y_axis[y + 1];
 
-	y_node2->z_size = y_node1->z_size / 2;
-	y_node1->z_size = y_node1->z_size - y_node2->z_size;
+	x_node->z_size[y + 1] = x_node->z_size[y] / 2;
+	x_node->z_size[y] -= x_node->z_size[y + 1];
 
-	y_node2->z_axis = (struct z_node *) realloc(y_node2->z_axis, y_node2->z_size * sizeof(struct z_node));
+	memcpy(&y_node2->z_keys[0], &y_node1->z_keys[x_node->z_size[y]], x_node->z_size[y + 1] * sizeof(int));
+	memcpy(&y_node2->z_vals[0], &y_node1->z_vals[x_node->z_size[y]], x_node->z_size[y + 1] * sizeof(void *));
 
-	memcpy(&y_node2->z_axis[0], &y_node1->z_axis[y_node1->z_size], y_node2->z_size * sizeof(struct z_node));
-
-	y_node1->z_axis = (struct z_node *) realloc(y_node1->z_axis, y_node1->z_size * sizeof(struct z_node));
-
-	x_node->y_floor[y_index + 1] = y_node2->z_axis[0].key;
+	x_node->y_floor[y + 1] = y_node2->z_keys[0];
 }
 
-void merge_y_node(struct cube *cube, short w_index, short x_index, short y_index1, short y_index2)
+void merge_y_node(struct cube *cube, short w, short x, short y1, short y2)
 {
-	struct y_node *y_node1 = cube->w_axis[w_index]->x_axis[x_index]->y_axis[y_index1];
-	struct y_node *y_node2 = cube->w_axis[w_index]->x_axis[x_index]->y_axis[y_index2];
+	struct x_node *x_node = cube->w_axis[w]->x_axis[x];
 
-	y_node1->z_axis = (struct z_node *) realloc(y_node1->z_axis, (y_node1->z_size + y_node2->z_size) * sizeof(struct z_node));
+	struct y_node *y_node1 = x_node->y_axis[y1];
+	struct y_node *y_node2 = x_node->y_axis[y2];
 
-	memcpy(&y_node1->z_axis[y_node1->z_size], &y_node2->z_axis[0], y_node2->z_size * sizeof(struct z_node));
+	memcpy(&y_node1->z_keys[x_node->z_size[y1]], &y_node2->z_keys[0], x_node->z_size[y2] * sizeof(int));
+	memcpy(&y_node1->z_vals[x_node->z_size[y2]], &y_node2->z_vals[0], x_node->z_size[y2] * sizeof(void *));
 
-	y_node1->z_size = y_node1->z_size + y_node2->z_size;
+	x_node->z_size[y1] += x_node->z_size[y2];
 
-	remove_y_node(cube, w_index, x_index, y_index2);
+	remove_y_node(cube, w, x, y2);
 }
 
-
-void deflate_x_axis(struct cube *cube, short w_index, short x_index)
-{
-	struct x_node *x_node = cube->w_axis[w_index]->x_axis[x_index];
-	short y_index;
-
-	for (y_index = 0 ; y_index + 1 < x_node->y_size ; y_index++)
-	{
-		if (x_node->y_axis[y_index]->z_size + x_node->y_axis[y_index + 1]->z_size < BSC_Z * 2)
-		{
-			merge_y_node(cube, w_index, x_index, y_index, y_index + 1);
-		}
-	}
-}
-
-
-void deflate_w_axis(struct cube *cube, short w_index)
-{
-	struct w_node *w_node = cube->w_axis[w_index];
-	short x_index, d_index;
-
-	for (x_index = d_index = 0 ; x_index + 1 < w_node->x_size ; x_index++)
-	{
-		if (w_node->x_axis[d_index]->y_size + w_node->x_axis[d_index + 1]->y_size > w_node->x_axis[x_index]->y_size + w_node->x_axis[x_index + 1]->y_size)
-		{
-			d_index = x_index;
-		}
-	}
-
-	merge_x_node(cube, w_index, d_index, d_index + 1);
-}
-
-void deflate_cube(struct cube *cube)
-{
-	short w_index, d_index;
-
-	for (w_index = d_index = 0 ; w_index + 1 < cube->w_size ; w_index++)
-	{
-		if (cube->w_axis[d_index]->x_size + cube->w_axis[d_index + 1]->x_size > cube->w_axis[w_index]->x_size + cube->w_axis[w_index + 1]->x_size)
-		{
-			d_index = w_index;
-		}
-	}
-
-	merge_w_node(cube, d_index, d_index + 1);
-}
-
-#if 0
-void show_cube(struct cube *cube, short depth)
+size_t cube_size(struct cube *cube)
 {
 	struct w_node *w_node;
 	struct x_node *x_node;
 	struct y_node *y_node;
-	struct z_node *z_node;
 	short w, x, y, z;
+	size_t size = 0;
 
-	for (w = 0 ; w < cube->w_size ; w++)
+	for (w = cube->w_size - 1 ; w >= 0 ; w--)
 	{
 		w_node = cube->w_axis[w];
 
-		if (depth == 1)
-		{
-			printf("w index [%3d] x size [%3d] volume [%10d]\n", w, w_node->x_size, w_node->volume);
-
-			continue;
-		}
-
-		for (x = 0 ; x < w_node->x_size ; x++)
+		for (x = cube->x_size[w] - 1 ; x >= 0 ; x--)
 		{
 			x_node = w_node->x_axis[x];
 
-			if (depth == 2)
+			for (y = w_node->y_size[x] - 1 ; y >= 0 ; y--)
 			{
-				printf("w [%3d] x [%3d] s [%3d] v [%10d]\n", w, x, x_node->y_size, x_node->volume);
-
-				continue;
+				size += sizeof(struct y_node);
 			}
-
-			for (y = 0 ; y < x_node->y_size ; y++)
-			{
-				y_node = x_node->y_axis[y];
-
-				if (depth == 3)
-				{
-					printf("w [%3d] x [%3d] y [%3d] s [%3d]\n", w, x, y, y_node->z_size);
-
-					continue;
-				}
-
-				for (z = 0 ; z < y_node->z_size ; z++)
-				{
-					z_node = &y_node->z_axis[z];
-
-					printf("w [%3d] x [%3d] y [%3d] z [%3d] [%010d] (%s)\n", w, x, y, z, z_node->key, z_node->val);
-				}
-			}
+			size += sizeof(struct x_node);
 		}
+		size += sizeof(struct w_node);
 	}
+
+	size += BSC_M * sizeof(int);
+	size += BSC_M * sizeof(struct w_node *);
+	size += BSC_M * sizeof(int);
+	size += BSC_M * sizeof(unsigned char);
+	size += sizeof(struct cube);
+
+	return size;
 }
-
-long long utime()
-{
-	struct timeval now_time;
-
-	gettimeofday(&now_time, NULL);
-
-	return now_time.tv_sec * 1000000LL + now_time.tv_usec;
-}
-
-int main(int argc, char **argv)
-{
-	int cnt, max;
-	long long start, end;
-
-	struct cube *cube;
-
-	if (argv[1] && *argv[1])
-	{
-		printf("%s\n", argv[1]);
-	}
-
-	cube = create_cube();
-
-	max = 10000000;
-
-	start = utime();
-
-	srand(10);
-
-	for (cnt = 1 ; cnt <= max ; cnt++)
-	{
-//		set_key(cube, 0 + rand(), "");
-//		set_key(cube, 0 + cnt, "fwd order");
-		set_key(cube, max - cnt, "rev order");
-	}
-
-	end = utime();
-
-	printf("Time to insert %d elements: %f seconds.\n", max, (end - start) / 1000000.0);
-
-	show_cube(cube, 1);
-
-	start = utime();
-
-	return 0;
-
-	srand(10);
-
-	for (cnt = 1 ; cnt <= max ; cnt++)
-	{
-//		set_key(cube, 0 + cnt, "fwd order");
-//		set_key(cube, 0 + rand(), "");
-//		set_key(cube, 0 - cnt, "upd order");
-//		del_index(cube, rand() % cube->volume);
-//		del_index(cube, cnt);
-//		del_index(cube, 0);
-	}
-
-	end = utime();
-
-	printf("Time to update %d elements: %f seconds.\n", max, (end - start) / 1000000.0);
-
-	show_cube(cube, 1);
-
-//	destroy_cube(cube);
-
-	return 0;
-}
-#endif
 

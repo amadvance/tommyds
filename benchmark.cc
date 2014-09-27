@@ -173,7 +173,7 @@ typedef size_t ssize_t;
 
 /* Binary Search Cube */
 /* https://sites.google.com/site/binarysearchcube/ */
-#include "benchmark/lib/cube/binary-search-tesseract-1.0-1.c"
+#include "benchmark/lib/cube/binary-search-tesseract-1.0.c"
 #define USE_CUBE 1
 
 /******************************************************************************/
@@ -1360,12 +1360,11 @@ void test_hit(unsigned* SEARCH)
 #ifdef USE_CUBE
 	START(DATA_CUBE) {
 		unsigned key = SEARCH[i] + DELTA;
-		struct z_node* pvalue;
-		pvalue = get_key(cube, key);
-		if (!pvalue)
+		struct cube_object* obj;
+		obj = get_key(cube, key);
+		if (!obj)
 			abort();
 		if (dereference) {
-			struct cube_object* obj = (struct cube_object*)pvalue->val;
 			if (obj->value != key)
 				abort();
 		}
@@ -1541,9 +1540,9 @@ void test_miss(unsigned* SEARCH)
 #ifdef USE_CUBE
 	START(DATA_CUBE) {
 		unsigned key = SEARCH[i] + DELTA;
-		struct z_node* pvalue;
-		pvalue = get_key(cube, key);
-		if (pvalue)
+		struct cube_obj* obj;
+		obj = get_key(cube, key);
+		if (obj)
 			abort();
 	} STOP();
 #endif
@@ -1824,13 +1823,9 @@ void test_change(unsigned* REMOVE, unsigned* INSERT)
 	START(DATA_CUBE) {
 		unsigned key = REMOVE[i];
 		struct cube_object* obj;
-		struct z_node* pvalue;
-		short w_index, x_index, y_index, z_index;
-		pvalue = find_key(cube, key, &w_index, &x_index, &y_index, &z_index);
-		if (!pvalue)
+		obj = del_key(cube, key);
+		if (!obj)
 			abort();
-		obj = (struct cube_object*)pvalue->val;
-		remove_z_node(cube, w_index, x_index, y_index, z_index);
 
 		key = INSERT[i] + DELTA;
 		obj->value = key;
@@ -2123,13 +2118,9 @@ void test_remove(unsigned* REMOVE)
 	START(DATA_CUBE) {
 		unsigned key = REMOVE[i] + DELTA;
 		struct cube_object* obj;
-		struct z_node* pvalue;
-		short w_index, x_index, y_index, z_index;
-		pvalue = find_key(cube, key, &w_index, &x_index, &y_index, &z_index);
-		if (!pvalue)
+		obj = del_key(cube, key);
+		if (!obj)
 			abort();
-		obj = (struct cube_object*)pvalue->val;
-		remove_z_node(cube, w_index, x_index, y_index, z_index);
 		if (dereference) {
 			if (obj->value != key)
 				abort();
@@ -2232,7 +2223,6 @@ void test_size(void)
 	MEM(DATA_STXBTREE, stxbtree_size(stxbtree));
 #endif
 	MEM(DATA_UTHASH, uthash_size(uthash));
-	MEM(DATA_NEDTRIE, nedtrie_size(&nedtrie));
 #ifdef USE_JUDY
 	JLMU(w, judy);
 	MEM(DATA_JUDY, w);
@@ -2240,6 +2230,10 @@ void test_size(void)
 #ifdef USE_JUDYARRAY
 	MEM(DATA_JUDYARRAY,judy_size(judyarray));
 #endif
+#ifdef USE_CUBE
+	MEM(DATA_CUBE, cube_size(cube));
+#endif
+	MEM(DATA_NEDTRIE, nedtrie_size(&nedtrie));
 }
 
 void test_operation(unsigned* INSERT, unsigned* SEARCH)
@@ -2263,14 +2257,6 @@ void test_operation(unsigned* INSERT, unsigned* SEARCH)
 
 	OPERATION(OPERATION_REMOVE);
 	test_remove(SEARCH);
-}
-
-void test_order()
-{
-	test_alloc();
-	ORDER(ORDER_RANDOM);
-	test_operation(RAND0, RAND1);
-	test_free();
 }
 
 void test(unsigned size, unsigned data, int log, int sparse)
