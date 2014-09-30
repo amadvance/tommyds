@@ -333,6 +333,8 @@ void set_key(struct cube *cube, int key, void *val)
 		goto insert;
 	}
 
+	// w
+
 	mid = w = cube->w_size - 1;
 
 	while (mid > 3)
@@ -410,6 +412,8 @@ void set_key(struct cube *cube, int key, void *val)
 	if (key == y_node->z_keys[z])
 	{
 		y_node->z_vals[z] = val;
+
+		return;
 	}
 
 	++z;
@@ -462,6 +466,8 @@ inline void *find_key(struct cube *cube, int key, short *w_index, short *x_index
 		return NULL;
 	}
 
+	// w
+
 	mid = w = cube->w_size - 1;
 
 	while (mid > 3)
@@ -471,8 +477,6 @@ inline void *find_key(struct cube *cube, int key, short *w_index, short *x_index
 		if (key < cube->w_floor[w - mid]) w -= mid;
 	}
 	while (key < cube->w_floor[w]) --w;
-
-	*w_index = w;
 
 	w_node = cube->w_axis[w];
 
@@ -487,8 +491,6 @@ inline void *find_key(struct cube *cube, int key, short *w_index, short *x_index
 		if (key < w_node->x_floor[x - mid]) x -= mid;
 	}
 	while (key < w_node->x_floor[x]) --x;
-
-	*x_index = x;
 
 	x_node = w_node->x_axis[x];
 
@@ -515,8 +517,6 @@ inline void *find_key(struct cube *cube, int key, short *w_index, short *x_index
 	}
 	while (key < x_node->y_floor[y]) --y;
 
-	*y_index = y;
-
 	y_node = x_node->y_axis[y];
 
 	// z
@@ -541,6 +541,10 @@ inline void *find_key(struct cube *cube, int key, short *w_index, short *x_index
 		}
 	}
 	while (key < y_node->z_keys[z]) --z;
+
+	*w_index = w;
+	*x_index = x;
+	*y_index = y;
 
 	if (key == y_node->z_keys[z])
 	{
@@ -881,19 +885,17 @@ void merge_y_node(struct cube *cube, short w, short x, short y1, short y2)
 	struct y_node *y_node2 = x_node->y_axis[y2];
 
 	memcpy(&y_node1->z_keys[x_node->z_size[y1]], &y_node2->z_keys[0], x_node->z_size[y2] * sizeof(int));
-	memcpy(&y_node1->z_vals[x_node->z_size[y2]], &y_node2->z_vals[0], x_node->z_size[y2] * sizeof(void *));
+	memcpy(&y_node1->z_vals[x_node->z_size[y1]], &y_node2->z_vals[0], x_node->z_size[y2] * sizeof(void *));
 
 	x_node->z_size[y1] += x_node->z_size[y2];
 
 	remove_y_node(cube, w, x, y2);
 }
 
-size_t cube_size(struct cube *cube)
+size_t size_cube(struct cube *cube)
 {
 	struct w_node *w_node;
-	struct x_node *x_node;
-	struct y_node *y_node;
-	short w, x, y, z;
+	short w, x, y;
 	size_t size = 0;
 
 	for (w = cube->w_size - 1 ; w >= 0 ; w--)
@@ -902,8 +904,6 @@ size_t cube_size(struct cube *cube)
 
 		for (x = cube->x_size[w] - 1 ; x >= 0 ; x--)
 		{
-			x_node = w_node->x_axis[x];
-
 			for (y = w_node->y_size[x] - 1 ; y >= 0 ; y--)
 			{
 				size += sizeof(struct y_node);

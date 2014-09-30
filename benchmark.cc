@@ -2231,7 +2231,7 @@ void test_size(void)
 	MEM(DATA_JUDYARRAY,judy_size(judyarray));
 #endif
 #ifdef USE_CUBE
-	MEM(DATA_CUBE, cube_size(cube));
+	MEM(DATA_CUBE, size_cube(cube));
 #endif
 	MEM(DATA_NEDTRIE, nedtrie_size(&nedtrie));
 }
