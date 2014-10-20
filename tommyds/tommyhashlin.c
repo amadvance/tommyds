@@ -29,6 +29,7 @@
 #include "tommylist.h"
 
 #include <assert.h> /* for assert */
+#include <stddef.h> /* for ptrdiff_t */
 
 /******************************************************************************/
 /* hashlin */
@@ -132,10 +133,14 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 			++hashlin->bucket_bit;
 			hashlin->bucket_max = 1 << hashlin->bucket_bit;
 			hashlin->bucket_mask = hashlin->bucket_max - 1;
+
 			/* allocate the new vector using malloc() and not calloc() */
 			/* because data is fully initialized in the split process */
 			segment = tommy_cast(tommy_hashlin_node**, tommy_malloc(hashlin->low_max * sizeof(tommy_hashlin_node*)));
-			hashlin->bucket[hashlin->bucket_mac] = &segment[-hashlin->low_max];
+
+			/* store it adjusting the offset */
+			/* cast to ptrdiff_t to ensure to get a negative value */
+			hashlin->bucket[hashlin->bucket_mac] = &segment[-(ptrdiff_t)hashlin->low_max];
 			++hashlin->bucket_mac;
 
 			/* start from the beginning going forward */
