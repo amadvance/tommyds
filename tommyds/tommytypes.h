@@ -35,19 +35,20 @@
 /******************************************************************************/
 /* types */
 
-#if defined(_MSC_VER)
 #include <stddef.h>
+
+#if defined(_MSC_VER)
 typedef unsigned tommy_uint32_t; /**< Generic uint32_t type. */
 typedef unsigned _int64 tommy_uint64_t; /**< Generic uint64_t type. */
-typedef size_t tommy_size_t; /**< Generic size_t type. */
 typedef size_t tommy_uintptr_t; /**< Generic uintptr_t type. */
 #else
 #include <stdint.h>
 typedef uint32_t tommy_uint32_t; /**< Generic uint32_t type. */
 typedef uint64_t tommy_uint64_t; /**< Generic uint64_t type. */
-typedef uintptr_t tommy_size_t; /**< Generic size_t type. */
 typedef uintptr_t tommy_uintptr_t; /**< Generic uintptr_t type. */
 #endif
+typedef size_t tommy_size_t; /**< Generic size_t type. */
+typedef ptrdiff_t tommy_ptrdiff_t; /**< Generic ptrdiff_t type. */
 typedef int tommy_bool_t; /**< Generic boolean type. */
 
 /** \internal

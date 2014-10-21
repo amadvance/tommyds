@@ -29,7 +29,6 @@
 #include "tommylist.h"
 
 #include <assert.h> /* for assert */
-#include <stddef.h> /* for ptrdiff_t */
 
 /******************************************************************************/
 /* hashlin */
@@ -140,7 +139,7 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 
 			/* store it adjusting the offset */
 			/* cast to ptrdiff_t to ensure to get a negative value */
-			hashlin->bucket[hashlin->bucket_mac] = &segment[-(ptrdiff_t)hashlin->low_max];
+			hashlin->bucket[hashlin->bucket_mac] = &segment[-(tommy_ptrdiff_t)hashlin->low_max];
 			++hashlin->bucket_mac;
 
 			/* start from the beginning going forward */
