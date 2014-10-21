@@ -167,11 +167,11 @@ tommy_inline void tommy_chain_mergesort(tommy_chain* chain, tommy_compare_func* 
 	 * Value stored inside the bit bucket.
 	 * It's used to know which bucket is empty of full.
 	 */
-	unsigned counter;
+	tommy_obj_t counter;
 	tommy_node* node = chain->head;
 	tommy_node* tail = chain->tail;
-	unsigned mask;
-	unsigned i;
+	tommy_obj_t mask;
+	tommy_obj_t i;
 
 	counter = 0;
 	while (1) {

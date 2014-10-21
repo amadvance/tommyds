@@ -165,15 +165,15 @@ typedef tommy_node tommy_hashlin_node;
  */
 typedef struct tommy_hashlin_struct {
 	tommy_hashlin_node** bucket[TOMMY_HASHLIN_BIT_MAX]; /**< Dynamic array of hash buckets. One list for each hash modulus. */
-	unsigned bucket_bit; /**< Bits used in the bit mask. */
-	unsigned bucket_max; /**< Number of buckets. */
-	unsigned bucket_mask; /**< Bit mask to access the buckets. */
-	unsigned bucket_mac; /**< Number of vectors allocated. */
-	unsigned low_max; /**< Low order max value. */
-	unsigned low_mask; /**< Low order mask value. */
-	unsigned split; /**< Split position. */
-	unsigned state; /**< Reallocation state. */
-	unsigned count; /**< Number of elements. */
+	tommy_bit_t bucket_bit; /**< Bits used in the bit mask. */
+	tommy_bit_t bucket_mac; /**< Number of vectors allocated. */
+	tommy_obj_t bucket_max; /**< Number of buckets. */
+	tommy_obj_t bucket_mask; /**< Bit mask to access the buckets. */
+	tommy_obj_t low_max; /**< Low order max value. */
+	tommy_obj_t low_mask; /**< Low order mask value. */
+	tommy_obj_t split; /**< Split position. */
+	tommy_obj_t count; /**< Number of elements. */
+	tommy_bit_t state; /**< Reallocation state. */
 } tommy_hashlin;
 
 /**
@@ -261,7 +261,7 @@ void tommy_hashlin_foreach_arg(tommy_hashlin* hashlin, tommy_foreach_arg_func* f
 /**
  * Gets the number of elements.
  */
-tommy_inline unsigned tommy_hashlin_count(tommy_hashlin* hashlin)
+tommy_inline tommy_obj_t tommy_hashlin_count(tommy_hashlin* hashlin)
 {
 	return hashlin->count;
 }

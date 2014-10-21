@@ -37,7 +37,7 @@
  */
 #define TOMMY_ALLOCATOR_BLOCK_SIZE (4096 - 64)
 
-void tommy_allocator_init(tommy_allocator* alloc, unsigned block_size, unsigned align_size)
+void tommy_allocator_init(tommy_allocator* alloc, tommy_size_t block_size, tommy_size_t align_size)
 {
 	/* setup the minimal alignment */
 	if (align_size < sizeof(void*))

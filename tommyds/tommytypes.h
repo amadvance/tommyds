@@ -51,6 +51,27 @@ typedef size_t tommy_size_t; /**< Generic size_t type. */
 typedef ptrdiff_t tommy_ptrdiff_t; /**< Generic ptrdiff_t type. */
 typedef int tommy_bool_t; /**< Generic boolean type. */
 
+/**
+ * Basic type used for counting bits.
+ *
+ * A 8 bits type is enough, but to have a more efficient implementation
+ * we use a 32 bits type.
+ */
+typedef tommy_uint32_t tommy_bit_t;
+
+/**
+ * Basic type used for counting objects.
+ *
+ * A 32 bits type allows up to 2^32-1 objects.
+ *
+ * If you need more, you have to use a 64 bit type, but the implementation
+ * is not tested in this configuration.
+ *
+ * Note that this types limits only the number of objects, and not their
+ * memory usage, as their size is stored using the tommy_size_t type.
+ */
+typedef tommy_uint32_t tommy_obj_t;
+
 /** \internal
  * Type cast required for the C++ compilation.
  * When compiling in C++ we cannot convert a void* pointer to another pointer.
@@ -308,7 +329,7 @@ typedef void tommy_foreach_arg_func(void* arg, void* obj);
  * \param value Value to scan. 0 is not allowed.
  * \return The index of the most significan bit set.
  */
-tommy_inline unsigned tommy_ilog2_u32(tommy_uint32_t value)
+tommy_inline tommy_bit_t tommy_ilog2_u32(tommy_uint32_t value)
 {
 #if defined(_MSC_VER)
 	unsigned long count;
@@ -327,7 +348,7 @@ tommy_inline unsigned tommy_ilog2_u32(tommy_uint32_t value)
 #else
 	/* Find the log base 2 of an N-bit integer in O(lg(N)) operations with multiply and lookup */
 	/* from http://graphics.stanford.edu/~seander/bithacks.html */
-	static const int TOMMY_DE_BRUIJN_INDEX_ILOG2[32] = {
+	static unsigned char TOMMY_DE_BRUIJN_INDEX_ILOG2[32] = {
 		0, 9, 1, 10, 13, 21, 2, 29, 11, 14, 16, 18, 22, 25, 3, 30,
 		8, 12, 20, 28, 15, 17, 24, 7, 19, 27, 23, 6, 26, 5, 4, 31
 	};
@@ -350,7 +371,7 @@ tommy_inline unsigned tommy_ilog2_u32(tommy_uint32_t value)
  * \param value Value to scan. 0 is not allowed.
  * \return The index of the least significant bit set.
  */
-tommy_inline unsigned tommy_ctz_u32(tommy_uint32_t value)
+tommy_inline tommy_bit_t tommy_ctz_u32(tommy_uint32_t value)
 {
 #if defined(_MSC_VER)
 	unsigned long count;
@@ -361,7 +382,7 @@ tommy_inline unsigned tommy_ctz_u32(tommy_uint32_t value)
 #else
 	/* Count the consecutive zero bits (trailing) on the right with multiply and lookup */
 	/* from http://graphics.stanford.edu/~seander/bithacks.html */
-	static const tommy_uint32_t TOMMY_DE_BRUIJN_INDEX_CTZ[32] = {
+	static const unsigned char TOMMY_DE_BRUIJN_INDEX_CTZ[32] = {
 		0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8,
 		31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
 	};

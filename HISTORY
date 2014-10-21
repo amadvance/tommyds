@@ -1,12 +1,12 @@
 TommyDS HISTORY
 ===============
 
-2.0 2014/08
+2.0 2014/10
 ===========
+ * Faster array and hashlin implementation when accessing elements.
+ * Added new hashtable functions to iterate over all the elements.
  * Added a new tommy_calloc() function used for allocating initialized memory.
    If you redefined tommy_malloc(), likely you have to redefine also tommy_calloc().
- * Added new hashtable functions to iterate over all the elements.
- * Faster array and hashlin implementation when accessing elements.
  * Different source code organization.
 
 1.8 2013/12

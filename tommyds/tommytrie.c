@@ -76,7 +76,7 @@ typedef struct tommy_trie_tree_struct tommy_trie_tree;
 
 void tommy_trie_init(tommy_trie* trie, tommy_allocator* alloc)
 {
-	unsigned i;
+	tommy_bit_t i;
 
 	for (i = 0; i < TOMMY_TRIE_BUCKET_MAX; ++i)
 		trie->bucket[i] = 0;
@@ -87,12 +87,13 @@ void tommy_trie_init(tommy_trie* trie, tommy_allocator* alloc)
 	trie->alloc = alloc;
 }
 
-static void trie_bucket_insert(tommy_trie* trie, unsigned shift, tommy_trie_node** let_ptr, tommy_trie_node* insert, tommy_key_t key)
+static void trie_bucket_insert(tommy_trie* trie, tommy_bit_t shift, tommy_trie_node** let_ptr, tommy_trie_node* insert, tommy_key_t key)
 {
 	tommy_trie_tree* tree;
 	tommy_trie_node* node;
 	void* ptr;
-	unsigned i, j;
+	tommy_bit_t i;
+	tommy_bit_t j;
 
 recurse:
 	ptr = *let_ptr;
@@ -164,16 +165,16 @@ void tommy_trie_insert(tommy_trie* trie, tommy_trie_node* node, void* data, tomm
 	++trie->count;
 }
 
-static tommy_trie_node* trie_bucket_remove_existing(tommy_trie* trie, unsigned shift, tommy_trie_node** let_ptr, tommy_trie_node* remove, tommy_key_t key)
+static tommy_trie_node* trie_bucket_remove_existing(tommy_trie* trie, tommy_bit_t shift, tommy_trie_node** let_ptr, tommy_trie_node* remove, tommy_key_t key)
 {
 	tommy_trie_node* node;
 	tommy_trie_tree* tree;
 	void* ptr;
 	tommy_trie_node** let_back[TOMMY_TRIE_LEVEL_MAX + 1];
-	unsigned level;
-	unsigned i;
-	unsigned count;
-	unsigned last;
+	tommy_bit_t level;
+	tommy_bit_t i;
+	tommy_bit_t count;
+	tommy_bit_t last;
 
 	level = 0;
 recurse:
@@ -288,8 +289,8 @@ tommy_trie_node* tommy_trie_bucket(tommy_trie* trie, tommy_key_t key)
 {
 	tommy_trie_node* node;
 	void* ptr;
-	unsigned type;
-	unsigned shift;
+	tommy_bit_t type;
+	tommy_bit_t shift;
 
 	ptr = trie->bucket[key >> TOMMY_TRIE_BUCKET_SHIFT];
 

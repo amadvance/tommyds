@@ -58,15 +58,15 @@
  */
 typedef struct tommy_arrayblkof_struct {
 	tommy_array block; /**< Array of blocks. */
-	unsigned element_size; /**< Size of the stored element in bytes. */
-	unsigned size; /**< Currently allocated and initialized size. */
+	tommy_size_t element_size; /**< Size of the stored element in bytes. */
+	tommy_obj_t size; /**< Currently allocated and initialized size. */
 } tommy_arrayblkof;
 
 /**
  * Initializes the array.
  * \param element_size Size in byte of the element to store in the array.
  */
-void tommy_arrayblkof_init(tommy_arrayblkof* array, unsigned element_size);
+void tommy_arrayblkof_init(tommy_arrayblkof* array, tommy_size_t element_size);
 
 /**
  * Deinitializes the array.
@@ -77,14 +77,14 @@ void tommy_arrayblkof_done(tommy_arrayblkof* array);
  * Grow the size up to the specified value.
  * All the new elements in the array are initialized with the 0 value.
  */
-void tommy_arrayblkof_grow(tommy_arrayblkof* array, unsigned size);
+void tommy_arrayblkof_grow(tommy_arrayblkof* array, tommy_obj_t size);
 
 /**
  * Gets a reference of the element at the specified position.
  * You must be sure that space for this position is already
  * allocated calling tommy_arrayblkof_grow().
  */
-tommy_inline void* tommy_arrayblkof_ref(tommy_arrayblkof* array, unsigned pos)
+tommy_inline void* tommy_arrayblkof_ref(tommy_arrayblkof* array, tommy_obj_t pos)
 {
 	unsigned char* base;
 
@@ -98,7 +98,7 @@ tommy_inline void* tommy_arrayblkof_ref(tommy_arrayblkof* array, unsigned pos)
 /**
  * Gets the initialized size of the array.
  */
-tommy_inline unsigned tommy_arrayblkof_size(tommy_arrayblkof* array)
+tommy_inline tommy_obj_t tommy_arrayblkof_size(tommy_arrayblkof* array)
 {
 	return array->size;
 }
