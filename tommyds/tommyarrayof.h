@@ -65,7 +65,6 @@ typedef struct tommy_arrayof_struct {
 	void* bucket[TOMMY_ARRAYOF_BIT_MAX]; /**< Dynamic array of buckets. */
 	tommy_size_t element_size; /**< Size of the stored element in bytes. */
 	tommy_bit_t bucket_bit; /**< Bits used in the bit mask. */
-	tommy_bit_t bucket_segment; /**< Number of vectors allocated. */
 	tommy_obj_t bucket_max; /**< Number of buckets. */
 	tommy_obj_t count; /**< Number of initialized elements in the array. */
 } tommy_arrayof;
