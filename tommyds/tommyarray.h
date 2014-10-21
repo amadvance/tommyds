@@ -64,9 +64,9 @@
 typedef struct tommy_array_struct {
 	void** bucket[TOMMY_ARRAY_BIT_MAX]; /**< Dynamic array of buckets. */
 	tommy_bit_t bucket_bit; /**< Bits used in the bit mask. */
-	tommy_bit_t bucket_mac; /**< Number of vectors allocated. */
+	tommy_bit_t bucket_segment; /**< Number of vectors allocated. */
 	tommy_obj_t bucket_max; /**< Number of buckets. */
-	tommy_obj_t size; /**< Currently allocated and initialized size. */
+	tommy_obj_t count; /**< Number of initialized elements in the array. */
 } tommy_array;
 
 /**
@@ -94,7 +94,7 @@ tommy_inline void** tommy_array_ref(tommy_array* array, tommy_obj_t pos)
 {
 	tommy_bit_t bsr;
 
-	assert(pos < array->size);
+	assert(pos < array->count);
 
 	/* get the highest bit set, in case of all 0, return 0 */
 	bsr = tommy_ilog2_u32(pos | 1);
@@ -127,7 +127,7 @@ tommy_inline void* tommy_array_get(tommy_array* array, tommy_obj_t pos)
  */
 tommy_inline void tommy_array_insert(tommy_array* array, void* element)
 {
-	tommy_obj_t pos = array->size;
+	tommy_obj_t pos = array->count;
 
 	tommy_array_grow(array, pos + 1);
 
@@ -139,7 +139,7 @@ tommy_inline void tommy_array_insert(tommy_array* array, void* element)
  */
 tommy_inline tommy_obj_t tommy_array_size(tommy_array* array)
 {
-	return array->size;
+	return array->count;
 }
 
 /**

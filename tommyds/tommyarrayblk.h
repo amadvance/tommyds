@@ -59,7 +59,7 @@
  */
 typedef struct tommy_arrayblk_struct {
 	tommy_array block; /**< Array of blocks. */
-	tommy_obj_t size; /**< Currently allocated and initialized size. */
+	tommy_obj_t count; /**< Number of initialized elements in the array. */
 } tommy_arrayblk;
 
 /**
@@ -87,7 +87,7 @@ tommy_inline void** tommy_arrayblk_ref(tommy_arrayblk* array, tommy_obj_t pos)
 {
 	void** ptr;
 
-	assert(pos < array->size);
+	assert(pos < array->count);
 
 	ptr = tommy_cast(void**, tommy_array_get(&array->block, pos / TOMMY_ARRAYBLK_SIZE));
 
@@ -119,7 +119,7 @@ tommy_inline void* tommy_arrayblk_get(tommy_arrayblk* array, tommy_obj_t pos)
  */
 tommy_inline void tommy_arrayblk_insert(tommy_arrayblk* array, void* element)
 {
-	tommy_obj_t pos = array->size;
+	tommy_obj_t pos = array->count;
 
 	tommy_arrayblk_grow(array, pos + 1);
 
@@ -131,7 +131,7 @@ tommy_inline void tommy_arrayblk_insert(tommy_arrayblk* array, void* element)
  */
 tommy_inline tommy_obj_t tommy_arrayblk_size(tommy_arrayblk* array)
 {
-	return array->size;
+	return array->count;
 }
 
 /**

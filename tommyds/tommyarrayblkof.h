@@ -59,7 +59,7 @@
 typedef struct tommy_arrayblkof_struct {
 	tommy_array block; /**< Array of blocks. */
 	tommy_size_t element_size; /**< Size of the stored element in bytes. */
-	tommy_obj_t size; /**< Currently allocated and initialized size. */
+	tommy_obj_t count; /**< Number of initialized elements in the array. */
 } tommy_arrayblkof;
 
 /**
@@ -88,7 +88,7 @@ tommy_inline void* tommy_arrayblkof_ref(tommy_arrayblkof* array, tommy_obj_t pos
 {
 	unsigned char* base;
 
-	assert(pos < array->size);
+	assert(pos < array->count);
 
 	base = tommy_cast(unsigned char*, tommy_array_get(&array->block, pos / TOMMY_ARRAYBLKOF_SIZE));
 
@@ -100,7 +100,7 @@ tommy_inline void* tommy_arrayblkof_ref(tommy_arrayblkof* array, tommy_obj_t pos
  */
 tommy_inline tommy_obj_t tommy_arrayblkof_size(tommy_arrayblkof* array)
 {
-	return array->size;
+	return array->count;
 }
 
 /**

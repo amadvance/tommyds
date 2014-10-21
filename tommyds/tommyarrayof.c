@@ -44,8 +44,8 @@ void tommy_arrayof_init(tommy_arrayof* array, tommy_size_t element_size)
 	for (i = 1; i < TOMMY_ARRAYOF_BIT; ++i)
 		array->bucket[i] = array->bucket[0];
 
-	array->bucket_mac = TOMMY_ARRAYOF_BIT;
-	array->size = 0;
+	array->bucket_segment = TOMMY_ARRAYOF_BIT;
+	array->count = 0;
 }
 
 void tommy_arrayof_done(tommy_arrayof* array)
@@ -53,19 +53,19 @@ void tommy_arrayof_done(tommy_arrayof* array)
 	tommy_bit_t i;
 
 	tommy_free(array->bucket[0]);
-	for (i = TOMMY_ARRAYOF_BIT; i < array->bucket_mac; ++i) {
+	for (i = TOMMY_ARRAYOF_BIT; i < array->bucket_segment; ++i) {
 		void* segment = array->bucket[i];
 		tommy_free(tommy_cast(unsigned char*, segment) + (1 << i) * array->element_size);
 	}
 }
 
-void tommy_arrayof_grow(tommy_arrayof* array, tommy_obj_t size)
+void tommy_arrayof_grow(tommy_arrayof* array, tommy_obj_t count)
 {
-	if (array->size >= size)
+	if (array->count >= count)
 		return;
-	array->size = size;
+	array->count = count;
 
-	while (size > array->bucket_max) {
+	while (count > array->bucket_max) {
 		void* segment;
 
 		/* allocate one more segment */
@@ -73,9 +73,9 @@ void tommy_arrayof_grow(tommy_arrayof* array, tommy_obj_t size)
 
 		/* store it adjusting the offset */
 		/* cast to ptrdiff_t to ensure to get a negative value */
-		array->bucket[array->bucket_mac] = tommy_cast(unsigned char*, segment) - (ptrdiff_t)array->bucket_max * (ptrdiff_t)array->element_size;
+		array->bucket[array->bucket_segment] = tommy_cast(unsigned char*, segment) - (ptrdiff_t)array->bucket_max * (ptrdiff_t)array->element_size;
 
-		++array->bucket_mac;
+		++array->bucket_segment;
 		++array->bucket_bit;
 		array->bucket_max = 1 << array->bucket_bit;
 	}

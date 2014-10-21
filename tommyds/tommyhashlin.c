@@ -51,7 +51,7 @@ void tommy_hashlin_init(tommy_hashlin* hashlin)
 	hashlin->bucket[0] = tommy_cast(tommy_hashlin_node**, tommy_calloc(hashlin->bucket_max, sizeof(tommy_hashlin_node*)));
 	for (i = 1; i < TOMMY_HASHLIN_BIT; ++i)
 		hashlin->bucket[i] = hashlin->bucket[0];
-	hashlin->bucket_mac = TOMMY_HASHLIN_BIT;
+	hashlin->bucket_segment = TOMMY_HASHLIN_BIT;
 
 	/* stable state */
 	hashlin->state = TOMMY_HASHLIN_STATE_STABLE;
@@ -64,7 +64,7 @@ void tommy_hashlin_done(tommy_hashlin* hashlin)
 	tommy_bit_t i;
 
 	tommy_free(hashlin->bucket[0]);
-	for (i = TOMMY_HASHLIN_BIT; i < hashlin->bucket_mac; ++i) {
+	for (i = TOMMY_HASHLIN_BIT; i < hashlin->bucket_segment; ++i) {
 		tommy_hashlin_node** segment = hashlin->bucket[i];
 		tommy_free(&segment[1 << i]);
 	}
@@ -139,8 +139,8 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 
 			/* store it adjusting the offset */
 			/* cast to ptrdiff_t to ensure to get a negative value */
-			hashlin->bucket[hashlin->bucket_mac] = &segment[-(tommy_ptrdiff_t)hashlin->low_max];
-			++hashlin->bucket_mac;
+			hashlin->bucket[hashlin->bucket_segment] = &segment[-(tommy_ptrdiff_t)hashlin->low_max];
+			++hashlin->bucket_segment;
 
 			/* start from the beginning going forward */
 			hashlin->split = 0;
@@ -261,8 +261,8 @@ tommy_inline void hashlin_shrink_step(tommy_hashlin* hashlin)
 				hashlin->bucket_mask = hashlin->bucket_max - 1;
 
 				/* free the last segment */
-				--hashlin->bucket_mac;
-				segment = hashlin->bucket[hashlin->bucket_mac];
+				--hashlin->bucket_segment;
+				segment = hashlin->bucket[hashlin->bucket_segment];
 				tommy_free(&segment[1 << hashlin->bucket_bit]);
 				break;
 			}

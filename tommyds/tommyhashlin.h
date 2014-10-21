@@ -166,7 +166,7 @@ typedef tommy_node tommy_hashlin_node;
 typedef struct tommy_hashlin_struct {
 	tommy_hashlin_node** bucket[TOMMY_HASHLIN_BIT_MAX]; /**< Dynamic array of hash buckets. One list for each hash modulus. */
 	tommy_bit_t bucket_bit; /**< Bits used in the bit mask. */
-	tommy_bit_t bucket_mac; /**< Number of vectors allocated. */
+	tommy_bit_t bucket_segment; /**< Number of vectors allocated. */
 	tommy_obj_t bucket_max; /**< Number of buckets. */
 	tommy_obj_t bucket_mask; /**< Bit mask to access the buckets. */
 	tommy_obj_t low_max; /**< Low order max value. */
