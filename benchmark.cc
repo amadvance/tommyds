@@ -1361,7 +1361,7 @@ void test_hit(unsigned* SEARCH)
 	START(DATA_CUBE) {
 		unsigned key = SEARCH[i] + DELTA;
 		struct cube_object* obj;
-		obj = get_key(cube, key);
+		obj = (struct cube_object*)get_key(cube, key);
 		if (!obj)
 			abort();
 		if (dereference) {
@@ -1541,7 +1541,7 @@ void test_miss(unsigned* SEARCH)
 	START(DATA_CUBE) {
 		unsigned key = SEARCH[i] + DELTA;
 		struct cube_obj* obj;
-		obj = get_key(cube, key);
+		obj = (struct cube_obj*)get_key(cube, key);
 		if (obj)
 			abort();
 	} STOP();
@@ -1823,7 +1823,7 @@ void test_change(unsigned* REMOVE, unsigned* INSERT)
 	START(DATA_CUBE) {
 		unsigned key = REMOVE[i];
 		struct cube_object* obj;
-		obj = del_key(cube, key);
+		obj = (struct cube_object*)del_key(cube, key);
 		if (!obj)
 			abort();
 
@@ -2118,7 +2118,7 @@ void test_remove(unsigned* REMOVE)
 	START(DATA_CUBE) {
 		unsigned key = REMOVE[i] + DELTA;
 		struct cube_object* obj;
-		obj = del_key(cube, key);
+		obj = (struct cube_object*)del_key(cube, key);
 		if (!obj)
 			abort();
 		if (dereference) {
@@ -2156,47 +2156,50 @@ tommy_size_t uthash_size(struct uthash_object* obj)
 		+ table->num_items * (tommy_size_t)sizeof(UT_hash_handle);
 }
 
-tommy_size_t nedtrie_size(struct nedtrie_t* nedtrie)
+tommy_size_t nedtrie_size(struct nedtrie_t* col)
 {
 	struct nedtrie_object element;
-	return nedtrie->count * sizeof(element.link);
+	(void)element;
+	return col->count * sizeof(element.link);
 }
 
-tommy_size_t khash_size(khash_t(word)* khash)
+tommy_size_t khash_size(khash_t(word)* col)
 {
-	return khash->n_buckets * sizeof(void*) /* val */
-		+ khash->n_buckets * sizeof(uint32_t) /* key */
-		+ (khash->n_buckets >> 4) * sizeof(uint32_t); /* flags */
+	return col->n_buckets * sizeof(void*) /* val */
+		+ col->n_buckets * sizeof(uint32_t) /* key */
+		+ (col->n_buckets >> 4) * sizeof(uint32_t); /* flags */
 }
 
 #ifdef USE_GOOGLEDENSEHASH
-tommy_size_t googledensehash_size(googledensehash_t* googledensehash)
+tommy_size_t googledensehash_size(googledensehash_t* col)
 {
 	googledensehash_t::value_type element;
-	return googledensehash->bucket_count() * sizeof(element);
+	(void)element;
+	return col->bucket_count() * sizeof(element);
 }
 #endif
 
 #ifdef USE_GOOGLEBTREE
-tommy_size_t googlebtree_size(googlebtree_t* googlebtree)
+tommy_size_t googlebtree_size(googlebtree_t* col)
 {
-	return googlebtree->bytes_used();
+	return col->bytes_used();
 }
 #endif
 
 #ifdef USE_STXBTREE
-tommy_size_t stxbtree_size(stxbtree_t* stxbtree)
+tommy_size_t stxbtree_size(stxbtree_t* col)
 {
-	return stxbtree->get_stats().leaves * sizeof(struct stxbtree_t::btree_impl::leaf_node)
-		+ stxbtree->get_stats().innernodes * sizeof(struct stxbtree_t::btree_impl::inner_node);
+	return col->get_stats().leaves * sizeof(struct stxbtree_t::btree_impl::leaf_node)
+		+ col->get_stats().innernodes * sizeof(struct stxbtree_t::btree_impl::inner_node);
 	return 0;
 }
 #endif
 
-tommy_size_t rbt_size(rbtree_t* tree, unsigned count)
+tommy_size_t rbt_size(rbtree_t* col, unsigned count)
 {
 	struct rbt_object element;
-	(void)tree;
+	(void)col;
+	(void)element;
 	return count * sizeof(element.link);
 }
 
@@ -2261,11 +2264,11 @@ void test_operation(unsigned* INSERT, unsigned* SEARCH)
 
 void test(unsigned size, unsigned data, int log, int sparse)
 {
-	double b;
-	double f;
+	double base;
+	double fact;
 
-	b = 1000;
-	f = pow(10, 0.1);
+	base = 1000;
+	fact = pow(10, 0.1);
 
 	/* log if batch test or requested */
 	the_log = (size == 0 && data == DATA_MAX) || log;
@@ -2288,7 +2291,7 @@ void test(unsigned size, unsigned data, int log, int sparse)
 	if (size != 0)
 		the_max = size;
 	else
-		the_max = (unsigned)b;
+		the_max = (unsigned)base;
 
 	while (the_max <= MAX) {
 		unsigned retry;
@@ -2380,8 +2383,8 @@ void test(unsigned size, unsigned data, int log, int sparse)
 			break;
 
 		/* new max */
-		b *= f;
-		the_max = (unsigned)b;
+		base *= fact;
+		the_max = (unsigned)base;
 	}
 }
 
