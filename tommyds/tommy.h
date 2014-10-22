@@ -158,7 +158,7 @@
  * Tommy doesn't provide an error reporting mechanism for a malloc() failure.
  * You have to provide it redefining malloc() if you expect it to fail.
  *
- * Tommy assumes to never have more than 2^32 elements in a container.
+ * Tommy assumes to never have more than 2^32-1 elements in a container.
  *
  * \page benchmark Tommy Benchmarks
  *
@@ -535,9 +535,9 @@
  *
  * \page multiindex Tommy Multi Indexing
  *
- * Tommy doesn't provide iterators support to iterate over all the elements inside
- * a data structure. To do that you have to manually insert any objects also in a
- * ::tommy_list, and use the list as iterator.
+ * Tommy provide only partial iterator support with the "foreach" functions.
+ * If you need real iterators you can insert all the objects also in a ::tommy_list,
+ * and use the list as iterator.
  *
  * This technique allows to keep track of the insertion order with the list,
  * and provide more search possibilities using different data structures for
@@ -568,7 +568,7 @@
  * tommy_hashdyn hash_1;
  * tommy_list list;
  *
- * // initializes the the hash tables and the list
+ * // initializes the hash tables and the list
  * tommy_hashdyn_init(&hash_0);
  * tommy_hashdyn_init(&hash_1);
  * tommy_list_init(&list);
@@ -597,6 +597,23 @@
  *
  * ...
  *
+ * // complex iterator logic
+ * tommy_node* i = tommy_list_head(&list);
+ * while (i != 0) {
+ *    ...
+ *    // go to the next element
+ *    i = i->next;
+ *
+ *    ...
+ *
+ *    // go to the pred element
+ *    i = i->prev;
+ *
+ *    ...
+ * }
+ *
+ * ...
+ *
  * // deallocates all the objects iterating the list
  * tommy_list_foreach(&list, free);
  *
@@ -619,7 +636,7 @@
  * always at a constant offset.
  *
  * See for example the Linux Kernel declaration of container_of() at
- * http://lxr.linux.no/#linux+v2.6.37/include/linux/kernel.h#L526
+ * http://lxr.free-electrons.com/ident?i=container_of
  *
  * Although, it would have required more complexity for the user to require
  * a manual conversion from a node to the object containing the node.

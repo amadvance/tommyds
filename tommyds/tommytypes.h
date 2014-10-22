@@ -52,17 +52,17 @@ typedef ptrdiff_t tommy_ptrdiff_t; /**< Generic ptrdiff_t type. */
 typedef int tommy_bool_t; /**< Generic boolean type. */
 
 /**
- * Basic integer type for generic use.
+ * Generic unsigned integer type.
  *
  * It has no specific size, as is used to store only small values.
- * To make the code more efficient, we use a full 32 bit integer.
+ * To make the code more efficient, a full 32 bit integer is used.
  */
 typedef tommy_uint32_t tommy_uint_t;
 
 /**
- * Basic integer type used for counting objects.
+ * Generic unsigned integer for counting objects.
  *
- * The implementation doesn't support more than 2^32-1 objects.
+ * TommyDS doesn't support more than 2^32-1 objects.
  */
 typedef tommy_uint32_t tommy_count_t;
 

@@ -104,7 +104,7 @@
  * and remove.
  *
  * \code
- * struct object* obj = tommy_trie_remove(&hashtable, compare, &value_to_remove, tommy_inthash_u32(value_to_remove));
+ * struct object* obj = tommy_hashtable_remove(&hashtable, compare, &value_to_remove, tommy_inthash_u32(value_to_remove));
  * if (obj) {
  *     free(obj); // frees the object allocated memory
  * }
@@ -117,9 +117,11 @@
  * tommy_hashtable_done(&hashtable);
  * \endcode
  *
- * Note that you cannot iterates over all the elements in the hashtable using the
- * hashtable itself. You have to insert all the elements also in a ::tommy_list,
- * and use the list to iterate. See the \ref multiindex example for more detail.
+ * If you need to iterate over all the elements in the hashtable, you can use
+ * tommy_hashtable_foreach() or tommy_hashtable_foreach_arg().
+ * If you need a more precise control with a real iteration, you have to insert
+ * all the elements also in a ::tommy_list, and use the list to iterate.
+ * See the \ref multiindex example for more detail.
  */
 
 #ifndef __TOMMYHASHTBL_H
@@ -224,6 +226,33 @@ void* tommy_hashtable_remove_existing(tommy_hashtable* hashtable, tommy_hashtabl
 
 /**
  * Calls the specified function for each element in the hashtable.
+ *
+ * You can use this function to deallocate all the elements inserted.
+ *
+ * \code
+ * tommy_hashtable hashtable;
+ *
+ * // initializes the hashtable
+ * tommy_hashtable_init(&hashtable, ...);
+ *
+ * ...
+ *
+ * // creates an object
+ * struct object* obj = malloc(sizeof(struct object));
+ *
+ * ...
+ *
+ * // insert it in the hashtable
+ * tommy_hashdyn_insert(&hashtable, &obj->node, obj, tommy_inthash_u32(obj->value));
+ *
+ * ...
+ *
+ * // deallocates all the objects iterating the hashtable
+ * tommy_hashtable_foreach(&hashtable, free);
+ *
+ * // deallocates the hashtable
+ * tommy_hashdyn_done(&hashtable);
+ * \endcode
  */
 void tommy_hashtable_foreach(tommy_hashtable* hashtable, tommy_foreach_func* func);
 

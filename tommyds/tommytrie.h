@@ -118,7 +118,7 @@
  * tommy_allocator_done(&alloc);
  * \endcode
  *
- * Note that you cannot iterates over all the elements in the trie using the
+ * Note that you cannot iterate over all the elements in the trie using the
  * trie itself. You have to insert all the elements also in a ::tommy_list,
  * and use the list to iterate. See the \ref multiindex example for more detail.
  */
