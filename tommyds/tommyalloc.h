@@ -53,7 +53,7 @@ typedef struct tommy_allocator_struct {
 	struct tommy_allocator_entry_struct* used_segment; /**< List of allocated segments. */
 	tommy_size_t block_size; /**< Block size. */
 	tommy_size_t align_size; /**< Alignment size. */
-	tommy_obj_t count; /**< Number of allocated elements. */
+	tommy_count_t count; /**< Number of allocated elements. */
 } tommy_allocator;
 
 /**

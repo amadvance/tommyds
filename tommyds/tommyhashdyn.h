@@ -157,10 +157,10 @@ typedef tommy_node tommy_hashdyn_node;
  */
 typedef struct tommy_hashdyn_struct {
 	tommy_hashdyn_node** bucket; /**< Hash buckets. One list for each hash modulus. */
-	tommy_bit_t bucket_bit; /**< Bits used in the bit mask. */
-	tommy_obj_t bucket_max; /**< Number of buckets. */
-	tommy_obj_t bucket_mask; /**< Bit mask to access the buckets. */
-	tommy_obj_t count; /**< Number of elements. */
+	tommy_uint_t bucket_bit; /**< Bits used in the bit mask. */
+	tommy_count_t bucket_max; /**< Number of buckets. */
+	tommy_count_t bucket_mask; /**< Bit mask to access the buckets. */
+	tommy_count_t count; /**< Number of elements. */
 } tommy_hashdyn;
 
 /**
@@ -251,7 +251,7 @@ void tommy_hashdyn_foreach_arg(tommy_hashdyn* hashdyn, tommy_foreach_arg_func* f
 /**
  * Gets the number of elements.
  */
-tommy_inline tommy_obj_t tommy_hashdyn_count(tommy_hashdyn* hashdyn)
+tommy_inline tommy_count_t tommy_hashdyn_count(tommy_hashdyn* hashdyn)
 {
 	return hashdyn->count;
 }

@@ -64,9 +64,9 @@
 typedef struct tommy_arrayof_struct {
 	void* bucket[TOMMY_ARRAYOF_BIT_MAX]; /**< Dynamic array of buckets. */
 	tommy_size_t element_size; /**< Size of the stored element in bytes. */
-	tommy_bit_t bucket_bit; /**< Bits used in the bit mask. */
-	tommy_obj_t bucket_max; /**< Number of buckets. */
-	tommy_obj_t count; /**< Number of initialized elements in the array. */
+	tommy_uint_t bucket_bit; /**< Bits used in the bit mask. */
+	tommy_count_t bucket_max; /**< Number of buckets. */
+	tommy_count_t count; /**< Number of initialized elements in the array. */
 } tommy_arrayof;
 
 /**
@@ -84,17 +84,17 @@ void tommy_arrayof_done(tommy_arrayof* array);
  * Grow the size up to the specified value.
  * All the new elements in the array are initialized with the 0 value.
  */
-void tommy_arrayof_grow(tommy_arrayof* array, tommy_obj_t size);
+void tommy_arrayof_grow(tommy_arrayof* array, tommy_count_t size);
 
 /**
  * Gets a reference of the element at the specified position.
  * You must be sure that space for this position is already
  * allocated calling tommy_arrayof_grow().
  */
-tommy_inline void* tommy_arrayof_ref(tommy_arrayof* array, tommy_obj_t pos)
+tommy_inline void* tommy_arrayof_ref(tommy_arrayof* array, tommy_count_t pos)
 {
 	unsigned char* ptr;
-	tommy_bit_t bsr;
+	tommy_uint_t bsr;
 
 	assert(pos < array->count);
 
@@ -109,7 +109,7 @@ tommy_inline void* tommy_arrayof_ref(tommy_arrayof* array, tommy_obj_t pos)
 /**
  * Gets the initialized size of the array.
  */
-tommy_inline tommy_obj_t tommy_arrayof_size(tommy_arrayof* array)
+tommy_inline tommy_count_t tommy_arrayof_size(tommy_arrayof* array)
 {
 	return array->count;
 }

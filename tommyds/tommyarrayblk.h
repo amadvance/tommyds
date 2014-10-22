@@ -59,7 +59,7 @@
  */
 typedef struct tommy_arrayblk_struct {
 	tommy_array block; /**< Array of blocks. */
-	tommy_obj_t count; /**< Number of initialized elements in the array. */
+	tommy_count_t count; /**< Number of initialized elements in the array. */
 } tommy_arrayblk;
 
 /**
@@ -76,14 +76,14 @@ void tommy_arrayblk_done(tommy_arrayblk* array);
  * Grow the size up to the specified value.
  * All the new elements in the array are initialized with the 0 value.
  */
-void tommy_arrayblk_grow(tommy_arrayblk* array, tommy_obj_t size);
+void tommy_arrayblk_grow(tommy_arrayblk* array, tommy_count_t size);
 
 /**
  * Gets a reference of the element at the specified position.
  * You must be sure that space for this position is already
  * allocated calling tommy_arrayblk_grow().
  */
-tommy_inline void** tommy_arrayblk_ref(tommy_arrayblk* array, tommy_obj_t pos)
+tommy_inline void** tommy_arrayblk_ref(tommy_arrayblk* array, tommy_count_t pos)
 {
 	void** ptr;
 
@@ -99,7 +99,7 @@ tommy_inline void** tommy_arrayblk_ref(tommy_arrayblk* array, tommy_obj_t pos)
  * You must be sure that space for this position is already
  * allocated calling tommy_arrayblk_grow().
  */
-tommy_inline void tommy_arrayblk_set(tommy_arrayblk* array, tommy_obj_t pos, void* element)
+tommy_inline void tommy_arrayblk_set(tommy_arrayblk* array, tommy_count_t pos, void* element)
 {
 	*tommy_arrayblk_ref(array, pos) = element;
 }
@@ -109,7 +109,7 @@ tommy_inline void tommy_arrayblk_set(tommy_arrayblk* array, tommy_obj_t pos, voi
  * You must be sure that space for this position is already
  * allocated calling tommy_arrayblk_grow().
  */
-tommy_inline void* tommy_arrayblk_get(tommy_arrayblk* array, tommy_obj_t pos)
+tommy_inline void* tommy_arrayblk_get(tommy_arrayblk* array, tommy_count_t pos)
 {
 	return *tommy_arrayblk_ref(array, pos);
 }
@@ -119,7 +119,7 @@ tommy_inline void* tommy_arrayblk_get(tommy_arrayblk* array, tommy_obj_t pos)
  */
 tommy_inline void tommy_arrayblk_insert(tommy_arrayblk* array, void* element)
 {
-	tommy_obj_t pos = array->count;
+	tommy_count_t pos = array->count;
 
 	tommy_arrayblk_grow(array, pos + 1);
 
@@ -129,7 +129,7 @@ tommy_inline void tommy_arrayblk_insert(tommy_arrayblk* array, void* element)
 /**
  * Gets the initialized size of the array.
  */
-tommy_inline tommy_obj_t tommy_arrayblk_size(tommy_arrayblk* array)
+tommy_inline tommy_count_t tommy_arrayblk_size(tommy_arrayblk* array)
 {
 	return array->count;
 }

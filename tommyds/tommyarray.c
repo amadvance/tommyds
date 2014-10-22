@@ -32,7 +32,7 @@
 
 void tommy_array_init(tommy_array* array)
 {
-	tommy_bit_t i;
+	tommy_uint_t i;
 
 	/* fixed initial size */
 	array->bucket_bit = TOMMY_ARRAY_BIT;
@@ -46,7 +46,7 @@ void tommy_array_init(tommy_array* array)
 
 void tommy_array_done(tommy_array* array)
 {
-	tommy_bit_t i;
+	tommy_uint_t i;
 
 	tommy_free(array->bucket[0]);
 	for (i = TOMMY_ARRAY_BIT; i < array->bucket_bit; ++i) {
@@ -55,7 +55,7 @@ void tommy_array_done(tommy_array* array)
 	}
 }
 
-void tommy_array_grow(tommy_array* array, tommy_obj_t count)
+void tommy_array_grow(tommy_array* array, tommy_count_t count)
 {
 	if (array->count >= count)
 		return;

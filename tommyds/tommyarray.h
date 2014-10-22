@@ -63,9 +63,9 @@
  */
 typedef struct tommy_array_struct {
 	void** bucket[TOMMY_ARRAY_BIT_MAX]; /**< Dynamic array of buckets. */
-	tommy_bit_t bucket_bit; /**< Bits used in the bit mask. */
-	tommy_obj_t bucket_max; /**< Number of buckets. */
-	tommy_obj_t count; /**< Number of initialized elements in the array. */
+	tommy_uint_t bucket_bit; /**< Bits used in the bit mask. */
+	tommy_count_t bucket_max; /**< Number of buckets. */
+	tommy_count_t count; /**< Number of initialized elements in the array. */
 } tommy_array;
 
 /**
@@ -82,16 +82,16 @@ void tommy_array_done(tommy_array* array);
  * Grow the size up to the specified value.
  * All the new elements in the array are initialized with the 0 value.
  */
-void tommy_array_grow(tommy_array* array, tommy_obj_t size);
+void tommy_array_grow(tommy_array* array, tommy_count_t size);
 
 /**
  * Gets a reference of the element at the specified position.
  * You must be sure that space for this position is already
  * allocated calling tommy_array_grow().
  */
-tommy_inline void** tommy_array_ref(tommy_array* array, tommy_obj_t pos)
+tommy_inline void** tommy_array_ref(tommy_array* array, tommy_count_t pos)
 {
-	tommy_bit_t bsr;
+	tommy_uint_t bsr;
 
 	assert(pos < array->count);
 
@@ -106,7 +106,7 @@ tommy_inline void** tommy_array_ref(tommy_array* array, tommy_obj_t pos)
  * You must be sure that space for this position is already
  * allocated calling tommy_array_grow().
  */
-tommy_inline void tommy_array_set(tommy_array* array, tommy_obj_t pos, void* element)
+tommy_inline void tommy_array_set(tommy_array* array, tommy_count_t pos, void* element)
 {
 	*tommy_array_ref(array, pos) = element;
 }
@@ -116,7 +116,7 @@ tommy_inline void tommy_array_set(tommy_array* array, tommy_obj_t pos, void* ele
  * You must be sure that space for this position is already
  * allocated calling tommy_array_grow().
  */
-tommy_inline void* tommy_array_get(tommy_array* array, tommy_obj_t pos)
+tommy_inline void* tommy_array_get(tommy_array* array, tommy_count_t pos)
 {
 	return *tommy_array_ref(array, pos);
 }
@@ -126,7 +126,7 @@ tommy_inline void* tommy_array_get(tommy_array* array, tommy_obj_t pos)
  */
 tommy_inline void tommy_array_insert(tommy_array* array, void* element)
 {
-	tommy_obj_t pos = array->count;
+	tommy_count_t pos = array->count;
 
 	tommy_array_grow(array, pos + 1);
 
@@ -136,7 +136,7 @@ tommy_inline void tommy_array_insert(tommy_array* array, void* element)
 /**
  * Gets the initialized size of the array.
  */
-tommy_inline tommy_obj_t tommy_array_size(tommy_array* array)
+tommy_inline tommy_count_t tommy_array_size(tommy_array* array)
 {
 	return array->count;
 }

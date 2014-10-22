@@ -97,7 +97,7 @@ tommy_inline void tommy_trie_inplace_list_remove(tommy_trie_inplace_node** let_p
 
 void tommy_trie_inplace_init(tommy_trie_inplace* trie_inplace)
 {
-	tommy_bit_t i;
+	tommy_uint_t i;
 
 	for (i = 0; i < TOMMY_TRIE_INPLACE_BUCKET_MAX; ++i)
 		trie_inplace->bucket[i] = 0;
@@ -105,7 +105,7 @@ void tommy_trie_inplace_init(tommy_trie_inplace* trie_inplace)
 	trie_inplace->count = 0;
 }
 
-static void trie_inplace_bucket_insert(tommy_bit_t shift, tommy_trie_inplace_node** let_ptr, tommy_trie_inplace_node* insert, tommy_key_t key)
+static void trie_inplace_bucket_insert(tommy_uint_t shift, tommy_trie_inplace_node** let_ptr, tommy_trie_inplace_node* insert, tommy_key_t key)
 {
 	tommy_trie_inplace_node* node;
 
@@ -129,7 +129,7 @@ static void trie_inplace_bucket_insert(tommy_bit_t shift, tommy_trie_inplace_nod
 void tommy_trie_inplace_insert(tommy_trie_inplace* trie_inplace, tommy_trie_inplace_node* node, void* data, tommy_key_t key)
 {
 	tommy_trie_inplace_node** let_ptr;
-	tommy_bit_t i;
+	tommy_uint_t i;
 
 	node->data = data;
 	node->key = key;
@@ -144,7 +144,7 @@ void tommy_trie_inplace_insert(tommy_trie_inplace* trie_inplace, tommy_trie_inpl
 	++trie_inplace->count;
 }
 
-static tommy_trie_inplace_node* trie_inplace_bucket_remove(tommy_bit_t shift, tommy_trie_inplace_node** let_ptr, tommy_trie_inplace_node* remove, tommy_key_t key)
+static tommy_trie_inplace_node* trie_inplace_bucket_remove(tommy_uint_t shift, tommy_trie_inplace_node** let_ptr, tommy_trie_inplace_node* remove, tommy_key_t key)
 {
 	tommy_trie_inplace_node* node;
 	int i;
@@ -252,7 +252,7 @@ void* tommy_trie_inplace_remove_existing(tommy_trie_inplace* trie_inplace, tommy
 tommy_trie_inplace_node* tommy_trie_inplace_bucket(tommy_trie_inplace* trie_inplace, tommy_key_t key)
 {
 	tommy_trie_inplace_node* node;
-	tommy_bit_t shift;
+	tommy_uint_t shift;
 
 	node = trie_inplace->bucket[key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT];
 	shift = TOMMY_TRIE_INPLACE_BUCKET_SHIFT;

@@ -42,7 +42,7 @@
 
 void tommy_hashlin_init(tommy_hashlin* hashlin)
 {
-	tommy_bit_t i;
+	tommy_uint_t i;
 
 	/* fixed initial size */
 	hashlin->bucket_bit = TOMMY_HASHLIN_BIT;
@@ -60,7 +60,7 @@ void tommy_hashlin_init(tommy_hashlin* hashlin)
 
 void tommy_hashlin_done(tommy_hashlin* hashlin)
 {
-	tommy_bit_t i;
+	tommy_uint_t i;
 
 	tommy_free(hashlin->bucket[0]);
 	for (i = TOMMY_HASHLIN_BIT; i < hashlin->bucket_bit; ++i) {
@@ -74,7 +74,7 @@ void tommy_hashlin_done(tommy_hashlin* hashlin)
  */
 tommy_inline tommy_hashlin_node** tommy_hashlin_pos(tommy_hashlin* hashlin, tommy_hash_t pos)
 {
-	tommy_bit_t bsr;
+	tommy_uint_t bsr;
 
 	/* get the highest bit set, in case of all 0, return 0 */
 	bsr = tommy_ilog2_u32(pos | 1);
@@ -87,7 +87,7 @@ tommy_inline tommy_hashlin_node** tommy_hashlin_pos(tommy_hashlin* hashlin, tomm
  */
 tommy_inline tommy_hashlin_node** tommy_hashlin_bucket_ptr(tommy_hashlin* hashlin, tommy_hash_t hash)
 {
-	tommy_obj_t pos;
+	tommy_count_t pos;
 
 	/* if we are reallocating */
 	if (hashlin->state != TOMMY_HASHLIN_STATE_STABLE) {
@@ -151,13 +151,13 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 	/* if we are growing */
 	if (hashlin->state == TOMMY_HASHLIN_STATE_GROW) {
 		/* compute the split target required to finish the reallocation before the next resize */
-		tommy_obj_t split_target = 2 * hashlin->count;
+		tommy_count_t split_target = 2 * hashlin->count;
 
 		/* reallocate buckets until the split target */
 		while (hashlin->split + hashlin->low_max < split_target) {
 			tommy_hashlin_node** split[2];
 			tommy_hashlin_node* j;
-			tommy_obj_t mask;
+			tommy_count_t mask;
 
 			/* get the low bucket */
 			split[0] = tommy_hashlin_pos(hashlin, hashlin->split);
@@ -178,7 +178,7 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 			/* flush the bucket */
 			while (j) {
 				tommy_hashlin_node* j_next = j->next;
-				tommy_obj_t index = (j->key & mask) != 0;
+				tommy_count_t index = (j->key & mask) != 0;
 				if (*split[index])
 					tommy_list_insert_tail_not_empty(*split[index], j);
 				else
@@ -229,7 +229,7 @@ tommy_inline void hashlin_shrink_step(tommy_hashlin* hashlin)
 	/* if we are shrinking */
 	if (hashlin->state == TOMMY_HASHLIN_STATE_SHRINK) {
 		/* compute the split target required to finish the reallocation before the next resize */
-		tommy_obj_t split_target = 8 * hashlin->count;
+		tommy_count_t split_target = 8 * hashlin->count;
 
 		/* reallocate buckets until the split target */
 		while (hashlin->split + hashlin->low_max > split_target) {
@@ -318,8 +318,8 @@ void* tommy_hashlin_remove(tommy_hashlin* hashlin, tommy_search_func* cmp, const
 
 void tommy_hashlin_foreach(tommy_hashlin* hashlin, tommy_foreach_func* func)
 {
-	tommy_obj_t bucket_max;
-	tommy_obj_t pos;
+	tommy_count_t bucket_max;
+	tommy_count_t pos;
 
 	/* if we are reallocating */
 	if (hashlin->state != TOMMY_HASHLIN_STATE_STABLE) {
@@ -341,8 +341,8 @@ void tommy_hashlin_foreach(tommy_hashlin* hashlin, tommy_foreach_func* func)
 
 void tommy_hashlin_foreach_arg(tommy_hashlin* hashlin, tommy_foreach_arg_func* func, void* arg)
 {
-	tommy_obj_t bucket_max;
-	tommy_obj_t pos;
+	tommy_count_t bucket_max;
+	tommy_count_t pos;
 
 	/* if we are reallocating */
 	if (hashlin->state != TOMMY_HASHLIN_STATE_STABLE) {

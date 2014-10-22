@@ -52,25 +52,19 @@ typedef ptrdiff_t tommy_ptrdiff_t; /**< Generic ptrdiff_t type. */
 typedef int tommy_bool_t; /**< Generic boolean type. */
 
 /**
- * Basic type used for counting bits.
+ * Basic integer type for generic use.
  *
- * A 8 bits type is enough, but to have a more efficient implementation
- * we use a 32 bits type.
+ * It has no specific size, as is used to store only small values.
+ * To make the code more efficient, we use a full 32 bit integer.
  */
-typedef tommy_uint32_t tommy_bit_t;
+typedef tommy_uint32_t tommy_uint_t;
 
 /**
- * Basic type used for counting objects.
+ * Basic integer type used for counting objects.
  *
- * A 32 bits type allows up to 2^32-1 objects.
- *
- * If you need more, you have to use a 64 bit type, but the implementation
- * is not tested in this configuration.
- *
- * Note that this types limits only the number of objects, and not their
- * memory usage, as their size is stored using the tommy_size_t type.
+ * The implementation doesn't support more than 2^32-1 objects.
  */
-typedef tommy_uint32_t tommy_obj_t;
+typedef tommy_uint32_t tommy_count_t;
 
 /** \internal
  * Type cast required for the C++ compilation.
@@ -329,7 +323,7 @@ typedef void tommy_foreach_arg_func(void* arg, void* obj);
  * \param value Value to scan. 0 is not allowed.
  * \return The index of the most significan bit set.
  */
-tommy_inline tommy_bit_t tommy_ilog2_u32(tommy_uint32_t value)
+tommy_inline tommy_uint_t tommy_ilog2_u32(tommy_uint32_t value)
 {
 #if defined(_MSC_VER)
 	unsigned long count;
@@ -371,7 +365,7 @@ tommy_inline tommy_bit_t tommy_ilog2_u32(tommy_uint32_t value)
  * \param value Value to scan. 0 is not allowed.
  * \return The index of the least significant bit set.
  */
-tommy_inline tommy_bit_t tommy_ctz_u32(tommy_uint32_t value)
+tommy_inline tommy_uint_t tommy_ctz_u32(tommy_uint32_t value)
 {
 #if defined(_MSC_VER)
 	unsigned long count;
