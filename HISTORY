@@ -8,6 +8,8 @@ TommyDS HISTORY
  * Added a new tommy_calloc() function used for allocating initialized memory.
    If you redefined tommy_malloc(), likely you have to redefine also tommy_calloc().
  * Different source code organization.
+ * Added benchmark comparison with Binary Search Tesseract by Gregorius van
+   den Hoven.
 
 1.8 2013/12
 ===========
@@ -44,7 +46,7 @@ TommyDS HISTORY
    of 2 sizes were used.
  * Removed some warnings with newer gcc.
  * Minor documentation changes.
- * Added benchmark comparison with the judy array implementation of Karl Malbrain.
+ * Added benchmark comparison with the judy array implementation by Karl Malbrain.
 
 1.2 2012/05
 ===========

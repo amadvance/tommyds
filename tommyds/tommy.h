@@ -182,6 +182,7 @@
  *  - <a href="http://panthema.net/2007/stx-btree/">stxbtree</a> - STX Btree by Timo Bingmann.
  *  - <a href="http://www.cplusplus.com/reference/unordered_map/unordered_map/">c++unordered_map</a> - C++ STL unordered_map<> template.
  *  - <a href="http://www.cplusplus.com/reference/map/map/">c++map</a> - C++ STL map<> template.
+ *  - <a href="https://sites.google.com/site/binarysearchcube/">tesseract</a> - Binary Search Tesseract by Gregorius van den Hoven.
  *
  * \section thebenchmark The Benchmark
  *
