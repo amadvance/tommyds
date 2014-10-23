@@ -32,13 +32,13 @@
  * It's <b>faster</b> than all the similar libraries like
  * <a href="http://www.canonware.com/rb/">rbtree</a>,
  * <a href="http://judy.sourceforge.net/">judy</a>,
- * <a href="http://code.google.com/p/google-sparsehash/">googledensehash</a>,
- * <a href="http://code.google.com/p/cpp-btree/">googlebtree</a>,
+ * <a href="http://code.google.com/p/cpp-btree/">googlebtree</a>
  * <a href="http://panthema.net/2007/stx-btree/">stxbtree</a>,
  * <a href="http://attractivechaos.awardspace.com/">khash</a>,
  * <a href="http://uthash.sourceforge.net/">uthash</a>,
  * <a href="http://www.nedprod.com/programs/portable/nedtries/">nedtrie</a>,
  * <a href="http://code.google.com/p/judyarray/">judyarray</a> and others.
+ * In fact, only <a href="http://code.google.com/p/google-sparsehash/">googledensehash</a> is a real competitor for Tommy.
  *
  * The data structures provided are:
  *
@@ -63,35 +63,39 @@
  *
  * \section Use
  *
- * All the data structures share the same interface that needs to embedded in the object to store
- * a node of type ::tommy_node.
+ * All the Tommy containers are used to store pointers to generic objects, associated to an
+ * integer value, that could be a key or a hash value.
  *
- * Inside this node is stored a pointer to the object itself in the tommy_node::data field,
- * and the key used to identify the object in the tommy_node::key field.
+ * They are semantically equivalent at the C++ <a href="http://www.cplusplus.com/reference/map/multimap/">multimap\<unsigned,void*\></a>
+ * and <a href="http://www.cplusplus.com/reference/unordered_map/unordered_multimap/">unordered_multimap\<unsigned,void*\></a>.
  *
+ * An object, to be inserted in a container, should contain a node of type ::tommy_node.
+ * Inside this node is present a pointer to the object itself in the tommy_node::data field,
+ * the key used to identify the object in the tommy_node::key field, and other fields used
+ * by the containers.
+ *
+ * This is a typical object declaration:
  * \code
  * struct object {
  *     tommy_node node;
  *     // other fields
- *     int value;
  * };
  * \endcode
  *
- * To insert an object you have to provide the address of the embedded node, the address of the
- * object and the value of the key.
+ * To insert an object in a container, you have to provide the address of the embedded node,
+ * the address of the object and the value of the key.
  * \code
+ * int key_to_insert = 1;
  * struct object* obj = malloc(sizeof(struct object));
- *
- * tommy_trie_insert(..., &obj->node, obj, obj->value);
+ * ...
+ * tommy_trie_insert(..., &obj->node, obj, key_to_insert);
  * \endcode
  *
  * To search an object you have to provide the key and call the search function.
  * \code
- * int value_to_find = 1;
- * struct object* obj = tommy_trie_search(..., value_to_find);
- * if (!obj) {
- *   // not found
- * } else {
+ * int key_to_find = 1;
+ * struct object* obj = tommy_trie_search(..., key_to_find);
+ * if (obj) {
  *   // found
  * }
  * \endcode
@@ -99,8 +103,8 @@
  * To access all the objects with the same keys you have to iterate over the bucket
  * assigned at the specified key.
  * \code
- * int value_to_find = 1;
- * tommy_trie_node* i = tommy_trie_bucket(..., value_to_find);
+ * int key_to_find = 1;
+ * tommy_trie_node* i = tommy_trie_bucket(..., key_to_find);
  *
  * while (i) {
  *     struct object* obj = i->data; // gets the object pointer
@@ -113,24 +117,27 @@
  *
  * To remove an object you have to provide the key and call the remove function.
  * \code
- * struct object* obj = tommy_trie_remove(..., value);
+ * int key_to_remove = 1;
+ * struct object* obj = tommy_trie_remove(..., key_to_remove);
  * if (obj) {
+ *     // found
  *     free(obj); // frees the object allocated memory
  * }
  * \endcode
  *
  * Dealing with hashtables, instead of the key, you have to provide the hash value of the object,
  * and a compare function able to differentiate objects with the same hash value.
- *
  * To compute the hash value, you can use the generic tommy_hash_u32() function, or the
  * specialized integer hash function tommy_inthash_u32().
  *
  * \section Performance
- * Here you can see some timings compared to other common implementations in <i>Hit</i>
- * and <i>Change</i> performance. Hit is searching an object with success, and Change is searching, removing
- * and reinsert it with a different key value.
+ * Here you can see some timings comparing with other natable implementations in the <i>Hit</i>
+ * and <i>Change</i> graphs. Hit means searching an object with a key with success,
+ * and Change means searching, removing and reinsert it with a different key value.
  *
  * Times are expressed in nanoseconds for element, and <b>lower is better</b>.
+ *
+ * To have some reference numbers, you can check <a href="https://gist.github.com/jboner/2841832">Latency numbers every programmer should know</a>.
  *
  * A complete analysis is available in the \ref benchmark page.
  *
@@ -140,9 +147,13 @@
  *
  * \section Features
  *
+ * Tommy is fast and easy to use.
+ *
  * Tommy is 100% portable in all the platforms and operating systems.
  *
  * Tommy containers support multiple elements with the same key.
+ *
+ * See the \ref design page for more details.
  *
  * \section Limitations
  *
@@ -165,7 +176,7 @@
  * To evaluate Tommy performances, an extensive benchmark was done,
  * comparing it to the best libraries of data structures available:
  *
- * Specifically we have tested:
+ * Specifically we test:
  *  - ::tommy_hashtable - Fixed size chained hashtable.
  *  - ::tommy_hashdyn - Dynamic chained hashtable.
  *  - ::tommy_hashlin - Linear chained hashtable.
@@ -187,7 +198,7 @@
  * \section thebenchmark The Benchmark
  *
  * The benchmark consists in storing a set of N pointers to objects and
- * searching them using an integer key.
+ * searching them using integer keys.
  *
  * It's different than the simpler case of mapping integers to integers,
  * as pointers to objects are also dereferenced resulting in additional cache
@@ -535,15 +546,15 @@
  *
  * \page multiindex Tommy Multi Indexing
  *
- * Tommy provide only partial iterator support with the "foreach" functions.
- * If you need real iterators you can insert all the objects also in a ::tommy_list,
+ * Tommy provides only partial iterator support with the "foreach" functions.
+ * If you need real iterators you have to insert all the objects also in a ::tommy_list,
  * and use the list as iterator.
  *
  * This technique allows to keep track of the insertion order with the list,
  * and provide more search possibilities using different data structures for
  * different search keys.
  *
- * See the next example, for an object that is inserted in a ::tommy_list, and in
+ * See the next example, for a objects inserted in a ::tommy_list, and in
  * two ::tommy_hashdyn using different keys.
  *
  * \code
@@ -579,9 +590,12 @@
  * struct object* obj = malloc(sizeof(struct object));
  * obj->value_0 = ...;
  * obj->value_1 = ...;
- * tommy_hashdyn_insert(&hash_0, &obj->hash_node_0, obj, tommy_inthash_u32(obj->value0)); // inserts in the first hash table
- * tommy_hashdyn_insert(&hash_1, &obj->hash_node_1, obj, tommy_inthash_u32(obj->value1)); // inserts in the second hash table
- * tommy_list_insert_tail(&list, &obj->list_node, obj); // inserts in the list
+ * // inserts in the first hash table
+ * tommy_hashdyn_insert(&hash_0, &obj->hash_node_0, obj, tommy_inthash_u32(obj->value_0));
+ * // inserts in the second hash table
+ * tommy_hashdyn_insert(&hash_1, &obj->hash_node_1, obj, tommy_inthash_u32(obj->value_1));
+ * // inserts in the list
+ * tommy_list_insert_tail(&list, &obj->list_node, obj);
  *
  * ...
  *
@@ -600,40 +614,45 @@
  * // complex iterator logic
  * tommy_node* i = tommy_list_head(&list);
  * while (i != 0) {
+ *    // get the object
+ *    struct object* obj = i->data;
  *    ...
  *    // go to the next element
  *    i = i->next;
- *
  *    ...
- *
- *    // go to the pred element
+ *    // go to the prev element
  *    i = i->prev;
- *
  *    ...
  * }
  *
  * ...
  *
- * // deallocates all the objects iterating the list
+ * // deallocates the objects iterating the list
  * tommy_list_foreach(&list, free);
  *
- * // deallocates all the hash tables
+ * // deallocates the hash tables
  * tommy_hashdyn_done(&hash_0);
  * tommy_hashdyn_done(&hash_1);
  * \endcode
  *
  * \page design Tommy Design
  *
- * Tommy is mainly designed to provide high performance, but also much care was
- * given in the definition of an useable API. In some case, even at the cost of
- * some efficency.
+ * Tommy is mainly designed to provide high performance, but much care was
+ * also given in the definition of an useable API. In case, even making some
+ * compromise with efficency.
+ *
+ * \section multi Multi key
+ * All the Tommy containers support the insertion of multiple elements with
+ * the same key.
+ *
+ * This allow the maximum flexibility, but in some cases it requires some
+ * more space to keep a list of equal elements.
  *
  * \section datapointer Data pointer
- * The tommy_node::data field is present only to provide a simpler API.
+ * The tommy_node::data field is present to provide a simpler API.
  *
  * A more memory conservative approach is to do not store this pointer, and
- * computing it from the node pointer every time considering that they are
- * always at a constant offset.
+ * computing it from the embedded node pointer every time.
  *
  * See for example the Linux Kernel declaration of container_of() at
  * http://lxr.free-electrons.com/ident?i=container_of
@@ -642,14 +661,14 @@
  * a manual conversion from a node to the object containing the node.
  *
  * \section zero_list Zero terminated next list
- * The half 0 terminated format of ::tommy_list is present only to provide
+ * The half 0 terminated format of tommy_node::next is present to provide
  * a forward iterator terminating in 0.
  *
  * A more efficient approach is to use a double circular list, as operating on
  * nodes in a circular list doesn't requires to manage the special terminating
  * case.
  *
- * Although, it would have required too much complexity at the user for a simple
+ * Although, it would have required more complexity at the user for a simple
  * iteration.
  *
  * \section double_linked Double linked list for collisions
