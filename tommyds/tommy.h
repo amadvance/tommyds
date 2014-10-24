@@ -27,7 +27,8 @@
 
 /** \mainpage
  * \section Introduction
- * Tommy is a C library of hashtables and tries designed to store objects with high performance.
+ * Tommy is a C library of hashtables and tries designed to store and find objects
+ * with high performance.
  *
  * It's <b>faster</b> than all the similar libraries like
  * <a href="http://www.canonware.com/rb/">rbtree</a>,
@@ -38,7 +39,7 @@
  * <a href="http://uthash.sourceforge.net/">uthash</a>,
  * <a href="http://www.nedprod.com/programs/portable/nedtries/">nedtrie</a>,
  * <a href="http://code.google.com/p/judyarray/">judyarray</a> and others.
- * In fact, only <a href="http://code.google.com/p/google-sparsehash/">googledensehash</a> is a real competitor for Tommy.
+ * Only <a href="http://code.google.com/p/google-sparsehash/">googledensehash</a> is a real competitor for Tommy.
  *
  * The data structures provided are:
  *
@@ -46,7 +47,7 @@
  * - ::tommy_array, ::tommy_arrayof - A linear array.
  * It doesn't fragment the heap.
  * - ::tommy_arrayblk, ::tommy_arrayblkof - A blocked linear array.
- * It doesn't fragment the heap and minimize the space occupation.
+ * It doesn't fragment the heap and it minimizes the space occupation.
  * - ::tommy_hashtable - A fixed size chained hashtable.
  * - ::tommy_hashdyn - A dynamic chained hashtable.
  * - ::tommy_hashlin - A linear chained hashtable.

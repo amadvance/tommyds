@@ -26,15 +26,16 @@
  */
 
 /** \file
- * Dynamic array based on blocks of fixed sizes.
+ * Dynamic array based on blocks of fixed size.
  *
- * This array is able to grow dynamically upon request.
+ * This array is able to grow dynamically upon request, without any reallocation.
  *
  * This is very similar at ::tommy_arrayblk, but it allows to store elements of any
  * size and not just pointers.
  *
  * Note that in this case tommy_arrayblkof_ref() returns a pointer at the element,
- * and it should be used for both get() and set() operation.
+ * that should be used for getting and setting elements in the array,
+ * as generic getter and setter are not available.
  */
 
 #ifndef __TOMMYARRAYBLKOF_H
@@ -54,7 +55,7 @@
 #define TOMMY_ARRAYBLKOF_SIZE (4 * 1024)
 
 /**
- * Array.
+ * Dynamic array based on blocks of fixed size.
  */
 typedef struct tommy_arrayblkof_struct {
 	tommy_array block; /**< Array of blocks. */

@@ -28,13 +28,14 @@
 /** \file
  * Dynamic array based on segments of exponential growing size.
  *
- * This array is able to grow dynamically upon request.
+ * This array is able to grow dynamically upon request, without any reallocation.
  *
  * This is very similar at ::tommy_array, but it allows to store elements of any
  * size and not just pointers.
  *
  * Note that in this case tommy_arrayof_ref() returns a pointer at the element,
- * and it should be used for both get() and set() operation.
+ * that should be used for getting and setting elements in the array,
+ * as generic getter and setter are not available.
  */
 
 #ifndef __TOMMYARRAYOF_H
@@ -59,7 +60,7 @@
 #define TOMMY_ARRAYOF_BIT_MAX 32
 
 /**
- * Array.
+ * Dynamic array.
  */
 typedef struct tommy_arrayof_struct {
 	void* bucket[TOMMY_ARRAYOF_BIT_MAX]; /**< Dynamic array of buckets. */

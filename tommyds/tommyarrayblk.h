@@ -26,16 +26,16 @@
  */
 
 /** \file
- * Dynamic array based on blocks of fixed sizes.
+ * Dynamic array based on blocks of fixed size.
  *
- * This array is able to grow dynamically upon request.
+ * This array is able to grow dynamically upon request, without any reallocation.
  *
- * The resize involve an allocation of a new array block, without reallocating
- * the already allocated memory, and then not increasing the heap fragmentation,
+ * The grow operation involves an allocation of a new array block, without reallocating
+ * the already used memory, and then not increasing the heap fragmentation,
  * and minimize the space occupation.
- * This means that the address of the allocated blocks never change.
+ * This also implies that the address of the stored elements never change.
  *
- * Allocated blocks are always of the same fixed size of 64 Ki pointers.
+ * Allocated blocks are always of the same fixed size of 4 Ki pointers.
  */
 
 #ifndef __TOMMYARRAYBLK_H
@@ -55,7 +55,7 @@
 #define TOMMY_ARRAYBLK_SIZE (4 * 1024)
 
 /**
- * Array.
+ * Dynamic array based on blocks of fixed size.
  */
 typedef struct tommy_arrayblk_struct {
 	tommy_array block; /**< Array of blocks. */

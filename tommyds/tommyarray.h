@@ -28,11 +28,11 @@
 /** \file
  * Dynamic array based on segments of exponential growing size.
  *
- * This array is able to grow dynamically upon request.
+ * This array is able to grow dynamically upon request, without any reallocation.
  *
- * The resize involve an allocation of a new array segment, without reallocating
- * the already allocated memory, and then not increasing the heap fragmentation.
- * This means that the address of the allocated segments never change.
+ * The grow operation involves an allocation of a new array segment, without reallocating
+ * the already used memory, and then not increasing the heap fragmentation.
+ * This also implies that the address of the stored elements never change.
  *
  * Allocated segments grow in size exponentially.
  */
@@ -59,7 +59,7 @@
 #define TOMMY_ARRAY_BIT_MAX 32
 
 /**
- * Array.
+ * Dynamic array.
  */
 typedef struct tommy_array_struct {
 	void** bucket[TOMMY_ARRAY_BIT_MAX]; /**< Dynamic array of buckets. */
