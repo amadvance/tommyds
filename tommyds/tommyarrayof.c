@@ -27,8 +27,6 @@
 
 #include "tommyarrayof.h"
 
-#include <stddef.h> /* for ptrdiff_t */
-
 /******************************************************************************/
 /* array */
 
@@ -72,7 +70,7 @@ void tommy_arrayof_grow(tommy_arrayof* array, tommy_count_t count)
 
 		/* store it adjusting the offset */
 		/* cast to ptrdiff_t to ensure to get a negative value */
-		array->bucket[array->bucket_bit] = tommy_cast(unsigned char*, segment) - (ptrdiff_t)array->bucket_max * (ptrdiff_t)array->element_size;
+		array->bucket[array->bucket_bit] = tommy_cast(unsigned char*, segment) - (tommy_ptrdiff_t)array->bucket_max * array->element_size;
 
 		++array->bucket_bit;
 		array->bucket_max = 1 << array->bucket_bit;
