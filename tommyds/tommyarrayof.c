@@ -52,7 +52,7 @@ void tommy_arrayof_done(tommy_arrayof* array)
 	tommy_free(array->bucket[0]);
 	for (i = TOMMY_ARRAYOF_BIT; i < array->bucket_bit; ++i) {
 		void* segment = array->bucket[i];
-		tommy_free(tommy_cast(unsigned char*, segment) + (1 << i) * array->element_size);
+		tommy_free(tommy_cast(unsigned char*, segment) + (((tommy_ptrdiff_t)1) << i) * array->element_size);
 	}
 }
 

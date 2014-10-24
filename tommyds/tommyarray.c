@@ -51,7 +51,7 @@ void tommy_array_done(tommy_array* array)
 	tommy_free(array->bucket[0]);
 	for (i = TOMMY_ARRAY_BIT; i < array->bucket_bit; ++i) {
 		void** segment = array->bucket[i];
-		tommy_free(&segment[1 << i]);
+		tommy_free(&segment[((tommy_ptrdiff_t)1) << i]);
 	}
 }
 

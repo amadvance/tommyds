@@ -65,7 +65,7 @@ void tommy_hashlin_done(tommy_hashlin* hashlin)
 	tommy_free(hashlin->bucket[0]);
 	for (i = TOMMY_HASHLIN_BIT; i < hashlin->bucket_bit; ++i) {
 		tommy_hashlin_node** segment = hashlin->bucket[i];
-		tommy_free(&segment[1 << i]);
+		tommy_free(&segment[((tommy_ptrdiff_t)1) << i]);
 	}
 }
 
@@ -260,7 +260,7 @@ tommy_inline void hashlin_shrink_step(tommy_hashlin* hashlin)
 
 				/* free the last segment */
 				segment = hashlin->bucket[hashlin->bucket_bit];
-				tommy_free(&segment[1 << hashlin->bucket_bit]);
+				tommy_free(&segment[((tommy_ptrdiff_t)1) << hashlin->bucket_bit]);
 				break;
 			}
 		}
