@@ -37,4 +37,5 @@
 #include "tommyhashtbl.c"
 #include "tommyhashdyn.c"
 #include "tommyhashlin.c"
+#include "tommyhashopen.c"
 

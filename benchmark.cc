@@ -81,6 +81,7 @@
 /* expanded inline by the compiler like other implementations */
 #include "tommyds/tommy.h"
 #include "tommyds/tommy.c"
+#define USE_HASHOPEN 1
 
 /* C++ Btree */
 #ifdef USE_CPPMAP
@@ -256,6 +257,9 @@ struct rbt_object* RBTREE;
 struct hashtable_object* HASHTABLE;
 struct hashtable_object* HASHDYN;
 struct hashtable_object* HASHLIN;
+#ifdef USE_HASHOPEN
+struct hashtable_object* HASHOPEN;
+#endif
 struct trie_object* TRIE;
 struct trie_inplace_object* TRIE_INPLACE;
 struct khash_object* KHASH;
@@ -322,6 +326,9 @@ rbtree_t tree;
 tommy_hashtable hashtable;
 tommy_hashdyn hashdyn;
 tommy_hashlin hashlin;
+#ifdef USE_HASHOPEN
+tommy_hashopen hashopen;
+#endif
 tommy_allocator trie_allocator;
 tommy_trie trie;
 tommy_trie_inplace trie_inplace;
@@ -541,7 +548,12 @@ const char* ORDER_NAME[ORDER_MAX] = {
 #define DATA_CPPUNORDEREDMAP 14
 #define DATA_CPPMAP 15
 #define DATA_CUBE 16
+#ifdef USE_HASHOPEN
+#define DATA_HASHOPEN 17
+#define DATA_MAX 18
+#else
 #define DATA_MAX 17
+#endif
 
 const char* DATA_NAME[DATA_MAX] = {
 	"tommy-hashtable",
@@ -560,7 +572,10 @@ const char* DATA_NAME[DATA_MAX] = {
 	"stxbtree",
 	"c++unorderedmap",
 	"c++map",
-	"tesseract"
+	"tesseract",
+#ifdef USE_HASHOPEN
+	"tommy-hashopen",
+#endif
 };
 
 /** 
@@ -767,6 +782,13 @@ void test_alloc(void)
 		HASHLIN = (struct hashtable_object*)malloc(sizeof(struct hashtable_object) * the_max);
 	}
 
+#ifdef USE_HASHOPEN
+	COND(DATA_HASHOPEN) {
+		tommy_hashopen_init(&hashopen);
+		HASHOPEN = (struct hashtable_object*)malloc(sizeof(struct hashtable_object) * the_max);
+	}
+#endif
+
 	COND(DATA_TRIE) {
 		tommy_allocator_init(&trie_allocator, TOMMY_TRIE_BLOCK_SIZE, TOMMY_TRIE_BLOCK_SIZE);
 		tommy_trie_init(&trie, &trie_allocator);
@@ -883,6 +905,15 @@ void test_free(void)
 		tommy_hashlin_done(&hashlin);
 		free(HASHLIN);
 	}
+
+#ifdef USE_HASHOPEN
+	COND(DATA_HASHOPEN) {
+		if (tommy_hashopen_count(&hashopen) != 0)
+			abort();
+		tommy_hashopen_done(&hashopen);
+		free(HASHOPEN);
+	}
+#endif
 
 	COND(DATA_TRIE) {
 		if (tommy_trie_count(&trie) != 0)
@@ -1003,6 +1034,15 @@ void test_insert(unsigned* INSERT)
 		HASHLIN[i].value = key;
 		tommy_hashlin_insert(&hashlin, &HASHLIN[i].node, &HASHLIN[i], hash_key);
 	} STOP();
+
+#ifdef USE_HASHOPEN
+	START(DATA_HASHOPEN) {
+		unsigned key = INSERT[i];
+		unsigned hash_key = hash(key);
+		HASHOPEN[i].value = key;
+		tommy_hashopen_insert(&hashopen, &HASHOPEN[i].node, &HASHOPEN[i], hash_key);
+	} STOP();
+#endif
 
 	START(DATA_TRIE) {
 		unsigned key = INSERT[i];
@@ -1191,6 +1231,21 @@ void test_hit(unsigned* SEARCH)
 				abort();
 		}
 	} STOP();
+
+#ifdef USE_HASHOPEN
+	START(DATA_HASHOPEN) {
+		unsigned key = SEARCH[i] + DELTA;
+		unsigned hash_key = hash(key);
+		struct hashtable_object* obj;
+		obj = (struct hashtable_object*)tommy_hashopen_search(&hashopen, tommy_hashtable_compare, &key, hash_key);
+		if (!obj)
+			abort();
+		if (dereference) {
+			if (obj->value != key)
+				abort();
+		}
+	} STOP();
+#endif
 
 	START(DATA_TRIE) {
 		unsigned key = SEARCH[i] + DELTA;
@@ -1426,6 +1481,17 @@ void test_miss(unsigned* SEARCH)
 			abort();
 	} STOP();
 
+#ifdef USE_HASHOPEN
+	START(DATA_HASHOPEN) {
+		unsigned key = SEARCH[i] + DELTA;
+		unsigned hash_key = hash(key);
+		struct hashtable_object* obj;
+		obj = (struct hashtable_object*)tommy_hashopen_search(&hashopen, tommy_hashtable_compare, &key, hash_key);
+		if (obj)
+			abort();
+	} STOP();
+#endif
+
 	START(DATA_TRIE) {
 		struct trie_object* obj;
 		obj = (struct trie_object*)tommy_trie_search(&trie, SEARCH[i] + DELTA);
@@ -1620,6 +1686,22 @@ void test_change(unsigned* REMOVE, unsigned* INSERT)
 		obj->value = key;
 		tommy_hashlin_insert(&hashlin, &obj->node, obj, hash_key);
 	} STOP();
+
+#ifdef USE_HASHOPEN
+	START(DATA_HASHOPEN) {
+		unsigned key = REMOVE[i];
+		unsigned hash_key = hash(key);
+		struct hashtable_object* obj;
+		obj = (struct hashtable_object*)tommy_hashopen_remove(&hashopen, tommy_hashtable_compare, &key, hash_key);
+		if (!obj)
+			abort();
+
+		key = INSERT[i] + DELTA;
+		hash_key = hash(key);
+		obj->value = key;
+		tommy_hashopen_insert(&hashopen, &obj->node, obj, hash_key);
+	} STOP();
+#endif
 
 	START(DATA_TRIE) {
 		unsigned key = REMOVE[i];
@@ -1914,6 +1996,21 @@ void test_remove(unsigned* REMOVE)
 				abort();
 		}
 	} STOP();
+
+#ifdef USE_HASHOPEN
+	START(DATA_HASHOPEN) {
+		unsigned key = REMOVE[i] + DELTA;
+		unsigned hash_key = hash(key);
+		struct hashtable_object* obj;
+		obj = (struct hashtable_object*)tommy_hashopen_remove(&hashopen, tommy_hashtable_compare, &key, hash_key);
+		if (!obj)
+			abort();
+		if (dereference) {
+			if (obj->value != key)
+				abort();
+		}
+	} STOP();
+#endif
 
 	START(DATA_TRIE) {
 		unsigned key = REMOVE[i] + DELTA;
@@ -2213,6 +2310,9 @@ void test_size(void)
 	MEM(DATA_HASHTABLE, tommy_hashtable_memory_usage(&hashtable));
 	MEM(DATA_HASHDYN, tommy_hashdyn_memory_usage(&hashdyn));
 	MEM(DATA_HASHLIN, tommy_hashlin_memory_usage(&hashlin));
+#ifdef USE_HASHOPEN
+	MEM(DATA_HASHOPEN, tommy_hashopen_memory_usage(&hashopen));
+#endif
 	MEM(DATA_TRIE, tommy_trie_memory_usage(&trie));
 	MEM(DATA_TRIE_INPLACE, tommy_trie_inplace_memory_usage(&trie_inplace));
 	MEM(DATA_KHASH, khash_size(khash));
