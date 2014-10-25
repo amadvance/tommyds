@@ -108,7 +108,7 @@
 /* list */
 
 /**
- * Double linked list for collisions into hashtables.
+ * Double linked list type.
  */
 typedef tommy_node* tommy_list;
 

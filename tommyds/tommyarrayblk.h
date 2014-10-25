@@ -55,7 +55,8 @@
 #define TOMMY_ARRAYBLK_SIZE (4 * 1024)
 
 /**
- * Dynamic array based on blocks of fixed size.
+ * Array container type.
+ * \note Don't use internal fields directly, but access the container only using functions.
  */
 typedef struct tommy_arrayblk_struct {
 	tommy_array block; /**< Array of blocks. */
@@ -73,7 +74,7 @@ void tommy_arrayblk_init(tommy_arrayblk* array);
 void tommy_arrayblk_done(tommy_arrayblk* array);
 
 /**
- * Grow the size up to the specified value.
+ * Grows the size up to the specified value.
  * All the new elements in the array are initialized with the 0 value.
  */
 void tommy_arrayblk_grow(tommy_arrayblk* array, tommy_count_t size);

@@ -146,7 +146,7 @@
 #define TOMMY_TRIE_INPLACE_BUCKET_MAX (1 << TOMMY_TRIE_INPLACE_BUCKET_BIT)
 
 /**
- * Inplace trie node.
+ * Trie node.
  * This is the node that you have to include inside your objects.
  */
 typedef struct tommy_trie_inplace_node_struct {
@@ -158,7 +158,8 @@ typedef struct tommy_trie_inplace_node_struct {
 } tommy_trie_inplace_node;
 
 /**
- * Inplace trie.
+ * Trie container type.
+ * \note Don't use internal fields directly, but access the container only using functions.
  */
 typedef struct tommy_trie_inplace_struct {
 	tommy_trie_inplace_node* bucket[TOMMY_TRIE_INPLACE_BUCKET_MAX]; /**< First tree level. */

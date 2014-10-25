@@ -139,7 +139,8 @@
 typedef tommy_node tommy_hashtable_node;
 
 /**
- * Fixed size chained hashtable.
+ * Hashtable container type.
+ * \note Don't use internal fields directly, but access the container only using functions.
  */
 typedef struct tommy_hashtable_struct {
 	tommy_hashtable_node** bucket; /**< Hash buckets. One list for each hash modulus. */

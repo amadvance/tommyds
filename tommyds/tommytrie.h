@@ -142,12 +142,6 @@
 #define TOMMY_TRIE_TREE_MAX (64 / sizeof(void*))
 
 /**
- * Trie node.
- * This is the node that you have to include inside your objects.
- */
-typedef tommy_node tommy_trie_node;
-
-/**
  * Trie block size.
  * You must use this value to initialize the allocator.
  */
@@ -170,7 +164,14 @@ typedef tommy_node tommy_trie_node;
 #define TOMMY_TRIE_BUCKET_MAX (1 << TOMMY_TRIE_BUCKET_BIT)
 
 /**
- * Trie optimized for cache utilization.
+ * Trie node.
+ * This is the node that you have to include inside your objects.
+ */
+typedef tommy_node tommy_trie_node;
+
+/**
+ * Trie container type.
+ * \note Don't use internal fields directly, but access the container only using functions.
  */
 typedef struct tommy_trie_struct {
 	tommy_trie_node* bucket[TOMMY_TRIE_BUCKET_MAX]; /**< First tree level. */

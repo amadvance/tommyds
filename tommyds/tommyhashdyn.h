@@ -149,13 +149,14 @@
 #define TOMMY_HASHDYN_BIT 4
 
 /**
- * Dynamic hashtable node.
+ * Hashtable node.
  * This is the node that you have to include inside your objects.
  */
 typedef tommy_node tommy_hashdyn_node;
 
 /**
- * Dynamic chained hashtable.
+ * Hashtable container type.
+ * \note Don't use internal fields directly, but access the container only using functions.
  */
 typedef struct tommy_hashdyn_struct {
 	tommy_hashdyn_node** bucket; /**< Hash buckets. One list for each hash modulus. */

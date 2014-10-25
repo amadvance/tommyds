@@ -60,7 +60,8 @@
 #define TOMMY_ARRAYOF_BIT_MAX 32
 
 /**
- * Dynamic array.
+ * Array container type.
+ * \note Don't use internal fields directly, but access the container only using functions.
  */
 typedef struct tommy_arrayof_struct {
 	void* bucket[TOMMY_ARRAYOF_BIT_MAX]; /**< Dynamic array of buckets. */
@@ -82,7 +83,7 @@ void tommy_arrayof_init(tommy_arrayof* array, tommy_size_t element_size);
 void tommy_arrayof_done(tommy_arrayof* array);
 
 /**
- * Grow the size up to the specified value.
+ * Grows the size up to the specified value.
  * All the new elements in the array are initialized with the 0 value.
  */
 void tommy_arrayof_grow(tommy_arrayof* array, tommy_count_t size);

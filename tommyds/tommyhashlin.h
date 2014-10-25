@@ -152,7 +152,7 @@
 #define TOMMY_HASHLIN_BIT 6
 
 /**
- * Linear hashtable node.
+ * Hashtable node.
  * This is the node that you have to include inside your objects.
  */
 typedef tommy_node tommy_hashlin_node;
@@ -163,7 +163,8 @@ typedef tommy_node tommy_hashlin_node;
 #define TOMMY_HASHLIN_BIT_MAX 32
 
 /**
- * Linear chained hashtable.
+ * Hashtable container type.
+ * \note Don't use internal fields directly, but access the container only using functions.
  */
 typedef struct tommy_hashlin_struct {
 	tommy_hashlin_node** bucket[TOMMY_HASHLIN_BIT_MAX]; /**< Dynamic array of hash buckets. One list for each hash modulus. */
