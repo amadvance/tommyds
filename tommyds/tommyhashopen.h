@@ -175,14 +175,15 @@ typedef tommy_node tommy_hashopen_node;
  */
 typedef struct tommy_hashopen_pos_struct {
 	tommy_hashopen_node* ptr; /**< Pointer at the first element. */
-	tommy_hash_t hash; /**< Hash of the elements in the bucket. */
+	tommy_uintptr_t hash; /**< Hash of the elements in the bucket. */
 } tommy_hashopen_pos;
 
 /**
  * Open addressing hashtable.
  */
 typedef struct tommy_hashopen_struct {
-	tommy_hashopen_pos* bucket; /**< Hash buckets. */
+	tommy_hashopen_pos* bucket; /**< Hash buckets aligned. */
+	tommy_hashopen_pos* bucket_alloc; /**< Hash buckets allocation. */
 	tommy_uint_t bucket_bit; /**< Bits used in the bit mask. */
 	tommy_count_t bucket_max; /**< Number of buckets. */
 	tommy_count_t bucket_mask; /**< Bit mask to access the buckets. */
@@ -270,10 +271,9 @@ tommy_inline void* tommy_hashopen_search(tommy_hashopen* hashopen, tommy_compare
 	tommy_hashopen_pos* i = tommy_hashopen_bucket(hashopen, hash);
 	tommy_hashopen_node* j;
 
-	/* if empty bucket, or different hash, it's missing */
+	/* if empty bucket, it's missing */
 	if (i->ptr == TOMMY_HASHOPEN_EMPTY
-		|| i->ptr == TOMMY_HASHOPEN_DELETED
-		|| i->hash != hash)
+		|| i->ptr == TOMMY_HASHOPEN_DELETED)
 		return 0;
 
 	j = i->ptr;

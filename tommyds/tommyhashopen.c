@@ -54,65 +54,53 @@ void tommy_hashopen_done(tommy_hashopen* hashopen)
  */
 static void tommy_hashopen_resize(tommy_hashopen* hashopen, tommy_uint_t new_bucket_bit)
 {
-	tommy_count_t bucket_max;
-	tommy_count_t new_bucket_max;
-	tommy_count_t new_bucket_mask;
-	tommy_hashopen_pos* new_bucket;
+	tommy_count_t old_bucket_max;
+	tommy_hashopen_pos* old_bucket;
 	tommy_count_t i;
 
-	bucket_max = hashopen->bucket_max;
+	/* save the old table */
+	old_bucket_max = hashopen->bucket_max;
+	old_bucket = hashopen->bucket;
 
-	new_bucket_max = 1 << new_bucket_bit;
-	new_bucket_mask = new_bucket_max - 1;
-	new_bucket = tommy_cast(tommy_hashopen_pos*, tommy_calloc(new_bucket_max, sizeof(tommy_hashopen_pos)));
+	/* allocate the new table */
+	hashopen->bucket_bit = new_bucket_bit;
+	hashopen->bucket_max = 1 << hashopen->bucket_bit;
+	hashopen->bucket_mask = hashopen->bucket_max - 1;
+	hashopen->bucket = tommy_cast(tommy_hashopen_pos*, tommy_calloc(hashopen->bucket_max, sizeof(tommy_hashopen_pos)));
 
-	/* reset the countes */
-	hashopen->filled_count = 0;
+	/* reset the deleted counters */
 	hashopen->deleted_count = 0;
 
 	/* reinsert all the elements */
-	for(i=0;i<bucket_max;++i) {
-		tommy_hashopen_pos* j = &hashopen->bucket[i];
+	for(i=0;i<old_bucket_max;++i) {
+		tommy_hashopen_pos* j = &old_bucket[i];
+
 		if (j->ptr != TOMMY_HASHOPEN_EMPTY && j->ptr != TOMMY_HASHOPEN_DELETED) {
-			tommy_hashopen_node* k = j->ptr;
-			while (k) {
-				tommy_hashopen_node* k_next = k->next;
-				tommy_count_t n = k->key & new_bucket_mask;
-				tommy_count_t delta = 1;
+			tommy_hashopen_pos* p;
+			tommy_count_t k = j->hash & hashopen->bucket_mask;
+			tommy_count_t delta = 1;
 
-				while (1) {
-					tommy_hashopen_pos* p = &new_bucket[n];
+			/* search the first empty bucket */
+			/* we don't consider the DELETED case, becasue the new table */
+			/* as not yet any deleted entry. */
+			/* we don't consider the same hash, because it cannot yet */
+			/* exists an equal hash. */
+			while (1) {
+				p = &hashopen->bucket[k];
 
-					/* if the bucket is empty, the element is missing */
-					if (p->ptr == TOMMY_HASHOPEN_EMPTY) {
-						tommy_list_insert_first(&p->ptr, k);
-						p->hash = k->key;
-						++hashopen->filled_count;
-						break;
-					}
+				if (p->ptr == TOMMY_HASHOPEN_EMPTY)
+					break;
 
-					/* if the hash matches, it's the right one */
-					if (p->hash == k->key) {
-						tommy_list_insert_tail_not_empty(p->ptr, k);
-						break;
-					}
-
-					/* go to the next bucket */
-					n = (n + HASHOPEN_NEXT(delta)) & new_bucket_mask;
-				}
-
-				k = k_next;
+				/* go to the next bucket */
+				k = (k + HASHOPEN_NEXT(delta)) & hashopen->bucket_mask;
 			}
+
+			/* assign the new position */
+			*p = *j;
 		}
 	}
 
-	tommy_free(hashopen->bucket);
-
-	/* setup */
-	hashopen->bucket_bit = new_bucket_bit;
-	hashopen->bucket_max = new_bucket_max;
-	hashopen->bucket_mask = new_bucket_mask;
-	hashopen->bucket = new_bucket;
+	tommy_free(old_bucket);
 }
 
 /**
@@ -191,10 +179,9 @@ void* tommy_hashopen_remove(tommy_hashopen* hashopen, tommy_compare_func* cmp, c
 	tommy_hashopen_pos* i = tommy_hashopen_bucket(hashopen, hash);
 	tommy_hashopen_node* j;
 
-	/* if empty bucket, or different hash, it's missing */
+	/* if empty bucket, it's missing */
 	if (i->ptr == TOMMY_HASHOPEN_EMPTY
-		|| i->ptr == TOMMY_HASHOPEN_DELETED
-		|| i->hash != hash)
+		|| i->ptr == TOMMY_HASHOPEN_DELETED)
 		return 0;
 
 	/* for sure we have at least one object */
