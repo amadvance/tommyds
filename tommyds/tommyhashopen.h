@@ -161,6 +161,16 @@ typedef tommy_node tommy_hashopen_node;
 #define TOMMY_HASHOPEN_DELETED ((tommy_hashopen_node*)1)
 
 /** \internal
+ * Defines probing strategy. Linear or Quadratic.
+ */
+//#define HASHOPEN_USE_QUADRATIC 1
+#if HASHOPEN_USE_QUADRATIC
+#define HASHOPEN_NEXT(delta) delta++
+#else
+#define HASHOPEN_NEXT(delta) delta
+#endif
+
+/** \internal
  * Open addressing hashtable bucket.
  */
 typedef struct tommy_hashopen_pos_struct {
@@ -173,7 +183,6 @@ typedef struct tommy_hashopen_pos_struct {
  */
 typedef struct tommy_hashopen_struct {
 	tommy_hashopen_pos* bucket; /**< Hash buckets. */
-	tommy_hashopen_pos* bucket_last; /**< Last hash bucket. */
 	tommy_uint_t bucket_bit; /**< Bits used in the bit mask. */
 	tommy_count_t bucket_max; /**< Number of buckets. */
 	tommy_count_t bucket_mask; /**< Bit mask to access the buckets. */
@@ -221,27 +230,28 @@ void* tommy_hashopen_remove(tommy_hashopen* hashopen, tommy_compare_func* cmp, c
  */
 tommy_inline tommy_hashopen_pos* tommy_hashopen_bucket(tommy_hashopen* hashopen, tommy_hash_t hash)
 {
-	tommy_hashopen_pos* i = &hashopen->bucket[hash & hashopen->bucket_mask];
+	tommy_count_t i = hash & hashopen->bucket_mask;
+	tommy_count_t delta = 1;
 	tommy_hashopen_pos* empty = 0;
 
 	while (1) {
+		tommy_hashopen_pos* p = &hashopen->bucket[i];
+
 		/* if the bucket is empty, the element is missing */
-		if (i->ptr == TOMMY_HASHOPEN_EMPTY) {
+		if (p->ptr == TOMMY_HASHOPEN_EMPTY) {
 			if (!empty)
-				empty = i;
+				empty = p;
 			return empty;
-		} else if (i->ptr == TOMMY_HASHOPEN_DELETED) {
+		} else if (p->ptr == TOMMY_HASHOPEN_DELETED) {
 			if (!empty)
-				empty = i;
-		} else if (i->hash == hash) {
+				empty = p;
+		} else if (p->hash == hash) {
 			/* if the hash match, it's the right one */
-			return i;
+			return p;
 		}
 
-		/* go to the next bucket */;
-		++i;
-		if (i == hashopen->bucket_last)
-			i = hashopen->bucket;
+		/* go to the next bucket */
+		i = (i + HASHOPEN_NEXT(delta)) & hashopen->bucket_mask;
 	}
 }
 

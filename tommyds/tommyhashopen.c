@@ -38,7 +38,6 @@ void tommy_hashopen_init(tommy_hashopen* hashopen)
 	hashopen->bucket_max = 1 << hashopen->bucket_bit;
 	hashopen->bucket_mask = hashopen->bucket_max - 1;
 	hashopen->bucket = tommy_cast(tommy_hashopen_pos*, tommy_calloc(hashopen->bucket_max, sizeof(tommy_hashopen_pos)));
-	hashopen->bucket_last = hashopen->bucket + hashopen->bucket_max;
 
 	hashopen->count = 0;
 	hashopen->filled_count = 0;
@@ -59,7 +58,6 @@ static void tommy_hashopen_resize(tommy_hashopen* hashopen, tommy_uint_t new_buc
 	tommy_count_t new_bucket_max;
 	tommy_count_t new_bucket_mask;
 	tommy_hashopen_pos* new_bucket;
-	tommy_hashopen_pos* new_bucket_last;
 	tommy_count_t i;
 
 	bucket_max = hashopen->bucket_max;
@@ -67,7 +65,6 @@ static void tommy_hashopen_resize(tommy_hashopen* hashopen, tommy_uint_t new_buc
 	new_bucket_max = 1 << new_bucket_bit;
 	new_bucket_mask = new_bucket_max - 1;
 	new_bucket = tommy_cast(tommy_hashopen_pos*, tommy_calloc(new_bucket_max, sizeof(tommy_hashopen_pos)));
-	new_bucket_last = new_bucket + new_bucket_max;
 
 	/* reset the countes */
 	hashopen->filled_count = 0;
@@ -80,27 +77,28 @@ static void tommy_hashopen_resize(tommy_hashopen* hashopen, tommy_uint_t new_buc
 			tommy_hashopen_node* k = j->ptr;
 			while (k) {
 				tommy_hashopen_node* k_next = k->next;
-				tommy_hashopen_pos* n = &new_bucket[k->key & new_bucket_mask];
+				tommy_count_t n = k->key & new_bucket_mask;
+				tommy_count_t delta = 1;
 
 				while (1) {
+					tommy_hashopen_pos* p = &new_bucket[n];
+
 					/* if the bucket is empty, the element is missing */
-					if (n->ptr == TOMMY_HASHOPEN_EMPTY) {
-						tommy_list_insert_first(&n->ptr, k);
-						n->hash = k->key;
+					if (p->ptr == TOMMY_HASHOPEN_EMPTY) {
+						tommy_list_insert_first(&p->ptr, k);
+						p->hash = k->key;
 						++hashopen->filled_count;
 						break;
 					}
 
 					/* if the hash matches, it's the right one */
-					if (n->hash == k->key) {
-						tommy_list_insert_tail_not_empty(n->ptr, k);
+					if (p->hash == k->key) {
+						tommy_list_insert_tail_not_empty(p->ptr, k);
 						break;
 					}
 
-					/* go to the next bucket */;
-					++n;
-					if (n == new_bucket_last)
-						n = new_bucket;
+					/* go to the next bucket */
+					n = (n + HASHOPEN_NEXT(delta)) & new_bucket_mask;
 				}
 
 				k = k_next;
@@ -115,7 +113,6 @@ static void tommy_hashopen_resize(tommy_hashopen* hashopen, tommy_uint_t new_buc
 	hashopen->bucket_max = new_bucket_max;
 	hashopen->bucket_mask = new_bucket_mask;
 	hashopen->bucket = new_bucket;
-	hashopen->bucket_last = hashopen->bucket + hashopen->bucket_max;
 }
 
 /**
