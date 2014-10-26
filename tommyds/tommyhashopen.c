@@ -144,11 +144,16 @@ void tommy_hashopen_insert(tommy_hashopen* hashopen, tommy_hashopen_node* node, 
 {
 	tommy_hashopen_pos* i = tommy_hashopen_bucket(hashopen, hash);
 
-	/* if the bucket is empty */
+	/* if the bucket is empty or deleted */
 	if (i->ptr == TOMMY_HASHOPEN_EMPTY) {
 		tommy_list_insert_first(&i->ptr, node);
 		i->hash = hash;
 		++hashopen->filled_count;
+	} else if (i->ptr == TOMMY_HASHOPEN_DELETED) {
+		tommy_list_insert_first(&i->ptr, node);
+		i->hash = hash;
+		++hashopen->filled_count;
+		--hashopen->deleted_count;
 	} else {
 		/* otherwise it already contains elements with the correct hash */
 		tommy_list_insert_tail_not_empty(i->ptr, node);
@@ -190,7 +195,9 @@ void* tommy_hashopen_remove(tommy_hashopen* hashopen, tommy_compare_func* cmp, c
 	tommy_hashopen_node* j;
 
 	/* if empty bucket, or different hash, it's missing */
-	if (i->ptr == TOMMY_HASHOPEN_EMPTY || i->hash != hash)
+	if (i->ptr == TOMMY_HASHOPEN_EMPTY
+		|| i->ptr == TOMMY_HASHOPEN_DELETED
+		|| i->hash != hash)
 		return 0;
 
 	/* for sure we have at least one object */

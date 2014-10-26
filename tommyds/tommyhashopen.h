@@ -158,7 +158,7 @@ typedef tommy_node tommy_hashopen_node;
 /** \internal
  * Identifier for deleted bucket.
  */
-#define TOMMY_HASHOPEN_DELETED ((tommy_hashopen_node*)4)
+#define TOMMY_HASHOPEN_DELETED ((tommy_hashopen_node*)1)
 
 /** \internal
  * Open addressing hashtable bucket.
@@ -222,15 +222,21 @@ void* tommy_hashopen_remove(tommy_hashopen* hashopen, tommy_compare_func* cmp, c
 tommy_inline tommy_hashopen_pos* tommy_hashopen_bucket(tommy_hashopen* hashopen, tommy_hash_t hash)
 {
 	tommy_hashopen_pos* i = &hashopen->bucket[hash & hashopen->bucket_mask];
+	tommy_hashopen_pos* empty = 0;
 
 	while (1) {
 		/* if the bucket is empty, the element is missing */
-		if (i->ptr == TOMMY_HASHOPEN_EMPTY)
+		if (i->ptr == TOMMY_HASHOPEN_EMPTY) {
+			if (!empty)
+				empty = i;
+			return empty;
+		} else if (i->ptr == TOMMY_HASHOPEN_DELETED) {
+			if (!empty)
+				empty = i;
+		} else if (i->hash == hash) {
+			/* if the hash match, it's the right one */
 			return i;
-
-		/* if it's not deleted and the hash match, it's the right one */
-		if (i->ptr != TOMMY_HASHOPEN_DELETED && i->hash == hash)
-			return i;
+		}
 
 		/* go to the next bucket */;
 		++i;
@@ -255,7 +261,9 @@ tommy_inline void* tommy_hashopen_search(tommy_hashopen* hashopen, tommy_compare
 	tommy_hashopen_node* j;
 
 	/* if empty bucket, or different hash, it's missing */
-	if (i->ptr == TOMMY_HASHOPEN_EMPTY || i->hash != hash)
+	if (i->ptr == TOMMY_HASHOPEN_EMPTY
+		|| i->ptr == TOMMY_HASHOPEN_DELETED
+		|| i->hash != hash)
 		return 0;
 
 	j = i->ptr;
