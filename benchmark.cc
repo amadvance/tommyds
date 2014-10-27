@@ -36,6 +36,8 @@
  * For this reason it contains a lot of unnecessary casting for C of void* pointers.
  */
 
+#define __STDC_LIMIT_MACROS 1 /* needed by ck */
+
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -176,6 +178,18 @@ typedef size_t ssize_t;
 #include "benchmark/lib/cube/binary-search-tesseract-1.0.c"
 #define USE_CUBE 1
 
+/* Concurrency Kit Hash Set */
+/* http://concurrencykit.org/ */
+#if defined(__linux)
+extern "C" {
+#include <ck_hs.h>
+}
+#define USE_CK 1
+#endif
+
+/* default hash function used */
+#define hash(v) tommy_inthash_u32(v)
+
 /******************************************************************************/
 /* objects */
 
@@ -252,6 +266,11 @@ struct cube_object {
 	char payload[PAYLOAD];
 };
 
+struct ck_object {
+	unsigned value;
+	char payload[PAYLOAD];
+};
+
 struct rbt_object* RBTREE;
 struct hashtable_object* HASHTABLE;
 struct hashtable_object* HASHDYN;
@@ -272,6 +291,41 @@ struct judyarray_object* JUDYARRAY;
 #endif
 #ifdef USE_CUBE
 struct cube_object* CUBE;
+#endif
+#ifdef USE_CK
+struct ck_object* CK;
+
+static void* hs_malloc(size_t r)
+{
+	return malloc(r);
+}
+
+static void hs_free(void* p, size_t b, bool r)
+{
+	(void)b;
+	(void)r;
+	free(p);
+}
+
+static struct ck_malloc my_allocator = {
+	hs_malloc,
+	0,
+	hs_free
+};
+
+static unsigned long hs_hash(const void* void_object, unsigned long seed)
+{
+	const struct ck_object* object = void_object;
+	(void)seed;
+	return hash(object->value);
+}
+
+static bool hs_compare(const void *previous, const void *compare)
+{
+	const struct ck_object* object_1 = previous;
+	const struct ck_object* object_2 = compare;
+	return object_1->value == object_2->value;
+}
 #endif
 
 /******************************************************************************/
@@ -366,6 +420,9 @@ Judy* judyarray = 0;
 #endif
 #ifdef USE_CUBE
 struct cube* cube = 0;
+#endif
+#ifdef USE_CK
+ck_hs_t ck;
 #endif
 
 /******************************************************************************/
@@ -541,7 +598,8 @@ const char* ORDER_NAME[ORDER_MAX] = {
 #define DATA_CPPUNORDEREDMAP 14
 #define DATA_CPPMAP 15
 #define DATA_CUBE 16
-#define DATA_MAX 17
+#define DATA_CK 17
+#define DATA_MAX 18
 
 const char* DATA_NAME[DATA_MAX] = {
 	"tommy-hashtable",
@@ -560,7 +618,8 @@ const char* DATA_NAME[DATA_MAX] = {
 	"stxbtree",
 	"c++unorderedmap",
 	"c++map",
-	"tesseract"
+	"tesseract",
+	"ck"
 };
 
 /** 
@@ -671,9 +730,6 @@ FILE* open(const char* mode)
 
 /******************************************************************************/
 /* test */
-
-/* default hash function used */
-#define hash(v) tommy_inthash_u32(v)
 
 /**
  * Cache clearing buffer.
@@ -855,6 +911,46 @@ void test_alloc(void)
 		cube = create_cube();
 	}
 #endif
+
+#ifdef USE_CK
+	COND(DATA_CK) {
+		CK = (struct ck_object*)malloc(sizeof(struct ck_object) * the_max);
+		/* Adding CK_HS_MODE_DELETE makes the performance worse */
+		/* when the number of elements is near and just a little lower than a */
+		/* power of 2. For example, with 63095 elements: */
+/*
+63095 ck forward
+   forward,     insert,           ck,  200 [ns]
+   forward,     change,           ck, 23977 [ns] <<<<<
+   forward,        hit,           ck,  338 [ns]
+   forward,       miss,           ck,  209 [ns]
+   forward,     remove,           ck,  325 [ns]
+63095 ck random
+    random,     insert,           ck,  197 [ns]
+    random,     change,           ck, 24025 [ns] <<<<<
+    random,        hit,           ck,  342 [ns]
+    random,       miss,           ck,  206 [ns]
+    random,     remove,           ck,  337 [ns]
+*/
+		/* Without CK_HS_MODE_DELETE performance are better, but still */
+		/* very slow: */
+/*
+63095 ck forward
+   forward,     insert,           ck,  193 [ns]
+   forward,     change,           ck, 3102 [ns] <<<<<
+   forward,        hit,           ck,  344 [ns]
+   forward,       miss,           ck, 3330 [ns] <<<<<
+   forward,     remove,           ck,  327 [ns]
+63095 ck random
+    random,     insert,           ck,  193 [ns]
+    random,     change,           ck, 2984 [ns] <<<<<
+    random,        hit,           ck,  340 [ns]
+    random,       miss,           ck, 3261 [ns] <<<<<
+    random,     remove,           ck,  341 [ns]
+*/
+		ck_hs_init(&ck, CK_HS_MODE_OBJECT, hs_hash, hs_compare, &my_allocator, 32, 0);
+	}
+#endif
 }
 
 void test_free(void)
@@ -969,6 +1065,13 @@ void test_free(void)
 	COND(DATA_CUBE) {
 		free(CUBE);
 		destroy_cube(cube);
+	}
+#endif
+
+#ifdef USE_CK
+	COND(DATA_CK) {
+		free(CK);
+		ck_hs_destroy(&ck);
 	}
 #endif
 }
@@ -1124,6 +1227,16 @@ void test_insert(unsigned* INSERT)
 		unsigned key = INSERT[i];
 		CUBE[i].value = key;
 		set_key(cube, key, &CUBE[i]);
+	} STOP();
+#endif
+
+#ifdef USE_CK
+	START(DATA_CK) {
+		unsigned key = INSERT[i];
+		unsigned hash_key;
+		CK[i].value = key;
+		hash_key = CK_HS_HASH(&ck, hs_hash, &CK[i]);
+		ck_hs_put(&ck, hash_key, &CK[i]);
 	} STOP();
 #endif
 }
@@ -1384,6 +1497,24 @@ void test_hit(unsigned* SEARCH)
 		}
 	} STOP();
 #endif
+
+#ifdef USE_CK
+	START(DATA_CK) {
+		unsigned key = SEARCH[i] + DELTA;
+		unsigned hash_key;
+		struct ck_object obj_key;
+		struct ck_object* obj;
+		obj_key.value = key;
+		hash_key = CK_HS_HASH(&ck, hs_hash, &obj_key);
+		obj = (struct ck_object*)ck_hs_get(&ck, hash_key, &obj_key);
+		if (!obj)
+			abort();
+		if (dereference) {
+			if (obj->value != key)
+				abort();
+		}
+	} STOP();
+#endif
 }
 
 void test_miss(unsigned* SEARCH)
@@ -1552,6 +1683,20 @@ void test_miss(unsigned* SEARCH)
 		unsigned key = SEARCH[i] + DELTA;
 		struct cube_obj* obj;
 		obj = (struct cube_obj*)get_key(cube, key);
+		if (obj)
+			abort();
+	} STOP();
+#endif
+
+#ifdef USE_CK
+	START(DATA_CK) {
+		unsigned key = SEARCH[i] + DELTA;
+		unsigned hash_key;
+		struct ck_object obj_key;
+		struct ck_object* obj;
+		obj_key.value = key;
+		hash_key = CK_HS_HASH(&ck, hs_hash, &obj_key);
+		obj = (struct ck_object*)ck_hs_get(&ck, hash_key, &obj_key);
 		if (obj)
 			abort();
 	} STOP();
@@ -1847,6 +1992,25 @@ void test_change(unsigned* REMOVE, unsigned* INSERT)
 		set_key(cube, key, obj);
 	} STOP();
 #endif
+
+#ifdef USE_CK
+	START(DATA_CK) {
+		unsigned key = REMOVE[i];
+		unsigned hash_key;
+		struct ck_object obj_key;
+		struct ck_object* obj;
+		obj_key.value = key;
+		hash_key = CK_HS_HASH(&ck, hs_hash, &obj_key);
+		obj = (struct ck_object*)ck_hs_remove(&ck, hash_key, &obj_key);
+		if (!obj)
+			abort();
+
+		key = INSERT[i] + DELTA;
+		obj->value = key;
+		hash_key = CK_HS_HASH(&ck, hs_hash, obj);
+		ck_hs_put(&ck, hash_key, obj);
+	} STOP();
+#endif
 }
 
 void test_remove(unsigned* REMOVE)
@@ -2134,6 +2298,24 @@ void test_remove(unsigned* REMOVE)
 		unsigned key = REMOVE[i] + DELTA;
 		struct cube_object* obj;
 		obj = (struct cube_object*)del_key(cube, key);
+		if (!obj)
+			abort();
+		if (dereference) {
+			if (obj->value != key)
+				abort();
+		}
+	} STOP();
+#endif
+
+#ifdef USE_CK
+	START(DATA_CK) {
+		unsigned key = REMOVE[i] + DELTA;
+		unsigned hash_key;
+		struct ck_object obj_key;
+		struct ck_object* obj;
+		obj_key.value = key;
+		hash_key = CK_HS_HASH(&ck, hs_hash, &obj_key);
+		obj = (struct ck_object*)ck_hs_remove(&ck, hash_key, &obj_key);
 		if (!obj)
 			abort();
 		if (dereference) {
