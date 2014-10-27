@@ -1327,6 +1327,20 @@ void test_hit(unsigned* SEARCH)
 		}
 	} STOP();
 
+	START(DATA_NEDTRIE) {
+		unsigned key = SEARCH[i] + DELTA;
+		struct nedtrie_object key_obj;
+		struct nedtrie_object* obj;
+		key_obj.value = key;
+		obj = NEDTRIE_FIND(nedtrie_t, &nedtrie, &key_obj);
+		if (!obj)
+			abort();
+		if (dereference) {
+			if (obj->value != key)
+				abort();
+		}
+	} STOP();
+
 #ifdef USE_JUDY
 	START(DATA_JUDY) {
 		Word_t key = SEARCH[i] + DELTA;
@@ -1370,20 +1384,6 @@ void test_hit(unsigned* SEARCH)
 		}
 	} STOP();
 #endif
-
-	START(DATA_NEDTRIE) {
-		unsigned key = SEARCH[i] + DELTA;
-		struct nedtrie_object key_obj;
-		struct nedtrie_object* obj;
-		key_obj.value = key;
-		obj = NEDTRIE_FIND(nedtrie_t, &nedtrie, &key_obj);
-		if (!obj)
-			abort();
-		if (dereference) {
-			if (obj->value != key)
-				abort();
-		}
-	} STOP();
 }
 
 void test_miss(unsigned* SEARCH)
@@ -1513,6 +1513,16 @@ void test_miss(unsigned* SEARCH)
 			abort();
 	} STOP();
 
+	START(DATA_NEDTRIE) {
+		unsigned key = SEARCH[i] + DELTA;
+		struct nedtrie_object key_obj;
+		struct nedtrie_object* obj;
+		key_obj.value = key;
+		obj = NEDTRIE_FIND(nedtrie_t, &nedtrie, &key_obj);
+		if (obj)
+			abort();
+	} STOP();
+
 #ifdef USE_JUDY
 	START(DATA_JUDY) {
 		Word_t key = SEARCH[i] + DELTA;
@@ -1546,16 +1556,6 @@ void test_miss(unsigned* SEARCH)
 			abort();
 	} STOP();
 #endif
-
-	START(DATA_NEDTRIE) {
-		unsigned key = SEARCH[i] + DELTA;
-		struct nedtrie_object key_obj;
-		struct nedtrie_object* obj;
-		key_obj.value = key;
-		obj = NEDTRIE_FIND(nedtrie_t, &nedtrie, &key_obj);
-		if (obj)
-			abort();
-	} STOP();
 }
 
 void test_change(unsigned* REMOVE, unsigned* INSERT)
@@ -1780,6 +1780,21 @@ void test_change(unsigned* REMOVE, unsigned* INSERT)
 		HASH_ADD_INT(uthash, value, obj);
 	} STOP();
 
+	START(DATA_NEDTRIE) {
+		unsigned key = REMOVE[i];
+		struct nedtrie_object key_obj;
+		struct nedtrie_object* obj;
+		key_obj.value = key;
+		obj = NEDTRIE_FIND(nedtrie_t, &nedtrie, &key_obj);
+		if (!obj)
+			abort();
+		NEDTRIE_REMOVE(nedtrie_t, &nedtrie, obj);
+
+		key = INSERT[i] + DELTA;
+		obj->value = key;
+		NEDTRIE_INSERT(nedtrie_t, &nedtrie, obj);
+	} STOP();
+
 #ifdef USE_JUDY
 	START(DATA_JUDY) {
 		Word_t key = REMOVE[i];
@@ -1832,21 +1847,6 @@ void test_change(unsigned* REMOVE, unsigned* INSERT)
 		set_key(cube, key, obj);
 	} STOP();
 #endif
-
-	START(DATA_NEDTRIE) {
-		unsigned key = REMOVE[i];
-		struct nedtrie_object key_obj;
-		struct nedtrie_object* obj;
-		key_obj.value = key;
-		obj = NEDTRIE_FIND(nedtrie_t, &nedtrie, &key_obj);
-		if (!obj)
-			abort();
-		NEDTRIE_REMOVE(nedtrie_t, &nedtrie, obj);
-
-		key = INSERT[i] + DELTA;
-		obj->value = key;
-		NEDTRIE_INSERT(nedtrie_t, &nedtrie, obj);
-	} STOP();
 }
 
 void test_remove(unsigned* REMOVE)
@@ -2075,6 +2075,21 @@ void test_remove(unsigned* REMOVE)
 		}
 	} STOP();
 
+	START(DATA_NEDTRIE) {
+		unsigned key = REMOVE[i] + DELTA;
+		struct nedtrie_object key_obj;
+		struct nedtrie_object* obj;
+		key_obj.value = key;
+		obj = NEDTRIE_FIND(nedtrie_t, &nedtrie, &key_obj);
+		if (!obj)
+			abort();
+		NEDTRIE_REMOVE(nedtrie_t, &nedtrie, obj);
+		if (dereference) {
+			if (obj->value != key)
+				abort();
+		}
+	} STOP();
+
 #ifdef USE_JUDY
 	START(DATA_JUDY) {
 		Word_t key = REMOVE[i] + DELTA;
@@ -2127,21 +2142,6 @@ void test_remove(unsigned* REMOVE)
 		}
 	} STOP();
 #endif
-
-	START(DATA_NEDTRIE) {
-		unsigned key = REMOVE[i] + DELTA;
-		struct nedtrie_object key_obj;
-		struct nedtrie_object* obj;
-		key_obj.value = key;
-		obj = NEDTRIE_FIND(nedtrie_t, &nedtrie, &key_obj);
-		if (!obj)
-			abort();
-		NEDTRIE_REMOVE(nedtrie_t, &nedtrie, obj);
-		if (dereference) {
-			if (obj->value != key)
-				abort();
-		}
-	} STOP();
 }
 
 tommy_size_t uthash_size(struct uthash_object* obj)
@@ -2226,6 +2226,7 @@ void test_size(void)
 	MEM(DATA_STXBTREE, stxbtree_size(stxbtree));
 #endif
 	MEM(DATA_UTHASH, uthash_size(uthash));
+	MEM(DATA_NEDTRIE, nedtrie_size(&nedtrie));
 #ifdef USE_JUDY
 	JLMU(w, judy);
 	MEM(DATA_JUDY, w);
@@ -2236,7 +2237,6 @@ void test_size(void)
 #ifdef USE_CUBE
 	MEM(DATA_CUBE, size_cube(cube));
 #endif
-	MEM(DATA_NEDTRIE, nedtrie_size(&nedtrie));
 }
 
 void test_operation(unsigned* INSERT, unsigned* SEARCH)
