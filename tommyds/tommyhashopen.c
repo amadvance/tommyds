@@ -109,7 +109,12 @@ tommy_inline void hashopen_grow_step(tommy_hashopen* hashopen)
 {
 	/* grow if more than 50% full */
 	if (hashopen->filled_count + hashopen->deleted_count >= hashopen->bucket_max / 2) {
-		tommy_hashopen_resize(hashopen, hashopen->bucket_bit + 1);
+		/* reallocate the table taking into account both the filled entries */
+		/* and the deleted ones. This ensures to keep into account the size */
+		/* needed for future deletion. */
+		tommy_uint32_t up_size = tommy_roundup_pow2_u32(hashopen->filled_count + hashopen->deleted_count + 1);
+		tommy_uint_t up_bit = tommy_ilog2_u32(up_size);
+		tommy_hashopen_resize(hashopen, up_bit + 1);
 	}
 }
 
@@ -120,7 +125,10 @@ tommy_inline void hashopen_shrink_step(tommy_hashopen* hashopen)
 {
 	/* shrink if less than 12.5% full */
 	if (hashopen->filled_count <= hashopen->bucket_max / 8 && hashopen->bucket_bit > TOMMY_HASHOPEN_BIT) {
-		tommy_hashopen_resize(hashopen, hashopen->bucket_bit - 1);
+		/* reallocate the table taking into account only the filled entries */
+		tommy_uint32_t up_size = tommy_roundup_pow2_u32(hashopen->filled_count + 1);
+		tommy_uint_t up_bit = tommy_ilog2_u32(up_size);
+		tommy_hashopen_resize(hashopen, up_bit + 1);
 	}
 }
 
