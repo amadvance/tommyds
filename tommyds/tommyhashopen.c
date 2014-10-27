@@ -100,7 +100,7 @@ static void tommy_hashopen_resize(tommy_hashopen* hashopen, tommy_uint_t new_buc
 	hashopen->deleted_count = 0;
 
 	/* reinsert all the elements */
-	for(i=0;i<old_bucket_max;++i) {
+	for (i = 0; i < old_bucket_max; ++i) {
 		tommy_hashopen_pos* j = &old_bucket[i];
 
 		if (j->ptr != TOMMY_HASHOPEN_EMPTY && j->ptr != TOMMY_HASHOPEN_DELETED) {
@@ -248,6 +248,6 @@ void* tommy_hashopen_remove(tommy_hashopen* hashopen, tommy_compare_func* cmp, c
 tommy_size_t tommy_hashopen_memory_usage(tommy_hashopen* hashopen)
 {
 	return hashopen->bucket_max * (tommy_size_t)sizeof(hashopen->bucket[0])
-		+ tommy_hashopen_count(hashopen) * (tommy_size_t)sizeof(tommy_hashopen_node);
+	       + tommy_hashopen_count(hashopen) * (tommy_size_t)sizeof(tommy_hashopen_node);
 }
 
