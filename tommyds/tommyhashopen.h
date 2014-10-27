@@ -161,16 +161,6 @@ typedef tommy_node tommy_hashopen_node;
 #define TOMMY_HASHOPEN_DELETED ((tommy_hashopen_node*)1)
 
 /** \internal
- * Defines probing strategy. Linear or Quadratic.
- */
-//#define HASHOPEN_USE_QUADRATIC 1
-#if HASHOPEN_USE_QUADRATIC
-#define HASHOPEN_NEXT(delta) delta++
-#else
-#define HASHOPEN_NEXT(delta) delta
-#endif
-
-/** \internal
  * Open addressing hashtable bucket.
  */
 typedef struct tommy_hashopen_pos_struct {
@@ -232,7 +222,6 @@ void* tommy_hashopen_remove(tommy_hashopen* hashopen, tommy_compare_func* cmp, c
 tommy_inline tommy_hashopen_pos* tommy_hashopen_bucket(tommy_hashopen* hashopen, tommy_hash_t hash)
 {
 	tommy_count_t i = hash & hashopen->bucket_mask;
-	tommy_count_t delta = 1;
 	tommy_hashopen_pos* empty = 0;
 
 	while (1) {
@@ -252,7 +241,7 @@ tommy_inline tommy_hashopen_pos* tommy_hashopen_bucket(tommy_hashopen* hashopen,
 		}
 
 		/* go to the next bucket */
-		i = (i + HASHOPEN_NEXT(delta)) & hashopen->bucket_mask;
+		i = (i + 1) & hashopen->bucket_mask;
 	}
 }
 

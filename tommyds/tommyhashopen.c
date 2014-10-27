@@ -78,7 +78,6 @@ static void tommy_hashopen_resize(tommy_hashopen* hashopen, tommy_uint_t new_buc
 		if (j->ptr != TOMMY_HASHOPEN_EMPTY && j->ptr != TOMMY_HASHOPEN_DELETED) {
 			tommy_hashopen_pos* p;
 			tommy_count_t k = j->hash & hashopen->bucket_mask;
-			tommy_count_t delta = 1;
 
 			/* search the first empty bucket */
 			/* we don't consider the DELETED case, becasue the new table */
@@ -92,7 +91,7 @@ static void tommy_hashopen_resize(tommy_hashopen* hashopen, tommy_uint_t new_buc
 					break;
 
 				/* go to the next bucket */
-				k = (k + HASHOPEN_NEXT(delta)) & hashopen->bucket_mask;
+				k = (k + 1) & hashopen->bucket_mask;
 			}
 
 			/* assign the new position */
