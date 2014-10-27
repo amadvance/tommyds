@@ -5,4 +5,5 @@ set title "Random Remove".tsub
 data = bdir.tdir.'dat_random_remove.lst'
 
 plot data using 1:2 title columnheader(2), \
-	for [i=3:18] '' using 1:i title columnheader(i)
+	for [i=3:18] '' using 1:i title columnheader(i) ls i-1
+
