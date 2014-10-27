@@ -31,13 +31,42 @@
 /******************************************************************************/
 /* hashopen */
 
+/**
+ * Allocate a new table.
+ *
+ * The alignment is choosen to exactly fit a typical cache line of 64 bytes.
+ */
+static void tommy_hashopen_alloc(tommy_hashopen* hashopen, tommy_uint_t bit)
+{
+	size_t entries_for_cache_line;
+	tommy_uintptr_t ptr;
+
+	assert(64 % sizeof(tommy_hashopen_pos) == 0);
+
+	/* number of entry for each cache line */
+	entries_for_cache_line = 64 / sizeof(tommy_hashopen_pos);
+
+	hashopen->bucket_bit = bit;
+	hashopen->bucket_max = 1 << hashopen->bucket_bit;
+	hashopen->bucket_mask = hashopen->bucket_max - 1;
+	hashopen->bucket_alloc = tommy_calloc(hashopen->bucket_max + entries_for_cache_line, sizeof(tommy_hashopen_pos));
+
+	/* setup a bit mask always getting the first entry in the cache line */
+	/* clearing the lower bits */
+	hashopen->bucket_mask_cache = hashopen->bucket_mask & ~(entries_for_cache_line - 1);
+
+	/* align the bucket pointer at the cache line */
+	ptr = (tommy_uintptr_t)hashopen->bucket_alloc;
+	ptr = (ptr + 63) & ~63;
+	hashopen->bucket = (tommy_hashopen_pos*)ptr;
+}
+
 void tommy_hashopen_init(tommy_hashopen* hashopen)
 {
 	/* fixed initial size */
 	hashopen->bucket_bit = TOMMY_HASHOPEN_BIT;
-	hashopen->bucket_max = 1 << hashopen->bucket_bit;
-	hashopen->bucket_mask = hashopen->bucket_max - 1;
-	hashopen->bucket = tommy_cast(tommy_hashopen_pos*, tommy_calloc(hashopen->bucket_max, sizeof(tommy_hashopen_pos)));
+
+	tommy_hashopen_alloc(hashopen, TOMMY_HASHOPEN_BIT);
 
 	hashopen->count = 0;
 	hashopen->filled_count = 0;
@@ -46,7 +75,7 @@ void tommy_hashopen_init(tommy_hashopen* hashopen)
 
 void tommy_hashopen_done(tommy_hashopen* hashopen)
 {
-	tommy_free(hashopen->bucket);
+	tommy_free(hashopen->bucket_alloc);
 }
 
 /**
@@ -56,17 +85,16 @@ static void tommy_hashopen_resize(tommy_hashopen* hashopen, tommy_uint_t new_buc
 {
 	tommy_count_t old_bucket_max;
 	tommy_hashopen_pos* old_bucket;
+	void* old_bucket_alloc;
 	tommy_count_t i;
 
 	/* save the old table */
 	old_bucket_max = hashopen->bucket_max;
 	old_bucket = hashopen->bucket;
+	old_bucket_alloc = hashopen->bucket_alloc;
 
 	/* allocate the new table */
-	hashopen->bucket_bit = new_bucket_bit;
-	hashopen->bucket_max = 1 << hashopen->bucket_bit;
-	hashopen->bucket_mask = hashopen->bucket_max - 1;
-	hashopen->bucket = tommy_cast(tommy_hashopen_pos*, tommy_calloc(hashopen->bucket_max, sizeof(tommy_hashopen_pos)));
+	tommy_hashopen_alloc(hashopen, new_bucket_bit);
 
 	/* reset the deleted counters */
 	hashopen->deleted_count = 0;
@@ -77,11 +105,11 @@ static void tommy_hashopen_resize(tommy_hashopen* hashopen, tommy_uint_t new_buc
 
 		if (j->ptr != TOMMY_HASHOPEN_EMPTY && j->ptr != TOMMY_HASHOPEN_DELETED) {
 			tommy_hashopen_pos* p;
-			tommy_count_t k = j->hash & hashopen->bucket_mask;
+			tommy_count_t k = j->hash & hashopen->bucket_mask_cache;
 
 			/* search the first empty bucket */
-			/* we don't consider the DELETED case, becasue the new table */
-			/* as not yet any deleted entry. */
+			/* we don't consider the DELETED case, because the new table */
+			/* has not yet any deleted entry. */
 			/* we don't consider the same hash, because it cannot yet */
 			/* exists an equal hash. */
 			while (1) {
@@ -99,7 +127,7 @@ static void tommy_hashopen_resize(tommy_hashopen* hashopen, tommy_uint_t new_buc
 		}
 	}
 
-	tommy_free(old_bucket);
+	tommy_free(old_bucket_alloc);
 }
 
 /**

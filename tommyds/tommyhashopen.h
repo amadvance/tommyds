@@ -172,10 +172,11 @@ typedef struct tommy_hashopen_pos_struct {
  * Open addressing hashtable.
  */
 typedef struct tommy_hashopen_struct {
-	tommy_hashopen_pos* bucket; /**< Hash buckets aligned. */
-	tommy_hashopen_pos* bucket_alloc; /**< Hash buckets allocation. */
+	tommy_hashopen_pos* bucket; /**< Hash buckets. */
+	void* bucket_alloc; /**< Hash buckets allocation. */
 	tommy_uint_t bucket_bit; /**< Bits used in the bit mask. */
 	tommy_count_t bucket_max; /**< Number of buckets. */
+	tommy_count_t bucket_mask_cache; /**< Bit mask to access the buckets. */
 	tommy_count_t bucket_mask; /**< Bit mask to access the buckets. */
 	tommy_count_t count; /**< Number of elements. */
 	tommy_count_t filled_count; /**< Number of filled buckets. */
@@ -221,7 +222,7 @@ void* tommy_hashopen_remove(tommy_hashopen* hashopen, tommy_compare_func* cmp, c
  */
 tommy_inline tommy_hashopen_pos* tommy_hashopen_bucket(tommy_hashopen* hashopen, tommy_hash_t hash)
 {
-	tommy_count_t i = hash & hashopen->bucket_mask;
+	tommy_count_t i = hash & hashopen->bucket_mask_cache;
 	tommy_hashopen_pos* empty = 0;
 
 	while (1) {
