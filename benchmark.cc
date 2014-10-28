@@ -538,7 +538,11 @@ loop:
 #ifdef _DEBUG
 #define MAX 100000
 #else
+#if defined(__x86_64__) || defined(_M_X64)
+#define MAX 100000000
+#else
 #define MAX 10000000
+#endif
 #endif
 
 /**
