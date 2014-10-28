@@ -6,3 +6,4 @@ data = bdir.tdir.'dat_random_insert.lst'
 
 plot data using 1:2 title columnheader(2), \
 	for [i=3:19] '' using 1:i title columnheader(i) ls i-1
+
