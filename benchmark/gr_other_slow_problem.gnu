@@ -1,5 +1,7 @@
 load "gr_common.gnu"
 
+set yrange [10:10000]
+
 tdir = "other/"
 tsub = "\nCore i5 650 3.20 GHz, 4 MB L3 cache\nLinux, gcc 4.7.1, 32 bit"
 

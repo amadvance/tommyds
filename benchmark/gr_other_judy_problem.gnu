@@ -1,5 +1,7 @@
 load "gr_common.gnu"
 
+set yrange [10:10000]
+
 tdir = "other/"
 tsub = "\nXeon E5430 2.66 GHz, 2x6 MB L2 cache, 1333 MT/s FSB\nWindows, Visual C 2008, 32 bit"
 

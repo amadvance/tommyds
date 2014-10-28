@@ -39,7 +39,7 @@
  * <a href="http://uthash.sourceforge.net/">uthash</a>,
  * <a href="http://www.nedprod.com/programs/portable/nedtries/">nedtrie</a>,
  * <a href="http://code.google.com/p/judyarray/">judyarray</a>,
- * <a href="http://concurrencykit.org/">Concurrency Kit</a> and others.
+ * <a href="http://concurrencykit.org/">concurrencykit</a> and others.
  * Only <a href="http://code.google.com/p/google-sparsehash/">googledensehash</a> is a real competitor for Tommy.
  *
  * The data structures provided are:
@@ -196,10 +196,10 @@
  *  - <a href="http://www.cplusplus.com/reference/unordered_map/unordered_map/">c++unordered_map</a> - C++ STL unordered_map<> template.
  *  - <a href="http://www.cplusplus.com/reference/map/map/">c++map</a> - C++ STL map<> template.
  *  - <a href="https://sites.google.com/site/binarysearchcube/">tesseract</a> - Binary Search Tesseract by Gregorius van den Hoven.
- *  - <a href="http://concurrencykit.org/">googlelibchash</a> - LibCHash by Craig Silverstein at Google.
- *  - <a href="http://concurrencykit.org/">Concurrency Kit</a> - Non-blocking Hash Set by Samy Al Bahra.
+ *  - <a href="https://code.google.com/p/sparsehash/source/browse/trunk/experimental/libchash.c">googlelibchash</a> - LibCHash by Craig Silverstein at Google.
+ *  - <a href="http://concurrencykit.org/">concurrencykit</a> - Non-blocking hash set by Samy Al Bahra.
  *
- * Note that <em>googlelibchash</em> and <em>Concurrency Kit</em> are not shown in the graphs
+ * Note that <em>googlelibchash</em> and <em>concurrencykit</em> are not shown in the graphs
  * because they present a lot of spikes. See the \ref notes the end.
  *
  * \section thebenchmark The Benchmark

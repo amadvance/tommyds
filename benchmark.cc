@@ -630,7 +630,7 @@ const char* DATA_NAME[DATA_MAX] = {
 	"c++map",
 	"tesseract",
 	"googlelibchash",
-	"ck",
+	"concurrencykit",
 };
 
 /** 
