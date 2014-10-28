@@ -123,7 +123,7 @@
 #include <string.h>       /* for strcmp, memcmp, etc */
 #include <sys/types.h>    /* ULTRIX needs this for in.h */
 #ifndef WIN32
-#include <netinet/in.h>    /* for reading/writing hashtables */
+//#include <netinet/in.h>    /* for reading/writing hashtables */
 #endif
 #include <assert.h>
 #include "libchash.h"     /* all the types */

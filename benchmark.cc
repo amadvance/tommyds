@@ -95,10 +95,12 @@
 /* Google C dense hash table */
 /* http://code.google.com/p/google-sparsehash/ in the experimental/ directory */
 /* Disabled by default because it's superseeded by the C++ version. */
-/* Note that it has a VERY BAD performance on the "Change" test. Consider to use khash if you need a C implementation. */
-#ifdef USE_CGOOGLEDENSEHASH
-#define htonl(x) 0
-#define ntohl(x) 0
+/* Note that it has a VERY BAD performance on the "Change" test, */
+/* so we disable it in the general graphs */
+/* #define USE_GOOGLELIBCHASH 1 */
+#ifdef USE_GOOGLELIBCHASH
+#define htonl(x) 0 /* used for serialization, not needed here */
+#define ntohl(x) 0 /* used for serialization, not needed here */
 #define Table(x) Dense##x /* Use google dense tables */
 #include "benchmark/lib/google/libchash.c" 
 #endif
@@ -343,7 +345,7 @@ cppmap_t* cppmap;
 typedef std::unordered_map<unsigned, struct cpp_object*, cpp_tommy_inthash_u32> cppunorderedmap_t;
 cppunorderedmap_t* cppunorderedmap;
 #endif
-#ifdef USE_CGOOGLEDENSEHASH
+#ifdef USE_GOOGLELIBCHASH
 struct HashTable* cgoogledensehash;
 #endif
 #ifdef USE_GOOGLEDENSEHASH
@@ -541,7 +543,10 @@ const char* ORDER_NAME[ORDER_MAX] = {
 #define DATA_CPPUNORDEREDMAP 14
 #define DATA_CPPMAP 15
 #define DATA_CUBE 16
-#define DATA_MAX 17
+#ifdef USE_GOOGLELIBCHASH
+#define DATA_GOOGLELIBCHASH 17
+#endif
+#define DATA_MAX 18
 
 const char* DATA_NAME[DATA_MAX] = {
 	"tommy-hashtable",
@@ -560,7 +565,10 @@ const char* DATA_NAME[DATA_MAX] = {
 	"stxbtree",
 	"c++unorderedmap",
 	"c++map",
-	"tesseract"
+	"tesseract",
+#ifdef USE_GOOGLELIBCHASH
+	"googlelibchash",
+#endif
 };
 
 /** 
@@ -783,8 +791,8 @@ void test_alloc(void)
 		khash = kh_init(word);
 	}
 
-#ifdef USE_CGOOGLEDENSEHASH
-	COND(DATA_CGOOGLE) {
+#ifdef USE_GOOGLELIBCHASH
+	COND(DATA_GOOGLELIBCHASH) {
 		GOOGLE = (struct google_object*)malloc(sizeof(struct google_object) * the_max);
 		cgoogledensehash = AllocateHashTable(sizeof(void*), 0);
 	}
@@ -902,8 +910,8 @@ void test_free(void)
 		free(KHASH);
 	}
 
-#ifdef USE_CGOOGLEDENSEHASH
-	COND(DATA_CGOOGLE) {
+#ifdef USE_GOOGLELIBCHASH
+	COND(DATA_GOOGLELIBCHASH) {
 		FreeHashTable(cgoogledensehash);
 		free(GOOGLE);
 	}
@@ -1029,8 +1037,8 @@ void test_insert(unsigned* INSERT)
 		kh_value(khash, k) = &KHASH[i];
 	} STOP();
 
-#ifdef USE_CGOOGLEDENSEHASH
-	START(DATA_CGOOGLE) {
+#ifdef USE_GOOGLELIBCHASH
+	START(DATA_GOOGLELIBCHASH) {
 		unsigned key = INSERT[i];
 		HTItem* r;
 		u_long ptr_value = (u_long)&GOOGLE[i];
@@ -1230,8 +1238,8 @@ void test_hit(unsigned* SEARCH)
 		}
 	} STOP();
 
-#ifdef USE_CGOOGLEDENSEHASH
-	START(DATA_CGOOGLE) {
+#ifdef USE_GOOGLELIBCHASH
+	START(DATA_GOOGLELIBCHASH) {
 		unsigned key = SEARCH[i] + DELTA;
 		HTItem* ptr;
 		ptr = HashFind(cgoogledensehash, key);
@@ -1449,8 +1457,8 @@ void test_miss(unsigned* SEARCH)
 			abort();
 	} STOP();
 
-#ifdef USE_CGOOGLEDENSEHASH
-	START(DATA_CGOOGLE) {
+#ifdef USE_GOOGLELIBCHASH
+	START(DATA_GOOGLELIBCHASH) {
 		unsigned key = SEARCH[i] + DELTA;
 		HTItem* ptr;
 		ptr = HashFind(cgoogledensehash, key);
@@ -1666,8 +1674,8 @@ void test_change(unsigned* REMOVE, unsigned* INSERT)
 		kh_value(khash, k) = obj;
 	} STOP();
 
-#ifdef USE_CGOOGLEDENSEHASH
-	START(DATA_CGOOGLE) {
+#ifdef USE_GOOGLELIBCHASH
+	START(DATA_GOOGLELIBCHASH) {
 		unsigned key = REMOVE[i];
 		HTItem* ptr;
 		struct google_object* obj;
@@ -1957,8 +1965,8 @@ void test_remove(unsigned* REMOVE)
 		}
 	} STOP();
 
-#ifdef USE_CGOOGLEDENSEHASH
-	START(DATA_CGOOGLE) {
+#ifdef USE_GOOGLELIBCHASH
+	START(DATA_GOOGLELIBCHASH) {
 		unsigned key = REMOVE[i] + DELTA;
 		HTItem* ptr;
 		struct google_object* obj;

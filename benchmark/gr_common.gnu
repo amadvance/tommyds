@@ -16,6 +16,8 @@ set format y "%.0fns"
 set format x "%.0s%c"
 bdir = "data/"
 
+# for some colors see: http://www.uni-hamburg.de/Wiss/FB/15/Sustainability/schneider/gnuplot/colors.htm
+
 set style line 1 lc 1 lt 1
 set style line 2 lc 2 lt 2
 set style line 3 lc 3 lt 3
@@ -33,7 +35,7 @@ set style line 14 lc 14 lt 14
 set style line 15 lc 15 lt 15
 set style line 16 lc 16 lt 16
 set style line 17 lc 17 lt 17
-set style line 18 lc 18 lt 18
+set style line 18 lc rgb "brown" lt 18 # 18 is yellow and it's not visible.
 set style line 19 lc 19 lt 19
 set style line 20 lc 20 lt 20
 
