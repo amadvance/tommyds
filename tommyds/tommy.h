@@ -38,7 +38,8 @@
  * <a href="http://attractivechaos.awardspace.com/">khash</a>,
  * <a href="http://uthash.sourceforge.net/">uthash</a>,
  * <a href="http://www.nedprod.com/programs/portable/nedtries/">nedtrie</a>,
- * <a href="http://code.google.com/p/judyarray/">judyarray</a> and others.
+ * <a href="http://code.google.com/p/judyarray/">judyarray</a>,
+ * <a href="http://concurrencykit.org/">Concurrency Kit</a> and others.
  * Only <a href="http://code.google.com/p/google-sparsehash/">googledensehash</a> is a real competitor for Tommy.
  *
  * The data structures provided are:
@@ -195,6 +196,11 @@
  *  - <a href="http://www.cplusplus.com/reference/unordered_map/unordered_map/">c++unordered_map</a> - C++ STL unordered_map<> template.
  *  - <a href="http://www.cplusplus.com/reference/map/map/">c++map</a> - C++ STL map<> template.
  *  - <a href="https://sites.google.com/site/binarysearchcube/">tesseract</a> - Binary Search Tesseract by Gregorius van den Hoven.
+ *  - <a href="http://concurrencykit.org/">googlelibchash</a> - LibCHash by Craig Silverstein at Google.
+ *  - <a href="http://concurrencykit.org/">Concurrency Kit</a> - Non-blocking Hash Set by Samy Al Bahra.
+ *
+ * Note that <em>googlelibchash</em> and <em>Concurrency Kit</em> are not shown in the graphs
+ * because they present a lot of spikes. See the \ref notes the end.
  *
  * \section thebenchmark The Benchmark
  *
@@ -518,10 +524,10 @@
  *
  * Here some notes about the data structure tested not part of Tommy.
  *
- * \subsection cgoogledensehash Google C densehash
+ * \subsection googlelibchash Google C libchash
  * It's the C implementation located in the <i>experimental/</i> directory of the googlesparsehash archive.
  * It has very bad performances in the <i>Change</i> test for some N values.
- * See for example this <a href="other/cgoogledensehash_problem.png">graph</a> with a lot of spikes.
+ * See this <a href="other/slow_problem.png">graph</a> with a lot of spikes.
  * The C++ version doesn't suffer of this problem.
  *
  * \subsection googledensehash Google C++ densehash
@@ -544,6 +550,10 @@
  * This makes difficult to predict the performance, as it is usually good until
  * you get one of these cases.
  * See for example this <a href="other/judy_problem.png">graph</a> with a big replicable spike at 50.000 elements.
+ *
+ * \subsection ck Concurrency Kit
+ * It has very bad performances in the <i>Change</i> test for some N values.
+ * See this <a href="other/slow_problem.png">graph</a> with a lot of spikes.
  *
  * \page multiindex Tommy Multi Indexing
  *

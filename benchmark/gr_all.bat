@@ -5,7 +5,7 @@ set GNUPLOT=..\contrib\gnuplot\binary\gnuplot.exe
 %GNUPLOT% gr_def_random_hit.gnu
 %GNUPLOT% gr_def_random_change.gnu
 %GNUPLOT% gr_other_judy_problem.gnu
-%GNUPLOT% gr_other_cgoogledensehash_problem.gnu
+%GNUPLOT% gr_other_slow_problem.gnu
 
 DIR=data\core_i5_650_3G2_linux
 %GNUPLOT% %DIR%\gr_def.gnu gr_forward_insert.gnu

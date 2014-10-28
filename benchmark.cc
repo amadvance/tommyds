@@ -185,7 +185,6 @@ typedef size_t ssize_t;
 /* Note that it has a VERY BAD performance on the "Change" test, */
 /* so we disable it in the general graphs */
 /* #define USE_CK 1 */
-#define USE_CK 1
 #if defined(USE_CK) && defined(__linux)
 /* if you enable it, ensure to link also with the -lck option */
 extern "C" {
@@ -404,7 +403,7 @@ typedef std::unordered_map<unsigned, struct cpp_object*, cpp_tommy_inthash_u32> 
 cppunorderedmap_t* cppunorderedmap;
 #endif
 #ifdef USE_GOOGLELIBCHASH
-struct HashTable* cgoogledensehash;
+struct HashTable* googlelibhash;
 #endif
 #ifdef USE_GOOGLEDENSEHASH
 typedef google::dense_hash_map<unsigned, struct google_object*, cpp_tommy_inthash_u32> googledensehash_t;
@@ -650,6 +649,7 @@ unsigned LOG[RETRY_MAX][DATA_MAX][ORDER_MAX][OPERATION_MAX];
  * Used to stop degenerated cases.
  */
 unsigned LAST[DATA_MAX][ORDER_MAX];
+unsigned LASTLAST[DATA_MAX][ORDER_MAX];
 
 /**
  * Test state.
@@ -854,7 +854,7 @@ void test_alloc(void)
 #ifdef USE_GOOGLELIBCHASH
 	COND(DATA_GOOGLELIBCHASH) {
 		GOOGLE = (struct google_object*)malloc(sizeof(struct google_object) * the_max);
-		cgoogledensehash = AllocateHashTable(sizeof(void*), 0);
+		googlelibhash = AllocateHashTable(sizeof(void*), 0);
 	}
 #endif
 
@@ -1012,7 +1012,7 @@ void test_free(void)
 
 #ifdef USE_GOOGLELIBCHASH
 	COND(DATA_GOOGLELIBCHASH) {
-		FreeHashTable(cgoogledensehash);
+		FreeHashTable(googlelibhash);
 		free(GOOGLE);
 	}
 #endif
@@ -1150,7 +1150,7 @@ void test_insert(unsigned* INSERT)
 		HTItem* r;
 		u_long ptr_value = (u_long)&GOOGLE[i];
 		GOOGLE[i].value = key;
-		r = HashInsert(cgoogledensehash, key, ptr_value);
+		r = HashInsert(googlelibhash, key, ptr_value);
 		if (!r)
 			abort();
 	} STOP();
@@ -1359,7 +1359,7 @@ void test_hit(unsigned* SEARCH)
 	START(DATA_GOOGLELIBCHASH) {
 		unsigned key = SEARCH[i] + DELTA;
 		HTItem* ptr;
-		ptr = HashFind(cgoogledensehash, key);
+		ptr = HashFind(googlelibhash, key);
 		if (!ptr)
 			abort();
 		if (dereference) {
@@ -1596,7 +1596,7 @@ void test_miss(unsigned* SEARCH)
 	START(DATA_GOOGLELIBCHASH) {
 		unsigned key = SEARCH[i] + DELTA;
 		HTItem* ptr;
-		ptr = HashFind(cgoogledensehash, key);
+		ptr = HashFind(googlelibhash, key);
 		if (ptr)
 			abort();
 	} STOP();
@@ -1829,16 +1829,16 @@ void test_change(unsigned* REMOVE, unsigned* INSERT)
 		HTItem* ptr;
 		struct google_object* obj;
 		u_long ptr_value;
-		ptr = HashFind(cgoogledensehash, key);
+		ptr = HashFind(googlelibhash, key);
 		if (!ptr)
 			abort();
 		obj = (void*)ptr->data;
-		HashDeleteLast(cgoogledensehash);
+		HashDeleteLast(googlelibhash);
 
 		key = INSERT[i] + DELTA;
 		obj->value = key;
 		ptr_value = (u_long)obj;
-		ptr = HashInsert(cgoogledensehash, key, ptr_value);
+		ptr = HashInsert(googlelibhash, key, ptr_value);
 		if (!ptr)
 			abort();
 	} STOP();
@@ -2138,11 +2138,11 @@ void test_remove(unsigned* REMOVE)
 		unsigned key = REMOVE[i] + DELTA;
 		HTItem* ptr;
 		struct google_object* obj;
-		ptr = HashFind(cgoogledensehash, key);
+		ptr = HashFind(googlelibhash, key);
 		if (!ptr)
 			abort();
 		obj = (struct google_object*)ptr->data;
-		HashDeleteLast(cgoogledensehash);
+		HashDeleteLast(googlelibhash);
 		if (dereference) {
 			if (obj->value != key)
 				abort();
@@ -2518,7 +2518,7 @@ void test(unsigned size, unsigned data, int log, int sparse)
 					printf("%d %s %s", the_max, DATA_NAME[the_data], ORDER_NAME[the_order]);
 
 					/* skip degenerated cases */
-					if (data == DATA_MAX && LAST[the_data][the_order] > TIME_MAX_NS) {
+					if (data == DATA_MAX && LAST[the_data][the_order] > TIME_MAX_NS && LASTLAST[the_data][the_order] > TIME_MAX_NS) {
 						printf(" (skipped, too slow)\n");
 						continue;
 					}
@@ -2559,11 +2559,21 @@ void test(unsigned size, unsigned data, int log, int sparse)
 							v = LOG[i][the_data][the_order][the_operation];
 					}
 
+#if 0
 					/* save the *longest* measured time */
 					if (the_operation != OPERATION_SIZE) {
 						if (v != 0 && LAST[the_data][the_order] < v)
 							LAST[the_data][the_order] = v;
 					}
+#else
+					/* save the *previous* measured time */
+					if (the_operation != OPERATION_SIZE) {
+						if (v != 0) {
+							LASTLAST[the_data][the_order] = LAST[the_data][the_order];
+							LAST[the_data][the_order] = v;
+						}
+					}
+#endif
 
 					fprintf(f, "%u\t", v);
 				}

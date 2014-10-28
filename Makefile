@@ -11,7 +11,7 @@ UNAME=$(shell uname)
 
 # Linux
 ifeq ($(UNAME),Linux)
-LIB=-lrt benchmark/lib/judy/libJudyL.a benchmark/lib/judy/libJudyMalloc.a -lck
+LIB=-lrt benchmark/lib/judy/libJudyL.a benchmark/lib/judy/libJudyMalloc.a
 EXE=
 O=.o
 endif
