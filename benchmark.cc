@@ -654,14 +654,8 @@ unsigned LOG[RETRY_MAX][DATA_MAX][ORDER_MAX][OPERATION_MAX];
 /**
  * Last measure.
  * Used to stop degenerated cases.
- *
- * Defines USE_ALLOWSPIKES to require two over-range measures,
- * to disable the data structure.
  */
 unsigned LAST[DATA_MAX][ORDER_MAX];
-#ifdef USE_ALLOWSPIKES
-unsigned LASTLAST[DATA_MAX][ORDER_MAX];
-#endif
 
 /**
  * Test state.
@@ -2527,26 +2521,33 @@ void test(unsigned size, unsigned data, int log, int sparse)
 					continue;
 
 				for(the_order=0;the_order<ORDER_MAX;++the_order) {
-					printf("%d %s %s", the_max, DATA_NAME[the_data], ORDER_NAME[the_order]);
+					unsigned i;
+
+					printf("%12u", the_max);
+
+					printf(" %16s %16s", DATA_NAME[the_data], ORDER_NAME[the_order]);
 
 					/* skip degenerated cases */
-					if (data == DATA_MAX && LAST[the_data][the_order] > TIME_MAX_NS
-#ifdef USE_ALLOWSPIKES
-						&& LASTLAST[the_data][the_order] > TIME_MAX_NS
-#endif
-					) {
+					if (LAST[the_data][the_order] > TIME_MAX_NS) {
 						printf(" (skipped, too slow)\n");
 						continue;
 					}
 
-					printf("\n");
-					
+					if (!the_log)
+						printf("\n");
+
 					test_alloc();
 					if (the_order == ORDER_FORWARD)
 						test_operation(FORWARD, FORWARD);
 					else
 						test_operation(RAND0, RAND1);
 					test_free();
+
+					if (the_log) {
+						for(i=0;i<OPERATION_MAX;++i)
+							printf(" %4u", LOG[the_retry][the_data][the_order][i]);
+						printf(" [ms]\n");
+					}
 				}
 			}
 		}
@@ -2575,11 +2576,9 @@ void test(unsigned size, unsigned data, int log, int sparse)
 							v = LOG[i][the_data][the_order][the_operation];
 					}
 
-					if (the_operation != OPERATION_SIZE) {
-						if (v != 0) {
-#ifdef USE_ALLOWSPIKES
-							LASTLAST[the_data][the_order] = LAST[the_data][the_order];
-#endif
+					if (the_operation != OPERATION_SIZE && v != 0) {
+						/* keep the longest operation measure */
+						if (v > LAST[the_data][the_order]) {
 							LAST[the_data][the_order] = v;
 						}
 					}
