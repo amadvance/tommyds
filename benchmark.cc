@@ -57,13 +57,16 @@
 #include <mach/mach_time.h>
 #endif
 
+/* Judy available on in x86 */
 #if defined(_WIN32)
 #include <windows.h>
 #if defined(_M_IX86) || defined(__i386__)
 #define USE_JUDY
 #endif
 #else
+#if defined(__i386__)
 #define USE_JUDY
+#endif
 #endif
 
 /* Available only in C++ */
@@ -99,7 +102,7 @@
 /* Disabled by default because it's superseeded by the C++ version. */
 /* Note that it has a VERY BAD performance on the "Change" test, */
 /* so we disable it in the general graphs */
-/* #define USE_GOOGLELIBCHASH 1 */
+/* #define USE_GOOGLELIBCHASH */
 #ifdef USE_GOOGLELIBCHASH
 #define htonl(x) 0 /* used for serialization, not needed here */
 #define ntohl(x) 0 /* used for serialization, not needed here */
@@ -173,18 +176,18 @@ typedef size_t ssize_t;
 /* http://code.google.com/p/judyarray/ */
 /* Ensure to use the version "judy64na.c". previous ones are not not working with integers key. */
 #include "benchmark/lib/judyarray/judy64na.c"
-#define USE_JUDYARRAY 1
+#define USE_JUDYARRAY
 
 /* Binary Search Cube */
 /* https://sites.google.com/site/binarysearchcube/ */
 #include "benchmark/lib/cube/binary-search-tesseract-1.0.c"
-#define USE_CUBE 1
+#define USE_CUBE
 
 /* Concurrency Kit Hash Set */
 /* http://concurrencykit.org/ */
 /* Note that it has a VERY BAD performance on the "Change" test, */
 /* so we disable it in the general graphs */
-/* #define USE_CK 1 */
+/* #define USE_CK */
 #if defined(USE_CK) && defined(__linux)
 /* if you enable it, ensure to link also with the -lck option */
 extern "C" {
@@ -651,9 +654,14 @@ unsigned LOG[RETRY_MAX][DATA_MAX][ORDER_MAX][OPERATION_MAX];
 /**
  * Last measure.
  * Used to stop degenerated cases.
+ *
+ * Defines USE_ALLOWSPIKES to require two over-range measures,
+ * to disable the data structure.
  */
 unsigned LAST[DATA_MAX][ORDER_MAX];
+#ifdef USE_ALLOWSPIKES
 unsigned LASTLAST[DATA_MAX][ORDER_MAX];
+#endif
 
 /**
  * Test state.
@@ -2522,7 +2530,11 @@ void test(unsigned size, unsigned data, int log, int sparse)
 					printf("%d %s %s", the_max, DATA_NAME[the_data], ORDER_NAME[the_order]);
 
 					/* skip degenerated cases */
-					if (data == DATA_MAX && LAST[the_data][the_order] > TIME_MAX_NS && LASTLAST[the_data][the_order] > TIME_MAX_NS) {
+					if (data == DATA_MAX && LAST[the_data][the_order] > TIME_MAX_NS
+#ifdef USE_ALLOWSPIKES
+						&& LASTLAST[the_data][the_order] > TIME_MAX_NS
+#endif
+					) {
 						printf(" (skipped, too slow)\n");
 						continue;
 					}
@@ -2563,21 +2575,14 @@ void test(unsigned size, unsigned data, int log, int sparse)
 							v = LOG[i][the_data][the_order][the_operation];
 					}
 
-#if 0
-					/* save the *longest* measured time */
-					if (the_operation != OPERATION_SIZE) {
-						if (v != 0 && LAST[the_data][the_order] < v)
-							LAST[the_data][the_order] = v;
-					}
-#else
-					/* save the *previous* measured time */
 					if (the_operation != OPERATION_SIZE) {
 						if (v != 0) {
+#ifdef USE_ALLOWSPIKES
 							LASTLAST[the_data][the_order] = LAST[the_data][the_order];
+#endif
 							LAST[the_data][the_order] = v;
 						}
 					}
-#endif
 
 					fprintf(f, "%u\t", v);
 				}
