@@ -35,5 +35,9 @@ tommycheck
 tommybench
 contrib/
 archive/
+*.ttf
+doc/
+benchmark/data/
+benchmark/exec/
 
 
