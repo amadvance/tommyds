@@ -207,15 +207,16 @@
  * The benchmark consists in storing a set of N pointers to objects and
  * searching them using integer keys.
  *
- * It's different than the simpler case of mapping integers to integers,
- * as pointers to objects are also dereferenced resulting in additional cache
- * misses. This benchmark gives a boost to implementations that store information
- * in the objects itself, as the additional cache misses are already implicit.
+ * Compared to the case of mapping integers to integers, mapping pointers to objects means that
+ * the pointers are also dereferenced, to simulate the object access,
+ * resulting in additional cache misses.
+ * This gives an advantage to implementations that store information in the objects itself,
+ * as the additional cache misses are already implicit.
  *
  * The test done are:
  *  - <b>Insert</b> Insert all the objects starting with an empty container.
  *  - <b>Change</b> Find and remove one object and reinsert it with a different key, repeated for all the objects.
- *  - <b>Hit</b> Find with success all the objects and derefence them.
+ *  - <b>Hit</b> Find with success all the objects and dereference them.
  *  - <b>Miss</b> Find with failure all the objects.
  *  - <b>Remove</b> Remove all the objects and dereference them.
  *
@@ -237,17 +238,17 @@
  * The key domain used is <strong>dense</strong>, and it's defined by the set
  * of N even numbers starting from 0x80000000 to 0x80000000+2*N.
  *
- * The use of only even numbers allows to have missing keys inside the domain for
+ * The use of even numbers allows to have missing keys inside the domain for
  * the <i>Change</i> test.
  * In such tests it's used the key domain defined by the set of N odd numbers
  * starting from 0x80000000+1 to 0x80000000+2*N+1.
- * Note that using additional keys at the corners of the domain would have pushed
- * tries and trees as they implicitly keep track of the maximum and minimum key values
- * inserted.
+ * Note that using additional keys at the corners of the domain would have given
+ * an unfair advantage to tries and trees as they implicitly keep track of the
+ * maximum and minimum key values inserted.
  *
  * The use of the 0x80000000 base, allow to test a key domain not necessarily
- * starting at 0. Using a 0 base would have pushed some tries managing it as
- * a special case.
+ * starting at 0. Using a 0 base would have given an unfair advantage to some
+ * implementation handling it as a special case.
  *
  * The tests are repeated using keys in <i>Random</i> mode and in <i>Forward</i> mode.
  * In the forward mode the key values are used in order from the lowest to the highest.
@@ -256,18 +257,15 @@
  * key incremented by 1. In random mode each object is reinserted using a completely
  * different and uncorrelated key.
  *
- * The forward order pushes tries and trees as they use the key directly and they have a
+ * The forward order advantages tries and trees as they use the key directly and they have a
  * cache advantage on using consecutive keys.
- * The random order pushes hashtables, as the hash function already randomizes the key.
- * Usually real uses case are in between, and the random one is the worst one.
+ * The random order advantages hashtables, as the hash function already randomizes the key.
+ * Usually real uses case are in between, and the random one is the worst.
  *
  * \section result Results
  *
  * The most significant tests depend on your data usage model, but if in doubt,
- * you should mostly look at <i>Random Hit</i> and <i>Random Change</i>.
- *
- * They are the most significant, because operating always with N elements
- * in the data structure and with a random patterns.
+ * you can look at <i>Random Hit</i> and <i>Random Change</i>.
  * They represent the real world worst condition.
  *
  * <img src="def/img_random_hit.png"/>
