@@ -36,6 +36,8 @@
  * For this reason it contains a lot of unnecessary casting for C of void* pointers.
  */
 
+#define __STDC_LIMIT_MACROS 1 /* needed by ck */
+
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -55,13 +57,16 @@
 #include <mach/mach_time.h>
 #endif
 
+/* Judy available on in x86 */
 #if defined(_WIN32)
 #include <windows.h>
 #if defined(_M_IX86) || defined(__i386__)
 #define USE_JUDY
 #endif
 #else
+#if defined(__i386__)
 #define USE_JUDY
+#endif
 #endif
 
 /* Available only in C++ */
@@ -95,10 +100,12 @@
 /* Google C dense hash table */
 /* http://code.google.com/p/google-sparsehash/ in the experimental/ directory */
 /* Disabled by default because it's superseeded by the C++ version. */
-/* Note that it has a VERY BAD performance on the "Change" test. Consider to use khash if you need a C implementation. */
-#ifdef USE_CGOOGLEDENSEHASH
-#define htonl(x) 0
-#define ntohl(x) 0
+/* Note that it has a VERY BAD performance on the "Change" test, */
+/* so we disable it in the general graphs */
+/* #define USE_GOOGLELIBCHASH */
+#ifdef USE_GOOGLELIBCHASH
+#define htonl(x) 0 /* used for serialization, not needed here */
+#define ntohl(x) 0 /* used for serialization, not needed here */
 #define Table(x) Dense##x /* Use google dense tables */
 #include "benchmark/lib/google/libchash.c" 
 #endif
@@ -167,14 +174,29 @@ typedef size_t ssize_t;
 
 /* JudyArray */
 /* http://code.google.com/p/judyarray/ */
-/* Ensuse to use the version "judy64na.c". previous ones are not not working with integers key. */
+/* Ensure to use the version "judy64na.c". previous ones are not not working with integers key. */
 #include "benchmark/lib/judyarray/judy64na.c"
-#define USE_JUDYARRAY 1
+#define USE_JUDYARRAY
 
 /* Binary Search Cube */
 /* https://sites.google.com/site/binarysearchcube/ */
 #include "benchmark/lib/cube/binary-search-tesseract-1.0.c"
-#define USE_CUBE 1
+#define USE_CUBE
+
+/* Concurrency Kit Hash Set */
+/* http://concurrencykit.org/ */
+/* Note that it has a VERY BAD performance on the "Change" test, */
+/* so we disable it in the general graphs */
+/* #define USE_CK */
+#if defined(USE_CK) && defined(__linux)
+/* if you enable it, ensure to link also with the -lck option */
+extern "C" {
+#include <ck_hs.h>
+}
+#endif
+
+/* default hash function used */
+#define hash(v) tommy_inthash_u32(v)
 
 /******************************************************************************/
 /* objects */
@@ -252,6 +274,11 @@ struct cube_object {
 	char payload[PAYLOAD];
 };
 
+struct ck_object {
+	unsigned value;
+	char payload[PAYLOAD];
+};
+
 struct rbt_object* RBTREE;
 struct hashtable_object* HASHTABLE;
 struct hashtable_object* HASHDYN;
@@ -273,6 +300,41 @@ struct judyarray_object* JUDYARRAY;
 #endif
 #ifdef USE_CUBE
 struct cube_object* CUBE;
+#endif
+#ifdef USE_CK
+struct ck_object* CK;
+
+static void* hs_malloc(size_t r)
+{
+	return malloc(r);
+}
+
+static void hs_free(void* p, size_t b, bool r)
+{
+	(void)b;
+	(void)r;
+	free(p);
+}
+
+static struct ck_malloc my_allocator = {
+	hs_malloc,
+	0,
+	hs_free
+};
+
+static unsigned long hs_hash(const void* void_object, unsigned long seed)
+{
+	const struct ck_object* object = void_object;
+	(void)seed;
+	return hash(object->value);
+}
+
+static bool hs_compare(const void *previous, const void *compare)
+{
+	const struct ck_object* object_1 = previous;
+	const struct ck_object* object_2 = compare;
+	return object_1->value == object_2->value;
+}
 #endif
 
 /******************************************************************************/
@@ -345,8 +407,8 @@ cppmap_t* cppmap;
 typedef std::unordered_map<unsigned, struct cpp_object*, cpp_tommy_inthash_u32> cppunorderedmap_t;
 cppunorderedmap_t* cppunorderedmap;
 #endif
-#ifdef USE_CGOOGLEDENSEHASH
-struct HashTable* cgoogledensehash;
+#ifdef USE_GOOGLELIBCHASH
+struct HashTable* googlelibhash;
 #endif
 #ifdef USE_GOOGLEDENSEHASH
 typedef google::dense_hash_map<unsigned, struct google_object*, cpp_tommy_inthash_u32> googledensehash_t;
@@ -368,6 +430,9 @@ Judy* judyarray = 0;
 #endif
 #ifdef USE_CUBE
 struct cube* cube = 0;
+#endif
+#ifdef USE_CK
+ck_hs_t ck;
 #endif
 
 /******************************************************************************/
@@ -478,7 +543,11 @@ loop:
 #ifdef _DEBUG
 #define MAX 100000
 #else
+#if defined(__x86_64__) || defined(_M_X64)
+#define MAX 100000000
+#else
 #define MAX 10000000
+#endif
 #endif
 
 /**
@@ -544,7 +613,13 @@ const char* ORDER_NAME[ORDER_MAX] = {
 #define DATA_CPPUNORDEREDMAP 15
 #define DATA_CPPMAP 16
 #define DATA_CUBE 17
-#define DATA_MAX 18
+#ifdef USE_GOOGLELIBCHASH
+#define DATA_GOOGLELIBCHASH 18
+#endif
+#ifdef USE_CK
+#define DATA_CK 19
+#endif
+#define DATA_MAX 20
 
 const char* DATA_NAME[DATA_MAX] = {
 	"tommy-hashtable",
@@ -565,6 +640,8 @@ const char* DATA_NAME[DATA_MAX] = {
 	"c++unorderedmap",
 	"c++map",
 	"tesseract",
+	"googlelibchash",
+	"concurrencykit",
 };
 
 /** 
@@ -675,9 +752,6 @@ FILE* open(const char* mode)
 
 /******************************************************************************/
 /* test */
-
-/* default hash function used */
-#define hash(v) tommy_inthash_u32(v)
 
 /**
  * Cache clearing buffer.
@@ -792,10 +866,10 @@ void test_alloc(void)
 		khash = kh_init(word);
 	}
 
-#ifdef USE_CGOOGLEDENSEHASH
-	COND(DATA_CGOOGLE) {
+#ifdef USE_GOOGLELIBCHASH
+	COND(DATA_GOOGLELIBCHASH) {
 		GOOGLE = (struct google_object*)malloc(sizeof(struct google_object) * the_max);
-		cgoogledensehash = AllocateHashTable(sizeof(void*), 0);
+		googlelibhash = AllocateHashTable(sizeof(void*), 0);
 	}
 #endif
 
@@ -864,6 +938,46 @@ void test_alloc(void)
 		cube = create_cube();
 	}
 #endif
+
+#ifdef USE_CK
+	COND(DATA_CK) {
+		CK = (struct ck_object*)malloc(sizeof(struct ck_object) * the_max);
+		/* Adding CK_HS_MODE_DELETE makes the performance worse */
+		/* when the number of elements is near and just a little lower than a */
+		/* power of 2. For example, with 63095 elements: */
+/*
+63095 ck forward
+   forward,     insert,           ck,  200 [ns]
+   forward,     change,           ck, 23977 [ns] <<<<<
+   forward,        hit,           ck,  338 [ns]
+   forward,       miss,           ck,  209 [ns]
+   forward,     remove,           ck,  325 [ns]
+63095 ck random
+    random,     insert,           ck,  197 [ns]
+    random,     change,           ck, 24025 [ns] <<<<<
+    random,        hit,           ck,  342 [ns]
+    random,       miss,           ck,  206 [ns]
+    random,     remove,           ck,  337 [ns]
+*/
+		/* Without CK_HS_MODE_DELETE performance are better, but still */
+		/* very slow: */
+/*
+63095 ck forward
+   forward,     insert,           ck,  193 [ns]
+   forward,     change,           ck, 3102 [ns] <<<<<
+   forward,        hit,           ck,  344 [ns]
+   forward,       miss,           ck, 3330 [ns] <<<<<
+   forward,     remove,           ck,  327 [ns]
+63095 ck random
+    random,     insert,           ck,  193 [ns]
+    random,     change,           ck, 2984 [ns] <<<<<
+    random,        hit,           ck,  340 [ns]
+    random,       miss,           ck, 3261 [ns] <<<<<
+    random,     remove,           ck,  341 [ns]
+*/
+		ck_hs_init(&ck, CK_HS_MODE_OBJECT, hs_hash, hs_compare, &my_allocator, 32, 0);
+	}
+#endif
 }
 
 void test_free(void)
@@ -918,9 +1032,9 @@ void test_free(void)
 		free(KHASH);
 	}
 
-#ifdef USE_CGOOGLEDENSEHASH
-	COND(DATA_CGOOGLE) {
-		FreeHashTable(cgoogledensehash);
+#ifdef USE_GOOGLELIBCHASH
+	COND(DATA_GOOGLELIBCHASH) {
+		FreeHashTable(googlelibhash);
 		free(GOOGLE);
 	}
 #endif
@@ -985,6 +1099,13 @@ void test_free(void)
 	COND(DATA_CUBE) {
 		free(CUBE);
 		destroy_cube(cube);
+	}
+#endif
+
+#ifdef USE_CK
+	COND(DATA_CK) {
+		free(CK);
+		ck_hs_destroy(&ck);
 	}
 #endif
 }
@@ -1052,13 +1173,13 @@ void test_insert(unsigned* INSERT)
 		kh_value(khash, k) = &KHASH[i];
 	} STOP();
 
-#ifdef USE_CGOOGLEDENSEHASH
-	START(DATA_CGOOGLE) {
+#ifdef USE_GOOGLELIBCHASH
+	START(DATA_GOOGLELIBCHASH) {
 		unsigned key = INSERT[i];
 		HTItem* r;
 		u_long ptr_value = (u_long)&GOOGLE[i];
 		GOOGLE[i].value = key;
-		r = HashInsert(cgoogledensehash, key, ptr_value);
+		r = HashInsert(googlelibhash, key, ptr_value);
 		if (!r)
 			abort();
 	} STOP();
@@ -1147,6 +1268,16 @@ void test_insert(unsigned* INSERT)
 		unsigned key = INSERT[i];
 		CUBE[i].value = key;
 		set_key(cube, key, &CUBE[i]);
+	} STOP();
+#endif
+
+#ifdef USE_CK
+	START(DATA_CK) {
+		unsigned key = INSERT[i];
+		unsigned hash_key;
+		CK[i].value = key;
+		hash_key = CK_HS_HASH(&ck, hs_hash, &CK[i]);
+		ck_hs_put(&ck, hash_key, &CK[i]);
 	} STOP();
 #endif
 }
@@ -1266,11 +1397,11 @@ void test_hit(unsigned* SEARCH)
 		}
 	} STOP();
 
-#ifdef USE_CGOOGLEDENSEHASH
-	START(DATA_CGOOGLE) {
+#ifdef USE_GOOGLELIBCHASH
+	START(DATA_GOOGLELIBCHASH) {
 		unsigned key = SEARCH[i] + DELTA;
 		HTItem* ptr;
-		ptr = HashFind(cgoogledensehash, key);
+		ptr = HashFind(googlelibhash, key);
 		if (!ptr)
 			abort();
 		if (dereference) {
@@ -1363,6 +1494,20 @@ void test_hit(unsigned* SEARCH)
 		}
 	} STOP();
 
+	START(DATA_NEDTRIE) {
+		unsigned key = SEARCH[i] + DELTA;
+		struct nedtrie_object key_obj;
+		struct nedtrie_object* obj;
+		key_obj.value = key;
+		obj = NEDTRIE_FIND(nedtrie_t, &nedtrie, &key_obj);
+		if (!obj)
+			abort();
+		if (dereference) {
+			if (obj->value != key)
+				abort();
+		}
+	} STOP();
+
 #ifdef USE_JUDY
 	START(DATA_JUDY) {
 		Word_t key = SEARCH[i] + DELTA;
@@ -1407,12 +1552,15 @@ void test_hit(unsigned* SEARCH)
 	} STOP();
 #endif
 
-	START(DATA_NEDTRIE) {
+#ifdef USE_CK
+	START(DATA_CK) {
 		unsigned key = SEARCH[i] + DELTA;
-		struct nedtrie_object key_obj;
-		struct nedtrie_object* obj;
-		key_obj.value = key;
-		obj = NEDTRIE_FIND(nedtrie_t, &nedtrie, &key_obj);
+		unsigned hash_key;
+		struct ck_object obj_key;
+		struct ck_object* obj;
+		obj_key.value = key;
+		hash_key = CK_HS_HASH(&ck, hs_hash, &obj_key);
+		obj = (struct ck_object*)ck_hs_get(&ck, hash_key, &obj_key);
 		if (!obj)
 			abort();
 		if (dereference) {
@@ -1420,6 +1568,7 @@ void test_hit(unsigned* SEARCH)
 				abort();
 		}
 	} STOP();
+#endif
 }
 
 void test_miss(unsigned* SEARCH)
@@ -1494,11 +1643,11 @@ void test_miss(unsigned* SEARCH)
 			abort();
 	} STOP();
 
-#ifdef USE_CGOOGLEDENSEHASH
-	START(DATA_CGOOGLE) {
+#ifdef USE_GOOGLELIBCHASH
+	START(DATA_GOOGLELIBCHASH) {
 		unsigned key = SEARCH[i] + DELTA;
 		HTItem* ptr;
-		ptr = HashFind(cgoogledensehash, key);
+		ptr = HashFind(googlelibhash, key);
 		if (ptr)
 			abort();
 	} STOP();
@@ -1558,6 +1707,16 @@ void test_miss(unsigned* SEARCH)
 			abort();
 	} STOP();
 
+	START(DATA_NEDTRIE) {
+		unsigned key = SEARCH[i] + DELTA;
+		struct nedtrie_object key_obj;
+		struct nedtrie_object* obj;
+		key_obj.value = key;
+		obj = NEDTRIE_FIND(nedtrie_t, &nedtrie, &key_obj);
+		if (obj)
+			abort();
+	} STOP();
+
 #ifdef USE_JUDY
 	START(DATA_JUDY) {
 		Word_t key = SEARCH[i] + DELTA;
@@ -1592,15 +1751,19 @@ void test_miss(unsigned* SEARCH)
 	} STOP();
 #endif
 
-	START(DATA_NEDTRIE) {
+#ifdef USE_CK
+	START(DATA_CK) {
 		unsigned key = SEARCH[i] + DELTA;
-		struct nedtrie_object key_obj;
-		struct nedtrie_object* obj;
-		key_obj.value = key;
-		obj = NEDTRIE_FIND(nedtrie_t, &nedtrie, &key_obj);
+		unsigned hash_key;
+		struct ck_object obj_key;
+		struct ck_object* obj;
+		obj_key.value = key;
+		hash_key = CK_HS_HASH(&ck, hs_hash, &obj_key);
+		obj = (struct ck_object*)ck_hs_get(&ck, hash_key, &obj_key);
 		if (obj)
 			abort();
 	} STOP();
+#endif
 }
 
 void test_change(unsigned* REMOVE, unsigned* INSERT)
@@ -1725,22 +1888,22 @@ void test_change(unsigned* REMOVE, unsigned* INSERT)
 		kh_value(khash, k) = obj;
 	} STOP();
 
-#ifdef USE_CGOOGLEDENSEHASH
-	START(DATA_CGOOGLE) {
+#ifdef USE_GOOGLELIBCHASH
+	START(DATA_GOOGLELIBCHASH) {
 		unsigned key = REMOVE[i];
 		HTItem* ptr;
 		struct google_object* obj;
 		u_long ptr_value;
-		ptr = HashFind(cgoogledensehash, key);
+		ptr = HashFind(googlelibhash, key);
 		if (!ptr)
 			abort();
 		obj = (void*)ptr->data;
-		HashDeleteLast(cgoogledensehash);
+		HashDeleteLast(googlelibhash);
 
 		key = INSERT[i] + DELTA;
 		obj->value = key;
 		ptr_value = (u_long)obj;
-		ptr = HashInsert(cgoogledensehash, key, ptr_value);
+		ptr = HashInsert(googlelibhash, key, ptr_value);
 		if (!ptr)
 			abort();
 	} STOP();
@@ -1839,6 +2002,21 @@ void test_change(unsigned* REMOVE, unsigned* INSERT)
 		HASH_ADD_INT(uthash, value, obj);
 	} STOP();
 
+	START(DATA_NEDTRIE) {
+		unsigned key = REMOVE[i];
+		struct nedtrie_object key_obj;
+		struct nedtrie_object* obj;
+		key_obj.value = key;
+		obj = NEDTRIE_FIND(nedtrie_t, &nedtrie, &key_obj);
+		if (!obj)
+			abort();
+		NEDTRIE_REMOVE(nedtrie_t, &nedtrie, obj);
+
+		key = INSERT[i] + DELTA;
+		obj->value = key;
+		NEDTRIE_INSERT(nedtrie_t, &nedtrie, obj);
+	} STOP();
+
 #ifdef USE_JUDY
 	START(DATA_JUDY) {
 		Word_t key = REMOVE[i];
@@ -1892,20 +2070,24 @@ void test_change(unsigned* REMOVE, unsigned* INSERT)
 	} STOP();
 #endif
 
-	START(DATA_NEDTRIE) {
+#ifdef USE_CK
+	START(DATA_CK) {
 		unsigned key = REMOVE[i];
-		struct nedtrie_object key_obj;
-		struct nedtrie_object* obj;
-		key_obj.value = key;
-		obj = NEDTRIE_FIND(nedtrie_t, &nedtrie, &key_obj);
+		unsigned hash_key;
+		struct ck_object obj_key;
+		struct ck_object* obj;
+		obj_key.value = key;
+		hash_key = CK_HS_HASH(&ck, hs_hash, &obj_key);
+		obj = (struct ck_object*)ck_hs_remove(&ck, hash_key, &obj_key);
 		if (!obj)
 			abort();
-		NEDTRIE_REMOVE(nedtrie_t, &nedtrie, obj);
 
 		key = INSERT[i] + DELTA;
 		obj->value = key;
-		NEDTRIE_INSERT(nedtrie_t, &nedtrie, obj);
+		hash_key = CK_HS_HASH(&ck, hs_hash, obj);
+		ck_hs_put(&ck, hash_key, obj);
 	} STOP();
+#endif
 }
 
 void test_remove(unsigned* REMOVE)
@@ -2029,16 +2211,16 @@ void test_remove(unsigned* REMOVE)
 		}
 	} STOP();
 
-#ifdef USE_CGOOGLEDENSEHASH
-	START(DATA_CGOOGLE) {
+#ifdef USE_GOOGLELIBCHASH
+	START(DATA_GOOGLELIBCHASH) {
 		unsigned key = REMOVE[i] + DELTA;
 		HTItem* ptr;
 		struct google_object* obj;
-		ptr = HashFind(cgoogledensehash, key);
+		ptr = HashFind(googlelibhash, key);
 		if (!ptr)
 			abort();
 		obj = (struct google_object*)ptr->data;
-		HashDeleteLast(cgoogledensehash);
+		HashDeleteLast(googlelibhash);
 		if (dereference) {
 			if (obj->value != key)
 				abort();
@@ -2147,6 +2329,21 @@ void test_remove(unsigned* REMOVE)
 		}
 	} STOP();
 
+	START(DATA_NEDTRIE) {
+		unsigned key = REMOVE[i] + DELTA;
+		struct nedtrie_object key_obj;
+		struct nedtrie_object* obj;
+		key_obj.value = key;
+		obj = NEDTRIE_FIND(nedtrie_t, &nedtrie, &key_obj);
+		if (!obj)
+			abort();
+		NEDTRIE_REMOVE(nedtrie_t, &nedtrie, obj);
+		if (dereference) {
+			if (obj->value != key)
+				abort();
+		}
+	} STOP();
+
 #ifdef USE_JUDY
 	START(DATA_JUDY) {
 		Word_t key = REMOVE[i] + DELTA;
@@ -2200,20 +2397,23 @@ void test_remove(unsigned* REMOVE)
 	} STOP();
 #endif
 
-	START(DATA_NEDTRIE) {
+#ifdef USE_CK
+	START(DATA_CK) {
 		unsigned key = REMOVE[i] + DELTA;
-		struct nedtrie_object key_obj;
-		struct nedtrie_object* obj;
-		key_obj.value = key;
-		obj = NEDTRIE_FIND(nedtrie_t, &nedtrie, &key_obj);
+		unsigned hash_key;
+		struct ck_object obj_key;
+		struct ck_object* obj;
+		obj_key.value = key;
+		hash_key = CK_HS_HASH(&ck, hs_hash, &obj_key);
+		obj = (struct ck_object*)ck_hs_remove(&ck, hash_key, &obj_key);
 		if (!obj)
 			abort();
-		NEDTRIE_REMOVE(nedtrie_t, &nedtrie, obj);
 		if (dereference) {
 			if (obj->value != key)
 				abort();
 		}
 	} STOP();
+#endif
 }
 
 tommy_size_t uthash_size(struct uthash_object* obj)
@@ -2299,6 +2499,7 @@ void test_size(void)
 	MEM(DATA_STXBTREE, stxbtree_size(stxbtree));
 #endif
 	MEM(DATA_UTHASH, uthash_size(uthash));
+	MEM(DATA_NEDTRIE, nedtrie_size(&nedtrie));
 #ifdef USE_JUDY
 	JLMU(w, judy);
 	MEM(DATA_JUDY, w);
@@ -2309,7 +2510,6 @@ void test_size(void)
 #ifdef USE_CUBE
 	MEM(DATA_CUBE, size_cube(cube));
 #endif
-	MEM(DATA_NEDTRIE, nedtrie_size(&nedtrie));
 }
 
 void test_operation(unsigned* INSERT, unsigned* SEARCH)
@@ -2394,22 +2594,33 @@ void test(unsigned size, unsigned data, int log, int sparse)
 					continue;
 
 				for(the_order=0;the_order<ORDER_MAX;++the_order) {
-					printf("%d %s %s", the_max, DATA_NAME[the_data], ORDER_NAME[the_order]);
+					unsigned i;
+
+					printf("%12u", the_max);
+
+					printf(" %16s %16s", DATA_NAME[the_data], ORDER_NAME[the_order]);
 
 					/* skip degenerated cases */
-					if (data == DATA_MAX && LAST[the_data][the_order] > TIME_MAX_NS) {
+					if (LAST[the_data][the_order] > TIME_MAX_NS) {
 						printf(" (skipped, too slow)\n");
 						continue;
 					}
 
-					printf("\n");
-					
+					if (!the_log)
+						printf("\n");
+
 					test_alloc();
 					if (the_order == ORDER_FORWARD)
 						test_operation(FORWARD, FORWARD);
 					else
 						test_operation(RAND0, RAND1);
 					test_free();
+
+					if (the_log) {
+						for(i=0;i<OPERATION_MAX;++i)
+							printf(" %4u", LOG[the_retry][the_data][the_order][i]);
+						printf(" [ms]\n");
+					}
 				}
 			}
 		}
@@ -2438,10 +2649,11 @@ void test(unsigned size, unsigned data, int log, int sparse)
 							v = LOG[i][the_data][the_order][the_operation];
 					}
 
-					/* save the *longest* measured time */
-					if (the_operation != OPERATION_SIZE) {
-						if (v != 0 && LAST[the_data][the_order] < v)
+					if (the_operation != OPERATION_SIZE && v != 0) {
+						/* keep the longest operation measure */
+						if (v > LAST[the_data][the_order]) {
 							LAST[the_data][the_order] = v;
+						}
 					}
 
 					fprintf(f, "%u\t", v);
