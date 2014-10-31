@@ -598,9 +598,9 @@ const char* ORDER_NAME[ORDER_MAX] = {
 #define DATA_HASHTABLE 0
 #define DATA_HASHDYN 1
 #define DATA_HASHLIN 2
-#define DATA_TRIE 3
-#define DATA_TRIE_INPLACE 4
-#define DATA_HASHOPEN 5
+#define DATA_HASHOPEN 3
+#define DATA_TRIE 4
+#define DATA_TRIE_INPLACE 5
 #define DATA_TREE 6
 #define DATA_NEDTRIE 7
 #define DATA_KHASH 8
@@ -625,9 +625,9 @@ const char* DATA_NAME[DATA_MAX] = {
 	"tommy-hashtable",
 	"tommy-hashdyn",
 	"tommy-hashlin",
+	"tommy-hashopen",
 	"tommy-trie",
 	"tommy-trie-inplace",
-	"tommy-hashopen",
 	"rbtree",
 	"nedtrie",
 	"khash",
