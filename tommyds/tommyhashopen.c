@@ -101,11 +101,11 @@ static void tommy_hashopen_resize(tommy_hashopen* hashopen, tommy_uint_t new_buc
 
 	/* reinsert all the elements */
 	for (i = 0; i < old_bucket_max; ++i) {
-		tommy_hashopen_pos* j = &old_bucket[i];
+		tommy_hashopen_pos* old_pos = &old_bucket[i];
 
-		if (j->ptr != TOMMY_HASHOPEN_EMPTY && j->ptr != TOMMY_HASHOPEN_DELETED) {
-			tommy_hashopen_pos* p;
-			tommy_count_t k = j->hash & hashopen->bucket_mask_cache;
+		if (old_pos->ptr != TOMMY_HASHOPEN_EMPTY && old_pos->ptr != TOMMY_HASHOPEN_DELETED) {
+			tommy_hashopen_pos* pos;
+			tommy_count_t j = old_pos->hash & hashopen->bucket_mask_cache;
 
 			/* search the first empty bucket */
 			/* we don't consider the DELETED case, because the new table */
@@ -113,17 +113,17 @@ static void tommy_hashopen_resize(tommy_hashopen* hashopen, tommy_uint_t new_buc
 			/* we don't consider the same hash, because it cannot yet */
 			/* exists an equal hash. */
 			while (1) {
-				p = &hashopen->bucket[k];
+				pos = &hashopen->bucket[j];
 
-				if (p->ptr == TOMMY_HASHOPEN_EMPTY)
+				if (pos->ptr == TOMMY_HASHOPEN_EMPTY)
 					break;
 
 				/* go to the next bucket */
-				k = (k + 1) & hashopen->bucket_mask;
+				j = (j + 1) & hashopen->bucket_mask;
 			}
 
 			/* assign the new position */
-			*p = *j;
+			*pos = *old_pos;
 		}
 	}
 
@@ -140,9 +140,9 @@ tommy_inline void hashopen_grow_step(tommy_hashopen* hashopen)
 		/* reallocate the table taking into account both the filled entries */
 		/* and the deleted ones. This ensures to keep into account the size */
 		/* needed for future deletion. */
-		tommy_uint32_t up_size = tommy_roundup_pow2_u32(hashopen->filled_count + hashopen->deleted_count + 1);
+		tommy_uint32_t up_size = tommy_roundup_pow2_u32((hashopen->filled_count + hashopen->deleted_count) * 2 + 1);
 		tommy_uint_t up_bit = tommy_ilog2_u32(up_size);
-		tommy_hashopen_resize(hashopen, up_bit + 1);
+		tommy_hashopen_resize(hashopen, up_bit);
 	}
 }
 
@@ -154,9 +154,9 @@ tommy_inline void hashopen_shrink_step(tommy_hashopen* hashopen)
 	/* shrink if less than 12.5% full */
 	if (hashopen->filled_count <= hashopen->bucket_max / 8 && hashopen->bucket_bit > TOMMY_HASHOPEN_BIT) {
 		/* reallocate the table taking into account only the filled entries */
-		tommy_uint32_t up_size = tommy_roundup_pow2_u32(hashopen->filled_count + 1);
+		tommy_uint32_t up_size = tommy_roundup_pow2_u32(hashopen->filled_count * 2 + 1);
 		tommy_uint_t up_bit = tommy_ilog2_u32(up_size);
-		tommy_hashopen_resize(hashopen, up_bit + 1);
+		tommy_hashopen_resize(hashopen, up_bit);
 	}
 }
 
@@ -189,15 +189,15 @@ void tommy_hashopen_insert(tommy_hashopen* hashopen, tommy_hashopen_node* node, 
 
 void* tommy_hashopen_remove_existing(tommy_hashopen* hashopen, tommy_hashopen_node* node)
 {
-	tommy_hashopen_pos* i = tommy_hashopen_bucket(hashopen, node->key);
+	tommy_hashopen_pos* pos = tommy_hashopen_bucket(hashopen, node->key);
 
 	/* we don't check for empty bucket, because we know that it's an existing element */
-	tommy_list_remove_existing(&i->ptr, node);
+	tommy_list_remove_existing(&pos->ptr, node);
 
 	/* if it's empty */
-	if (!i->ptr) {
+	if (!pos->ptr) {
 		/* set it as deleted */
-		i->ptr = TOMMY_HASHOPEN_DELETED;
+		pos->ptr = TOMMY_HASHOPEN_DELETED;
 		--hashopen->filled_count;
 		++hashopen->deleted_count;
 	}
@@ -211,24 +211,24 @@ void* tommy_hashopen_remove_existing(tommy_hashopen* hashopen, tommy_hashopen_no
 
 void* tommy_hashopen_remove(tommy_hashopen* hashopen, tommy_compare_func* cmp, const void* cmp_arg, tommy_hash_t hash)
 {
-	tommy_hashopen_pos* i = tommy_hashopen_bucket(hashopen, hash);
+	tommy_hashopen_pos* pos = tommy_hashopen_bucket(hashopen, hash);
 	tommy_hashopen_node* j;
 
 	/* if empty bucket, it's missing */
-	if (i->ptr == TOMMY_HASHOPEN_EMPTY
-		|| i->ptr == TOMMY_HASHOPEN_DELETED)
+	if (pos->ptr == TOMMY_HASHOPEN_EMPTY
+		|| pos->ptr == TOMMY_HASHOPEN_DELETED)
 		return 0;
 
 	/* for sure we have at least one object */
-	j = i->ptr;
+	j = pos->ptr;
 	do {
 		if (cmp(cmp_arg, j->data) == 0) {
-			tommy_list_remove_existing(&i->ptr, j);
+			tommy_list_remove_existing(&pos->ptr, j);
 
 			/* if it's empty */
-			if (!i->ptr) {
+			if (!pos->ptr) {
 				/* set it as deleted */
-				i->ptr = TOMMY_HASHOPEN_DELETED;
+				pos->ptr = TOMMY_HASHOPEN_DELETED;
 				--hashopen->filled_count;
 				++hashopen->deleted_count;
 			}

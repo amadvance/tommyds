@@ -226,19 +226,19 @@ tommy_inline tommy_hashopen_pos* tommy_hashopen_bucket(tommy_hashopen* hashopen,
 	tommy_hashopen_pos* empty = 0;
 
 	while (1) {
-		tommy_hashopen_pos* p = &hashopen->bucket[i];
+		tommy_hashopen_pos* pos = &hashopen->bucket[i];
 
 		/* if the bucket is empty, the element is missing */
-		if (p->ptr == TOMMY_HASHOPEN_EMPTY) {
+		if (pos->ptr == TOMMY_HASHOPEN_EMPTY) {
 			if (!empty)
-				empty = p;
+				empty = pos;
 			return empty;
-		} else if (p->ptr == TOMMY_HASHOPEN_DELETED) {
+		} else if (pos->ptr == TOMMY_HASHOPEN_DELETED) {
 			if (!empty)
-				empty = p;
-		} else if (p->hash == hash) {
+				empty = pos;
+		} else if (pos->hash == hash) {
 			/* if the hash match, it's the right one */
-			return p;
+			return pos;
 		}
 
 		/* go to the next bucket */
@@ -258,15 +258,15 @@ tommy_inline tommy_hashopen_pos* tommy_hashopen_bucket(tommy_hashopen* hashopen,
  */
 tommy_inline void* tommy_hashopen_search(tommy_hashopen* hashopen, tommy_compare_func* cmp, const void* cmp_arg, tommy_hash_t hash)
 {
-	tommy_hashopen_pos* i = tommy_hashopen_bucket(hashopen, hash);
+	tommy_hashopen_pos* pos = tommy_hashopen_bucket(hashopen, hash);
 	tommy_hashopen_node* j;
 
 	/* if empty bucket, it's missing */
-	if (i->ptr == TOMMY_HASHOPEN_EMPTY
-		|| i->ptr == TOMMY_HASHOPEN_DELETED)
+	if (pos->ptr == TOMMY_HASHOPEN_EMPTY
+		|| pos->ptr == TOMMY_HASHOPEN_DELETED)
 		return 0;
 
-	j = i->ptr;
+	j = pos->ptr;
 	while (j) {
 		if (cmp(cmp_arg, j->data) == 0)
 			return j->data;
