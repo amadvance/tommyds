@@ -20,20 +20,21 @@ bdir = "data/"
 set style line 1 lc 1 lt 1 # hashtable
 set style line 2 lc 2 lt 2 # hashdyn
 set style line 3 lc 3 lt 3 # hashlin
-set style line 4 lc 4 lt 4 # trie
-set style line 5 lc 5 lt 5 # trie-inplace
-set style line 6 lc 6 lt 6 # rbtre
-set style line 7 lc 7 lt 7 # nedtrie
-set style line 8 lc 8 lt 8 # khash
-set style line 9 lc 9 lt 8 # uthash
-set style line 10 lc 10 lt 10 # judy
-set style line 11 lc 11 lt 11 # judyarray
-set style line 12 lc 12 lt 12 # googledensehash
-set style line 13 lc rgb "#FF69B4" lt 13 # googlebtree
-set style line 14 lc 14 lt 14 # stxbtree
-set style line 15 lc 15 lt 15 # c++unorderedmap
-set style line 16 lc 16 lt 16 # c++map
-set style line 17 lc 17 lt 17 # tesseract
-set style line 18 lc rgb "#FF69B4" lt 18 # googlelibchash
-set style line 19 lc rgb "#1E90FF" lt 19 # concurrencykit
+set style line 4 lc 20 lt 20 # hashopen
+set style line 5 lc 4 lt 4 # trie
+set style line 6 lc 5 lt 5 # trie-inplace
+set style line 7 lc 6 lt 6 # rbtre
+set style line 8 lc 7 lt 7 # nedtrie
+set style line 9 lc 8 lt 8 # khash
+set style line 10 lc 9 lt 8 # uthash
+set style line 11 lc 10 lt 10 # judy
+set style line 12 lc 11 lt 11 # judyarray
+set style line 13 lc 12 lt 12 # googledensehash
+set style line 14 lc rgb "#FF69B4" lt 13 # googlebtree
+set style line 15 lc 14 lt 14 # stxbtree
+set style line 16 lc 15 lt 15 # c++unorderedmap
+set style line 17 lc 16 lt 16 # c++map
+set style line 18 lc 17 lt 17 # tesseract
+set style line 19 lc rgb "#FF69B4" lt 18 # googlelibchash
+set style line 20 lc rgb "#1E90FF" lt 19 # concurrencykit
 
