@@ -27,7 +27,7 @@
 
 /** \mainpage
  * \section Introduction
- * Tommy is a C library of hashtables and tries designed to store and find objects
+ * Tommy is a C library of array, hashtables and tries designed to store and find objects
  * with high performance.
  *
  * It's <b>faster</b> than all the similar libraries like

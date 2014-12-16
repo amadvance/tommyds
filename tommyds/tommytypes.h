@@ -243,7 +243,7 @@ typedef int tommy_compare_func(const void* obj_a, const void* obj_b);
  * Search function for elements.
  * \param arg Pointer at the value to search.
  * \param obj Pointer at the object to compare to.
- * \return ==0 if the value matches the element. != 0 if different.
+ * \return ==0 if the value matches the element. !=0 if different.
  *
  * Note that the first argument is a pointer to the value to search and
  * the second one is a pointer to the object to compare.

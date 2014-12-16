@@ -111,10 +111,9 @@
  * \endcode
  *
  * To destroy the trie you have to remove all the elements, and deinitialize
- * the trie calling tommy_trie_done() and the allocator using tommy_allocator_done().
+ * the allocator using tommy_allocator_done().
  *
  * \code
- * tommy_trie_done(&trie);
  * tommy_allocator_done(&alloc);
  * \endcode
  *
