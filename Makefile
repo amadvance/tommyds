@@ -1,10 +1,19 @@
 #############################################################################
 # Tommy Makefile
 
+# Version of TommyDS
 VERSION=2.0
+
+# Build options
+ifdef COVERAGE
+CFLAGS=-m32 -O0 -g -fprofile-arcs -ftest-coverage
+else
 CFLAGS=-m32 -O3 -march=pentium4 -mtune=generic -Wall -Wextra -Wshadow -Wcast-qual -g
+endif
 # -std=gnu++11 required by Google btree
 CXXFLAGS=$(CFLAGS) -fpermissive -std=gnu++11
+
+# Programs
 CC=gcc
 CXX=g++
 UNAME=$(shell uname)
@@ -70,8 +79,8 @@ DEPTEST = \
 all: tommycheck$(EXE) tommybench$(EXE)
 
 tommy$(O): $(DEP)
-	$(CC) $(CFLAGS) -c tommyds/tommy.c -o tommy$(O)
 	$(CC) $(CFLAGS) -S -fverbose-asm tommyds/tommy.c -o tommy.s
+	$(CC) $(CFLAGS) -c tommyds/tommy.c -o tommy$(O)
 	objdump -S tommy$(O) > tommy.S
 
 tommycheck$(EXE): check.c tommy$(O)
@@ -82,8 +91,28 @@ tommybench$(EXE): benchmark.cc $(DEP)
 
 check: tommycheck$(EXE) tommybench$(EXE)
 	./tommycheck$(EXE)
-	./tommybench$(EXE) -N 100000
+	./tommybench$(EXE) -n 65535
+	./tommybench$(EXE) -n 65536
 	echo Check completed with success!
+
+lcov_reset:
+	lcov -d . -z
+	rm -f ./lcov.info
+
+lcov_capture:
+	lcov -d . --capture -o lcov.info
+
+lcov_html:
+	rm -rf ./cov
+	mkdir cov
+	genhtml -o ./cov lcov.info
+
+coverage:
+	$(MAKE) COVERAGE=1 tommycheck$(EXE)
+	$(MAKE) lcov_reset
+	./tommycheck$(EXE)
+	$(MAKE) lcov_capture
+	$(MAKE) lcov_html
 
 valgrind:
 	valgrind \
@@ -138,6 +167,7 @@ web: phony tommyweb.doxygen tommy.css $(DEP)
 clean:
 	rm -f *.log *.s *.S *.lst *.o
 	rm -f *.ncb *.suo *.obj
+	rm -f *.gcno *.gcda lcov.info
 	rm -rf Debug Release x64
 	rm -f callgrind.out.*
 	rm -f cachegrind.out.*

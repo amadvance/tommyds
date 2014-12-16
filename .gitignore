@@ -26,6 +26,12 @@ stamp-h1
 *.s
 *.S
 
+# coverage
+*.gcda
+*.gcno
+*.info
+cov/
+
 # project
 *.dst
 *.epr

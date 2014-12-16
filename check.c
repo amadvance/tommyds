@@ -53,13 +53,13 @@
 
 #include "tommyds/tommy.h"
 
-#define MAX 1000000
+#define TOMMY_SIZE 1000000
 
 #define PAYLOAD 16 /**< Size of payload data for objects */
 
 struct object {
-	tommy_node node;
 	int value;
+	tommy_node node;
 	char payload[PAYLOAD];
 };
 
@@ -101,7 +101,19 @@ int compare_vector(const void* void_a, const void* void_b)
 struct object_hash {
 	int value;
 	tommy_node node;
-	tommy_node hashnode;
+	char payload[PAYLOAD];
+};
+
+struct object_trie {
+	int value;
+	tommy_trie_node node;
+	char payload[PAYLOAD];
+};
+
+struct object_trie_inplace {
+	int value;
+	tommy_trie_inplace_node node;
+	char payload[PAYLOAD];
 };
 
 /******************************************************************************/
@@ -207,23 +219,48 @@ loop:
 }
 
 /******************************************************************************/
-/* test */
+/* helper */
 
-const char* the_str;
-tommy_uint64_t the_start;
+unsigned isqrt(unsigned n)
+{
+	unsigned root, remainder, place;
+
+	root = 0;
+
+	remainder = n;
+
+	place = 0x40000000;
+
+	while (place > remainder)
+		place /= 4;
+
+	while (place) {
+		if (remainder >= root + place) {
+			remainder -= root + place;
+			root += 2 * place;
+		}
+
+		root /= 2;
+		place /= 4;
+	}
+
+	return root;
+}
 
 /**
  * Cache clearing buffer.
  */
-unsigned char CACHE[8*1024*1024];
+static unsigned char the_cache[16*1024*1024];
+static const char* the_str;
+static tommy_uint64_t the_start;
 
 void cache_clear(void)
 {
 	unsigned i;
 
 	/* read & write */
-	for(i=0;i<sizeof(CACHE);i += 32)
-		CACHE[i] += 1;
+	for(i=0;i<sizeof(the_cache);i += 32)
+		the_cache[i] += 1;
 
 #ifdef WIN32
 	Sleep(0);
@@ -246,6 +283,276 @@ void stop()
 
 #define START(s) start(s)
 #define STOP() stop()
+
+/******************************************************************************/
+/* test */
+
+struct hash32_test {
+	char* data;
+	tommy_uint32_t len;
+	tommy_uint32_t hash;
+} HASH32[] = {
+	{ "", 0, 0x8614384c },
+	{ "a", 1, 0x12c16c36 },
+	{ "abc", 3, 0xc58e8af5 },
+	{ "message digest", 14, 0x006b32f1 },
+	{ "abcdefghijklmnopqrstuvwxyz", 26, 0x7e6fcfe0 },
+	{ "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789", 62, 0x8604adf8 },
+	{ "The quick brown fox jumps over the lazy dog", 43, 0xdeba3d3a },
+	{ "\x00", 1, 0x4a7d1c33 },
+	{ "\x16\x27", 2, 0x8b50899b },
+	{ "\xe2\x56\xb4", 3, 0x60406493 },
+	{ "\xc9\x4d\x9c\xda", 4, 0xa049144a },
+	{ "\x79\xf1\x29\x69\x5d", 5, 0x4da2c2f1 },
+	{ "\x00\x7e\xdf\x1e\x31\x1c", 6, 0x59de30cf },
+	{ "\x2a\x4c\xe1\xff\x9e\x6f\x53", 7, 0x219e149c },
+	{ "\xba\x02\xab\x18\x30\xc5\x0e\x8a", 8, 0x25067520 },
+	{ "\xec\x4e\x7a\x72\x1e\x71\x2a\xc9\x33", 9, 0xa1f368d8 },
+	{ "\xfd\xe2\x9c\x0f\x72\xb7\x08\xea\xd0\x78", 10, 0x805fc63d },
+	{ "\x65\xc4\x8a\xb8\x80\x86\x9a\x79\x00\xb7\xae", 11, 0x7f75dd0f },
+	{ "\x77\xe9\xd7\x80\x0e\x3f\x5c\x43\xc8\xc2\x46\x39", 12, 0xb9154382 },
+	{ "\x87\xd8\x61\x61\x4c\x89\x17\x4e\xa1\xa4\xef\x13\xa9", 13, 0x2bdd05d7 },
+	{ "\xfe\xa6\x5b\xc2\xda\xe8\x95\xd4\x64\xab\x4c\x39\x58\x29", 14, 0xabffeb9f },
+	{ "\x94\x49\xc0\x78\xa0\x80\xda\xc7\x71\x4e\x17\x37\xa9\x7c\x40", 15, 0x886da0b4 },
+	{ "\x53\x7e\x36\xb4\x2e\xc9\xb9\xcc\x18\x3e\x9a\x5f\xfc\xb7\xb0\x61", 16, 0x34ed2af3 },
+	{ 0, 0, 0 }
+};
+
+struct hash64_test {
+	char* data;
+	tommy_uint32_t len;
+	tommy_uint64_t hash;
+} HASH64[] = {
+	{ "", 0, 0x8614384cb5165fbfULL },
+	{ "a", 1, 0x1a2e0298a8e94a3dULL },
+	{ "abc", 3, 0x7555796b7a7d21ebULL },
+	{ "message digest", 14, 0x9411a57d04b92fb4ULL },
+	{ "abcdefghijklmnopqrstuvwxyz", 26, 0x3ca3f8d2b4e69832ULL },
+	{ "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789", 62, 0x6dae542ba0015a4dULL },
+	{ "The quick brown fox jumps over the lazy dog", 43, 0xe06d8cbb3d2ea1a6ULL },
+	{ "\x00", 1, 0x201e664fb5f2c021ULL },
+	{ "\x16\x27", 2, 0xef42fa8032c4b775ULL },
+	{ "\xe2\x56\xb4", 3, 0x6e6c498a6688466cULL },
+	{ "\xc9\x4d\x9c\xda", 4, 0x5195005419905423ULL },
+	{ "\x79\xf1\x29\x69\x5d", 5, 0x221235b48afee7c1ULL },
+	{ "\x00\x7e\xdf\x1e\x31\x1c", 6, 0x1b1f18b9266f095bULL },
+	{ "\x2a\x4c\xe1\xff\x9e\x6f\x53", 7, 0x2cbafa8e741d49caULL },
+	{ "\xba\x02\xab\x18\x30\xc5\x0e\x8a", 8, 0x4677f04c06e0758dULL },
+	{ "\xec\x4e\x7a\x72\x1e\x71\x2a\xc9\x33", 9, 0x5afe09e8214e2163ULL },
+	{ "\xfd\xe2\x9c\x0f\x72\xb7\x08\xea\xd0\x78", 10, 0x115b6276d209fab6ULL },
+	{ "\x65\xc4\x8a\xb8\x80\x86\x9a\x79\x00\xb7\xae", 11, 0xd0636d2f01cf3a3eULL },
+	{ "\x77\xe9\xd7\x80\x0e\x3f\x5c\x43\xc8\xc2\x46\x39", 12, 0x6d259f5fef74f93eULL },
+	{ "\x87\xd8\x61\x61\x4c\x89\x17\x4e\xa1\xa4\xef\x13\xa9", 13, 0x23449c3baf93ac39ULL },
+	{ "\xfe\xa6\x5b\xc2\xda\xe8\x95\xd4\x64\xab\x4c\x39\x58\x29", 14, 0x9b85ba28d7854d69ULL },
+	{ "\x94\x49\xc0\x78\xa0\x80\xda\xc7\x71\x4e\x17\x37\xa9\x7c\x40", 15, 0x3617c833193a359fULL },
+	{ "\x53\x7e\x36\xb4\x2e\xc9\xb9\xcc\x18\x3e\x9a\x5f\xfc\xb7\xb0\x61", 16, 0x5dbf9ff58e274dd9ULL },
+	{ 0, 0, 0 }
+};
+
+struct inthash32_test {
+	tommy_uint32_t value;
+	tommy_uint32_t hash;
+} INTHASH32[] = {
+	{ 0x00000000, 0x00000000 },
+	{ 0x00000001, 0xc2b73583 },
+	{ 0x00000002, 0xe90f1258 },
+	{ 0x00000004, 0x7a10c2d3 },
+	{ 0x00000008, 0x200c3457 },
+	{ 0x00000010, 0xeb97690a },
+	{ 0x00000020, 0x7fb291d3 },
+	{ 0x00000040, 0xf50601d8 },
+	{ 0x00000080, 0x727dbaed },
+	{ 0x00000100, 0x7ef5f77d },
+	{ 0x00000200, 0x91a480dc },
+	{ 0x00000400, 0x2bad9acc },
+	{ 0x00000800, 0xfe4d150e },
+	{ 0x00001000, 0xc3add476 },
+	{ 0x00002000, 0x23946174 },
+	{ 0x00004000, 0x987cfc43 },
+	{ 0x00008000, 0x630cdf68 },
+	{ 0x00010000, 0x0ac3a767 },
+	{ 0x00020000, 0xad086d5b },
+	{ 0x00040000, 0x1126ccdf },
+	{ 0x00080000, 0x4370dbc4 },
+	{ 0x00100000, 0xefd6e5e6 },
+	{ 0x00200000, 0x9a93c1b5 },
+	{ 0x00400000, 0x10114902 },
+	{ 0x00800000, 0x96117e60 },
+	{ 0x01000000, 0x5dec9f58 },
+	{ 0x02000000, 0xfee234c7 },
+	{ 0x04000000, 0x36137e26 },
+	{ 0x08000000, 0x6c26fc4c },
+	{ 0x10000000, 0xd84df898 },
+	{ 0x20000000, 0xb099f131 },
+	{ 0x40000000, 0x6131e262 },
+	{ 0x80000000, 0xc263c4c4 },
+	{ 0x00204a16, 0xd8b97461 },
+	{ 0x05542a27, 0x65d0057a },
+	{ 0x169c39e2, 0x7c2ff59a },
+	{ 0x2eab4956, 0xa8ba89bd },
+	{ 0x0bb0b8b4, 0xb790c8de },
+	{ 0x0bd068c9, 0x92d30546 },
+	{ 0x3e5d224d, 0xd610bf1d },
+	{ 0x436c8d9c, 0x27b09019 },
+	{ 0x3a2adfda, 0xdfde9385 },
+	{ 0x1dd8ca79, 0xc7c10d7b },
+	{ 0x6a67c4f1, 0xf92a788d },
+	{ 0x7742fa29, 0x892c3519 },
+	{ 0x48b62d69, 0x7f642f55 },
+	{ 0x472e195d, 0xea2c49e5 },
+	{ 0x0681a900, 0x4de5c929 },
+	{ 0x622ebb7e, 0x35a7e306 },
+	{ 0x026bccdf, 0xa7e4b630 },
+	{ 0x204d531e, 0x43ebd664 },
+	{ 0x262b5331, 0x7a9a161f },
+	{ 0x7020241c, 0xbaed3ef7 },
+	{ 0x440a0e2a, 0x0b8c5b29 },
+	{ 0x75cb1c4c, 0x19555414 },
+	{ 0x41f9a5e1, 0xc6acbc6b },
+	{ 0x67bc26ff, 0x54e4411f },
+	{ 0x181e279e, 0x979c834f },
+	{ 0x7172c06f, 0xe6a179ff },
+	{ 0x4909e153, 0x198e5e0f },
+	{ 0x09d3bfba, 0x109a6f17 },
+	{ 0x685ae502, 0xf9d57a4b },
+	{ 0x7e10e8ab, 0x09765bec },
+	{ 0x0f262618, 0xe16404cd },
+	{ 0x726b8230, 0x55e478b4 },
+	{ 0, 0 }
+};
+
+struct inthash64_test {
+	tommy_uint64_t value;
+	tommy_uint64_t hash;
+} INTHASH64[] = {
+	{ 0x0000000000000000ULL, 0x77cfa1eef01bca90ULL },
+	{ 0x0000000000000001ULL, 0x5bca7c69b794f8ceULL },
+	{ 0x0000000000000002ULL, 0xb795033f6f2a0674ULL },
+	{ 0x0000000000000004ULL, 0x6f2a25235e544a31ULL },
+	{ 0x0000000000000008ULL, 0xde543f7b3ca87ecbULL },
+	{ 0x0000000000000010ULL, 0xbca87eec7950fd82ULL },
+	{ 0x0000000000000020ULL, 0x7950fddef2a1fb10ULL },
+	{ 0x0000000000000040ULL, 0xf2a1fbbde543f620ULL },
+	{ 0x0000000000000080ULL, 0xe543f9324a87efadULL },
+	{ 0x0000000000000100ULL, 0xca87f25e950fdf4eULL },
+	{ 0x0000000000000200ULL, 0x950fe4bd2a1fbe9cULL },
+	{ 0x0000000000000400ULL, 0x2a1fc968543f7d14ULL },
+	{ 0x0000000000000800ULL, 0x543f92d0a87efa28ULL },
+	{ 0x0000000000001000ULL, 0xa87f259f50fdf44cULL },
+	{ 0x0000000000002000ULL, 0x50fe4b3ea1fbe898ULL },
+	{ 0x0000000000004000ULL, 0xa1fc967bc3f7d12dULL },
+	{ 0x0000000000008000ULL, 0x43f92da207efa3afULL },
+	{ 0x0000000000010000ULL, 0x87f25b4e8fdf4773ULL },
+	{ 0x0000000000020000ULL, 0x0fe4b6a71fbe8efaULL },
+	{ 0x0000000000040000ULL, 0x1fc96d4ebf7d1df5ULL },
+	{ 0x0000000000080000ULL, 0x3f92da9dfefa3bebULL },
+	{ 0x0000000000100000ULL, 0x7f25b53c7df477d7ULL },
+	{ 0x0000000000200000ULL, 0xfe4b6a797be8efafULL },
+	{ 0x0000000000400000ULL, 0xfc96d4f377d1df5fULL },
+	{ 0x0000000000800000ULL, 0xf92da9e76fa3bebfULL },
+	{ 0x0000000001000000ULL, 0xf25b39f0df4749c2ULL },
+	{ 0x0000000002000000ULL, 0xe4b673e1be8e9384ULL },
+	{ 0x0000000004000000ULL, 0xc96ce7c3fd1d2709ULL },
+	{ 0x0000000008000000ULL, 0x92d9cf87fa3a4e12ULL },
+	{ 0x0000000010000000ULL, 0x25b39f0ff4749c24ULL },
+	{ 0x0000000020000000ULL, 0x4b673e1fe8e93848ULL },
+	{ 0x0000000040000000ULL, 0x96ce7c3a51d27085ULL },
+	{ 0x0000000080000000ULL, 0x2d9cf88523a4e10bULL },
+	{ 0x0000000100000000ULL, 0x5b39f10ac749c217ULL },
+	{ 0x0000000200000000ULL, 0xb673e2060e93842fULL },
+	{ 0x0000000400000000ULL, 0x6ce7c40c9d27085fULL },
+	{ 0x0000000800000000ULL, 0xdc8387ff3f0e10aaULL },
+	{ 0x0000001000000000ULL, 0xb9070fee7e1c2154ULL },
+	{ 0x0000002000000000ULL, 0x720e1fdcfc3842a8ULL },
+	{ 0x0000004000000000ULL, 0xe41c3fa478708545ULL },
+	{ 0x0000008000000000ULL, 0xc8387f58f0e10a8aULL },
+	{ 0x0000010000000000ULL, 0x9364fec267021515ULL },
+	{ 0x0000020000000000ULL, 0x26c9fd954e042a2bULL },
+	{ 0x0000040000000000ULL, 0x4d93fb2a9c085456ULL },
+	{ 0x0000080000000000ULL, 0x9b27f6553810a8acULL },
+	{ 0x0000100000000000ULL, 0xae84159b600d1cc8ULL },
+	{ 0x0000200000000000ULL, 0x455932ec903fc254ULL },
+	{ 0x0000400000000000ULL, 0xa2d36aa0d044b36fULL },
+	{ 0x0000800000000000ULL, 0x7b8ef94d0d2d2844ULL },
+	{ 0x0001000000000000ULL, 0xd802248d5ba62df7ULL },
+	{ 0x0002000000000000ULL, 0x2c298f47af1d015eULL },
+	{ 0x0004000000000000ULL, 0x93a4e2a055abc2f5ULL },
+	{ 0x0008000000000000ULL, 0x6f9511373b7145b2ULL },
+	{ 0x0010000000000000ULL, 0x6305c0717e1d40d4ULL },
+	{ 0x0020000000000000ULL, 0x6237df27b416b76bULL },
+	{ 0x0040000000000000ULL, 0x042bc5ffe77f439eULL },
+	{ 0x0080000000000000ULL, 0x7241900621a8c72bULL },
+	{ 0x0100000000000000ULL, 0x6a298a4b4ecb2ec6ULL },
+	{ 0x0200000000000000ULL, 0x789742a5659f92fbULL },
+	{ 0x0400000000000000ULL, 0x794ee951db0365e6ULL },
+	{ 0x0800000000000000ULL, 0x745424e0b94aec3cULL },
+	{ 0x1000000000000000ULL, 0x726e27d005120de7ULL },
+	{ 0x2000000000000000ULL, 0x6898adb511c8513eULL },
+	{ 0x4000000000000000ULL, 0x59dbb96b3414d7ecULL },
+	{ 0x8000000000000000ULL, 0x3be7d0f7780de548ULL },
+	{ 0x0cead30e6469f5c5ULL, 0x0f3b67e6407d0ed9ULL },
+	{ 0x028a2bec206c7b8aULL, 0xa9be0155bf452972ULL },
+	{ 0x56e5747a306eac4eULL, 0x308451cac91706c3ULL },
+	{ 0x6058b11e57287c72ULL, 0x6f8b3e2b8bf1abc4ULL },
+	{ 0x4fec8f2a00cc2071ULL, 0x11f1e965f20a45a4ULL },
+	{ 0x4f0bdf33102febc9ULL, 0x6102a774aa4baacfULL },
+	{ 0x17e067e262adc6fdULL, 0x5878e9adb48c4d7cULL },
+	{ 0x41374f0f3f94939cULL, 0x55d43d2febf8b7dfULL },
+	{ 0x59d163b72870b072ULL, 0x98ee8d1508e8ff20ULL },
+	{ 0x702b00ea2f01f008ULL, 0x1abf9db8b3306341ULL },
+	{ 0x433b78782f7cc0d0ULL, 0xd33358a085d11f6aULL },
+	{ 0x45789bc436c34865ULL, 0xa573c24e116ccf0dULL },
+	{ 0x15e7f9b85580528aULL, 0x6d594ec1bb5651dfULL },
+	{ 0x6e52ea866a56f880ULL, 0x5dac61fbbe7d64ffULL },
+	{ 0x06baec796275d69aULL, 0x193424cca0b43145ULL },
+	{ 0x2ac9d0b77bbdcc00ULL, 0x44b2175a2c313151ULL },
+	{ 0x2299ab770a8223aeULL, 0x404514aa9d8e5c65ULL },
+	{ 0x568e90d709816de9ULL, 0x08907c8b20d9fb59ULL },
+	{ 0x3b6b460e67b34680ULL, 0xfc77f1ea859b024eULL },
+	{ 0x418fde5c48db0e3fULL, 0x2e6a2d8cbe2d4412ULL },
+	{ 0x5e8fa3c84b12c543ULL, 0xa9354017412aba12ULL },
+	{ 0x49fad5466f937fc2ULL, 0xe81aeb4429b6264aULL },
+	{ 0x2ab116877b7b6839ULL, 0xb189fec8b0994d6eULL },
+	{ 0x16a5916132482fd8ULL, 0xa7c48eb9f12b7d37ULL },
+	{ 0x6d24a54c0e51b961ULL, 0x701631d776a5b0e2ULL },
+	{ 0x7a39bf1767d47a89ULL, 0x6bd08da7d7095b7aULL },
+	{ 0x11c7f9a173bf8d4eULL, 0x451390b96dcad08dULL },
+	{ 0x10411fef57d4fca4ULL, 0x49bd093dc8d7e040ULL },
+	{ 0x001079a900860713ULL, 0x81ab2baf1bf59632ULL },
+	{ 0x4b1b9ca618b2a5feULL, 0x152cb5a46ef65f99ULL },
+	{ 0x036db8c22ffea95bULL, 0x08a263ec4de57fa9ULL },
+	{ 0x64861ee83b7d6ddaULL, 0xd344a694800cea8cULL },
+	{ 0, 0 }
+};
+
+void test_hash(void)
+{
+	unsigned i;
+
+	START("hash functions");
+
+	for(i=0;HASH32[i].data;++i) {
+		if (tommy_hash_u32(0xa766795d, HASH32[i].data, HASH32[i].len) != HASH32[i].hash)
+			abort();
+	}
+
+	for(i=0;HASH64[i].data;++i) {
+		if (tommy_hash_u64(0x2f022773a766795dULL, HASH64[i].data, HASH64[i].len) != HASH64[i].hash)
+			abort();
+	}
+
+	for(i=0;INTHASH32[i].value || !i;++i) {
+		if (tommy_inthash_u32(INTHASH32[i].value) != INTHASH32[i].hash)
+			abort();
+	}
+
+	for(i=0;INTHASH64[i].value || !i;++i) {
+		if (tommy_inthash_u64(INTHASH64[i].value) != INTHASH64[i].hash)
+			abort();
+	}
+
+	STOP();
+}
 
 void test_list_order(tommy_node* list)
 {
@@ -273,17 +580,18 @@ void test_list(void)
 	struct object_vector* VECTOR;
 	tommy_node* list;
 	unsigned i;
+	const unsigned size = TOMMY_SIZE;
 
-	LIST = malloc(MAX * sizeof(struct object));
-	VECTOR = malloc(MAX * sizeof(struct object_vector));
+	LIST = malloc(size * sizeof(struct object));
+	VECTOR = malloc(size * sizeof(struct object_vector));
 
-	for(i=0;i<MAX;++i) {
+	for(i=0;i<size;++i) {
 		VECTOR[i].value = LIST[i].value = 0;
 	}
 
 	list = 0;
-	for(i=0;i<MAX;++i) {
-		VECTOR[i].value = LIST[i].value = rnd(MAX);
+	for(i=0;i<size;++i) {
+		VECTOR[i].value = LIST[i].value = rnd(size);
 		tommy_list_insert_tail(&list, &LIST[i].node, &LIST[i]);
 	}
 
@@ -292,17 +600,17 @@ void test_list(void)
 	STOP();
 
 	START("C qsort random");
-	qsort(VECTOR, MAX, sizeof(VECTOR[0]), compare_vector);
+	qsort(VECTOR, size, sizeof(VECTOR[0]), compare_vector);
 	STOP();
 
 	test_list_order(list);
 
 	/* forward order with some (1%) random values */
 	list = 0;
-	for(i=0;i<MAX;++i) {
+	for(i=0;i<size;++i) {
 		VECTOR[i].value = LIST[i].value = i;
 		if (rnd(100) == 0)
-			VECTOR[i].value = LIST[i].value = rnd(MAX);
+			VECTOR[i].value = LIST[i].value = rnd(size);
 		tommy_list_insert_tail(&list, &LIST[i].node, &LIST[i]);
 	}
 
@@ -311,14 +619,14 @@ void test_list(void)
 	STOP();
 
 	START("C qsort partially ordered");
-	qsort(VECTOR, MAX, sizeof(VECTOR[0]), compare_vector);
+	qsort(VECTOR, size, sizeof(VECTOR[0]), compare_vector);
 	STOP();
 
 	test_list_order(list);
 
 	/* forward order */
 	list = 0;
-	for(i=0;i<MAX;++i) {
+	for(i=0;i<size;++i) {
 		VECTOR[i].value = LIST[i].value = i;
 		tommy_list_insert_tail(&list, &LIST[i].node, &LIST[i]);
 	}
@@ -328,15 +636,15 @@ void test_list(void)
 	STOP();
 
 	START("C qsort forward");
-	qsort(VECTOR, MAX, sizeof(VECTOR[0]), compare_vector);
+	qsort(VECTOR, size, sizeof(VECTOR[0]), compare_vector);
 	STOP();
 
 	test_list_order(list);
 
 	/* backward order */
 	list = 0;
-	for(i=0;i<MAX;++i) {
-		VECTOR[i].value = LIST[i].value = MAX - 1 - i;
+	for(i=0;i<size;++i) {
+		VECTOR[i].value = LIST[i].value = size - 1 - i;
 		tommy_list_insert_tail(&list, &LIST[i].node, &LIST[i]);
 	}
 
@@ -345,15 +653,15 @@ void test_list(void)
 	STOP();
 
 	START("C qsort backward");
-	qsort(VECTOR, MAX, sizeof(VECTOR[0]), compare_vector);
+	qsort(VECTOR, size, sizeof(VECTOR[0]), compare_vector);
 	STOP();
 
 	test_list_order(list);
 
 	/* use a small range of random value to insert a lot of duplicates */
 	list = 0;
-	for(i=0;i<MAX;++i) {
-		VECTOR[i].value = LIST[i].value = rnd(MAX / 1000 + 2);
+	for(i=0;i<size;++i) {
+		VECTOR[i].value = LIST[i].value = rnd(size / 1000 + 2);
 		tommy_list_insert_tail(&list, &LIST[i].node, &LIST[i]);
 	}
 
@@ -362,7 +670,7 @@ void test_list(void)
 	STOP();
 
 	START("C qsort random duplicate");
-	qsort(VECTOR, MAX, sizeof(VECTOR[0]), compare_vector);
+	qsort(VECTOR, size, sizeof(VECTOR[0]), compare_vector);
 	STOP();
 
 	test_list_order(list);
@@ -375,11 +683,12 @@ void test_array(void)
 {
 	tommy_array array;
 	unsigned i;
+	const unsigned size = 50 * TOMMY_SIZE;
 
 	tommy_array_init(&array);
 
 	START("array init");
-	for(i=0;i<MAX*100;++i) {
+	for(i=0;i<size;++i) {
 		tommy_array_grow(&array, i + 1);
 		if (tommy_array_get(&array, i) != 0)
 			abort();
@@ -387,30 +696,72 @@ void test_array(void)
 	STOP();
 
 	START("array set");
-	for(i=0;i<MAX*100;++i) {
+	for(i=0;i<size;++i) {
 		tommy_array_set(&array, i, (void*)i);
 	}
 	STOP();
 
 	START("array get");
-	for(i=0;i<MAX*100;++i) {
+	for(i=0;i<size;++i) {
 		if (tommy_array_get(&array, i) != (void*)i)
 			abort();
 	}
 	STOP();
 
+	if (tommy_array_memory_usage(&array) < size * sizeof(void*))
+		abort();
+
 	tommy_array_done(&array);
+}
+
+void test_arrayof(void)
+{
+	tommy_arrayof arrayof;
+	unsigned i;
+	const unsigned size = 50 * TOMMY_SIZE;
+
+	tommy_arrayof_init(&arrayof, sizeof(unsigned));
+
+	START("arrayof init");
+	for(i=0;i<size;++i) {
+		tommy_arrayof_grow(&arrayof, i + 1);
+		unsigned* ref = tommy_arrayof_ref(&arrayof, i);
+		if (*ref != 0)
+			abort();
+	}
+	STOP();
+
+	START("arrayof set");
+	for(i=0;i<size;++i) {
+		unsigned* ref = tommy_arrayof_ref(&arrayof, i);
+		*ref = i;
+	}
+	STOP();
+
+	START("arrayof get");
+	for(i=0;i<size;++i) {
+		unsigned* ref = tommy_arrayof_ref(&arrayof, i);
+		if (*ref != i)
+			abort();
+	}
+	STOP();
+
+	if (tommy_arrayof_memory_usage(&arrayof) < size * sizeof(unsigned))
+		abort();
+
+	tommy_arrayof_done(&arrayof);
 }
 
 void test_arrayblk(void)
 {
 	tommy_arrayblk arrayblk;
 	unsigned i;
+	const unsigned size = 50 * TOMMY_SIZE;
 
 	tommy_arrayblk_init(&arrayblk);
 
 	START("arrayblk init");
-	for(i=0;i<MAX*100;++i) {
+	for(i=0;i<size;++i) {
 		tommy_arrayblk_grow(&arrayblk, i + 1);
 		if (tommy_arrayblk_get(&arrayblk, i) != 0)
 			abort();
@@ -418,112 +769,160 @@ void test_arrayblk(void)
 	STOP();
 
 	START("arrayblk set");
-	for(i=0;i<MAX*100;++i) {
+	for(i=0;i<size;++i) {
 		tommy_arrayblk_set(&arrayblk, i, (void*)i);
 	}
 	STOP();
 
 	START("arrayblk get");
-	for(i=0;i<MAX*100;++i) {
+	for(i=0;i<size;++i) {
 		if (tommy_arrayblk_get(&arrayblk, i) != (void*)i)
 			abort();
 	}
 	STOP();
 
+	if (tommy_arrayblk_memory_usage(&arrayblk) < size * sizeof(void*))
+		abort();
+
 	tommy_arrayblk_done(&arrayblk);
 }
 
-void count_arg(void* arg, void* data)
+void test_arrayblkof(void)
+{
+	tommy_arrayblkof arrayblkof;
+	unsigned i;
+	const unsigned size = 50 * TOMMY_SIZE;
+
+	tommy_arrayblkof_init(&arrayblkof, sizeof(unsigned));
+
+	START("arrayblkof init");
+	for(i=0;i<size;++i) {
+		tommy_arrayblkof_grow(&arrayblkof, i + 1);
+		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
+		if (*ref != 0)
+			abort();
+	}
+	STOP();
+
+	START("arrayblkof set");
+	for(i=0;i<size;++i) {
+		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
+		*ref = i;
+	}
+	STOP();
+
+	START("arrayblkof get");
+	for(i=0;i<size;++i) {
+		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
+		if (*ref != i)
+			abort();
+	}
+	STOP();
+
+	if (tommy_arrayblkof_memory_usage(&arrayblkof) < size * sizeof(unsigned))
+		abort();
+
+	tommy_arrayblkof_done(&arrayblkof);
+}
+
+static unsigned the_count;
+
+static void count_callback(void* data)
+{
+	(void)data;
+	++the_count;
+}
+
+static void count_arg_callback(void* arg, void* data)
 {
 	unsigned* count = arg;
 	(void)data;
 	++*count;
 }
 
+static int search_callback(const void* arg, const void* obj)
+{
+	return arg != obj;
+}
+
 void test_hashtable(void)
 {
-	tommy_list list;
 	tommy_hashtable hashtable;
 	struct object_hash* HASH;
-	unsigned i, n;
-	tommy_node* p;
+	unsigned i, j, n;
 	unsigned limit;
-	unsigned count;
+	const unsigned size = TOMMY_SIZE;
+	const unsigned module = TOMMY_SIZE / 4;
 
-	HASH = malloc(MAX * sizeof(struct object_hash));
+	HASH = malloc(size * sizeof(struct object_hash));
 
-	for(i=0;i<MAX;++i) {
-		HASH[i].value = i;
-	}
+	for(i=0;i<size;++i)
+		HASH[i].value = i % module;
 
 	START("hashtable stack");
-	limit = 10 * sqrt(MAX);
+	limit = 5 * isqrt(size);
 	for(n=0;n<limit;++n) {
-		tommy_list_init(&list);
 		tommy_hashtable_init(&hashtable, limit / 2);
 
 		/* insert */
-		for(i=0;i<n;++i) {
-			tommy_list_insert_head(&list, &HASH[i].node, &HASH[i]);
-			tommy_hashtable_insert(&hashtable, &HASH[i].hashnode, &HASH[i], HASH[i].value);
-		}
+		for(i=0;i<n;++i)
+			tommy_hashtable_insert(&hashtable, &HASH[i].node, &HASH[i], HASH[i].value);
 
-		count = 0;
-		tommy_hashtable_foreach_arg(&hashtable, count_arg, &count);
-		if (count != n)
+		if (tommy_hashtable_memory_usage(&hashtable) < n * sizeof(void*))
 			abort();
 
-		/* remove */
-		p = tommy_list_head(&list);
-		while (p) {
-			struct object_hash* obj = p->data;
-			p = p->next;
-			tommy_hashtable_remove_existing(&hashtable, &obj->hashnode);
-		}
+		if (tommy_hashtable_count(&hashtable) != n)
+			abort();
+
+		the_count = 0;
+		tommy_hashtable_foreach(&hashtable, count_callback);
+		if (the_count != n)
+			abort();
+
+		/* remove in backward order */
+		for(i=0;i<n/2;++i)
+			tommy_hashtable_remove_existing(&hashtable, &HASH[n-i-1].node);
+
+		/* remove missing */
+		for(i=0;i<n/2;++i)
+			if (tommy_hashtable_remove(&hashtable, search_callback, &HASH[n-i-1], HASH[n-i-1].value) != 0)
+				abort();
+
+		/* remove search */
+		for(i=0;i<n/2;++i)
+			if (tommy_hashtable_remove(&hashtable, search_callback, &HASH[n/2-i-1], HASH[n/2-i-1].value) == 0)
+				abort();
 
 		tommy_hashtable_done(&hashtable);
 	}
 	STOP();
 
 	START("hashtable queue");
-	limit = sqrt(MAX) / 8;
+	limit = isqrt(size) / 16;
 	for(n=0;n<limit;++n) {
-		tommy_list_init(&list);
 		tommy_hashtable_init(&hashtable, limit / 2);
 
 		/* insert first run */
-		for(i=0;i<n;++i) {
-			tommy_list_insert_head(&list, &HASH[i].node, &HASH[i]);
-			tommy_hashtable_insert(&hashtable, &HASH[i].hashnode, &HASH[i], HASH[i].value);
-		}
+		for(j=0,i=0;i<n;++i)
+			tommy_hashtable_insert(&hashtable, &HASH[i].node, &HASH[i], HASH[i].value);
 
-		count = 0;
-		tommy_hashtable_foreach_arg(&hashtable, count_arg, &count);
-		if (count != n)
+		the_count = 0;
+		tommy_hashtable_foreach_arg(&hashtable, count_arg_callback, &the_count);
+		if (the_count != n)
 			abort();
 
 		/* insert all the others */
-		for(;i<MAX;++i) {
-			struct object_hash* obj;
-
+		for(;i<size;++i,++j) {
 			/* insert one */
-			tommy_list_insert_head(&list, &HASH[i].node, &HASH[i]);
-			tommy_hashtable_insert(&hashtable, &HASH[i].hashnode, &HASH[i], HASH[i].value);
+			tommy_hashtable_insert(&hashtable, &HASH[i].node, &HASH[i], HASH[i].value);
 
 			/* remove one */
-			p = tommy_list_head(&list);
-			obj = p->data;
-			tommy_list_remove_existing(&list, p);
-			tommy_hashtable_remove_existing(&hashtable, &obj->hashnode);
+			tommy_hashtable_remove_existing(&hashtable, &HASH[j].node);
 		}
 
-		/* remove remaining */
-		p = tommy_list_head(&list);
-		while (p) {
-			struct object_hash* obj = p->data;
-			p = p->next;
-			tommy_hashtable_remove_existing(&hashtable, &obj->hashnode);
-		}
+		for(;j<size;++j)
+			if (tommy_hashtable_remove(&hashtable, search_callback, &HASH[j], HASH[j].value) == 0)
+				abort();
 
 		tommy_hashtable_done(&hashtable);
 	}
@@ -532,88 +931,82 @@ void test_hashtable(void)
 
 void test_hashdyn(void)
 {
-	tommy_list list;
 	tommy_hashdyn hashdyn;
 	struct object_hash* HASH;
-	unsigned i, n;
-	tommy_node* p;
+	unsigned i, j, n;
 	unsigned limit;
-	unsigned count;
+	const unsigned size = TOMMY_SIZE;
+	const unsigned module = TOMMY_SIZE / 4;
 
-	HASH = malloc(MAX * sizeof(struct object_hash));
+	HASH = malloc(size * sizeof(struct object_hash));
 
-	for(i=0;i<MAX;++i) {
-		HASH[i].value = i;
-	}
+	for(i=0;i<size;++i)
+		HASH[i].value = i % module;
 
 	START("hashdyn stack");
-	limit = 10 * sqrt(MAX);
+	limit = 5 * isqrt(size);
 	for(n=0;n<limit;++n) {
-		tommy_list_init(&list);
 		tommy_hashdyn_init(&hashdyn);
 
 		/* insert */
-		for(i=0;i<n;++i) {
-			tommy_list_insert_head(&list, &HASH[i].node, &HASH[i]);
-			tommy_hashdyn_insert(&hashdyn, &HASH[i].hashnode, &HASH[i], HASH[i].value);
-		}
+		for(i=0;i<n;++i)
+			tommy_hashdyn_insert(&hashdyn, &HASH[i].node, &HASH[i], HASH[i].value);
 
-		count = 0;
-		tommy_hashdyn_foreach_arg(&hashdyn, count_arg, &count);
-		if (count != n)
+		if (tommy_hashdyn_memory_usage(&hashdyn) < n * sizeof(void*))
 			abort();
 
-		/* remove */
-		p = tommy_list_head(&list);
-		while (p) {
-			struct object_hash* obj = p->data;
-			p = p->next;
-			tommy_hashdyn_remove_existing(&hashdyn, &obj->hashnode);
-		}
+		if (tommy_hashdyn_count(&hashdyn) != n)
+			abort();
+
+		the_count = 0;
+		tommy_hashdyn_foreach(&hashdyn, count_callback);
+		if (the_count != n)
+			abort();
+
+		/* remove in backward order */
+		for(i=0;i<n/2;++i)
+			tommy_hashdyn_remove_existing(&hashdyn, &HASH[n-i-1].node);
+
+		/* remove missing */
+		for(i=0;i<n/2;++i)
+			if (tommy_hashdyn_remove(&hashdyn, search_callback, &HASH[n-i-1], HASH[n-i-1].value) != 0)
+				abort();
+
+		/* remove search */
+		for(i=0;i<n/2;++i)
+			if (tommy_hashdyn_remove(&hashdyn, search_callback, &HASH[n/2-i-1], HASH[n/2-i-1].value) == 0)
+				abort();
 
 		tommy_hashdyn_done(&hashdyn);
 	}
 	STOP();
 
 	START("hashdyn queue");
-	limit = sqrt(MAX) / 8;
+	limit = isqrt(size) / 16;
 	for(n=0;n<limit;++n) {
-		tommy_list_init(&list);
 		tommy_hashdyn_init(&hashdyn);
 
 		/* insert first run */
-		for(i=0;i<n;++i) {
-			tommy_list_insert_head(&list, &HASH[i].node, &HASH[i]);
-			tommy_hashdyn_insert(&hashdyn, &HASH[i].hashnode, &HASH[i], HASH[i].value);
-		}
+		for(j=0,i=0;i<n;++i)
+			tommy_hashdyn_insert(&hashdyn, &HASH[i].node, &HASH[i], HASH[i].value);
 
-		count = 0;
-		tommy_hashdyn_foreach_arg(&hashdyn, count_arg, &count);
-		if (count != n)
+		the_count = 0;
+		tommy_hashdyn_foreach_arg(&hashdyn, count_arg_callback, &the_count);
+		if (the_count != n)
 			abort();
 
 		/* insert all the others */
-		for(;i<MAX;++i) {
-			struct object_hash* obj;
-
+		for(;i<size;++i,++j) {
 			/* insert one */
-			tommy_list_insert_head(&list, &HASH[i].node, &HASH[i]);
-			tommy_hashdyn_insert(&hashdyn, &HASH[i].hashnode, &HASH[i], HASH[i].value);
+			tommy_hashdyn_insert(&hashdyn, &HASH[i].node, &HASH[i], HASH[i].value);
 
 			/* remove one */
-			p = tommy_list_head(&list);
-			obj = p->data;
-			tommy_list_remove_existing(&list, p);
-			tommy_hashdyn_remove_existing(&hashdyn, &obj->hashnode);
+			tommy_hashdyn_remove_existing(&hashdyn, &HASH[j].node);
 		}
 
-		/* remove remaining */
-		p = tommy_list_head(&list);
-		while (p) {
-			struct object_hash* obj = p->data;
-			p = p->next;
-			tommy_hashdyn_remove_existing(&hashdyn, &obj->hashnode);
-		}
+		for(;j<size;++j)
+			if (tommy_hashdyn_remove(&hashdyn, search_callback, &HASH[j], HASH[j].value) == 0)
+				abort();
 
 		tommy_hashdyn_done(&hashdyn);
 	}
@@ -622,105 +1015,215 @@ void test_hashdyn(void)
 
 void test_hashlin(void)
 {
-	tommy_list list;
 	tommy_hashlin hashlin;
 	struct object_hash* HASH;
-	unsigned i, n;
-	tommy_node* p;
+	unsigned i, j, n;
 	unsigned limit;
-	unsigned count;
+	const unsigned size = TOMMY_SIZE;
+	const unsigned module = TOMMY_SIZE / 4;
 
-	HASH = malloc(MAX * sizeof(struct object_hash));
+	HASH = malloc(size * sizeof(struct object_hash));
 
-	for(i=0;i<MAX;++i) {
-		HASH[i].value = i;
-	}
+	for(i=0;i<size;++i)
+		HASH[i].value = i % module;
 
 	START("hashlin stack");
-	limit = 10 * sqrt(MAX);
+	limit = 5 * isqrt(size);
 	for(n=0;n<limit;++n) {
-		tommy_list_init(&list);
 		tommy_hashlin_init(&hashlin);
 
 		/* insert */
-		for(i=0;i<n;++i) {
-			tommy_list_insert_head(&list, &HASH[i].node, &HASH[i]);
-			tommy_hashlin_insert(&hashlin, &HASH[i].hashnode, &HASH[i], HASH[i].value);
-		}
+		for(i=0;i<n;++i)
+			tommy_hashlin_insert(&hashlin, &HASH[i].node, &HASH[i], HASH[i].value);
 
-		count = 0;
-		tommy_hashlin_foreach_arg(&hashlin, count_arg, &count);
-		if (count != n)
+		if (tommy_hashlin_memory_usage(&hashlin) < n * sizeof(void*))
 			abort();
 
-		/* remove */
-		p = tommy_list_head(&list);
-		while (p) {
-			struct object_hash* obj = p->data;
-			p = p->next;
-			tommy_hashlin_remove_existing(&hashlin, &obj->hashnode);
-		}
+		if (tommy_hashlin_count(&hashlin) != n)
+			abort();
+
+		the_count = 0;
+		tommy_hashlin_foreach(&hashlin, count_callback);
+		if (the_count != n)
+			abort();
+
+		/* remove in backward order */
+		for(i=0;i<n/2;++i)
+			tommy_hashlin_remove_existing(&hashlin, &HASH[n-i-1].node);
+
+		/* remove missing */
+		for(i=0;i<n/2;++i)
+			if (tommy_hashlin_remove(&hashlin, search_callback, &HASH[n-i-1], HASH[n-i-1].value) != 0)
+				abort();
+
+		/* remove search */
+		for(i=0;i<n/2;++i)
+			if (tommy_hashlin_remove(&hashlin, search_callback, &HASH[n/2-i-1], HASH[n/2-i-1].value) == 0)
+				abort();
 
 		tommy_hashlin_done(&hashlin);
 	}
 	STOP();
 
 	START("hashlin queue");
-	limit = sqrt(MAX) / 8;
+	limit = isqrt(size) / 16;
 	for(n=0;n<limit;++n) {
-		tommy_list_init(&list);
 		tommy_hashlin_init(&hashlin);
 
 		/* insert first run */
-		for(i=0;i<n;++i) {
-			tommy_list_insert_head(&list, &HASH[i].node, &HASH[i]);
-			tommy_hashlin_insert(&hashlin, &HASH[i].hashnode, &HASH[i], HASH[i].value);
-		}
+		for(j=0,i=0;i<n;++i)
+			tommy_hashlin_insert(&hashlin, &HASH[i].node, &HASH[i], HASH[i].value);
 
-		count = 0;
-		tommy_hashlin_foreach_arg(&hashlin, count_arg, &count);
-		if (count != n)
+		the_count = 0;
+		tommy_hashlin_foreach_arg(&hashlin, count_arg_callback, &the_count);
+		if (the_count != n)
 			abort();
 
 		/* insert all the others */
-		for(;i<MAX;++i) {
-			struct object_hash* obj;
-
+		for(;i<size;++i,++j) {
 			/* insert one */
-			tommy_list_insert_head(&list, &HASH[i].node, &HASH[i]);
-			tommy_hashlin_insert(&hashlin, &HASH[i].hashnode, &HASH[i], HASH[i].value);
+			tommy_hashlin_insert(&hashlin, &HASH[i].node, &HASH[i], HASH[i].value);
 
 			/* remove one */
-			p = tommy_list_head(&list);
-			obj = p->data;
-			tommy_list_remove_existing(&list, p);
-			tommy_hashlin_remove_existing(&hashlin, &obj->hashnode);
+			tommy_hashlin_remove_existing(&hashlin, &HASH[j].node);
 		}
 
-		/* remove remaining */
-		p = tommy_list_head(&list);
-		while (p) {
-			struct object_hash* obj = p->data;
-			p = p->next;
-			tommy_hashlin_remove_existing(&hashlin, &obj->hashnode);
-		}
+		for(;j<size;++j)
+			if (tommy_hashlin_remove(&hashlin, search_callback, &HASH[j], HASH[j].value) == 0)
+				abort();
 
 		tommy_hashlin_done(&hashlin);
 	}
 	STOP();
 }
 
+void test_trie(void)
+{
+	tommy_trie trie;
+	tommy_allocator alloc;
+	struct object_trie* OBJ;
+	unsigned i;
+	const unsigned size = TOMMY_SIZE;
+
+	OBJ = malloc(size * sizeof(struct object_trie));
+
+	for(i=0;i<size;++i)
+		OBJ[i].value = i;
+
+	START("trie");
+	tommy_allocator_init(&alloc, TOMMY_TRIE_BLOCK_SIZE, TOMMY_TRIE_BLOCK_SIZE);
+	tommy_trie_init(&trie, &alloc);
+
+	/* insert backward */
+	for(i=0;i<size;++i)
+		tommy_trie_insert(&trie, &OBJ[i].node, &OBJ[i], OBJ[i].value);
+
+	if (tommy_trie_memory_usage(&trie) < size * sizeof(tommy_trie_node))
+		abort();
+
+	if (tommy_allocator_memory_usage(&alloc) < trie.node_count * TOMMY_TRIE_BLOCK_SIZE)
+		abort();
+
+	if (tommy_trie_count(&trie) != size)
+		abort();
+
+	/* search present */
+	for(i=0;i<size/2;++i)
+		if (tommy_trie_search(&trie, OBJ[i].value) == 0)
+			abort();
+
+	/* remove existing */
+	for(i=0;i<size/2;++i)
+		tommy_trie_remove_existing(&trie, &OBJ[i].node);
+
+	/* remove missing */
+	for(i=0;i<size/2;++i)
+		if (tommy_trie_remove(&trie, OBJ[i].value) != 0)
+			abort();
+
+	/* search missing */
+	for(i=0;i<size/2;++i)
+		if (tommy_trie_search(&trie, OBJ[i].value) != 0)
+			abort();
+
+	/* remove present */
+	for(i=0;i<size/2;++i)
+		if (tommy_trie_remove(&trie, OBJ[size/2+i].value) == 0)
+			abort();
+
+	tommy_allocator_done(&alloc);
+	STOP();
+}
+
+void test_trie_inplace(void)
+{
+	tommy_trie_inplace trie_inplace;
+	struct object_trie_inplace* OBJ;
+	unsigned i;
+	const unsigned size = TOMMY_SIZE;
+
+	OBJ = malloc(size * sizeof(struct object_trie_inplace));
+
+	for(i=0;i<size;++i)
+		OBJ[i].value = i;
+
+	START("trie_inplace");
+	tommy_trie_inplace_init(&trie_inplace);
+
+	/* insert backward */
+	for(i=0;i<size;++i)
+		tommy_trie_inplace_insert(&trie_inplace, &OBJ[i].node, &OBJ[i], OBJ[i].value);
+
+	if (tommy_trie_inplace_memory_usage(&trie_inplace) < size * sizeof(tommy_trie_inplace_node))
+		abort();
+
+	if (tommy_trie_inplace_count(&trie_inplace) != size)
+		abort();
+
+	/* search present */
+	for(i=0;i<size/2;++i)
+		if (tommy_trie_inplace_search(&trie_inplace, OBJ[i].value) == 0)
+			abort();
+
+	/* remove existing */
+	for(i=0;i<size/2;++i)
+		tommy_trie_inplace_remove_existing(&trie_inplace, &OBJ[i].node);
+
+	/* remove missing */
+	for(i=0;i<size/2;++i)
+		if (tommy_trie_inplace_remove(&trie_inplace, OBJ[i].value) != 0)
+			abort();
+
+	/* search missing */
+	for(i=0;i<size/2;++i)
+		if (tommy_trie_inplace_search(&trie_inplace, OBJ[i].value) != 0)
+			abort();
+
+	/* remove present */
+	for(i=0;i<size/2;++i)
+		if (tommy_trie_inplace_remove(&trie_inplace, OBJ[size/2+i].value) == 0)
+			abort();
+
+	STOP();
+}
+
+
 int main() {
 	nano_init();
 
 	printf("Tommy check program.\n");
 
+	test_hash();
 	test_list();
 	test_array();
+	test_arrayof();
 	test_arrayblk();
+	test_arrayblkof();
 	test_hashtable();
 	test_hashdyn();
 	test_hashlin();
+	test_trie();
+	test_trie_inplace();
 
 	printf("OK\n");
 
