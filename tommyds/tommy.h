@@ -646,50 +646,54 @@
  *
  * \page design Tommy Design
  *
- * Tommy is mainly designed to provide high performance, but much care was
- * also given in the definition of an useable API. In case, even making some
- * compromise with efficency.
+ * Tommy was designed to fulfill the need of generic data structures for the
+ * C language, providing at the same time high performance and a clean
+ * and easy to use interface.
+ *
+ * Extensive and automated tests with the runtime checker <a href="http://valgrind.org/">valgrind</a>
+ * and the static analyzer <a href="http://clang-analyzer.llvm.org/">clang</a>
+ * are done to ensure the correctness of the library.
+ * The test has a <a href="http://tommyds.sourceforge.net/cov/tommyds/tommyds">code coverage</a> near at 100%,
+ * measured with the code coverage utility <a href="http://ltp.sourceforge.net/coverage/lcov.php">lcov</a>.
+ *
+ * Finding the right balance between efficency and easy to use, required some
+ * comprimise on memory efficency to avoid to cripple the interface.
+ * The following is a list of such decisions.
  *
  * \section multi Multi key
  * All the Tommy containers support the insertion of multiple elements with
- * the same key.
+ * the same key, adding in each node a list of equal elements.
  *
- * This allow the maximum flexibility, but in some cases it requires some
- * more space to keep a list of equal elements.
+ * A more memory conservative approach is to not allow duplicated elements,
+ * removing the need of this list.
  *
  * \section datapointer Data pointer
- * The tommy_node::data field is present to provide a simpler API.
+ * The tommy_node::data field is present to provide a simpler API,
+ * allowing search and remove functions to return directly a pointer at the element
+ * stored in the container.
  *
- * A more memory conservative approach is to do not store this pointer, and
- * computing it from the embedded node pointer every time.
+ * A more memory conservative approach is to require the user to compute
+ * the element pointer from the embedded node pointer.
+ * For example, see the Linux Kernel declaration of
+ * <a href="http://lxr.free-electrons.com/ident?i=container_of">container_of()</a>.
  *
- * See for example the Linux Kernel declaration of container_of() at
- * http://lxr.free-electrons.com/ident?i=container_of
+ * \section double_linked Double linked list for collisions
+ * The list used for collisions is double linked to allow
+ * insertion of elements at the end of the list to keep the
+ * insertion order of equal elements.
  *
- * Although, it would have required more complexity for the user to require
- * a manual conversion from a node to the object containing the node.
+ * A more memory conservative approach is to use a single linked list,
+ * inserting elements only at the start of the list, losing the
+ * original insertion order.
  *
  * \section zero_list Zero terminated next list
  * The half 0 terminated format of tommy_node::next is present to provide
- * a forward iterator terminating in 0.
+ * a forward iterator terminating in 0. This allow the user to write a simple
+ * iteration loop over the list of elements in the same bucket.
  *
- * A more efficient approach is to use a double circular list, as operating on
- * nodes in a circular list doesn't requires to manage the special terminating
- * case.
- *
- * Although, it would have required more complexity at the user for a simple
- * iteration.
- *
- * \section double_linked Double linked list for collisions
- * The linked list used for collision is a double linked list to allow
- * insertion of elements at the end of the list to keep the insertion order
- * of equal elements.
- *
- * A more memory conservative approach is to use a single linked list,
- * inserting elements only at the start of the list.
- * On the other hand, with with a double linked list we can concatenate
- * two lists in constant time, as using the previous circular element we
- * can get a tail pointer.
+ * A more efficient approach is to use a circular list, as operating on
+ * nodes in a circular list doesn't requires to manage the special
+ * terminating case when adding or removing elements.
  *
  * \page license Tommy License
  * Tommy is released with a <i>2-clause BSD license</i>.
