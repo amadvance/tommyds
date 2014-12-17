@@ -169,6 +169,10 @@ static tommy_trie_inplace_node* trie_inplace_bucket_remove(tommy_uint_t shift, t
 
 	tommy_trie_inplace_list_remove(let_ptr, remove);
 
+	/* if not change in the node, nothing more to do */
+	if (*let_ptr == node)
+		return remove;
+
 	/* if we have a substitute */
 	if (*let_ptr != 0) {
 		/* copy the child pointers to the new one */
