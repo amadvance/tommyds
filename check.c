@@ -554,6 +554,46 @@ void test_hash(void)
 	STOP();
 }
 
+void test_alloc(void)
+{
+	const unsigned size = 10 * TOMMY_SIZE;
+	unsigned i;
+	tommy_allocator alloc;
+	void** PTR;
+
+	PTR = malloc(size * sizeof(void*));
+
+	/* ensure at least pointer alignment */
+	tommy_allocator_init(&alloc, sizeof(void*), 1);
+	if (alloc.align_size < sizeof(void*))
+		abort();
+	tommy_allocator_done(&alloc);
+
+	/* ensure correct alignment */
+	tommy_allocator_init(&alloc, sizeof(void*) - 1, sizeof(void*));
+	if (alloc.block_size != sizeof(void*))
+		abort();
+	tommy_allocator_done(&alloc);
+
+	tommy_allocator_init(&alloc, 64, 64);
+
+	START("alloc");
+	for(i=0;i<size;++i) {
+		PTR[i] = tommy_allocator_alloc(&alloc);
+	}
+	STOP();
+
+	START("free");
+	for(i=0;i<size;++i) {
+		tommy_allocator_free(&alloc, PTR[i]);
+	}
+	STOP();
+
+	tommy_allocator_done(&alloc);
+
+	free(PTR);
+}
+
 void test_list_order(tommy_node* list)
 {
 	tommy_node* node;
@@ -869,9 +909,23 @@ void test_hashtable(void)
 	for(i=0;i<size;++i)
 		HASH[i].value = i % module;
 
+	/* initialize a very small hashtable */
+	tommy_hashtable_init(&hashtable, 1);
+
+	/* check that we allocated space for more elements */
+	if (hashtable.bucket_max == 1)
+		abort();
+
+	/* destroy it as empty */
+	tommy_hashtable_done(&hashtable);
+
 	START("hashtable stack");
 	limit = 5 * isqrt(size);
-	for(n=0;n<limit;++n) {
+	for(n=0;n<=limit;++n) {
+		/* last iteration is full size */
+		if (n == limit)
+			n = limit = size;
+
 		tommy_hashtable_init(&hashtable, limit / 2);
 
 		/* insert */
@@ -909,7 +963,11 @@ void test_hashtable(void)
 
 	START("hashtable queue");
 	limit = isqrt(size) / 16;
-	for(n=0;n<limit;++n) {
+	for(n=0;n<=limit;++n) {
+		/* last iteration is full size */
+		if (n == limit)
+			n = limit = size;
+
 		tommy_hashtable_init(&hashtable, limit / 2);
 
 		/* insert first run */
@@ -955,7 +1013,11 @@ void test_hashdyn(void)
 
 	START("hashdyn stack");
 	limit = 5 * isqrt(size);
-	for(n=0;n<limit;++n) {
+	for(n=0;n<=limit;++n) {
+		/* last iteration is full size */
+		if (n == limit)
+			n = limit = size;
+
 		tommy_hashdyn_init(&hashdyn);
 
 		/* insert */
@@ -993,7 +1055,11 @@ void test_hashdyn(void)
 
 	START("hashdyn queue");
 	limit = isqrt(size) / 16;
-	for(n=0;n<limit;++n) {
+	for(n=0;n<=limit;++n) {
+		/* last iteration is full size */
+		if (n == limit)
+			n = limit = size;
+
 		tommy_hashdyn_init(&hashdyn);
 
 		/* insert first run */
@@ -1031,15 +1097,42 @@ void test_hashlin(void)
 	unsigned limit;
 	const unsigned size = TOMMY_SIZE;
 	const unsigned module = TOMMY_SIZE / 4;
+	tommy_hashlin_node* bucket;
 
 	HASH = malloc(size * sizeof(struct object_hash));
 
 	for(i=0;i<size;++i)
 		HASH[i].value = i % module;
 
+	tommy_hashlin_init(&hashlin);
+
+	/* insert */
+	for(i=0;i<size;++i)
+		tommy_hashlin_insert(&hashlin, &HASH[i].node, &HASH[i], HASH[i].value);
+
+	/* get the bucket of the last element */
+	bucket = tommy_hashlin_bucket(&hashlin, module - 1);
+
+	/* search for element */
+	while (bucket) {
+		struct object_hash* obj = bucket->data;
+		if (obj->value == module - 1)
+			break;
+		bucket = bucket->next;
+	}
+	if (bucket == 0)
+		abort();
+
+	/* deinitialize without removing elements */
+	tommy_hashlin_done(&hashlin);
+
 	START("hashlin stack");
 	limit = 5 * isqrt(size);
-	for(n=0;n<limit;++n) {
+	for(n=0;n<=limit;++n) {
+		/* last iteration is full size */
+		if (n == limit)
+			n = limit = size;
+
 		tommy_hashlin_init(&hashlin);
 
 		/* insert */
@@ -1077,7 +1170,11 @@ void test_hashlin(void)
 
 	START("hashlin queue");
 	limit = isqrt(size) / 16;
-	for(n=0;n<limit;++n) {
+	for(n=0;n<=limit;++n) {
+		/* last iteration is full size */
+		if (n == limit)
+			n = limit = size;
+
 		tommy_hashlin_init(&hashlin);
 
 		/* insert first run */
@@ -1155,6 +1252,14 @@ void test_trie(void)
 	/* remove existing */
 	for(i=0;i<size/2;++i)
 		tommy_trie_remove_existing(&trie, &OBJ[i].node);
+
+	/* remove missing using the same bucket of the duplicate */
+	if (tommy_trie_remove(&trie, 1) != 0)
+		abort();
+
+	/* search missing using the same bucket of the duplicate */
+	if (tommy_trie_search(&trie, 1) != 0)
+		abort();
 
 	/* remove second duplicate */
 	tommy_trie_remove_existing(&trie, &DUP[1].node);
@@ -1249,6 +1354,7 @@ int main() {
 	printf("Tommy check program.\n");
 
 	test_hash();
+	test_alloc();
 	test_list();
 	test_array();
 	test_arrayof();

@@ -653,8 +653,8 @@
  * Extensive and automated tests with the runtime checker <a href="http://valgrind.org/">valgrind</a>
  * and the static analyzer <a href="http://clang-analyzer.llvm.org/">clang</a>
  * are done to ensure the correctness of the library.
- * The test has a <a href="http://tommyds.sourceforge.net/cov/tommyds/tommyds">code coverage</a> near at 100%,
- * measured with the code coverage utility <a href="http://ltp.sourceforge.net/coverage/lcov.php">lcov</a>.
+ * The test has a <a href="http://tommyds.sourceforge.net/cov/tommyds/tommyds">code coverage of 100%</a>,
+ * measured with <a href="http://ltp.sourceforge.net/coverage/lcov.php">lcov</a>.
  *
  * Finding the right balance between efficency and easy to use, required some
  * comprimise on memory efficency to avoid to cripple the interface.
