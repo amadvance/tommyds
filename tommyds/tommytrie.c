@@ -127,9 +127,8 @@ expand:
 	*let_ptr = tommy_cast(tommy_trie_node*, trie_set_tree(tree));
 
 	/* initialize it */
-	for (i = 0; i < TOMMY_TRIE_TREE_MAX; ++i) {
+	for (i = 0; i < TOMMY_TRIE_TREE_MAX; ++i)
 		tree->map[i] = 0;
-	}
 
 	/* get the position of the two elements */
 	i = (node->key >> shift) & TOMMY_TRIE_TREE_MASK;

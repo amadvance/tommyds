@@ -206,11 +206,10 @@ tommy_inline void tommy_list_insert_head(tommy_list* list, tommy_node* node, voi
 {
 	tommy_node* head = tommy_list_head(list);
 
-	if (head) {
+	if (head)
 		tommy_list_insert_head_not_empty(list, node);
-	} else {
+	else
 		tommy_list_insert_first(list, node);
-	}
 
 	node->data = data;
 }
@@ -224,11 +223,10 @@ tommy_inline void tommy_list_insert_tail(tommy_list* list, tommy_node* node, voi
 {
 	tommy_node* head = tommy_list_head(list);
 
-	if (head) {
+	if (head)
 		tommy_list_insert_tail_not_empty(head, node);
-	} else {
+	else
 		tommy_list_insert_first(list, node);
-	}
 
 	node->data = data;
 }
@@ -264,18 +262,16 @@ tommy_inline void* tommy_list_remove_existing(tommy_list* list, tommy_node* node
 	tommy_node* head = tommy_list_head(list);
 
 	/* remove from the "circular" prev list */
-	if (node->next) {
+	if (node->next)
 		node->next->prev = node->prev;
-	} else {
+	else
 		head->prev = node->prev; /* the last */
-	}
 
 	/* remove from the "0 terminated" next list */
-	if (head == node) {
+	if (head == node)
 		*list = node->next; /* the new head, in case 0 */
-	} else {
+	else
 		node->prev->next = node->next;
-	}
 
 	return node->data;
 }

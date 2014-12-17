@@ -81,18 +81,16 @@ tommy_inline void tommy_trie_inplace_list_remove(tommy_trie_inplace_node** let_p
 	tommy_trie_inplace_node* head = *let_ptr;
 
 	/* remove from the "circular" prev list */
-	if (node->next) {
+	if (node->next)
 		node->next->prev = node->prev;
-	} else {
+	else
 		head->prev = node->prev; /* the last */
-	}
 
 	/* remove from the "0 terminated" next list */
-	if (head == node) {
+	if (head == node)
 		*let_ptr = node->next; /* the new first */
-	} else {
+	else
 		node->prev->next = node->next;
-	}
 }
 
 void tommy_trie_inplace_init(tommy_trie_inplace* trie_inplace)
@@ -162,10 +160,8 @@ static tommy_trie_inplace_node* trie_inplace_bucket_remove(tommy_uint_t shift, t
 		return 0;
 
 	/* if the node to remove is not specified */
-	if (!remove) {
-		/* remove the first */
-		remove = node;
-	}
+	if (!remove)
+		remove = node; /* remove the first */
 
 	tommy_trie_inplace_list_remove(let_ptr, remove);
 
@@ -177,9 +173,9 @@ static tommy_trie_inplace_node* trie_inplace_bucket_remove(tommy_uint_t shift, t
 	if (*let_ptr != 0) {
 		/* copy the child pointers to the new one */
 		node = *let_ptr;
-		for (i = 0; i < TOMMY_TRIE_INPLACE_TREE_MAX; ++i) {
+		for (i = 0; i < TOMMY_TRIE_INPLACE_TREE_MAX; ++i)
 			node->map[i] = remove->map[i];
-		}
+
 		return remove;
 	}
 
@@ -200,17 +196,15 @@ static tommy_trie_inplace_node* trie_inplace_bucket_remove(tommy_uint_t shift, t
 	}
 
 	/* if it's itself a leaf */
-	if (!leaf_let_ptr) {
+	if (!leaf_let_ptr)
 		return remove;
-	}
 
 	/* remove the leaf */
 	*leaf_let_ptr = 0;
 
 	/* copy the child pointers */
-	for (i = 0; i < TOMMY_TRIE_INPLACE_TREE_MAX; ++i) {
+	for (i = 0; i < TOMMY_TRIE_INPLACE_TREE_MAX; ++i)
 		leaf->map[i] = remove->map[i];
-	}
 
 	/* put it in place */
 	*let_ptr = leaf;

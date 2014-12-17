@@ -44,9 +44,8 @@ void tommy_allocator_init(tommy_allocator* alloc, tommy_size_t block_size, tommy
 		align_size = sizeof(void*);
 
 	/* ensure that the block_size keeps the alignment */
-	if (block_size % align_size != 0) {
+	if (block_size % align_size != 0)
 		block_size += align_size - block_size % align_size;
-	}
 
 	alloc->block_size = block_size;
 	alloc->align_size = align_size;

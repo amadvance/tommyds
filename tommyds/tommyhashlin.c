@@ -345,11 +345,10 @@ void tommy_hashlin_foreach_arg(tommy_hashlin* hashlin, tommy_foreach_arg_func* f
 	tommy_count_t pos;
 
 	/* if we are reallocating */
-	if (hashlin->state != TOMMY_HASHLIN_STATE_STABLE) {
+	if (hashlin->state != TOMMY_HASHLIN_STATE_STABLE)
 		bucket_max = hashlin->low_max + hashlin->split;
-	} else {
+	else
 		bucket_max = hashlin->bucket_max;
-	}
 
 	for (pos = 0; pos < bucket_max; ++pos) {
 		tommy_hashlin_node* node = *tommy_hashlin_pos(hashlin, pos);

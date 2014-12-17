@@ -35,11 +35,10 @@
 
 void tommy_hashtable_init(tommy_hashtable* hashtable, tommy_count_t bucket_max)
 {
-	if (bucket_max < 16) {
+	if (bucket_max < 16)
 		bucket_max = 16;
-	} else {
+	else
 		bucket_max = tommy_roundup_pow2_u32(bucket_max);
-	}
 
 	hashtable->bucket_max = bucket_max;
 	hashtable->bucket_mask = hashtable->bucket_max - 1;
