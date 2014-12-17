@@ -589,7 +589,17 @@ void test_list(void)
 		VECTOR[i].value = LIST[i].value = 0;
 	}
 
-	list = 0;
+	tommy_list_init(&list);
+
+	if (!tommy_list_empty(&list))
+		abort();
+
+	if (tommy_list_tail(&list) != 0)
+		abort();
+
+	if (tommy_list_head(&list) != 0)
+		abort();
+
 	for(i=0;i<size;++i) {
 		VECTOR[i].value = LIST[i].value = rnd(size);
 		tommy_list_insert_tail(&list, &LIST[i].node, &LIST[i]);
@@ -1102,8 +1112,9 @@ void test_trie(void)
 	tommy_trie trie;
 	tommy_allocator alloc;
 	struct object_trie* OBJ;
+	struct object_trie DUP[2];
 	unsigned i;
-	const unsigned size = TOMMY_SIZE;
+	const unsigned size = TOMMY_SIZE * 4;
 
 	OBJ = malloc(size * sizeof(struct object_trie));
 
@@ -1114,7 +1125,7 @@ void test_trie(void)
 	tommy_allocator_init(&alloc, TOMMY_TRIE_BLOCK_SIZE, TOMMY_TRIE_BLOCK_SIZE);
 	tommy_trie_init(&trie, &alloc);
 
-	/* insert backward */
+	/* insert */
 	for(i=0;i<size;++i)
 		tommy_trie_insert(&trie, &OBJ[i].node, &OBJ[i], OBJ[i].value);
 
@@ -1127,14 +1138,26 @@ void test_trie(void)
 	if (tommy_trie_count(&trie) != size)
 		abort();
 
+	/* insert duplicate */
+	for(i=0;i<2;++i) {
+		DUP[i].value = 0;
+		tommy_trie_insert(&trie, &DUP[i].node, &DUP[i], DUP[i].value);
+	}
+
 	/* search present */
 	for(i=0;i<size/2;++i)
 		if (tommy_trie_search(&trie, OBJ[i].value) == 0)
 			abort();
 
+	/* remove first duplicate */
+	tommy_trie_remove_existing(&trie, &DUP[0].node);
+
 	/* remove existing */
 	for(i=0;i<size/2;++i)
 		tommy_trie_remove_existing(&trie, &OBJ[i].node);
+
+	/* remove second duplicate */
+	tommy_trie_remove_existing(&trie, &DUP[1].node);
 
 	/* remove missing */
 	for(i=0;i<size/2;++i)
@@ -1159,8 +1182,9 @@ void test_trie_inplace(void)
 {
 	tommy_trie_inplace trie_inplace;
 	struct object_trie_inplace* OBJ;
+	struct object_trie_inplace DUP[2];
 	unsigned i;
-	const unsigned size = TOMMY_SIZE;
+	const unsigned size = TOMMY_SIZE * 4;
 
 	OBJ = malloc(size * sizeof(struct object_trie_inplace));
 
@@ -1170,7 +1194,7 @@ void test_trie_inplace(void)
 	START("trie_inplace");
 	tommy_trie_inplace_init(&trie_inplace);
 
-	/* insert backward */
+	/* insert */
 	for(i=0;i<size;++i)
 		tommy_trie_inplace_insert(&trie_inplace, &OBJ[i].node, &OBJ[i], OBJ[i].value);
 
@@ -1180,14 +1204,26 @@ void test_trie_inplace(void)
 	if (tommy_trie_inplace_count(&trie_inplace) != size)
 		abort();
 
+	/* insert duplicates */
+	for(i=0;i<2;++i) {
+		DUP[i].value = 0;
+		tommy_trie_inplace_insert(&trie_inplace, &DUP[i].node, &DUP[i], DUP[i].value);
+	}
+
 	/* search present */
 	for(i=0;i<size/2;++i)
 		if (tommy_trie_inplace_search(&trie_inplace, OBJ[i].value) == 0)
 			abort();
 
+	/* remove first duplicate */
+	tommy_trie_inplace_remove_existing(&trie_inplace, &DUP[0].node);
+
 	/* remove existing */
 	for(i=0;i<size/2;++i)
 		tommy_trie_inplace_remove_existing(&trie_inplace, &OBJ[i].node);
+
+	/* remove second duplicate */
+	tommy_trie_inplace_remove_existing(&trie_inplace, &DUP[1].node);
 
 	/* remove missing */
 	for(i=0;i<size/2;++i)
@@ -1206,7 +1242,6 @@ void test_trie_inplace(void)
 
 	STOP();
 }
-
 
 int main() {
 	nano_init();
