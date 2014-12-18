@@ -8,7 +8,7 @@ set style data linespoints
 set datafile missing "0"
 set xlabel "Number of elements in logarithmic scale"
 set ylabel "Time for element in nanosecond in logarithmic scale\nLower is better"
-set xrange [1000:100000000]
+set xrange [1000:10000000]
 set yrange [6:1000]
 set logscale y
 set logscale x

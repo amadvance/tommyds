@@ -28,12 +28,12 @@
 /** \mainpage
  * \section Introduction
  * Tommy is a C library of array, hashtables and tries designed to store and find objects
- * with high performance.
+ * with high performance and providing a clean API interface.
  *
  * It's <b>faster</b> than all the similar libraries like
  * <a href="http://www.canonware.com/rb/">rbtree</a>,
  * <a href="http://judy.sourceforge.net/">judy</a>,
- * <a href="http://code.google.com/p/cpp-btree/">googlebtree</a>
+ * <a href="http://code.google.com/p/cpp-btree/">googlebtree</a>,
  * <a href="http://panthema.net/2007/stx-btree/">stxbtree</a>,
  * <a href="http://attractivechaos.awardspace.com/">khash</a>,
  * <a href="http://uthash.sourceforge.net/">uthash</a>,
@@ -132,12 +132,25 @@
  * To compute the hash value, you can use the generic tommy_hash_u32() function, or the
  * specialized integer hash function tommy_inthash_u32().
  *
- * \section Performance
- * Here you can see some timings comparing with other natable implementations in the <i>Hit</i>
- * and <i>Change</i> graphs. Hit means searching an object with a key with success,
- * and Change means searching, removing and reinsert it with a different key value.
+ * \section Features
  *
- * Times are expressed in nanoseconds for element, and <b>lower is better</b>.
+ * Tommy is fast and easy to use.
+ *
+ * Tommy is portable to all platforms and operating systems.
+ *
+ * Tommy containers support multiple elements with the same key.
+ *
+ * Tommy containers keep the original insertion order of elements with equal keys.
+ *
+ * See the \ref design page for more details and limitations.
+ *
+ * \section Performance
+ * Here you can see some timings comparing with other notable implementations.
+ * The <i>Hit</i> graph shows the time required for searching random objects with a key.
+ * The <i>Change</i> graph shows the time required for searching, removing and reinsert random objects
+ * with a different key value.
+ *
+ * Times are expressed in nanoseconds for each element, and <b>lower is better</b>.
  *
  * To have some reference numbers, you can check <a href="https://gist.github.com/jboner/2841832">Latency numbers every programmer should know</a>.
  *
@@ -146,32 +159,6 @@
  * <img src="def/img_random_hit.png"/>
  *
  * <img src="def/img_random_change.png"/>
- *
- * \section Features
- *
- * Tommy is fast and easy to use.
- *
- * Tommy is 100% portable in all the platforms and operating systems.
- *
- * Tommy containers support multiple elements with the same key.
- *
- * See the \ref design page for more details.
- *
- * \section Limitations
- *
- * Tommy is not thread safe. You have always to provide thread safety using
- * locks before calling any Tommy functions.
- *
- * Tommy doesn't provide iterators over the implicit order defined by the data
- * structures. To iterate on elements you must insert them also into a ::tommy_list,
- * and use the list as iterator. See the \ref multiindex example for more details.
- * Note that this is a real limitation only for ::tommy_trie, as it's the only
- * data structure defining an useable order.
- *
- * Tommy doesn't provide an error reporting mechanism for a malloc() failure.
- * You have to provide it redefining malloc() if you expect it to fail.
- *
- * Tommy assumes to never have more than 2^32-1 elements in a container.
  *
  * \page benchmark Tommy Benchmarks
  *
@@ -560,7 +547,7 @@
  * and use the list as iterator.
  *
  * This technique allows to keep track of the insertion order with the list,
- * and provide more search possibilities using different data structures for
+ * and provides more search possibilities using different data structures for
  * different search keys.
  *
  * See the next example, for a objects inserted in a ::tommy_list, and in
@@ -646,38 +633,62 @@
  *
  * \page design Tommy Design
  *
- * Tommy was designed to fulfill the need of generic data structures for the
+ * Tommy is designed to fulfill the need of generic data structures for the
  * C language, providing at the same time high performance and a clean
  * and easy to use interface.
+ *
+ * \section testing Testing
  *
  * Extensive and automated tests with the runtime checker <a href="http://valgrind.org/">valgrind</a>
  * and the static analyzer <a href="http://clang-analyzer.llvm.org/">clang</a>
  * are done to ensure the correctness of the library.
+ *
  * The test has a <a href="http://tommyds.sourceforge.net/cov/tommyds/tommyds">code coverage of 100%</a>,
  * measured with <a href="http://ltp.sourceforge.net/coverage/lcov.php">lcov</a>.
  *
+ * \section Limitations
+ *
+ * Tommy is not thread safe. You have always to provide thread safety using
+ * locks before calling any Tommy functions.
+ *
+ * Tommy doesn't provide iterators over the implicit order defined by the data
+ * structures. To iterate on elements you must insert them also into a ::tommy_list,
+ * and use the list as iterator. See the \ref multiindex example for more details.
+ * Note that this is a real limitation only for ::tommy_trie, as it's the only
+ * data structure defining an useable order.
+ *
+ * Tommy doesn't provide an error reporting mechanism for a malloc() failure.
+ * You have to provide it redefining malloc() if you expect it to fail.
+ *
+ * Tommy assumes to never have more than 2^32-1 elements in a container.
+ *
+ * \section compromise Compromises
+ *
  * Finding the right balance between efficency and easy to use, required some
- * comprimise on memory efficency to avoid to cripple the interface.
+ * comprimises, mostly on memory efficency, to avoid to cripple the interface.
  * The following is a list of such decisions.
  *
- * \section multi Multi key
+ * \subsection multi_key Multi key
  * All the Tommy containers support the insertion of multiple elements with
  * the same key, adding in each node a list of equal elements.
+ *
+ * They are the equivalent at the C++ associative containers <a href="http://www.cplusplus.com/reference/map/multimap/">multimap\<unsigned,void*\></a>
+ * and <a href="http://www.cplusplus.com/reference/unordered_map/unordered_multimap/">unordered_multimap\<unsigned,void*\></a>
+ * that allow duplicates of the same key.
  *
  * A more memory conservative approach is to not allow duplicated elements,
  * removing the need of this list.
  *
- * \section datapointer Data pointer
- * The tommy_node::data field is present to provide a simpler API,
- * allowing search and remove functions to return directly a pointer at the element
- * stored in the container.
+ * \subsection data_pointer Data pointer
+ * The tommy_node::data field is present to allow search and remove functions to return
+ * directly a pointer at the element stored in the container.
  *
  * A more memory conservative approach is to require the user to compute
- * the element pointer from the embedded node pointer.
- * For example, see the Linux Kernel declaration of
+ * the element pointer from the embedded node with a fixed displacement.
+ * For an example, see the Linux Kernel declaration of
  * <a href="http://lxr.free-electrons.com/ident?i=container_of">container_of()</a>.
  *
- * \section double_linked Double linked list for collisions
+ * \subsection insertion_order Insertion order
  * The list used for collisions is double linked to allow
  * insertion of elements at the end of the list to keep the
  * insertion order of equal elements.
@@ -686,9 +697,9 @@
  * inserting elements only at the start of the list, losing the
  * original insertion order.
  *
- * \section zero_list Zero terminated next list
- * The half 0 terminated format of tommy_node::next is present to provide
- * a forward iterator terminating in 0. This allow the user to write a simple
+ * \subsection zero_list Zero terminated list
+ * The 0 terminated format of tommy_node::next is present to provide
+ * a forward iterator terminating in 0. This allows the user to write a simple
  * iteration loop over the list of elements in the same bucket.
  *
  * A more efficient approach is to use a circular list, as operating on
