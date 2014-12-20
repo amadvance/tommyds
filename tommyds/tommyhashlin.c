@@ -189,8 +189,8 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 			*split[0] = 0;
 			*split[1] = 0;
 
-			/* compute the bit to identify the bucket */
-			mask = hashlin->bucket_mask & ~hashlin->low_mask;
+			/* the bit used to identify the bucket */
+			mask = hashlin->low_max;
 
 			/* flush the bucket */
 			while (j) {
