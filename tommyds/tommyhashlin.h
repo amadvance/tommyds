@@ -201,7 +201,6 @@ void tommy_hashlin_insert(tommy_hashlin* hashlin, tommy_hashlin_node* node, void
  * You have to provide a compare function and the hash of the element you want to remove.
  * If the element is not found, 0 is returned.
  * If more equal elements are present, the first one is removed.
- * This operation is faster than calling tommy_hashlin_bucket() and tommy_hashlin_remove_existing() separately.
  * \param cmp Compare function called with cmp_arg as first argument and with the element to compare as a second one.
  * The function should return 0 for equal elements, anything other for different elements.
  * \param cmp_arg Compare argument passed as first argument of the compare function.
@@ -283,7 +282,7 @@ void* tommy_hashlin_remove_existing(tommy_hashlin* hashlin, tommy_hashlin_node* 
 void tommy_hashlin_foreach(tommy_hashlin* hashlin, tommy_foreach_func* func);
 
 /**
- * Calls the specified function with argument for each element in the hashtable.
+ * Calls the specified function with an argument for each element in the hashtable.
  */
 void tommy_hashlin_foreach_arg(tommy_hashlin* hashlin, tommy_foreach_arg_func* func, void* arg);
 

@@ -135,7 +135,7 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 			/* cast to ptrdiff_t to ensure to get a negative value */
 			hashlin->bucket[hashlin->bucket_bit] = &segment[-(tommy_ptrdiff_t)hashlin->low_max];
 
-			/* grow the hash size and allocate */
+			/* grow the hash size */
 			++hashlin->bucket_bit;
 			hashlin->bucket_max = 1 << hashlin->bucket_bit;
 			hashlin->bucket_mask = hashlin->bucket_max - 1;

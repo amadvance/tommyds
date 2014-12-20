@@ -27,8 +27,8 @@
 
 /** \mainpage
  * \section Introduction
- * Tommy is a C library of array, hashtables and tries designed to store and find objects
- * with high performance and providing a clean API interface.
+ * Tommy is a C library of array, hashtables and tries data structures,
+ * designed for high performance and providing an easy to use interface.
  *
  * It's <b>faster</b> than all the similar libraries like
  * <a href="http://www.canonware.com/rb/">rbtree</a>,
@@ -58,8 +58,6 @@
  * - ::tommy_trie_inplace - A trie completely inplace.
  *
  * The most interesting are ::tommy_array, ::tommy_hashdyn, ::tommy_hashlin, ::tommy_trie and ::tommy_trie_inplace.
- *
- * Tommy is released with a \ref license "2-clause BSD license".
  *
  * The official site of TommyDS is <a href="http://tommyds.sourceforge.net/">http://tommyds.sourceforge.net/</a>,
  *
@@ -141,6 +139,8 @@
  * Tommy containers support multiple elements with the same key.
  *
  * Tommy containers keep the original insertion order of elements with equal keys.
+ *
+ * Tommy is released with the \ref license "2-clause BSD license".
  *
  * See the \ref design page for more details and limitations.
  *
