@@ -40,6 +40,20 @@
 #define TOMMY_HASHLIN_STATE_GROW 1
 #define TOMMY_HASHLIN_STATE_SHRINK 2
 
+/**
+ * Set the hashtable in stable state.
+ */
+tommy_inline void tommy_hashlin_stable(tommy_hashlin* hashlin)
+{
+	hashlin->state = TOMMY_HASHLIN_STATE_STABLE;
+
+	/* setup low_mask/max/split to allow tommy_hashlin_bucket_ptr() */
+	/* and tommy_hashlin_foreach() to work regardless we are in stable state */
+	hashlin->low_max = hashlin->bucket_max;
+	hashlin->low_mask = hashlin->bucket_mask;
+	hashlin->split = 0;
+}
+
 void tommy_hashlin_init(tommy_hashlin* hashlin)
 {
 	tommy_uint_t i;
@@ -53,7 +67,7 @@ void tommy_hashlin_init(tommy_hashlin* hashlin)
 		hashlin->bucket[i] = hashlin->bucket[0];
 
 	/* stable state */
-	hashlin->state = TOMMY_HASHLIN_STATE_STABLE;
+	tommy_hashlin_stable(hashlin);
 
 	hashlin->count = 0;
 }
@@ -88,22 +102,25 @@ tommy_inline tommy_hashlin_node** tommy_hashlin_pos(tommy_hashlin* hashlin, tomm
 tommy_inline tommy_hashlin_node** tommy_hashlin_bucket_ptr(tommy_hashlin* hashlin, tommy_hash_t hash)
 {
 	tommy_count_t pos;
+	tommy_count_t high_pos;
 
-	/* if we are reallocating */
-	if (hashlin->state != TOMMY_HASHLIN_STATE_STABLE) {
-		/* compute the old position */
-		pos = hash & hashlin->low_mask;
+	pos = hash & hashlin->low_mask;
+	high_pos = hash & hashlin->bucket_mask;
 
-		/* if we have not reallocated this position yet */
-		if (pos >= hashlin->split) {
+	/* if this position is already allocated in the high half */
+	if (pos < hashlin->split) {
+		/* The following assigment is expected to be implemented */
+		/* with a conditional move instruction */
+		/* that results in a little better and constant performance */
+		/* regardless of the split position. */
+		/* This affects mostly the worst case, when the split value */
+		/* is near at its half, resulting in a totally unpredictable */
+		/* condition by the CPU. */
+		/* In sunch case the use of conditional move is a generally faster. */
 
-			/* use it as it was before */
-			return tommy_hashlin_pos(hashlin, pos);
-		}
+		/* use also the high bit */
+		pos = high_pos;
 	}
-
-	/* otherwise operates normally */
-	pos = hash & hashlin->bucket_mask;
 
 	return tommy_hashlin_pos(hashlin, pos);
 }
@@ -191,7 +208,8 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 
 			/* if we have finished, change the state */
 			if (hashlin->split == hashlin->low_max) {
-				hashlin->state = TOMMY_HASHLIN_STATE_STABLE;
+				/* go in stable mode */
+				tommy_hashlin_stable(hashlin);
 				break;
 			}
 		}
@@ -251,8 +269,6 @@ tommy_inline void hashlin_shrink_step(tommy_hashlin* hashlin)
 			if (hashlin->split == 0) {
 				tommy_hashlin_node** segment;
 
-				hashlin->state = TOMMY_HASHLIN_STATE_STABLE;
-
 				/* shrink the hash size */
 				--hashlin->bucket_bit;
 				hashlin->bucket_max = 1 << hashlin->bucket_bit;
@@ -261,6 +277,9 @@ tommy_inline void hashlin_shrink_step(tommy_hashlin* hashlin)
 				/* free the last segment */
 				segment = hashlin->bucket[hashlin->bucket_bit];
 				tommy_free(&segment[((tommy_ptrdiff_t)1) << hashlin->bucket_bit]);
+
+				/* go in stable mode */
+				tommy_hashlin_stable(hashlin);
 				break;
 			}
 		}
@@ -321,12 +340,8 @@ void tommy_hashlin_foreach(tommy_hashlin* hashlin, tommy_foreach_func* func)
 	tommy_count_t bucket_max;
 	tommy_count_t pos;
 
-	/* if we are reallocating */
-	if (hashlin->state != TOMMY_HASHLIN_STATE_STABLE) {
-		bucket_max = hashlin->low_max + hashlin->split;
-	} else {
-		bucket_max = hashlin->bucket_max;
-	}
+	/* number of valid buckets */
+	bucket_max = hashlin->low_max + hashlin->split;
 
 	for (pos = 0; pos < bucket_max; ++pos) {
 		tommy_hashlin_node* node = *tommy_hashlin_pos(hashlin, pos);
@@ -344,11 +359,8 @@ void tommy_hashlin_foreach_arg(tommy_hashlin* hashlin, tommy_foreach_arg_func* f
 	tommy_count_t bucket_max;
 	tommy_count_t pos;
 
-	/* if we are reallocating */
-	if (hashlin->state != TOMMY_HASHLIN_STATE_STABLE)
-		bucket_max = hashlin->low_max + hashlin->split;
-	else
-		bucket_max = hashlin->bucket_max;
+	/* number of valid buckets */
+	bucket_max = hashlin->low_max + hashlin->split;
 
 	for (pos = 0; pos < bucket_max; ++pos) {
 		tommy_hashlin_node* node = *tommy_hashlin_pos(hashlin, pos);
