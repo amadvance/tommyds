@@ -162,7 +162,7 @@ void* tommy_hashdyn_remove_existing(tommy_hashdyn* hashdyn, tommy_hashdyn_node* 
 
 void* tommy_hashdyn_remove(tommy_hashdyn* hashdyn, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)
 {
-	tommy_count_t pos = hash % hashdyn->bucket_max;
+	tommy_count_t pos = hash & hashdyn->bucket_mask;
 	tommy_hashdyn_node* node = hashdyn->bucket[pos];
 
 	while (node) {
