@@ -39,8 +39,8 @@ EXE=.exe
 O=.obj
 endif
 
-CHECK = ./tommybench -N 1000000 -d tommy-hashlin
-#CHECK = ./tommycheck
+#CHECK = ./tommybench -n 1000000 -d tommy-hashlin
+CHECK = ./tommycheck
 
 DEP = \
 	tommyds/tommyalloc.c \
