@@ -4,14 +4,16 @@
 # Version of TommyDS
 VERSION=2.0
 
-# Build options
+# Build options for the check program
 ifdef COVERAGE
 CFLAGS=-O0 -g -fprofile-arcs -ftest-coverage
 else
 CFLAGS=-O3 -march=native -Wall -Wextra -Wshadow -Wcast-qual -g
 endif
+
+# Build options for the benchmark
 # -std=gnu++0x required by Google btree
-CXXFLAGS=$(CFLAGS) -fpermissive -std=gnu++0x
+BENCHCXXFLAGS=-O3 -m32 -march=pentium4 -mtune=generic -fpermissive -std=gnu++0x -Wall -g
 
 # Programs
 CC=gcc
@@ -90,7 +92,7 @@ tommycheck$(EXE): check.c tommy$(O)
 	$(CC) $(CFLAGS) check.c tommy$(O) -o tommycheck$(EXE) $(LIB)
 
 tommybench$(EXE): benchmark.cc $(DEP)
-	$(CXX) $(CXXFLAGS) benchmark.cc -o tommybench$(EXE) $(LIB) $(BENCHLIB)
+	$(CXX) $(BENCHCXXFLAGS) benchmark.cc -o tommybench$(EXE) $(LIB) $(BENCHLIB)
 
 check: tommycheck$(EXE)
 	./tommycheck$(EXE)
