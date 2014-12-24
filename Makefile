@@ -2,23 +2,23 @@
 # Tommy Makefile
 
 # Version of TommyDS
-VERSION=2.0
+VERSION = 2.0
 
 # Build options for the check program
 ifdef COVERAGE
-CFLAGS=-O0 -g -fprofile-arcs -ftest-coverage
+CFLAGS = -O0 -g -fprofile-arcs -ftest-coverage
 else
-CFLAGS=-O3 -march=native -Wall -Wextra -Wshadow -Wcast-qual -g
+CFLAGS = -O3 -march=native -Wall -Wextra -Wshadow -Wcast-qual -g
 endif
 
 # Build options for the benchmark
 # -std=gnu++0x required by Google btree
-BENCHCXXFLAGS=-m32 -O3 -march=nehalem -fpermissive -std=gnu++0x -Wall -g
+BENCHCXXFLAGS = -m32 -O3 -march=nehalem -fpermissive -std=gnu++0x -Wall -g
 
 # Programs
-CC=gcc
-CXX=g++
-UNAME=$(shell uname)
+CC ?= gcc
+CXX ?= g++
+UNAME = $(shell uname)
 
 # Linux
 ifeq ($(UNAME),Linux)
