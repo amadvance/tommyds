@@ -10,8 +10,8 @@ CFLAGS=-O0 -g -fprofile-arcs -ftest-coverage
 else
 CFLAGS=-O3 -march=native -Wall -Wextra -Wshadow -Wcast-qual -g
 endif
-# -std=gnu++11 required by Google btree
-CXXFLAGS=$(CFLAGS) -fpermissive -std=gnu++11
+# -std=gnu++0x required by Google btree
+CXXFLAGS=$(CFLAGS) -fpermissive -std=gnu++0x
 
 # Programs
 CC=gcc
