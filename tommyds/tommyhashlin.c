@@ -47,7 +47,7 @@ tommy_inline void tommy_hashlin_stable(tommy_hashlin* hashlin)
 {
 	hashlin->state = TOMMY_HASHLIN_STATE_STABLE;
 
-	/* setup low_mask/max/split to allow tommy_hashlin_bucket_ptr() */
+	/* setup low_mask/max/split to allow tommy_hashlin_bucket_ref() */
 	/* and tommy_hashlin_foreach() to work regardless we are in stable state */
 	hashlin->low_max = hashlin->bucket_max;
 	hashlin->low_mask = hashlin->bucket_mask;
@@ -81,48 +81,6 @@ void tommy_hashlin_done(tommy_hashlin* hashlin)
 		tommy_hashlin_node** segment = hashlin->bucket[i];
 		tommy_free(&segment[((tommy_ptrdiff_t)1) << i]);
 	}
-}
-
-/**
- * Return the bucket at the specified pos.
- */
-tommy_inline tommy_hashlin_node** tommy_hashlin_pos(tommy_hashlin* hashlin, tommy_hash_t pos)
-{
-	tommy_uint_t bsr;
-
-	/* get the highest bit set, in case of all 0, return 0 */
-	bsr = tommy_ilog2_u32(pos | 1);
-
-	return &hashlin->bucket[bsr][pos];
-}
-
-/**
- * Return the bucket to use.
- */
-tommy_inline tommy_hashlin_node** tommy_hashlin_bucket_ptr(tommy_hashlin* hashlin, tommy_hash_t hash)
-{
-	tommy_count_t pos;
-	tommy_count_t high_pos;
-
-	pos = hash & hashlin->low_mask;
-	high_pos = hash & hashlin->bucket_mask;
-
-	/* if this position is already allocated in the high half */
-	if (pos < hashlin->split) {
-		/* The following assigment is expected to be implemented */
-		/* with a conditional move instruction */
-		/* that results in a little better and constant performance */
-		/* regardless of the split position. */
-		/* This affects mostly the worst case, when the split value */
-		/* is near at its half, resulting in a totally unpredictable */
-		/* condition by the CPU. */
-		/* In sunch case the use of conditional move is a generally faster. */
-
-		/* use also the high bit */
-		pos = high_pos;
-	}
-
-	return tommy_hashlin_pos(hashlin, pos);
 }
 
 /**
@@ -288,7 +246,7 @@ tommy_inline void hashlin_shrink_step(tommy_hashlin* hashlin)
 
 void tommy_hashlin_insert(tommy_hashlin* hashlin, tommy_hashlin_node* node, void* data, tommy_hash_t hash)
 {
-	tommy_list_insert_tail(tommy_hashlin_bucket_ptr(hashlin, hash), node, data);
+	tommy_list_insert_tail(tommy_hashlin_bucket_ref(hashlin, hash), node, data);
 
 	node->key = hash;
 
@@ -299,7 +257,7 @@ void tommy_hashlin_insert(tommy_hashlin* hashlin, tommy_hashlin_node* node, void
 
 void* tommy_hashlin_remove_existing(tommy_hashlin* hashlin, tommy_hashlin_node* node)
 {
-	tommy_list_remove_existing(tommy_hashlin_bucket_ptr(hashlin, node->key), node);
+	tommy_list_remove_existing(tommy_hashlin_bucket_ref(hashlin, node->key), node);
 
 	--hashlin->count;
 
@@ -308,14 +266,9 @@ void* tommy_hashlin_remove_existing(tommy_hashlin* hashlin, tommy_hashlin_node* 
 	return node->data;
 }
 
-tommy_hashlin_node* tommy_hashlin_bucket(tommy_hashlin* hashlin, tommy_hash_t hash)
-{
-	return *tommy_hashlin_bucket_ptr(hashlin, hash);
-}
-
 void* tommy_hashlin_remove(tommy_hashlin* hashlin, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)
 {
-	tommy_hashlin_node** let_ptr = tommy_hashlin_bucket_ptr(hashlin, hash);
+	tommy_hashlin_node** let_ptr = tommy_hashlin_bucket_ref(hashlin, hash);
 	tommy_hashlin_node* node = *let_ptr;
 
 	while (node) {

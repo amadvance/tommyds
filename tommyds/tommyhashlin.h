@@ -209,6 +209,48 @@ void tommy_hashlin_insert(tommy_hashlin* hashlin, tommy_hashlin_node* node, void
  */
 void* tommy_hashlin_remove(tommy_hashlin* hashlin, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash);
 
+/** \internal
+ * Returns the bucket at the specified position.
+ */
+tommy_inline tommy_hashlin_node** tommy_hashlin_pos(tommy_hashlin* hashlin, tommy_hash_t pos)
+{
+	tommy_uint_t bsr;
+
+	/* get the highest bit set, in case of all 0, return 0 */
+	bsr = tommy_ilog2_u32(pos | 1);
+
+	return &hashlin->bucket[bsr][pos];
+}
+
+/** \internal
+ * Returns a pointer to the bucket of the specified hash.
+ */
+tommy_inline tommy_hashlin_node** tommy_hashlin_bucket_ref(tommy_hashlin* hashlin, tommy_hash_t hash)
+{
+	tommy_count_t pos;
+	tommy_count_t high_pos;
+
+	pos = hash & hashlin->low_mask;
+	high_pos = hash & hashlin->bucket_mask;
+
+	/* if this position is already allocated in the high half */
+	if (pos < hashlin->split) {
+		/* The following assigment is expected to be implemented */
+		/* with a conditional move instruction */
+		/* that results in a little better and constant performance */
+		/* regardless of the split position. */
+		/* This affects mostly the worst case, when the split value */
+		/* is near at its half, resulting in a totally unpredictable */
+		/* condition by the CPU. */
+		/* In such case the use of the conditional move is generally faster. */
+
+		/* use also the high bit */
+		pos = high_pos;
+	}
+
+	return tommy_hashlin_pos(hashlin, pos);
+}
+
 /**
  * Gets the bucket of the specified hash.
  * The bucket is guaranteed to contain ALL the elements with the specified hash,
@@ -217,7 +259,10 @@ void* tommy_hashlin_remove(tommy_hashlin* hashlin, tommy_search_func* cmp, const
  * \param hash Hash of the element to find.
  * \return The head of the bucket, or 0 if empty.
  */
-tommy_hashlin_node* tommy_hashlin_bucket(tommy_hashlin* hashlin, tommy_hash_t hash);
+tommy_inline tommy_hashlin_node* tommy_hashlin_bucket(tommy_hashlin* hashlin, tommy_hash_t hash)
+{
+	return *tommy_hashlin_bucket_ref(hashlin, hash);
+}
 
 /**
  * Searches an element in the hashtable.
