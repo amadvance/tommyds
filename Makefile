@@ -13,7 +13,7 @@ endif
 
 # Build options for the benchmark
 # -std=gnu++0x required by Google btree
-BENCHCXXFLAGS=-O3 -m32 -march=pentium4 -mtune=generic -fpermissive -std=gnu++0x -Wall -g
+BENCHCXXFLAGS=-m32 -O3 -march=nehalem -fpermissive -std=gnu++0x -Wall -g
 
 # Programs
 CC=gcc

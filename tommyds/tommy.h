@@ -366,8 +366,8 @@
  * \section code Code
  *
  * The compilers used in the benchmark are:
- *  - <b>gcc 4.7.1</b> in Linux with options: -O3 -march=pentium4 -mtune=generic
- *  - <b>Visual C 2012</b> in Windows with options: /Ox /GL /GS-
+ *  - <b>gcc 4.9.2</b> in Linux with options: -O3 -march=nehalem
+ *  - <b>Visual C 2012</b> in Windows with options: /Ox /Oy- /GL /GS- /arch:SSE2
  *
  * The following is pseudo code of the benchmark used. In this case it's written for the C++ unordered_map.
  *
