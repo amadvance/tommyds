@@ -6,9 +6,9 @@ VERSION=2.0
 
 # Build options
 ifdef COVERAGE
-CFLAGS=-m32 -O0 -g -fprofile-arcs -ftest-coverage
+CFLAGS=-O0 -g -fprofile-arcs -ftest-coverage
 else
-CFLAGS=-m32 -O3 -march=pentium4 -mtune=generic -Wall -Wextra -Wshadow -Wcast-qual -g
+CFLAGS=-O3 -march=native -Wall -Wextra -Wshadow -Wcast-qual -g
 endif
 # -std=gnu++11 required by Google btree
 CXXFLAGS=$(CFLAGS) -fpermissive -std=gnu++11
