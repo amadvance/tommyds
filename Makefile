@@ -20,7 +20,8 @@ UNAME=$(shell uname)
 
 # Linux
 ifeq ($(UNAME),Linux)
-LIB=-lrt benchmark/lib/judy/libJudyL.a benchmark/lib/judy/libJudyMalloc.a
+LIB=-lrt
+BENCHLIB=benchmark/lib/judy/libJudyL.a benchmark/lib/judy/libJudyMalloc.a
 EXE=
 O=.o
 endif
@@ -34,7 +35,7 @@ endif
 
 # Windows
 ifeq ($(UNAME),)
-LIB=benchmark/lib/judy/src/judy.lib
+BENCHLIB=benchmark/lib/judy/src/judy.lib
 EXE=.exe
 O=.obj
 endif
@@ -76,7 +77,9 @@ DEPTEST = \
 	check.c \
 	benchmark.cc
 
-all: tommycheck$(EXE) tommybench$(EXE)
+all: tommycheck$(EXE)
+
+bench: tommybench$(EXE)
 
 tommy$(O): $(DEP)
 	$(CC) $(CFLAGS) -S -fverbose-asm tommyds/tommy.c -o tommy.s
@@ -87,12 +90,10 @@ tommycheck$(EXE): check.c tommy$(O)
 	$(CC) $(CFLAGS) check.c tommy$(O) -o tommycheck$(EXE) $(LIB)
 
 tommybench$(EXE): benchmark.cc $(DEP)
-	$(CXX) $(CXXFLAGS) benchmark.cc -o tommybench$(EXE) $(LIB)
+	$(CXX) $(CXXFLAGS) benchmark.cc -o tommybench$(EXE) $(LIB) $(BENCHLIB)
 
-check: tommycheck$(EXE) tommybench$(EXE)
+check: tommycheck$(EXE)
 	./tommycheck$(EXE)
-	./tommybench$(EXE) -n 65535
-	./tommybench$(EXE) -n 65536
 	echo Check completed with success!
 
 lcov_reset:
