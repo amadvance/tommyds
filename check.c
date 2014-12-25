@@ -223,20 +223,20 @@ loop:
 
 unsigned isqrt(unsigned n)
 {
-	unsigned root, remainder, place;
+	unsigned root, remain, place;
 
 	root = 0;
 
-	remainder = n;
+	remain = n;
 
 	place = 0x40000000;
 
-	while (place > remainder)
+	while (place > remain)
 		place /= 4;
 
 	while (place) {
-		if (remainder >= root + place) {
-			remainder -= root + place;
+		if (remain >= root + place) {
+			remain -= root + place;
 			root += 2 * place;
 		}
 

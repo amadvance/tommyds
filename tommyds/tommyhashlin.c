@@ -153,11 +153,11 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 			/* flush the bucket */
 			while (j) {
 				tommy_hashlin_node* j_next = j->next;
-				tommy_count_t index = (j->key & mask) != 0;
-				if (*split[index])
-					tommy_list_insert_tail_not_empty(*split[index], j);
+				tommy_count_t pos = (j->key & mask) != 0;
+				if (*split[pos])
+					tommy_list_insert_tail_not_empty(*split[pos], j);
 				else
-					tommy_list_insert_first(split[index], j);
+					tommy_list_insert_first(split[pos], j);
 				j = j_next;
 			}
 
