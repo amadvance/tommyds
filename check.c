@@ -732,7 +732,7 @@ void test_list(void)
 void test_array(void)
 {
 	tommy_array array;
-	unsigned i;
+	tommy_uintptr_t i;
 	const unsigned size = 50 * TOMMY_SIZE;
 
 	tommy_array_init(&array);
@@ -805,7 +805,7 @@ void test_arrayof(void)
 void test_arrayblk(void)
 {
 	tommy_arrayblk arrayblk;
-	unsigned i;
+	tommy_uintptr_t i;
 	const unsigned size = 50 * TOMMY_SIZE;
 
 	tommy_arrayblk_init(&arrayblk);
