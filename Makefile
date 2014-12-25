@@ -18,6 +18,7 @@ BENCHCXXFLAGS = -m32 -O3 -march=nehalem -fpermissive -std=gnu++0x -Wall -g
 # Programs
 CC ?= gcc
 CXX ?= g++
+OBJDUMP ?= objdump
 UNAME = $(shell uname)
 
 # Linux
@@ -84,9 +85,8 @@ all: tommycheck$(EXE)
 bench: tommybench$(EXE)
 
 tommy$(O): $(DEP)
-	$(CC) $(CFLAGS) -S -fverbose-asm tommyds/tommy.c -o tommy.s
 	$(CC) $(CFLAGS) -c tommyds/tommy.c -o tommy$(O)
-	objdump -S tommy$(O) > tommy.S
+	$(OBJDUMP) -S tommy$(O) > tommy.s
 
 tommycheck$(EXE): check.c tommy$(O)
 	$(CC) $(CFLAGS) check.c tommy$(O) -o tommycheck$(EXE) $(LIB)
@@ -168,7 +168,7 @@ web: phony tommyweb.doxygen tommy.css $(DEP)
 	rm -f web/tab_*.png
 
 clean:
-	rm -f *.log *.s *.S *.lst *.o
+	rm -f *.log *.s *.lst *.o
 	rm -f *.ncb *.suo *.obj
 	rm -f *.gcno *.gcda lcov.info
 	rm -rf Debug Release x64
