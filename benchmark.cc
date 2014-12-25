@@ -2546,7 +2546,7 @@ void test(unsigned size, unsigned data, int log, int sparse)
 					if (the_log) {
 						for(i=0;i<OPERATION_MAX;++i)
 							printf(" %4u", LOG[the_retry][the_data][the_order][i]);
-						printf(" [ms]\n");
+						printf(" [us]\n");
 					}
 				}
 			}
