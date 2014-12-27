@@ -2,7 +2,7 @@
 
 language: c
 
-script: make distcheck
+script: make check
 
 compiler:
   - clang
