@@ -209,3 +209,7 @@ dist:
 	zip -r $(DIST).zip $(DIST)
 	rm -r $(DIST)
 
+distcheck: dist
+	tar zxvf $(DIST).tar.gz
+	cd $(DIST) && make check
+	rm -rf $(DIST)

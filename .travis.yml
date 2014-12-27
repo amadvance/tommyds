@@ -1,7 +1,10 @@
+# Travis CI configuration file
+
 language: c
 
-script: make check
+script: make distcheck
 
 compiler:
   - clang
   - gcc
+
