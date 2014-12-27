@@ -1,6 +1,9 @@
 TommyDS HISTORY
 ===============
 
+2.1 2014/12 BETA
+================
+
 2.0 2014/12
 ===========
  * Fixed a Segmentation Fault bug in the trie_inplace container when inserting
