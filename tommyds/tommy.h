@@ -512,7 +512,7 @@
  * \subsection googlelibchash Google C libchash
  * It's the C implementation located in the <i>experimental/</i> directory of the googlesparsehash archive.
  * It has very bad performances in the <i>Change</i> test for some N values.
- * See this <a href="other/slow_problem.png">graph</a> with a lot of spikes.
+ * See this <a href="other/googlelibchash_problem.png">graph</a> with a lot of spikes.
  * The C++ version doesn't suffer of this problem.
  *
  * \subsection googledensehash Google C++ densehash
@@ -538,7 +538,7 @@
  *
  * \subsection ck Concurrency Kit
  * It has very bad performances in the <i>Change</i> test for some N values.
- * See this <a href="other/slow_problem.png">graph</a> with a lot of spikes.
+ * See this <a href="other/ck_problem.png">graph</a> with a lot of spikes.
  *
  * \page multiindex Tommy Multi Indexing
  *
