@@ -183,10 +183,36 @@ typedef size_t ssize_t;
 #include "benchmark/lib/cube/binary-search-tesseract-1.0.c"
 #define USE_CUBE
 
+/* libdynamic */
+/* https://github.com/fredrikwidlund/libdynamic */
+#define USE_LIBDYNAMIC
+#ifdef USE_LIBDYNAMIC
+#define new c_new
+#include "benchmark/lib/libdynamic/map.c"
+#undef new
+#endif
+
 /* Concurrency Kit Hash Set */
 /* http://concurrencykit.org/ */
 /* Note that it has a VERY BAD performance on the "Change" test, */
-/* so we disable it in the graphs until further investigation */
+/* so we disable it in the graphs becasue makes it unreadable */
+/*
+$ ./tommybench -n 63095 -d ck
+Tommy benchmark program.
+63095 ck forward
+   forward,     insert,           ck,  193 [ns]
+   forward,     change,           ck, 3102 [ns] <<<<<
+   forward,        hit,           ck,  344 [ns]
+   forward,       miss,           ck, 3330 [ns] <<<<<
+   forward,     remove,           ck,  327 [ns]
+63095 ck random
+    random,     insert,           ck,  193 [ns]
+    random,     change,           ck, 2984 [ns] <<<<<
+    random,        hit,           ck,  340 [ns]
+    random,       miss,           ck, 3261 [ns] <<<<<
+    random,     remove,           ck,  341 [ns]
+OK
+*/
 /* #define USE_CK */
 #if defined(USE_CK) && defined(__linux)
 /* if you enable it, ensure to link also with the -lck option */
@@ -274,6 +300,11 @@ struct cube_object {
 	char payload[PAYLOAD];
 };
 
+struct libdynamic_object {
+	unsigned value;
+	char payload[PAYLOAD];
+};
+
 struct ck_object {
 	unsigned value;
 	char payload[PAYLOAD];
@@ -300,6 +331,43 @@ struct judyarray_object* JUDYARRAY;
 #ifdef USE_CUBE
 struct cube_object* CUBE;
 #endif
+#ifdef USE_LIBDYNAMIC
+/* We insert in the hashtable pointer to objects, because our objects are big */
+size_t libdynamic_hash(map*, void* void_obj)
+{
+	libdynamic_object** obj = (libdynamic_object**)void_obj;
+
+	return hash((*obj)->value);
+}
+
+int libdynamic_equal(map*, void* void_obj1, void* void_obj2)
+{
+	libdynamic_object** obj1 = (libdynamic_object**)void_obj1;
+	libdynamic_object** obj2 = (libdynamic_object**)void_obj2;
+
+	return (*obj1)->value == (*obj2)->value;
+}
+
+void libdynamic_set(map*, void* void_obj1, void* void_obj2)
+{
+	libdynamic_object** obj1 = (libdynamic_object**)void_obj1;
+	libdynamic_object** obj2 = (libdynamic_object**)void_obj2;
+
+	*obj1 = *obj2;
+}
+
+struct libdynamic_object* LIBDYNAMIC_RELEASE;
+
+void libdynamic_release(map*, void* void_obj)
+{
+	libdynamic_object** obj = (libdynamic_object**)void_obj;
+
+	LIBDYNAMIC_RELEASE = *obj;
+}
+
+struct libdynamic_object* LIBDYNAMIC;
+#endif
+
 #ifdef USE_CK
 struct ck_object* CK;
 
@@ -428,6 +496,11 @@ Judy* judyarray = 0;
 #endif
 #ifdef USE_CUBE
 struct cube* cube = 0;
+#endif
+#ifdef USE_LIBDYNAMIC
+struct map libdynamic;
+struct libdynamic_object libdynamic_empty = { (unsigned)-1 };
+struct libdynamic_object* libdynamic_empty_ptr = &libdynamic_empty;
 #endif
 #ifdef USE_CK
 ck_hs_t ck;
@@ -610,13 +683,14 @@ const char* ORDER_NAME[ORDER_MAX] = {
 #define DATA_CPPUNORDEREDMAP 14
 #define DATA_CPPMAP 15
 #define DATA_CUBE 16
+#define DATA_LIBDYNAMIC 17
 #ifdef USE_GOOGLELIBCHASH
-#define DATA_GOOGLELIBCHASH 17
+#define DATA_GOOGLELIBCHASH 18
 #endif
 #ifdef USE_CK
-#define DATA_CK 18
+#define DATA_CK 19
 #endif
-#define DATA_MAX 19
+#define DATA_MAX 20
 
 const char* DATA_NAME[DATA_MAX] = {
 	"tommy-hashtable",
@@ -636,6 +710,7 @@ const char* DATA_NAME[DATA_MAX] = {
 	"c++unorderedmap",
 	"c++map",
 	"tesseract",
+	"libdynamic",
 	"googlelibchash",
 	"concurrencykit",
 };
@@ -930,6 +1005,13 @@ void test_alloc(void)
 	}
 #endif
 
+#ifdef USE_LIBDYNAMIC
+	COND(DATA_LIBDYNAMIC) {
+		LIBDYNAMIC = (struct libdynamic_object*)malloc(sizeof(struct libdynamic_object) * the_max);
+		map_construct(&libdynamic, sizeof(struct libdynamic_object*), &libdynamic_empty_ptr, libdynamic_set);
+	}
+#endif
+
 #ifdef USE_CK
 	COND(DATA_CK) {
 		CK = (struct ck_object*)malloc(sizeof(struct ck_object) * the_max);
@@ -1083,6 +1165,13 @@ void test_free(void)
 	COND(DATA_CUBE) {
 		free(CUBE);
 		destroy_cube(cube);
+	}
+#endif
+
+#ifdef USE_LIBDYNAMIC
+	COND(DATA_LIBDYNAMIC) {
+		free(LIBDYNAMIC);
+		map_destruct(&libdynamic, &libdynamic_equal, 0);
 	}
 #endif
 
@@ -1245,6 +1334,15 @@ void test_insert(unsigned* INSERT)
 		unsigned key = INSERT[i];
 		CUBE[i].value = key;
 		set_key(cube, key, &CUBE[i]);
+	} STOP();
+#endif
+
+#ifdef USE_LIBDYNAMIC
+	START(DATA_LIBDYNAMIC) {
+		unsigned key = INSERT[i];
+		struct libdynamic_object* obj = &LIBDYNAMIC[i];
+		obj->value = key;
+		map_insert(&libdynamic, &obj, libdynamic_hash, libdynamic_equal, libdynamic_set, 0);
 	} STOP();
 #endif
 
@@ -1516,6 +1614,23 @@ void test_hit(unsigned* SEARCH)
 	} STOP();
 #endif
 
+#ifdef USE_LIBDYNAMIC
+	START(DATA_LIBDYNAMIC) {
+		unsigned key = SEARCH[i] + DELTA;
+		struct libdynamic_object key_obj;
+		struct libdynamic_object* key_ptr = &key_obj;
+		struct libdynamic_object* obj;
+		key_obj.value = key;
+		obj = *(struct libdynamic_object**)map_at(&libdynamic, &key_ptr, libdynamic_hash, libdynamic_equal);
+		if (obj == &libdynamic_empty)
+			abort();
+		if (dereference) {
+			if (obj->value != key)
+				abort();
+		}
+	} STOP();
+#endif
+
 #ifdef USE_CK
 	START(DATA_CK) {
 		unsigned key = SEARCH[i] + DELTA;
@@ -1702,6 +1817,19 @@ void test_miss(unsigned* SEARCH)
 		struct cube_obj* obj;
 		obj = (struct cube_obj*)get_key(cube, key);
 		if (obj)
+			abort();
+	} STOP();
+#endif
+
+#ifdef USE_LIBDYNAMIC
+	START(DATA_LIBDYNAMIC) {
+		unsigned key = SEARCH[i] + DELTA;
+		struct libdynamic_object key_obj;
+		struct libdynamic_object* key_ptr = &key_obj;
+		struct libdynamic_object* obj;
+		key_obj.value = key;
+		obj = *(struct libdynamic_object**)map_at(&libdynamic, &key_ptr, libdynamic_hash, libdynamic_equal);
+		if (obj != &libdynamic_empty)
 			abort();
 	} STOP();
 #endif
@@ -2008,6 +2136,25 @@ void test_change(unsigned* REMOVE, unsigned* INSERT)
 		key = INSERT[i] + DELTA;
 		obj->value = key;
 		set_key(cube, key, obj);
+	} STOP();
+#endif
+
+#ifdef USE_LIBDYNAMIC
+	START(DATA_LIBDYNAMIC) {
+		unsigned key = REMOVE[i];
+		struct libdynamic_object key_obj;
+		struct libdynamic_object* key_ptr = &key_obj;
+		struct libdynamic_object* obj;
+		key_obj.value = key;
+		LIBDYNAMIC_RELEASE = 0;
+		map_erase(&libdynamic, &key_ptr, libdynamic_hash, libdynamic_equal, libdynamic_set, libdynamic_release);
+		obj = LIBDYNAMIC_RELEASE;
+		if (!obj)
+			abort();
+
+		key = INSERT[i] + DELTA;
+		obj->value = key;
+		map_insert(&libdynamic, &obj, libdynamic_hash, libdynamic_equal, libdynamic_set, 0);
 	} STOP();
 #endif
 
@@ -2325,6 +2472,25 @@ void test_remove(unsigned* REMOVE)
 	} STOP();
 #endif
 
+#ifdef USE_LIBDYNAMIC
+	START(DATA_LIBDYNAMIC) {
+		unsigned key = REMOVE[i] + DELTA;
+		struct libdynamic_object key_obj;
+		struct libdynamic_object* key_ptr = &key_obj;
+		struct libdynamic_object* obj;
+		key_obj.value = key;
+		LIBDYNAMIC_RELEASE = 0;
+		map_erase(&libdynamic, &key_ptr, libdynamic_hash, libdynamic_equal, libdynamic_set, libdynamic_release);
+		obj = LIBDYNAMIC_RELEASE;
+		if (!obj)
+			abort();
+		if (dereference) {
+			if (obj->value != key)
+				abort();
+		}
+	} STOP();
+#endif
+
 #ifdef USE_CK
 	START(DATA_CK) {
 		unsigned key = REMOVE[i] + DELTA;
@@ -2403,6 +2569,11 @@ tommy_size_t rbt_size(rbtree_t* col, unsigned count)
 	return count * sizeof(element.link);
 }
 
+tommy_size_t libdynamic_size(map* ld)
+{
+	return sizeof(map) + ld->element_size * ld->elements_capacity;
+}
+
 void test_size(void)
 {
 #ifdef USE_JUDY
@@ -2436,6 +2607,9 @@ void test_size(void)
 #endif
 #ifdef USE_CUBE
 	MEM(DATA_CUBE, size_cube(cube));
+#endif
+#ifdef USE_LIBDYNAMIC
+	MEM(DATA_LIBDYNAMIC, libdynamic_size(&libdynamic));
 #endif
 }
 
