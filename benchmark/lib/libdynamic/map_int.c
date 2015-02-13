@@ -169,7 +169,7 @@ void map_int_rehash(map_int *map, size_t capacity_requested)
   if (map_int_roundup_size(capacity_requested + map->deleted) > map->capacity)
     {
       map_old = *map;
-      capacity = map_int_roundup_size(capacity_requested);
+      capacity = map_int_roundup_size(capacity_requested + map->deleted);
       map->keys = (uint32_t *) malloc(capacity * sizeof(*map->keys));
       map->values = malloc(capacity * map->value_size);
       for (i = 0; i < capacity; i ++)
