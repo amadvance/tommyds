@@ -73,7 +73,7 @@ tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* void_key, tom
 tommy_uint64_t tommy_hash_u64(tommy_uint64_t init_val, const void* void_key, tommy_size_t key_len);
 
 /**
- * Integer hash of 32 bits.
+ * Integer reversible hash function for 32 bits.
  * Implementation of the Robert Jenkins "4-byte Integer Hashing",
  * from http://burtleburtle.net/bob/hash/integer.html
  */
@@ -91,9 +91,9 @@ tommy_inline tommy_uint32_t tommy_inthash_u32(tommy_uint32_t key)
 }
 
 /**
- * Integer hash of 64 bits.
+ * Integer reversible hash function for 64 bits.
  * Implementation of the Thomas Wang "Integer Hash Function",
- * from http://www.cris.com/~Ttwang/tech/inthash.htm
+ * from http://web.archive.org/web/20071223173210/http://www.concentric.net/~Ttwang/tech/inthash.htm
  */
 tommy_inline tommy_uint64_t tommy_inthash_u64(tommy_uint64_t key)
 {
