@@ -237,6 +237,10 @@
  * starting at 0. Using a 0 base would have given an unfair advantage to some
  * implementation handling it as a special case.
  *
+ * For all the hashtables the keys are hashed using the tommy_inthash_u32() function
+ * that ensures to provide an uniform distribution of keys in the hashtable.
+ * For tries and trees the keys are not hashed, and used directly.
+ *
  * The tests are repeated using keys in <i>Random</i> mode and in <i>Forward</i> mode.
  * In the forward mode the key values are used in order from the lowest to the highest.
  * In the random mode the key values are used in a completely random order.
@@ -323,7 +327,7 @@
  * This is possible if you know in advance the distribution of keys.
  * For example, in the benchmark you could use something like:
  * \code
- * #define hash(v) tommy_inthash32(v & ~0xF) + (v & 0xF)
+ * #define hash(v) tommy_inthash_u32(v & ~0xF) + (v & 0xF)
  * \endcode
  * and make keys that differ only by the lowest bits
  * to have hashes with the same property, resulting in
