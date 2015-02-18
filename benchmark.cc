@@ -392,9 +392,9 @@ struct nedtrie_t nedtrie;
 khash_t(word)* khash;
 #ifdef __cplusplus
 /* use a specialized hash, otherwise the performance depends on the STL implementation used. */
-class cpp_tommy_inthash_u32 {
+class cpp_hash {
 public:
-	unsigned operator()(unsigned key) const { return tommy_inthash_u32(key); }
+	unsigned operator()(unsigned key) const { return hash(key); }
 };
 #endif
 #ifdef USE_CPPMAP
@@ -402,14 +402,14 @@ typedef std::map<unsigned, struct cpp_object*> cppmap_t;
 cppmap_t* cppmap;
 #endif
 #ifdef USE_CPPUNORDEREDMAP
-typedef std::unordered_map<unsigned, struct cpp_object*, cpp_tommy_inthash_u32> cppunorderedmap_t;
+typedef std::unordered_map<unsigned, struct cpp_object*, cpp_hash> cppunorderedmap_t;
 cppunorderedmap_t* cppunorderedmap;
 #endif
 #ifdef USE_GOOGLELIBCHASH
 struct HashTable* googlelibhash;
 #endif
 #ifdef USE_GOOGLEDENSEHASH
-typedef google::dense_hash_map<unsigned, struct google_object*, cpp_tommy_inthash_u32> googledensehash_t;
+typedef google::dense_hash_map<unsigned, struct google_object*, cpp_hash> googledensehash_t;
 googledensehash_t* googledensehash;
 #endif
 #ifdef USE_GOOGLEBTREE
