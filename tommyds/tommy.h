@@ -238,7 +238,8 @@
  * implementation handling it as a special case.
  *
  * For all the hashtables the keys are hashed using the tommy_inthash_u32() function
- * that ensures to provide an uniform distribution of keys in the hashtable.
+ * that ensures an uniform distribution. This hash function is also reversible,
+ * meaning that no collision is going to be caused by hashing the keys.
  * For tries and trees the keys are not hashed, and used directly.
  *
  * The tests are repeated using keys in <i>Random</i> mode and in <i>Forward</i> mode.
