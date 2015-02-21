@@ -219,9 +219,9 @@ Tommy benchmark program.
     random,     remove,   libdynamic,   50 [ns]
 OK
 */
-/* #define USE_LIBDYNAMIC */
+#define USE_LIBDYNAMIC
 #ifdef USE_LIBDYNAMIC
-#include "benchmark/lib/libdynamic/map_int.c"
+#include "benchmark/lib/libdynamic/mapi.c"
 #endif
 
 /* Concurrency Kit Hash Set */
@@ -333,8 +333,13 @@ struct cube_object {
 };
 
 struct libdynamic_object {
-	unsigned value;
+        unsigned value;
 	char payload[PAYLOAD];
+};
+
+struct libdynamic_pair {
+        unsigned key;
+        libdynamic_object *value;
 };
 
 struct ck_object {
@@ -497,7 +502,7 @@ Judy* judyarray = 0;
 struct cube* cube = 0;
 #endif
 #ifdef USE_LIBDYNAMIC
-struct map_int* libdynamic;
+struct mapi* libdynamic;
 #endif
 #ifdef USE_CK
 ck_hs_t ck;
@@ -1005,7 +1010,7 @@ void test_alloc(void)
 #ifdef USE_LIBDYNAMIC
 	COND(DATA_LIBDYNAMIC) {
 		LIBDYNAMIC = (struct libdynamic_object*)malloc(sizeof(struct libdynamic_object) * the_max);
-		libdynamic = map_int_new(sizeof(void*), -1, -2);
+		libdynamic = mapi_new(sizeof(struct libdynamic_pair));
 	}
 #endif
 
@@ -1168,7 +1173,7 @@ void test_free(void)
 #ifdef USE_LIBDYNAMIC
 	COND(DATA_LIBDYNAMIC) {
 		free(LIBDYNAMIC);
-		map_int_free(libdynamic);
+		mapi_free(libdynamic);
 	}
 #endif
 
@@ -1336,12 +1341,11 @@ void test_insert(unsigned* INSERT)
 
 #ifdef USE_LIBDYNAMIC
 	START(DATA_LIBDYNAMIC) {
-		void* ptr;
-		unsigned key = INSERT[i];
-		unsigned hash_key = hash(key);
-		struct libdynamic_object* obj = &LIBDYNAMIC[i];
-		obj->value = key;
-		map_int_insert(libdynamic, hash_key, &obj);
+	  unsigned key = INSERT[i];
+	  struct libdynamic_object* obj = &LIBDYNAMIC[i];
+	  struct libdynamic_pair pair = {hash(key), obj};
+	  obj->value = key;
+	  mapi_insert(libdynamic, &pair);
 	} STOP();
 #endif
 
@@ -1615,17 +1619,14 @@ void test_hit(unsigned* SEARCH)
 
 #ifdef USE_LIBDYNAMIC
 	START(DATA_LIBDYNAMIC) {
-		unsigned key = SEARCH[i] + DELTA;
-		unsigned hash_key = hash(key);
-		struct libdynamic_object* obj;
-		struct libdynamic_object** ptr = map_int_at(libdynamic, hash_key);
-		if (!ptr)
-			abort();
-		obj = *ptr;
-		if (dereference) {
-			if (obj->value != key)
-				abort();
-		}
+	  unsigned key = SEARCH[i] + DELTA;
+	  struct libdynamic_pair *pair =  mapi_at(libdynamic, hash(key));
+	  if (pair->key == -1)
+	    abort();
+	  if (dereference) {
+	    if (pair->value->value != key)
+	      abort();
+	  }
 	} STOP();
 #endif
 
@@ -1821,11 +1822,10 @@ void test_miss(unsigned* SEARCH)
 
 #ifdef USE_LIBDYNAMIC
 	START(DATA_LIBDYNAMIC) {
-		unsigned key = SEARCH[i] + DELTA;
-		unsigned hash_key = hash(key);
-		struct libdynamic_object** ptr = map_int_at(libdynamic, hash_key);
-		if (ptr)
-			abort();
+	  unsigned key = SEARCH[i] + DELTA;
+	  struct libdynamic_pair *pair = mapi_at(libdynamic, hash(key));
+	  if (pair->key != -1)
+	    abort();
 	} STOP();
 #endif
 
@@ -2136,17 +2136,19 @@ void test_change(unsigned* REMOVE, unsigned* INSERT)
 
 #ifdef USE_LIBDYNAMIC
 	START(DATA_LIBDYNAMIC) {
-		unsigned key = REMOVE[i];
-		unsigned hash_key = hash(key);
-		struct libdynamic_object* obj = 0;
-		map_int_erase(libdynamic, hash_key, &obj);
-		if (!obj)
-			abort();
+	  unsigned key = REMOVE[i];
+	  struct libdynamic_pair pair;
+	  struct libdynamic_object *obj;
 
-		key = INSERT[i] + DELTA;
-		hash_key = hash(key);
-		obj->value = key;
-		map_int_insert(libdynamic, hash_key, &obj);
+	  obj = mapi_erase(libdynamic, hash(key));
+	  if (!obj)
+	    abort();
+
+	  key = INSERT[i] + DELTA;
+	  obj->value = key;
+	  pair.key = hash(key);
+	  pair.value = obj;
+	  mapi_insert(libdynamic, &pair);
 	} STOP();
 #endif
 
@@ -2467,14 +2469,14 @@ void test_remove(unsigned* REMOVE)
 #ifdef USE_LIBDYNAMIC
 	START(DATA_LIBDYNAMIC) {
 		unsigned key = REMOVE[i] + DELTA;
-		unsigned hash_key = hash(key);
-		struct libdynamic_object* obj = 0;
-		map_int_erase(libdynamic, hash_key, &obj);
+		struct libdynamic_object *obj;
+
+		obj = mapi_erase(libdynamic, hash(key));
 		if (!obj)
-			abort();
+		  abort();
 		if (dereference) {
-			if (obj->value != key)
-				abort();
+		  if (obj->value != key)
+		    abort();
 		}
 	} STOP();
 #endif
