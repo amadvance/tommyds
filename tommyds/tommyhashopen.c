@@ -70,7 +70,6 @@ void tommy_hashopen_init(tommy_hashopen* hashopen)
 
 	hashopen->count = 0;
 	hashopen->filled_count = 0;
-	hashopen->deleted_count = 0;
 }
 
 void tommy_hashopen_done(tommy_hashopen* hashopen)
@@ -96,20 +95,15 @@ static void tommy_hashopen_resize(tommy_hashopen* hashopen, tommy_uint_t new_buc
 	/* allocate the new table */
 	tommy_hashopen_alloc(hashopen, new_bucket_bit);
 
-	/* reset the deleted counters */
-	hashopen->deleted_count = 0;
-
 	/* reinsert all the elements */
 	for (i = 0; i < old_bucket_max; ++i) {
 		tommy_hashopen_pos* old_pos = &old_bucket[i];
 
-		if (old_pos->ptr != TOMMY_HASHOPEN_EMPTY && old_pos->ptr != TOMMY_HASHOPEN_DELETED) {
+		if (old_pos->ptr != TOMMY_HASHOPEN_EMPTY) {
 			tommy_hashopen_pos* pos;
 			tommy_count_t j = old_pos->hash & hashopen->bucket_mask_cache;
 
 			/* search the first empty bucket */
-			/* we don't consider the DELETED case, because the new table */
-			/* has not yet any deleted entry. */
 			/* we don't consider the same hash, because it cannot yet */
 			/* exists an equal hash. */
 			while (1) {
@@ -136,14 +130,8 @@ static void tommy_hashopen_resize(tommy_hashopen* hashopen, tommy_uint_t new_buc
 tommy_inline void hashopen_grow_step(tommy_hashopen* hashopen)
 {
 	/* grow if more than 50% full */
-	if (hashopen->filled_count + hashopen->deleted_count >= hashopen->bucket_max / 2) {
-		/* reallocate the table taking into account both the filled entries */
-		/* and the deleted ones. This ensures to keep into account the size */
-		/* needed for future deletion. */
-		tommy_uint32_t up_size = tommy_roundup_pow2_u32((hashopen->filled_count + hashopen->deleted_count) * 2 + 1);
-		tommy_uint_t up_bit = tommy_ilog2_u32(up_size);
-		tommy_hashopen_resize(hashopen, up_bit);
-	}
+	if (hashopen->filled_count >= hashopen->bucket_max / 2)
+		tommy_hashopen_resize(hashopen, hashopen->bucket_bit + 1);
 }
 
 /**
@@ -152,12 +140,8 @@ tommy_inline void hashopen_grow_step(tommy_hashopen* hashopen)
 tommy_inline void hashopen_shrink_step(tommy_hashopen* hashopen)
 {
 	/* shrink if less than 12.5% full */
-	if (hashopen->filled_count <= hashopen->bucket_max / 8 && hashopen->bucket_bit > TOMMY_HASHOPEN_BIT) {
-		/* reallocate the table taking into account only the filled entries */
-		tommy_uint32_t up_size = tommy_roundup_pow2_u32(hashopen->filled_count * 2 + 1);
-		tommy_uint_t up_bit = tommy_ilog2_u32(up_size);
-		tommy_hashopen_resize(hashopen, up_bit);
-	}
+	if (hashopen->filled_count <= hashopen->bucket_max / 8 && hashopen->bucket_bit > TOMMY_HASHOPEN_BIT)
+		tommy_hashopen_resize(hashopen, hashopen->bucket_bit - 1);
 }
 
 void tommy_hashopen_insert(tommy_hashopen* hashopen, tommy_hashopen_node* node, void* data, tommy_hash_t hash)
@@ -169,11 +153,6 @@ void tommy_hashopen_insert(tommy_hashopen* hashopen, tommy_hashopen_node* node, 
 		tommy_list_insert_first(&pos->ptr, node);
 		pos->hash = hash;
 		++hashopen->filled_count;
-	} else if (pos->ptr == TOMMY_HASHOPEN_DELETED) {
-		tommy_list_insert_first(&pos->ptr, node);
-		pos->hash = hash;
-		++hashopen->filled_count;
-		--hashopen->deleted_count;
 	} else {
 		/* otherwise it already contains elements with the correct hash */
 		tommy_list_insert_tail_not_empty(pos->ptr, node);
@@ -187,6 +166,62 @@ void tommy_hashopen_insert(tommy_hashopen* hashopen, tommy_hashopen_node* node, 
 	hashopen_grow_step(hashopen);
 }
 
+/**
+ * Refill the specified bucket shifting backward following elements.
+ *
+ * It's a linear search of the next empty bucket, with a shift of
+ * all the elements that can be shifted.
+ */
+tommy_inline void tommy_hashopen_refill(tommy_hashopen* hashopen, tommy_hashopen_pos* refill_pos)
+{
+	tommy_count_t refill = refill_pos - hashopen->bucket;
+	tommy_count_t candidate = (refill + 1) & hashopen->bucket_mask;
+	while (1) {
+		tommy_count_t target;
+
+		/* candidate element */
+		tommy_hashopen_pos* pos = &hashopen->bucket[candidate];
+
+		/* if it's empty, we don't need to search more */
+		if (pos->ptr == TOMMY_HASHOPEN_EMPTY) {
+			/* set the bucket as empty */
+			refill_pos->ptr = TOMMY_HASHOPEN_EMPTY;
+			return;
+		}
+
+		/* get the target position where the candidate should go */
+		target = pos->hash & hashopen->bucket_mask_cache;
+
+		/* identify if candidate overflowed the table respect to refill */
+		if (refill < candidate) {
+			/* if the candidate can be moved */
+			if (target <= refill || target > candidate) {
+				/* move it */
+				*refill_pos = *pos;
+
+				/* set the new refill position */
+				refill_pos = pos;
+				refill = candidate;
+			}
+		} else {
+			/* we had an overflow on the table size */
+
+			/* if the candidate can be moved */
+			if (target <= refill && target > candidate) {
+				/* move it */
+				*refill_pos = *pos;
+
+				/* set the new refill position */
+				refill_pos = pos;
+				refill = candidate;
+			}
+		}
+
+		/* check the next candidate */
+		candidate = (candidate + 1) & hashopen->bucket_mask;
+	}
+}
+
 void* tommy_hashopen_remove_existing(tommy_hashopen* hashopen, tommy_hashopen_node* node)
 {
 	tommy_hashopen_pos* pos = tommy_hashopen_bucket(hashopen, node->key);
@@ -196,10 +231,8 @@ void* tommy_hashopen_remove_existing(tommy_hashopen* hashopen, tommy_hashopen_no
 
 	/* if it's empty */
 	if (!pos->ptr) {
-		/* set it as deleted */
-		pos->ptr = TOMMY_HASHOPEN_DELETED;
+		tommy_hashopen_refill(hashopen, pos);
 		--hashopen->filled_count;
-		++hashopen->deleted_count;
 	}
 
 	--hashopen->count;
@@ -215,8 +248,7 @@ void* tommy_hashopen_remove(tommy_hashopen* hashopen, tommy_compare_func* cmp, c
 	tommy_hashopen_node* j;
 
 	/* if empty bucket, it's missing */
-	if (pos->ptr == TOMMY_HASHOPEN_EMPTY
-		|| pos->ptr == TOMMY_HASHOPEN_DELETED)
+	if (pos->ptr == TOMMY_HASHOPEN_EMPTY)
 		return 0;
 
 	/* for sure we have at least one object */
@@ -227,10 +259,8 @@ void* tommy_hashopen_remove(tommy_hashopen* hashopen, tommy_compare_func* cmp, c
 
 			/* if it's empty */
 			if (!pos->ptr) {
-				/* set it as deleted */
-				pos->ptr = TOMMY_HASHOPEN_DELETED;
+				tommy_hashopen_refill(hashopen, pos);
 				--hashopen->filled_count;
-				++hashopen->deleted_count;
 			}
 
 			--hashopen->count;

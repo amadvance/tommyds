@@ -156,11 +156,6 @@ typedef tommy_node tommy_hashopen_node;
 #define TOMMY_HASHOPEN_EMPTY ((tommy_hashopen_node*)0)
 
 /** \internal
- * Identifier for deleted bucket.
- */
-#define TOMMY_HASHOPEN_DELETED ((tommy_hashopen_node*)1)
-
-/** \internal
  * Open addressing hashtable bucket.
  */
 typedef struct tommy_hashopen_pos_struct {
@@ -180,7 +175,6 @@ typedef struct tommy_hashopen_struct {
 	tommy_count_t bucket_mask; /**< Bit mask to access the buckets. */
 	tommy_count_t count; /**< Number of elements. */
 	tommy_count_t filled_count; /**< Number of filled buckets. */
-	tommy_count_t deleted_count; /**< Number of deleted buckets. */
 } tommy_hashopen;
 
 /**
@@ -222,19 +216,13 @@ void* tommy_hashopen_remove(tommy_hashopen* hashopen, tommy_compare_func* cmp, c
 tommy_inline tommy_hashopen_pos* tommy_hashopen_bucket(tommy_hashopen* hashopen, tommy_hash_t hash)
 {
 	tommy_count_t i = hash & hashopen->bucket_mask_cache;
-	tommy_hashopen_pos* empty = 0;
 
 	while (1) {
 		tommy_hashopen_pos* pos = &hashopen->bucket[i];
 
 		/* if the bucket is empty, the element is missing */
 		if (pos->ptr == TOMMY_HASHOPEN_EMPTY) {
-			if (!empty)
-				empty = pos;
-			return empty;
-		} else if (pos->ptr == TOMMY_HASHOPEN_DELETED) {
-			if (!empty)
-				empty = pos;
+			return pos;
 		} else if (pos->hash == hash) {
 			/* if the hash match, it's the right one */
 			return pos;
@@ -261,8 +249,7 @@ tommy_inline void* tommy_hashopen_search(tommy_hashopen* hashopen, tommy_compare
 	tommy_hashopen_node* j;
 
 	/* if empty bucket, it's missing */
-	if (pos->ptr == TOMMY_HASHOPEN_EMPTY
-		|| pos->ptr == TOMMY_HASHOPEN_DELETED)
+	if (pos->ptr == TOMMY_HASHOPEN_EMPTY)
 		return 0;
 
 	j = pos->ptr;
