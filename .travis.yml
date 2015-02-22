@@ -1,0 +1,10 @@
+# Travis CI configuration file
+
+language: c
+
+script: make check
+
+compiler:
+  - clang
+  - gcc
+

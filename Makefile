@@ -1,17 +1,30 @@
 #############################################################################
 # Tommy Makefile
 
-VERSION=2.0
-CFLAGS=-m32 -O3 -march=pentium4 -mtune=generic -Wall -Wextra -Wshadow -Wcast-qual -g
-# -std=gnu++11 required by Google btree
-CXXFLAGS=$(CFLAGS) -fpermissive -std=gnu++11
-CC=gcc
-CXX=g++
-UNAME=$(shell uname)
+# Version of TommyDS
+VERSION = 2.1
+
+# Build options for the check program
+ifdef COVERAGE
+CFLAGS = -O0 -g -fprofile-arcs -ftest-coverage
+else
+CFLAGS = -O3 -march=native -Wall -Wextra -Wshadow -Wcast-qual -g
+endif
+
+# Build options for the benchmark
+# -std=gnu++0x required by Google btree
+BENCHCXXFLAGS = -m32 -O3 -march=nehalem -fpermissive -std=gnu++0x -Wall -g
+
+# Programs
+CC ?= gcc
+CXX ?= g++
+OBJDUMP ?= objdump
+UNAME = $(shell uname)
 
 # Linux
 ifeq ($(UNAME),Linux)
-LIB=-lrt benchmark/lib/judy/libJudyL.a benchmark/lib/judy/libJudyMalloc.a
+LIB=-lrt
+BENCHLIB=benchmark/lib/judy/libJudyL.a benchmark/lib/judy/libJudyMalloc.a
 EXE=
 O=.o
 endif
@@ -25,13 +38,13 @@ endif
 
 # Windows
 ifeq ($(UNAME),)
-LIB=benchmark/lib/judy/src/judy.lib
+BENCHLIB=benchmark/lib/judy/src/judy.lib
 EXE=.exe
 O=.obj
 endif
 
-CHECK = ./tommybench -N 1000000 -d tommy-hashlin
-#CHECK = ./tommycheck
+#CHECK = ./tommybench -n 1000000 -d tommy-hashlin
+CHECK = ./tommycheck
 
 DEP = \
 	tommyds/tommyalloc.c \
@@ -69,23 +82,42 @@ DEPTEST = \
 	check.c \
 	benchmark.cc
 
-all: tommycheck$(EXE) tommybench$(EXE)
+all: tommycheck$(EXE)
+
+bench: tommybench$(EXE)
 
 tommy$(O): $(DEP)
 	$(CC) $(CFLAGS) -c tommyds/tommy.c -o tommy$(O)
-	$(CC) $(CFLAGS) -S -fverbose-asm tommyds/tommy.c -o tommy.s
-	objdump -S tommy$(O) > tommy.S
+	$(OBJDUMP) -S tommy$(O) > tommy.s
 
 tommycheck$(EXE): check.c tommy$(O)
 	$(CC) $(CFLAGS) check.c tommy$(O) -o tommycheck$(EXE) $(LIB)
 
 tommybench$(EXE): benchmark.cc $(DEP)
-	$(CXX) $(CXXFLAGS) benchmark.cc -o tommybench$(EXE) $(LIB)
+	$(CXX) $(BENCHCXXFLAGS) benchmark.cc -o tommybench$(EXE) $(LIB) $(BENCHLIB)
 
-check: tommycheck$(EXE) tommybench$(EXE)
+check: tommycheck$(EXE)
 	./tommycheck$(EXE)
-	./tommybench$(EXE) -N 100000
 	echo Check completed with success!
+
+lcov_reset:
+	lcov -d . -z
+	rm -f ./lcov.info
+
+lcov_capture:
+	lcov -d . --capture -o lcov.info
+
+lcov_html:
+	rm -rf ./cov
+	mkdir cov
+	genhtml -o ./cov lcov.info
+
+coverage:
+	$(MAKE) COVERAGE=1 tommycheck$(EXE)
+	$(MAKE) lcov_reset
+	./tommycheck$(EXE)
+	$(MAKE) lcov_capture
+	$(MAKE) lcov_html
 
 valgrind:
 	valgrind \
@@ -138,8 +170,9 @@ web: phony tommyweb.doxygen tommy.css $(DEP)
 	rm -f web/tab_*.png
 
 clean:
-	rm -f *.log *.s *.S *.lst *.o
+	rm -f *.log *.s *.lst *.o
 	rm -f *.ncb *.suo *.obj
+	rm -f *.gcno *.gcda lcov.info
 	rm -rf Debug Release x64
 	rm -f callgrind.out.*
 	rm -f cachegrind.out.*
@@ -178,3 +211,7 @@ dist:
 	zip -r $(DIST).zip $(DIST)
 	rm -r $(DIST)
 
+distcheck: dist
+	tar zxvf $(DIST).tar.gz
+	cd $(DIST) && make check
+	rm -rf $(DIST)

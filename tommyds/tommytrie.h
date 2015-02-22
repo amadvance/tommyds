@@ -111,10 +111,9 @@
  * \endcode
  *
  * To destroy the trie you have to remove all the elements, and deinitialize
- * the trie calling tommy_trie_done() and the allocator using tommy_allocator_done().
+ * the allocator using tommy_allocator_done().
  *
  * \code
- * tommy_trie_done(&trie);
  * tommy_allocator_done(&alloc);
  * \endcode
  *
@@ -244,7 +243,7 @@ tommy_inline void* tommy_trie_search(tommy_trie* trie, tommy_key_t key)
 void* tommy_trie_remove_existing(tommy_trie* trie, tommy_trie_node* node);
 
 /**
- * Returns the number of elements.
+ * Gets the number of elements.
  */
 tommy_inline tommy_count_t tommy_trie_count(tommy_trie* trie)
 {

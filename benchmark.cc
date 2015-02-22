@@ -186,7 +186,7 @@ typedef size_t ssize_t;
 /* Concurrency Kit Hash Set */
 /* http://concurrencykit.org/ */
 /* Note that it has a VERY BAD performance on the "Change" test, */
-/* so we disable it in the general graphs */
+/* so we disable it in the graphs until further investigation */
 /* #define USE_CK */
 #if defined(USE_CK) && defined(__linux)
 /* if you enable it, ensure to link also with the -lck option */
@@ -394,9 +394,9 @@ struct nedtrie_t nedtrie;
 khash_t(word)* khash;
 #ifdef __cplusplus
 /* use a specialized hash, otherwise the performance depends on the STL implementation used. */
-class cpp_tommy_inthash_u32 {
+class cpp_hash {
 public:
-	unsigned operator()(unsigned key) const { return tommy_inthash_u32(key); }
+	unsigned operator()(unsigned key) const { return hash(key); }
 };
 #endif
 #ifdef USE_CPPMAP
@@ -404,14 +404,14 @@ typedef std::map<unsigned, struct cpp_object*> cppmap_t;
 cppmap_t* cppmap;
 #endif
 #ifdef USE_CPPUNORDEREDMAP
-typedef std::unordered_map<unsigned, struct cpp_object*, cpp_tommy_inthash_u32> cppunorderedmap_t;
+typedef std::unordered_map<unsigned, struct cpp_object*, cpp_hash> cppunorderedmap_t;
 cppunorderedmap_t* cppunorderedmap;
 #endif
 #ifdef USE_GOOGLELIBCHASH
 struct HashTable* googlelibhash;
 #endif
 #ifdef USE_GOOGLEDENSEHASH
-typedef google::dense_hash_map<unsigned, struct google_object*, cpp_tommy_inthash_u32> googledensehash_t;
+typedef google::dense_hash_map<unsigned, struct google_object*, cpp_hash> googledensehash_t;
 googledensehash_t* googledensehash;
 #endif
 #ifdef USE_GOOGLEBTREE
@@ -2598,7 +2598,7 @@ void test(unsigned size, unsigned data, int log, int sparse)
 
 					printf("%12u", the_max);
 
-					printf(" %16s %16s", DATA_NAME[the_data], ORDER_NAME[the_order]);
+					printf(" %18s %10s", DATA_NAME[the_data], ORDER_NAME[the_order]);
 
 					/* skip degenerated cases */
 					if (LAST[the_data][the_order] > TIME_MAX_NS) {
@@ -2619,7 +2619,7 @@ void test(unsigned size, unsigned data, int log, int sparse)
 					if (the_log) {
 						for(i=0;i<OPERATION_MAX;++i)
 							printf(" %4u", LOG[the_retry][the_data][the_order][i]);
-						printf(" [ms]\n");
+						printf(" [ns]\n");
 					}
 				}
 			}
@@ -2673,34 +2673,14 @@ void test(unsigned size, unsigned data, int log, int sparse)
 	}
 }
 
-void test_cache_miss(void)
+void help(void)
 {
-	unsigned size = 512*1024*1024;
-	unsigned char* DATA = (unsigned char*)malloc(size);
-	unsigned delta = 512;
-	tommy_uint64_t miss_time;
-	unsigned i, j;
-	tommy_uint64_t result = 0;
-
-	memset(DATA, 0, size);
-
-	for(j=0;j<8;++j) {
-		tommy_uint64_t start, stop;
-		start = nano();
-		for(i=0;i<size;i += delta) {
-			++DATA[i];
-		}
-		stop = nano();
-
-		if (!result || result > stop - start)
-			result = stop - start;
-	}
-
-	free(DATA);
-
-	miss_time = result * delta / size;
-
-	printf("Cache miss %d [ns]\n", (unsigned)miss_time);
+	printf("Options\n");
+	printf("-n NUMBER Run the test for the specified number of objects.\n");
+	printf("-m        Run the test for the maximum number of objects.\n");
+	printf("-d DATA   Run the test for the specified data structure.\n");
+	printf("-s        Use a sparse dataset intead of a compact one.\n");
+	printf("-l        Logs results into file for graphs creation.\n");
 }
 
 int main(int argc, char * argv[])
@@ -2709,7 +2689,6 @@ int main(int argc, char * argv[])
 	int flag_data = DATA_MAX;
 	int flag_size = 0;
 	int flag_log = 0;
-	int flag_miss = 0;
 	int flag_sparse = 0;
 
 	nano_init();
@@ -2722,12 +2701,10 @@ int main(int argc, char * argv[])
 		} else if (strcmp(argv[i], "-s") == 0) {
 			flag_sparse = 1;
 		} else if (strcmp(argv[i], "-m") == 0) {
-			flag_miss = 1;
-		} else if (strcmp(argv[i], "-n") == 0) {
 			flag_size = MAX;
-		} else if (strcmp(argv[i], "-N") == 0) {
+		} else if (strcmp(argv[i], "-n") == 0) {
 			if (i+1 >= argc) {
-				printf("Missing data in %s\n", argv[i]);
+				printf("Missing number of objects in %s\n", argv[i]);
 				exit(EXIT_FAILURE);
 			}
 			flag_size = atoi(argv[i+1]);
@@ -2745,19 +2722,20 @@ int main(int argc, char * argv[])
 				}
 			}
 			if (flag_data == DATA_MAX) {
-				printf("Unknown data %s\n", argv[i+1]);
+				printf("Unknown data name '%s'\n", argv[i+1]);
+				printf("Possible values are:\n");
+				for(j=0;j<DATA_MAX;++j) {
+					printf("\t%s\n", DATA_NAME[j]);
+				}
 				exit(EXIT_FAILURE);
 			}
+
 			++i;
 		} else {
 			printf("Unknown option %s\n", argv[i]);
+			help();
 			exit(EXIT_FAILURE);
 		} 
-	}
-
-	if (flag_miss) {
-		test_cache_miss();
-		return EXIT_SUCCESS;
 	}
 
 	test(flag_size, flag_data, flag_log, flag_sparse);

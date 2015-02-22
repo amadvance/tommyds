@@ -1,12 +1,18 @@
 TommyDS HISTORY
 ===============
 
-2.0 2014/10
+2.1 2014/12 BETA
+================
+
+2.0 2014/12
 ===========
+ * Fixed a Segmentation Fault bug in the trie_inplace container when inserting
+   duplicate elements.
  * Faster array and hashlin implementation when accessing elements.
  * Added new hashtable functions to iterate over all the elements.
  * Added a new tommy_calloc() function used for allocating initialized memory.
    If you redefined tommy_malloc(), likely you have to redefine also tommy_calloc().
+ * Reached 100% code coverage in the regression test.      
  * Different source code organization.
  * Added benchmark comparison with Binary Search Tesseract by Gregorius van
    den Hoven.

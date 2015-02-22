@@ -1,7 +1,7 @@
 load "gr_common.gnu"
 
 tdir = "def/"
-tsub = "\nCore i5 650 3.20 GHz, 4 MB L3 cache, 2400 Uncore Speed\nLinux, gcc 4.7.1, 32 bit"
+tsub = "\nCore i5 650 3.20 GHz, 4 MB L3 cache, 2400 Uncore Speed\nLinux, gcc 4.9.2, 32 bit"
 
 set output bdir.tdir."img_random_hit".bext
 set title "Random Hit".tsub

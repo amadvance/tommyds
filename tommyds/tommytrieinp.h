@@ -222,7 +222,7 @@ tommy_inline void* tommy_trie_inplace_search(tommy_trie_inplace* trie_inplace, t
 void* tommy_trie_inplace_remove_existing(tommy_trie_inplace* trie_inplace, tommy_trie_inplace_node* node);
 
 /**
- * Returns the number of elements.
+ * Gets the number of elements.
  */
 tommy_inline tommy_count_t tommy_trie_inplace_count(tommy_trie_inplace* trie_inplace)
 {

@@ -40,6 +40,20 @@
 #define TOMMY_HASHLIN_STATE_GROW 1
 #define TOMMY_HASHLIN_STATE_SHRINK 2
 
+/**
+ * Set the hashtable in stable state.
+ */
+tommy_inline void tommy_hashlin_stable(tommy_hashlin* hashlin)
+{
+	hashlin->state = TOMMY_HASHLIN_STATE_STABLE;
+
+	/* setup low_mask/max/split to allow tommy_hashlin_bucket_ref() */
+	/* and tommy_hashlin_foreach() to work regardless we are in stable state */
+	hashlin->low_max = hashlin->bucket_max;
+	hashlin->low_mask = hashlin->bucket_mask;
+	hashlin->split = 0;
+}
+
 void tommy_hashlin_init(tommy_hashlin* hashlin)
 {
 	tommy_uint_t i;
@@ -53,7 +67,7 @@ void tommy_hashlin_init(tommy_hashlin* hashlin)
 		hashlin->bucket[i] = hashlin->bucket[0];
 
 	/* stable state */
-	hashlin->state = TOMMY_HASHLIN_STATE_STABLE;
+	tommy_hashlin_stable(hashlin);
 
 	hashlin->count = 0;
 }
@@ -67,45 +81,6 @@ void tommy_hashlin_done(tommy_hashlin* hashlin)
 		tommy_hashlin_node** segment = hashlin->bucket[i];
 		tommy_free(&segment[((tommy_ptrdiff_t)1) << i]);
 	}
-}
-
-/**
- * Return the bucket at the specified pos.
- */
-tommy_inline tommy_hashlin_node** tommy_hashlin_pos(tommy_hashlin* hashlin, tommy_hash_t pos)
-{
-	tommy_uint_t bsr;
-
-	/* get the highest bit set, in case of all 0, return 0 */
-	bsr = tommy_ilog2_u32(pos | 1);
-
-	return &hashlin->bucket[bsr][pos];
-}
-
-/**
- * Return the bucket to use.
- */
-tommy_inline tommy_hashlin_node** tommy_hashlin_bucket_ptr(tommy_hashlin* hashlin, tommy_hash_t hash)
-{
-	tommy_count_t pos;
-
-	/* if we are reallocating */
-	if (hashlin->state != TOMMY_HASHLIN_STATE_STABLE) {
-		/* compute the old position */
-		pos = hash & hashlin->low_mask;
-
-		/* if we have not reallocated this position yet */
-		if (pos >= hashlin->split) {
-
-			/* use it as it was before */
-			return tommy_hashlin_pos(hashlin, pos);
-		}
-	}
-
-	/* otherwise operates normally */
-	pos = hash & hashlin->bucket_mask;
-
-	return tommy_hashlin_pos(hashlin, pos);
 }
 
 /**
@@ -135,7 +110,7 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 			/* cast to ptrdiff_t to ensure to get a negative value */
 			hashlin->bucket[hashlin->bucket_bit] = &segment[-(tommy_ptrdiff_t)hashlin->low_max];
 
-			/* grow the hash size and allocate */
+			/* grow the hash size */
 			++hashlin->bucket_bit;
 			hashlin->bucket_max = 1 << hashlin->bucket_bit;
 			hashlin->bucket_mask = hashlin->bucket_max - 1;
@@ -172,17 +147,17 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 			*split[0] = 0;
 			*split[1] = 0;
 
-			/* compute the bit to identify the bucket */
-			mask = hashlin->bucket_mask & ~hashlin->low_mask;
+			/* the bit used to identify the bucket */
+			mask = hashlin->low_max;
 
 			/* flush the bucket */
 			while (j) {
 				tommy_hashlin_node* j_next = j->next;
-				tommy_count_t index = (j->key & mask) != 0;
-				if (*split[index])
-					tommy_list_insert_tail_not_empty(*split[index], j);
+				tommy_count_t pos = (j->key & mask) != 0;
+				if (*split[pos])
+					tommy_list_insert_tail_not_empty(*split[pos], j);
 				else
-					tommy_list_insert_first(split[index], j);
+					tommy_list_insert_first(split[pos], j);
 				j = j_next;
 			}
 
@@ -191,7 +166,8 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 
 			/* if we have finished, change the state */
 			if (hashlin->split == hashlin->low_max) {
-				hashlin->state = TOMMY_HASHLIN_STATE_STABLE;
+				/* go in stable mode */
+				tommy_hashlin_stable(hashlin);
 				break;
 			}
 		}
@@ -251,8 +227,6 @@ tommy_inline void hashlin_shrink_step(tommy_hashlin* hashlin)
 			if (hashlin->split == 0) {
 				tommy_hashlin_node** segment;
 
-				hashlin->state = TOMMY_HASHLIN_STATE_STABLE;
-
 				/* shrink the hash size */
 				--hashlin->bucket_bit;
 				hashlin->bucket_max = 1 << hashlin->bucket_bit;
@@ -261,6 +235,9 @@ tommy_inline void hashlin_shrink_step(tommy_hashlin* hashlin)
 				/* free the last segment */
 				segment = hashlin->bucket[hashlin->bucket_bit];
 				tommy_free(&segment[((tommy_ptrdiff_t)1) << hashlin->bucket_bit]);
+
+				/* go in stable mode */
+				tommy_hashlin_stable(hashlin);
 				break;
 			}
 		}
@@ -269,7 +246,7 @@ tommy_inline void hashlin_shrink_step(tommy_hashlin* hashlin)
 
 void tommy_hashlin_insert(tommy_hashlin* hashlin, tommy_hashlin_node* node, void* data, tommy_hash_t hash)
 {
-	tommy_list_insert_tail(tommy_hashlin_bucket_ptr(hashlin, hash), node, data);
+	tommy_list_insert_tail(tommy_hashlin_bucket_ref(hashlin, hash), node, data);
 
 	node->key = hash;
 
@@ -280,7 +257,7 @@ void tommy_hashlin_insert(tommy_hashlin* hashlin, tommy_hashlin_node* node, void
 
 void* tommy_hashlin_remove_existing(tommy_hashlin* hashlin, tommy_hashlin_node* node)
 {
-	tommy_list_remove_existing(tommy_hashlin_bucket_ptr(hashlin, node->key), node);
+	tommy_list_remove_existing(tommy_hashlin_bucket_ref(hashlin, node->key), node);
 
 	--hashlin->count;
 
@@ -289,14 +266,9 @@ void* tommy_hashlin_remove_existing(tommy_hashlin* hashlin, tommy_hashlin_node* 
 	return node->data;
 }
 
-tommy_hashlin_node* tommy_hashlin_bucket(tommy_hashlin* hashlin, tommy_hash_t hash)
-{
-	return *tommy_hashlin_bucket_ptr(hashlin, hash);
-}
-
 void* tommy_hashlin_remove(tommy_hashlin* hashlin, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)
 {
-	tommy_hashlin_node** let_ptr = tommy_hashlin_bucket_ptr(hashlin, hash);
+	tommy_hashlin_node** let_ptr = tommy_hashlin_bucket_ref(hashlin, hash);
 	tommy_hashlin_node* node = *let_ptr;
 
 	while (node) {
@@ -321,12 +293,8 @@ void tommy_hashlin_foreach(tommy_hashlin* hashlin, tommy_foreach_func* func)
 	tommy_count_t bucket_max;
 	tommy_count_t pos;
 
-	/* if we are reallocating */
-	if (hashlin->state != TOMMY_HASHLIN_STATE_STABLE) {
-		bucket_max = hashlin->low_max + hashlin->split;
-	} else {
-		bucket_max = hashlin->bucket_max;
-	}
+	/* number of valid buckets */
+	bucket_max = hashlin->low_max + hashlin->split;
 
 	for (pos = 0; pos < bucket_max; ++pos) {
 		tommy_hashlin_node* node = *tommy_hashlin_pos(hashlin, pos);
@@ -344,12 +312,8 @@ void tommy_hashlin_foreach_arg(tommy_hashlin* hashlin, tommy_foreach_arg_func* f
 	tommy_count_t bucket_max;
 	tommy_count_t pos;
 
-	/* if we are reallocating */
-	if (hashlin->state != TOMMY_HASHLIN_STATE_STABLE) {
-		bucket_max = hashlin->low_max + hashlin->split;
-	} else {
-		bucket_max = hashlin->bucket_max;
-	}
+	/* number of valid buckets */
+	bucket_max = hashlin->low_max + hashlin->split;
 
 	for (pos = 0; pos < bucket_max; ++pos) {
 		tommy_hashlin_node* node = *tommy_hashlin_pos(hashlin, pos);

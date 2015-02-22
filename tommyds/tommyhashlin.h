@@ -201,7 +201,6 @@ void tommy_hashlin_insert(tommy_hashlin* hashlin, tommy_hashlin_node* node, void
  * You have to provide a compare function and the hash of the element you want to remove.
  * If the element is not found, 0 is returned.
  * If more equal elements are present, the first one is removed.
- * This operation is faster than calling tommy_hashlin_bucket() and tommy_hashlin_remove_existing() separately.
  * \param cmp Compare function called with cmp_arg as first argument and with the element to compare as a second one.
  * The function should return 0 for equal elements, anything other for different elements.
  * \param cmp_arg Compare argument passed as first argument of the compare function.
@@ -209,6 +208,48 @@ void tommy_hashlin_insert(tommy_hashlin* hashlin, tommy_hashlin_node* node, void
  * \return The removed element, or 0 if not found.
  */
 void* tommy_hashlin_remove(tommy_hashlin* hashlin, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash);
+
+/** \internal
+ * Returns the bucket at the specified position.
+ */
+tommy_inline tommy_hashlin_node** tommy_hashlin_pos(tommy_hashlin* hashlin, tommy_hash_t pos)
+{
+	tommy_uint_t bsr;
+
+	/* get the highest bit set, in case of all 0, return 0 */
+	bsr = tommy_ilog2_u32(pos | 1);
+
+	return &hashlin->bucket[bsr][pos];
+}
+
+/** \internal
+ * Returns a pointer to the bucket of the specified hash.
+ */
+tommy_inline tommy_hashlin_node** tommy_hashlin_bucket_ref(tommy_hashlin* hashlin, tommy_hash_t hash)
+{
+	tommy_count_t pos;
+	tommy_count_t high_pos;
+
+	pos = hash & hashlin->low_mask;
+	high_pos = hash & hashlin->bucket_mask;
+
+	/* if this position is already allocated in the high half */
+	if (pos < hashlin->split) {
+		/* The following assigment is expected to be implemented */
+		/* with a conditional move instruction */
+		/* that results in a little better and constant performance */
+		/* regardless of the split position. */
+		/* This affects mostly the worst case, when the split value */
+		/* is near at its half, resulting in a totally unpredictable */
+		/* condition by the CPU. */
+		/* In such case the use of the conditional move is generally faster. */
+
+		/* use also the high bit */
+		pos = high_pos;
+	}
+
+	return tommy_hashlin_pos(hashlin, pos);
+}
 
 /**
  * Gets the bucket of the specified hash.
@@ -218,7 +259,10 @@ void* tommy_hashlin_remove(tommy_hashlin* hashlin, tommy_search_func* cmp, const
  * \param hash Hash of the element to find.
  * \return The head of the bucket, or 0 if empty.
  */
-tommy_hashlin_node* tommy_hashlin_bucket(tommy_hashlin* hashlin, tommy_hash_t hash);
+tommy_inline tommy_hashlin_node* tommy_hashlin_bucket(tommy_hashlin* hashlin, tommy_hash_t hash)
+{
+	return *tommy_hashlin_bucket_ref(hashlin, hash);
+}
 
 /**
  * Searches an element in the hashtable.
@@ -283,7 +327,7 @@ void* tommy_hashlin_remove_existing(tommy_hashlin* hashlin, tommy_hashlin_node* 
 void tommy_hashlin_foreach(tommy_hashlin* hashlin, tommy_foreach_func* func);
 
 /**
- * Calls the specified function with argument for each element in the hashtable.
+ * Calls the specified function with an argument for each element in the hashtable.
  */
 void tommy_hashlin_foreach_arg(tommy_hashlin* hashlin, tommy_foreach_arg_func* func, void* arg);
 
