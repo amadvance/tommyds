@@ -49,6 +49,8 @@ DEP = \
 	tommyds/tommyhash.c \
 	tommyds/tommyhashdyn.c \
 	tommyds/tommyhashdyn.h \
+	tommyds/tommyhashopen.c \
+	tommyds/tommyhashopen.h \
 	tommyds/tommyhash.h \
 	tommyds/tommyhashlin.c \
 	tommyds/tommyhashlin.h \
