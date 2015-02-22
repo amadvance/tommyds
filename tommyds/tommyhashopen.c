@@ -162,21 +162,21 @@ tommy_inline void hashopen_shrink_step(tommy_hashopen* hashopen)
 
 void tommy_hashopen_insert(tommy_hashopen* hashopen, tommy_hashopen_node* node, void* data, tommy_hash_t hash)
 {
-	tommy_hashopen_pos* i = tommy_hashopen_bucket(hashopen, hash);
+	tommy_hashopen_pos* pos = tommy_hashopen_bucket(hashopen, hash);
 
 	/* if the bucket is empty or deleted */
-	if (i->ptr == TOMMY_HASHOPEN_EMPTY) {
-		tommy_list_insert_first(&i->ptr, node);
-		i->hash = hash;
+	if (pos->ptr == TOMMY_HASHOPEN_EMPTY) {
+		tommy_list_insert_first(&pos->ptr, node);
+		pos->hash = hash;
 		++hashopen->filled_count;
-	} else if (i->ptr == TOMMY_HASHOPEN_DELETED) {
-		tommy_list_insert_first(&i->ptr, node);
-		i->hash = hash;
+	} else if (pos->ptr == TOMMY_HASHOPEN_DELETED) {
+		tommy_list_insert_first(&pos->ptr, node);
+		pos->hash = hash;
 		++hashopen->filled_count;
 		--hashopen->deleted_count;
 	} else {
 		/* otherwise it already contains elements with the correct hash */
-		tommy_list_insert_tail_not_empty(i->ptr, node);
+		tommy_list_insert_tail_not_empty(pos->ptr, node);
 	}
 
 	node->data = data;

@@ -214,8 +214,7 @@ void* tommy_hashopen_remove(tommy_hashopen* hashopen, tommy_compare_func* cmp, c
 
 /**
  * Gets the bucket of the specified hash.
- * The bucket is guaranteed to contain ALL the elements with the specified hash,
- * but it can contain also others.
+ * The bucket is guaranteed to contain ALL the elements with the specified hash, and only them.
  * You can access elements in the bucket following the ::next pointer until 0.
  * \param hash Hash of the element to find.
  * \return The bucket for the specified hash. It could be an empty one, or the one with the hash already set.
@@ -268,6 +267,8 @@ tommy_inline void* tommy_hashopen_search(tommy_hashopen* hashopen, tommy_compare
 
 	j = pos->ptr;
 	while (j) {
+		/* we don't check the hash because we have the guarantee */
+		/* that the bucket contains only elements with the right hash */
 		if (cmp(cmp_arg, j->data) == 0)
 			return j->data;
 		j = j->next;
