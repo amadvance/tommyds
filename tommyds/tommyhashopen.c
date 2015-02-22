@@ -146,16 +146,26 @@ tommy_inline void hashopen_shrink_step(tommy_hashopen* hashopen)
 
 void tommy_hashopen_insert(tommy_hashopen* hashopen, tommy_hashopen_node* node, void* data, tommy_hash_t hash)
 {
-	tommy_hashopen_pos* pos = tommy_hashopen_bucket(hashopen, hash);
+	tommy_count_t i = hash & hashopen->bucket_mask_cache;
 
-	/* if the bucket is empty or deleted */
-	if (pos->ptr == TOMMY_HASHOPEN_EMPTY) {
-		tommy_list_insert_first(&pos->ptr, node);
-		pos->hash = hash;
-		++hashopen->filled_count;
-	} else {
-		/* otherwise it already contains elements with the correct hash */
-		tommy_list_insert_tail_not_empty(pos->ptr, node);
+	while (1) {
+		tommy_hashopen_pos* pos = &hashopen->bucket[i];
+
+		/* if the bucket is empty, the element is missing */
+		if (pos->ptr == TOMMY_HASHOPEN_EMPTY) {
+			/* if the bucket is empty, set it */
+			tommy_list_insert_first(&pos->ptr, node);
+			pos->hash = hash;
+			++hashopen->filled_count;
+			break;
+		} else if (pos->hash == hash) {
+			/* if the bucket is not empty, add it */
+			tommy_list_insert_tail_not_empty(pos->ptr, node);
+			break;
+		}
+
+		/* go to the next bucket */
+		i = (i + 1) & hashopen->bucket_mask;
 	}
 
 	node->data = data;
@@ -224,9 +234,23 @@ tommy_inline void tommy_hashopen_refill(tommy_hashopen* hashopen, tommy_hashopen
 
 void* tommy_hashopen_remove_existing(tommy_hashopen* hashopen, tommy_hashopen_node* node)
 {
-	tommy_hashopen_pos* pos = tommy_hashopen_bucket(hashopen, node->key);
+	tommy_hash_t hash = node->key;
+	tommy_count_t i = hash & hashopen->bucket_mask_cache;
+	tommy_hashopen_pos* pos;
 
-	/* we don't check for empty bucket, because we know that it's an existing element */
+	while (1) {
+		pos = &hashopen->bucket[i];
+
+		/* we don't check for empty bucket, because we know that it's an existing element */
+		if (pos->hash == hash) {
+			/* if the hash match, it's the right one */
+			break;
+		}
+
+		/* go to the next bucket */
+		i = (i + 1) & hashopen->bucket_mask;
+	}
+
 	tommy_list_remove_existing(&pos->ptr, node);
 
 	/* if it's empty */
@@ -244,18 +268,30 @@ void* tommy_hashopen_remove_existing(tommy_hashopen* hashopen, tommy_hashopen_no
 
 void* tommy_hashopen_remove(tommy_hashopen* hashopen, tommy_compare_func* cmp, const void* cmp_arg, tommy_hash_t hash)
 {
-	tommy_hashopen_pos* pos = tommy_hashopen_bucket(hashopen, hash);
-	tommy_hashopen_node* j;
+	tommy_hashopen_node* node;
+	tommy_count_t i = hash & hashopen->bucket_mask_cache;
+	tommy_hashopen_pos* pos;
 
-	/* if empty bucket, it's missing */
-	if (pos->ptr == TOMMY_HASHOPEN_EMPTY)
-		return 0;
+	while (1) {
+		pos = &hashopen->bucket[i];
+
+		/* if the bucket is empty, the element is missing */
+		if (pos->ptr == TOMMY_HASHOPEN_EMPTY) {
+			return 0;
+		} else if (pos->hash == hash) {
+			/* if the hash match, it's the right one */
+			break;
+		}
+
+		/* go to the next bucket */
+		i = (i + 1) & hashopen->bucket_mask;
+	}
 
 	/* for sure we have at least one object */
-	j = pos->ptr;
+	node = pos->ptr;
 	do {
-		if (cmp(cmp_arg, j->data) == 0) {
-			tommy_list_remove_existing(&pos->ptr, j);
+		if (cmp(cmp_arg, node->data) == 0) {
+			tommy_list_remove_existing(&pos->ptr, node);
 
 			/* if it's empty */
 			if (!pos->ptr) {
@@ -267,10 +303,10 @@ void* tommy_hashopen_remove(tommy_hashopen* hashopen, tommy_compare_func* cmp, c
 
 			hashopen_shrink_step(hashopen);
 
-			return j->data;
+			return node->data;
 		}
-		j = j->next;
-	} while (j);
+		node = node->next;
+	} while (node);
 
 	return 0;
 }
