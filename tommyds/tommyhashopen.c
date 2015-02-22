@@ -69,7 +69,6 @@ void tommy_hashopen_init(tommy_hashopen* hashopen)
 	tommy_hashopen_alloc(hashopen, TOMMY_HASHOPEN_BIT);
 
 	hashopen->count = 0;
-	hashopen->filled_count = 0;
 }
 
 void tommy_hashopen_done(tommy_hashopen* hashopen)
@@ -99,7 +98,7 @@ static void tommy_hashopen_resize(tommy_hashopen* hashopen, tommy_uint_t new_buc
 	for (i = 0; i < old_bucket_max; ++i) {
 		tommy_hashopen_pos* old_pos = &old_bucket[i];
 
-		if (old_pos->ptr != TOMMY_HASHOPEN_EMPTY) {
+		if (old_pos->data != TOMMY_HASHOPEN_EMPTY) {
 			tommy_hashopen_pos* pos;
 			tommy_count_t j = old_pos->hash & hashopen->bucket_mask_cache;
 
@@ -109,7 +108,7 @@ static void tommy_hashopen_resize(tommy_hashopen* hashopen, tommy_uint_t new_buc
 			while (1) {
 				pos = &hashopen->bucket[j];
 
-				if (pos->ptr == TOMMY_HASHOPEN_EMPTY)
+				if (pos->data == TOMMY_HASHOPEN_EMPTY)
 					break;
 
 				/* go to the next bucket */
@@ -130,7 +129,7 @@ static void tommy_hashopen_resize(tommy_hashopen* hashopen, tommy_uint_t new_buc
 tommy_inline void hashopen_grow_step(tommy_hashopen* hashopen)
 {
 	/* grow if more than 50% full */
-	if (hashopen->filled_count >= hashopen->bucket_max / 2)
+	if (hashopen->count >= hashopen->bucket_max / 2)
 		tommy_hashopen_resize(hashopen, hashopen->bucket_bit + 1);
 }
 
@@ -140,26 +139,29 @@ tommy_inline void hashopen_grow_step(tommy_hashopen* hashopen)
 tommy_inline void hashopen_shrink_step(tommy_hashopen* hashopen)
 {
 	/* shrink if less than 12.5% full */
-	if (hashopen->filled_count <= hashopen->bucket_max / 8 && hashopen->bucket_bit > TOMMY_HASHOPEN_BIT)
+	if (hashopen->count <= hashopen->bucket_max / 8 && hashopen->bucket_bit > TOMMY_HASHOPEN_BIT)
 		tommy_hashopen_resize(hashopen, hashopen->bucket_bit - 1);
 }
 
-void tommy_hashopen_insert(tommy_hashopen* hashopen, tommy_hashopen_node* node, void* data, tommy_hash_t hash)
+void tommy_hashopen_insert(tommy_hashopen* hashopen, void* data, tommy_hash_t hash)
 {
-	tommy_hashopen_pos* pos = tommy_hashopen_bucket(hashopen, hash);
+	tommy_count_t i = hash & hashopen->bucket_mask_cache;
+	tommy_hashopen_pos* pos;
 
-	/* if the bucket is empty or deleted */
-	if (pos->ptr == TOMMY_HASHOPEN_EMPTY) {
-		tommy_list_insert_first(&pos->ptr, node);
-		pos->hash = hash;
-		++hashopen->filled_count;
-	} else {
-		/* otherwise it already contains elements with the correct hash */
-		tommy_list_insert_tail_not_empty(pos->ptr, node);
+	while (1) {
+		pos = &hashopen->bucket[i];
+
+		/* if the bucket is empty, we put here the element */
+		if (pos->data == TOMMY_HASHOPEN_EMPTY) {
+			break;
+		}
+
+		/* go to the next bucket */
+		i = (i + 1) & hashopen->bucket_mask;
 	}
 
-	node->data = data;
-	node->key = hash;
+	pos->data = data;
+	pos->hash = hash;
 
 	++hashopen->count;
 
@@ -183,9 +185,9 @@ tommy_inline void tommy_hashopen_refill(tommy_hashopen* hashopen, tommy_hashopen
 		tommy_hashopen_pos* pos = &hashopen->bucket[candidate];
 
 		/* if it's empty, we don't need to search more */
-		if (pos->ptr == TOMMY_HASHOPEN_EMPTY) {
+		if (pos->data == TOMMY_HASHOPEN_EMPTY) {
 			/* set the bucket as empty */
-			refill_pos->ptr = TOMMY_HASHOPEN_EMPTY;
+			refill_pos->data = TOMMY_HASHOPEN_EMPTY;
 			return;
 		}
 
@@ -222,62 +224,45 @@ tommy_inline void tommy_hashopen_refill(tommy_hashopen* hashopen, tommy_hashopen
 	}
 }
 
-void* tommy_hashopen_remove_existing(tommy_hashopen* hashopen, tommy_hashopen_node* node)
+void* tommy_hashopen_remove_existing(tommy_hashopen* hashopen, tommy_hashopen_pos* pos)
 {
-	tommy_hashopen_pos* pos = tommy_hashopen_bucket(hashopen, node->key);
+	void* data = pos->data;
 
-	/* we don't check for empty bucket, because we know that it's an existing element */
-	tommy_list_remove_existing(&pos->ptr, node);
+	assert(data != TOMMY_HASHOPEN_EMPTY);
 
-	/* if it's empty */
-	if (!pos->ptr) {
-		tommy_hashopen_refill(hashopen, pos);
-		--hashopen->filled_count;
-	}
+	tommy_hashopen_refill(hashopen, pos);
 
 	--hashopen->count;
 
 	hashopen_shrink_step(hashopen);
 
-	return node->data;
+	return data;
 }
 
 void* tommy_hashopen_remove(tommy_hashopen* hashopen, tommy_compare_func* cmp, const void* cmp_arg, tommy_hash_t hash)
 {
-	tommy_hashopen_pos* pos = tommy_hashopen_bucket(hashopen, hash);
-	tommy_hashopen_node* j;
+	tommy_count_t i = hash & hashopen->bucket_mask_cache;
+	tommy_hashopen_pos* pos;
 
-	/* if empty bucket, it's missing */
-	if (pos->ptr == TOMMY_HASHOPEN_EMPTY)
-		return 0;
+	while (1) {
+		pos = &hashopen->bucket[i];
 
-	/* for sure we have at least one object */
-	j = pos->ptr;
-	do {
-		if (cmp(cmp_arg, j->data) == 0) {
-			tommy_list_remove_existing(&pos->ptr, j);
-
-			/* if it's empty */
-			if (!pos->ptr) {
-				tommy_hashopen_refill(hashopen, pos);
-				--hashopen->filled_count;
-			}
-
-			--hashopen->count;
-
-			hashopen_shrink_step(hashopen);
-
-			return j->data;
+		/* if the bucket is empty, the element is missing */
+		if (pos->data == TOMMY_HASHOPEN_EMPTY) {
+			return 0;
+		} else if (pos->hash == hash && cmp(cmp_arg, pos->data) == 0) {
+			break;
 		}
-		j = j->next;
-	} while (j);
 
-	return 0;
+		/* go to the next bucket */
+		i = (i + 1) & hashopen->bucket_mask;
+	}
+
+	return tommy_hashopen_remove_existing(hashopen, pos);
 }
 
 tommy_size_t tommy_hashopen_memory_usage(tommy_hashopen* hashopen)
 {
-	return hashopen->bucket_max * (tommy_size_t)sizeof(hashopen->bucket[0])
-	       + tommy_hashopen_count(hashopen) * (tommy_size_t)sizeof(tommy_hashopen_node);
+	return hashopen->bucket_max * (tommy_size_t)sizeof(hashopen->bucket[0]);
 }
 

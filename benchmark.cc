@@ -215,6 +215,11 @@ struct hashtable_object {
 	char payload[PAYLOAD];
 };
 
+struct open_object {
+	unsigned value;
+	char payload[PAYLOAD];
+};
+
 struct uthash_object {
 	UT_hash_handle hh;
 	unsigned value;
@@ -283,7 +288,7 @@ struct rbt_object* RBTREE;
 struct hashtable_object* HASHTABLE;
 struct hashtable_object* HASHDYN;
 struct hashtable_object* HASHLIN;
-struct hashtable_object* HASHOPEN;
+struct open_object* HASHOPEN;
 struct trie_object* TRIE;
 struct trie_inplace_object* TRIE_INPLACE;
 struct khash_object* KHASH;
@@ -359,6 +364,17 @@ int tommy_hashtable_compare(const void* void_arg, const void* void_obj)
 {
 	const unsigned* arg = (const unsigned*)void_arg;
 	const struct hashtable_object* obj = (const struct hashtable_object*)void_obj;
+
+	if (*arg == obj->value)
+		return 0;
+
+	return 1;
+}
+
+int tommy_open_compare(const void* void_arg, const void* void_obj)
+{
+	const unsigned* arg = (const unsigned*)void_arg;
+	const struct open_object* obj = (const struct open_object*)void_obj;
 
 	if (*arg == obj->value)
 		return 0;
@@ -847,7 +863,7 @@ void test_alloc(void)
 
 	COND(DATA_HASHOPEN) {
 		tommy_hashopen_init(&hashopen);
-		HASHOPEN = (struct hashtable_object*)malloc(sizeof(struct hashtable_object) * the_max);
+		HASHOPEN = (struct open_object*)malloc(sizeof(struct open_object) * the_max);
 	}
 
 	COND(DATA_TRIE) {
@@ -1145,7 +1161,7 @@ void test_insert(unsigned* INSERT)
 		unsigned key = INSERT[i];
 		unsigned hash_key = hash(key);
 		HASHOPEN[i].value = key;
-		tommy_hashopen_insert(&hashopen, &HASHOPEN[i].node, &HASHOPEN[i], hash_key);
+		tommy_hashopen_insert(&hashopen, &HASHOPEN[i], hash_key);
 	} STOP();
 
 	START(DATA_TRIE) {
@@ -1349,8 +1365,8 @@ void test_hit(unsigned* SEARCH)
 	START(DATA_HASHOPEN) {
 		unsigned key = SEARCH[i] + DELTA;
 		unsigned hash_key = hash(key);
-		struct hashtable_object* obj;
-		obj = (struct hashtable_object*)tommy_hashopen_search(&hashopen, tommy_hashtable_compare, &key, hash_key);
+		struct open_object* obj;
+		obj = (struct open_object*)tommy_hashopen_search(&hashopen, tommy_open_compare, &key, hash_key);
 		if (!obj)
 			abort();
 		if (dereference) {
@@ -1614,8 +1630,8 @@ void test_miss(unsigned* SEARCH)
 	START(DATA_HASHOPEN) {
 		unsigned key = SEARCH[i] + DELTA;
 		unsigned hash_key = hash(key);
-		struct hashtable_object* obj;
-		obj = (struct hashtable_object*)tommy_hashopen_search(&hashopen, tommy_hashtable_compare, &key, hash_key);
+		struct open_object* obj;
+		obj = (struct open_object*)tommy_hashopen_search(&hashopen, tommy_open_compare, &key, hash_key);
 		if (obj)
 			abort();
 	} STOP();
@@ -1832,15 +1848,15 @@ void test_change(unsigned* REMOVE, unsigned* INSERT)
 	START(DATA_HASHOPEN) {
 		unsigned key = REMOVE[i];
 		unsigned hash_key = hash(key);
-		struct hashtable_object* obj;
-		obj = (struct hashtable_object*)tommy_hashopen_remove(&hashopen, tommy_hashtable_compare, &key, hash_key);
+		struct open_object* obj;
+		obj = (struct open_object*)tommy_hashopen_remove(&hashopen, tommy_open_compare, &key, hash_key);
 		if (!obj)
 			abort();
 
 		key = INSERT[i] + DELTA;
 		hash_key = hash(key);
 		obj->value = key;
-		tommy_hashopen_insert(&hashopen, &obj->node, obj, hash_key);
+		tommy_hashopen_insert(&hashopen, obj, hash_key);
 	} STOP();
 
 	START(DATA_TRIE) {
@@ -2159,8 +2175,8 @@ void test_remove(unsigned* REMOVE)
 	START(DATA_HASHOPEN) {
 		unsigned key = REMOVE[i] + DELTA;
 		unsigned hash_key = hash(key);
-		struct hashtable_object* obj;
-		obj = (struct hashtable_object*)tommy_hashopen_remove(&hashopen, tommy_hashtable_compare, &key, hash_key);
+		struct open_object* obj;
+		obj = (struct open_object*)tommy_hashopen_remove(&hashopen, tommy_open_compare, &key, hash_key);
 		if (!obj)
 			abort();
 		if (dereference) {

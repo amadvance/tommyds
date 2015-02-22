@@ -144,23 +144,17 @@
  */
 #define TOMMY_HASHOPEN_BIT 4
 
-/**
- * Open addressing hashtable node.
- * This is the node that you have to include inside your objects.
- */
-typedef tommy_node tommy_hashopen_node;
-
 /** \internal
  * Identifier for empty bucket.
  */
-#define TOMMY_HASHOPEN_EMPTY ((tommy_hashopen_node*)0)
+#define TOMMY_HASHOPEN_EMPTY ((void*)0)
 
 /** \internal
  * Open addressing hashtable bucket.
  */
 typedef struct tommy_hashopen_pos_struct {
-	tommy_hashopen_node* ptr; /**< Pointer at the first element. */
-	tommy_uintptr_t hash; /**< Hash of the elements in the bucket. */
+	void* data; /**< Pointer at the element. */
+	tommy_uintptr_t hash; /**< Hash of the element. */
 } tommy_hashopen_pos;
 
 /**
@@ -174,7 +168,6 @@ typedef struct tommy_hashopen_struct {
 	tommy_count_t bucket_mask_cache; /**< Bit mask to access the buckets. */
 	tommy_count_t bucket_mask; /**< Bit mask to access the buckets. */
 	tommy_count_t count; /**< Number of elements. */
-	tommy_count_t filled_count; /**< Number of filled buckets. */
 } tommy_hashopen;
 
 /**
@@ -190,7 +183,7 @@ void tommy_hashopen_done(tommy_hashopen* hashopen);
 /**
  * Inserts an element in the hashtable.
  */
-void tommy_hashopen_insert(tommy_hashopen* hashopen, tommy_hashopen_node* node, void* data, tommy_hash_t hash);
+void tommy_hashopen_insert(tommy_hashopen* hashopen, void* data, tommy_hash_t hash);
 
 /**
  * Searches and removes an element from the hashtable.
@@ -221,7 +214,7 @@ tommy_inline tommy_hashopen_pos* tommy_hashopen_bucket(tommy_hashopen* hashopen,
 		tommy_hashopen_pos* pos = &hashopen->bucket[i];
 
 		/* if the bucket is empty, the element is missing */
-		if (pos->ptr == TOMMY_HASHOPEN_EMPTY) {
+		if (pos->data == TOMMY_HASHOPEN_EMPTY) {
 			return pos;
 		} else if (pos->hash == hash) {
 			/* if the hash match, it's the right one */
@@ -231,6 +224,19 @@ tommy_inline tommy_hashopen_pos* tommy_hashopen_bucket(tommy_hashopen* hashopen,
 		/* go to the next bucket */
 		i = (i + 1) & hashopen->bucket_mask;
 	}
+}
+
+/**
+ * Get the next node in the bucket.
+ */
+tommy_inline tommy_hashopen_pos* tommy_hashopen_next(tommy_hashopen* hashopen, tommy_hashopen_pos* pos)
+{
+	++pos;
+
+	if (pos == hashopen->bucket + hashopen->bucket_max)
+		pos = hashopen->bucket;
+
+	return pos;
 }
 
 /**
@@ -245,23 +251,21 @@ tommy_inline tommy_hashopen_pos* tommy_hashopen_bucket(tommy_hashopen* hashopen,
  */
 tommy_inline void* tommy_hashopen_search(tommy_hashopen* hashopen, tommy_compare_func* cmp, const void* cmp_arg, tommy_hash_t hash)
 {
-	tommy_hashopen_pos* pos = tommy_hashopen_bucket(hashopen, hash);
-	tommy_hashopen_node* j;
+	tommy_count_t i = hash & hashopen->bucket_mask_cache;
 
-	/* if empty bucket, it's missing */
-	if (pos->ptr == TOMMY_HASHOPEN_EMPTY)
-		return 0;
+	while (1) {
+		tommy_hashopen_pos* pos = &hashopen->bucket[i];
 
-	j = pos->ptr;
-	while (j) {
-		/* we don't check the hash because we have the guarantee */
-		/* that the bucket contains only elements with the right hash */
-		if (cmp(cmp_arg, j->data) == 0)
-			return j->data;
-		j = j->next;
+		/* if the bucket is empty, the element is missing */
+		if (pos->data == TOMMY_HASHOPEN_EMPTY) {
+			return 0;
+		} else if (pos->hash == hash && cmp(cmp_arg, pos->data) == 0) {
+			return pos->data;
+		}
+
+		/* go to the next bucket */
+		i = (i + 1) & hashopen->bucket_mask;
 	}
-
-	return 0;
 }
 
 /**
@@ -269,7 +273,7 @@ tommy_inline void* tommy_hashopen_search(tommy_hashopen* hashopen, tommy_compare
  * You must already have the address of the element to remove.
  * \return The tommy_node::data field of the node removed.
  */
-void* tommy_hashopen_remove_existing(tommy_hashopen* hashopen, tommy_hashopen_node* node);
+void* tommy_hashopen_remove_existing(tommy_hashopen* hashopen, tommy_hashopen_pos* pos);
 
 /**
  * Gets the number of elements.
