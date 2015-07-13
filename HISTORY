@@ -1,8 +1,10 @@
 TommyDS HISTORY
 ===============
 
-2.1 2014/12 BETA
+2.1 2015/07 BETA
 ================
+ * Fixed some references to TOMMY_ARRAYBLKOF_SIZE, where instead
+   TOMMY_ARRAYBLK_SIZE was incorrectly used [Rocco].
 
 2.0 2014/12
 ===========
