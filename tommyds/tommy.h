@@ -59,7 +59,7 @@
  *
  * The most interesting are ::tommy_array, ::tommy_hashdyn, ::tommy_hashlin, ::tommy_trie and ::tommy_trie_inplace.
  *
- * The official site of TommyDS is <a href="http://tommyds.sourceforge.net/">http://tommyds.sourceforge.net/</a>,
+ * The official site of TommyDS is <a href="http://www.tommyds.it/">http://www.tommyds.it/</a>,
  *
  * \section Use
  *
@@ -648,7 +648,7 @@
  * and the static analyzer <a href="http://clang-analyzer.llvm.org/">clang</a>
  * are done to ensure the correctness of the library.
  *
- * The test has a <a href="http://tommyds.sourceforge.net/cov/tommyds/tommyds">code coverage of 100%</a>,
+ * The test has a <a href="http://www.tommyds.it/cov/tommyds/tommyds">code coverage of 100%</a>,
  * measured with <a href="http://ltp.sourceforge.net/coverage/lcov.php">lcov</a>.
  *
  * \section Limitations
