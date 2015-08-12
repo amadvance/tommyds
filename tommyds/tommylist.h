@@ -278,7 +278,34 @@ tommy_inline void* tommy_list_remove_existing(tommy_list* list, tommy_node* node
  * \param second The second list. After this call the list content is undefined,
  * and you should not use it anymore.
  */
-void tommy_list_concat(tommy_list* first, tommy_list* second);
+tommy_inline void tommy_list_concat(tommy_list* first, tommy_list* second)
+{
+	tommy_node* first_head;
+	tommy_node* first_tail;
+	tommy_node* second_head;
+
+	/* if the second is empty, nothing to do */
+	second_head = tommy_list_head(second);
+	if (second_head == 0)
+		return;
+
+	/* if the first is empty, copy the second */
+	first_head = tommy_list_head(first);
+	if (first_head == 0) {
+		*first = *second;
+		return;
+	}
+
+	/* tail of the first list */
+	first_tail = first_head->prev;
+
+	/* set the "circular" prev list */
+	first_head->prev = second_head->prev;
+	second_head->prev = first_tail;
+
+	/* set the "0 terminated" next list */
+	first_tail->next = second_head;
+}
 
 /**
  * Sorts a list.
