@@ -8,7 +8,7 @@ VERSION = 2.1
 ifdef COVERAGE
 CFLAGS = -O0 -g -fprofile-arcs -ftest-coverage
 else
-CFLAGS = -O3 -march=native -Wall -Wextra -Wshadow -Wcast-qual -g
+CFLAGS = -O3 -march=native -Wall -Wextra -Wshadow -Wuninitialized -Wpadded -Wcast-align -Wcast-qual -g
 endif
 
 # Build options for the benchmark
