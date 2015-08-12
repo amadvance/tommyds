@@ -281,6 +281,30 @@ tommy_inline void* tommy_list_remove_existing(tommy_list* list, tommy_node* node
 void tommy_list_concat(tommy_list* first, tommy_list* second);
 
 /**
+ * Concats two not empty lists.
+ * \param first The first list.
+ * \param second The second list. After this call the list content is undefined,
+ * and you should not use it anymore.
+ */
+tommy_inline void tommy_list_concat_not_empty(tommy_list* first, tommy_list* second)
+{
+	tommy_node* first_head;
+	tommy_node* first_tail;
+	tommy_node* second_head;
+
+	first_head = tommy_list_head(first);
+	second_head = tommy_list_head(second);
+	first_tail = first_head->prev;
+
+	/* set the "circular" prev list */
+	first_head->prev = second_head->prev;
+	second_head->prev = first_tail;
+
+	/* set the "0 terminated" next list */
+	first_tail->next = second_head;
+}
+
+/**
  * Sorts a list.
  * It's a stable merge sort with O(N*log(N)) worst complexity.
  * It's faster on degenerated cases like partially ordered lists.

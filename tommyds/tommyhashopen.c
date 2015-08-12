@@ -147,6 +147,14 @@ tommy_inline void hashopen_shrink_step(tommy_hashopen* hashopen)
 void tommy_hashopen_insert(tommy_hashopen* hashopen, tommy_hashopen_node* node, void* data, tommy_hash_t hash)
 {
 	tommy_count_t i = hash & hashopen->bucket_mask_cache;
+	tommy_count_t distance = 0;
+	tommy_list list;
+
+	node->data = data;
+	node->key = hash;
+
+	/* setup a list with a single element */
+	tommy_list_insert_first(&list, node);
 
 	while (1) {
 		tommy_hashopen_pos* pos = &hashopen->bucket[i];
@@ -154,22 +162,35 @@ void tommy_hashopen_insert(tommy_hashopen* hashopen, tommy_hashopen_node* node, 
 		/* if the bucket is empty, the element is missing */
 		if (pos->ptr == TOMMY_HASHOPEN_EMPTY) {
 			/* if the bucket is empty, set it */
-			tommy_list_insert_first(&pos->ptr, node);
+			pos->ptr = list;
 			pos->hash = hash;
 			++hashopen->filled_count;
 			break;
 		} else if (pos->hash == hash) {
-			/* if the bucket is not empty, add it */
-			tommy_list_insert_tail_not_empty(pos->ptr, node);
+			/* if the bucket is not empty, add it at the end */
+			tommy_list_concat_not_empty(&pos->ptr, &list);
 			break;
+		} else {
+			/* if the bucket is not empty, but with a different hash */
+			tommy_count_t other_target = pos->hash & hashopen->bucket_mask_cache;
+			tommy_count_t other_distance = (i - other_target) & hashopen->bucket_mask;
+
+			/* minimize the bucket distance, usually called robin-hood insertion */
+			if (distance > other_distance) {
+				/* swap the buckets */
+				tommy_hashopen_pos other = *pos;
+				pos->ptr = list;
+				pos->hash = hash;
+				list = other.ptr;
+				hash = other.hash;
+				distance = other_distance;
+			}
 		}
 
 		/* go to the next bucket */
 		i = (i + 1) & hashopen->bucket_mask;
+		++distance;
 	}
-
-	node->data = data;
-	node->key = hash;
 
 	++hashopen->count;
 
