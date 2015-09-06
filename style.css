@@ -84,14 +84,18 @@ body {
 	background-color:#ffffff;
 	margin:0px;
 	padding:0px;
+	overflow-y: scroll;
 }
 
 /* title */
 
 #title {
-	min-height: 200px;
-	background: #0a64a4 url(index.png) 0 0 no-repeat;
+	background: #0a64a4;
 	padding:0px;
+}
+
+#title img {
+	width: 100%;
 }
 
 /* bar */
@@ -99,8 +103,8 @@ body {
 #bar {
 	background-color:#bacad9;
 	padding:8px;
-	padding-left:4em;
-	padding-right:4em;
+	padding-left:5%;
+	padding-right:5%;
 }
 
 #bar a {
@@ -121,8 +125,8 @@ body {
 	min-height: 90px;
 	padding-top:16px;
 	padding-bottom:16px;
-	padding-left:4em;
-	padding-right:4em;
+	padding-left:5%;
+	padding-right:5%;
 }
 
 #bottombar a {
@@ -139,8 +143,8 @@ body {
 
 #main {
 	padding:2px;
-	padding-left:4em;
-	padding-right:4em;
+	padding-left:5%;
+	padding-right:5%;
 	max-width:1024px;
 }
 
