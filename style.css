@@ -135,6 +135,12 @@ body {
 	padding-left:1em;
 }
 
+#bottombar img {
+	/* scale down the image if there is no space */
+	max-width: 50%;
+	height: auto;
+}
+
 #bottombar .bold {
 	color:#0c5da5;
 }
