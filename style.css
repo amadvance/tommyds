@@ -130,6 +130,7 @@ body {
 	padding-bottom:16px;
 	padding-left:5%;
 	padding-right:5%;
+	overflow:auto;
 }
 
 #bottombar a {
@@ -146,6 +147,11 @@ body {
 
 #bottombar .bold {
 	color:#0c5da5;
+}
+
+#bottomentry {
+	float:left;
+	width:50%;
 }
 
 /* main */
