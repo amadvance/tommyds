@@ -150,7 +150,7 @@ body {
 	color:#0c5da5;
 }
 
-#column {
+.column {
 	float:left;
 	width:50%;
 }
