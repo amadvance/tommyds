@@ -63,9 +63,9 @@
  *
  * \code
  * struct object {
- *     tommy_node node;
- *     // other fields
  *     int value;
+ *     // other fields
+ *     tommy_node node;
  * };
  *
  * struct object* obj = malloc(sizeof(struct object)); // creates the object

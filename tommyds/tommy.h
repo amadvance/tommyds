@@ -77,8 +77,8 @@
  * This is a typical object declaration:
  * \code
  * struct object {
- *     tommy_node node;
  *     // other fields
+ *     tommy_node node;
  * };
  * \endcode
  *
