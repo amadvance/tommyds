@@ -104,6 +104,12 @@ struct object_hash {
 	char payload[PAYLOAD];
 };
 
+struct object_tree {
+	int value;
+	tommy_tree_node node;
+	char payload[PAYLOAD];
+};
+
 struct object_trie {
 	int value;
 	tommy_trie_node node;
@@ -727,6 +733,57 @@ void test_list(void)
 
 	free(LIST);
 	free(VECTOR);
+}
+
+void test_tree(void)
+{
+	tommy_tree tree;
+	struct object_tree* OBJ;
+	unsigned i;
+	const unsigned size = TOMMY_SIZE;
+
+	OBJ = malloc(size * sizeof(struct object_tree));
+
+	for(i=0;i<size;++i)
+		OBJ[i].value = i;
+
+	START("tree");
+	tommy_tree_init(&tree, &compare);
+
+	/* insert */
+	for(i=0;i<size;++i)
+		tommy_tree_insert(&tree, &OBJ[i].node, &OBJ[i]);
+
+	if (tommy_tree_memory_usage(&tree) < size * sizeof(tommy_tree_node))
+		abort();
+
+	if (tommy_tree_count(&tree) != size)
+		abort();
+
+	/* search present */
+	for(i=0;i<size/2;++i)
+		if (tommy_tree_search(&tree, &OBJ[i]) == 0)
+			abort();
+
+	/* remove existing */
+	for(i=0;i<size/2;++i)
+		tommy_tree_remove_existing(&tree, &OBJ[i].node);
+
+	/* remove missing */
+	for(i=0;i<size/2;++i)
+		if (tommy_tree_remove(&tree, &OBJ[i]) != 0)
+			abort();
+
+	/* search missing */
+	for(i=0;i<size/2;++i)
+		if (tommy_tree_search(&tree, &OBJ[i]) != 0)
+			abort();
+
+	/* remove present */
+	for(i=0;i<size/2;++i)
+		if (tommy_tree_remove(&tree, &OBJ[size/2+i]) == 0)
+			abort();
+	STOP();
 }
 
 void test_array(void)
@@ -1356,6 +1413,7 @@ int main() {
 	test_hash();
 	test_alloc();
 	test_list();
+	test_tree();
 	test_array();
 	test_arrayof();
 	test_arrayblk();

@@ -758,6 +758,7 @@ extern "C" {
 #include "tommyarrayblk.h"
 #include "tommyarrayblkof.h"
 #include "tommylist.h"
+#include "tommytree.h"
 #include "tommytrie.h"
 #include "tommytrieinp.h"
 #include "tommyhashtbl.h"
