@@ -1,5 +1,7 @@
 # Travis CI configuration file
 
+sudo: false
+
 language: c
 
 script: make check
@@ -7,4 +9,8 @@ script: make check
 compiler:
   - clang
   - gcc
+
+os:
+  - linux
+  - osx
 
