@@ -86,7 +86,7 @@ bench: tommybench$(EXE)
 
 tommy$(O): $(DEP)
 	$(CC) $(CFLAGS) -c tommyds/tommy.c -o tommy$(O)
-	$(OBJDUMP) -S tommy$(O) > tommy.s
+	-$(OBJDUMP) -S tommy$(O) > tommy.s
 
 tommycheck$(EXE): check.c tommy$(O)
 	$(CC) $(CFLAGS) check.c tommy$(O) -o tommycheck$(EXE) $(LIB)
