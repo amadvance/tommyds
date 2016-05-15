@@ -176,7 +176,8 @@ void* tommy_tree_remove_existing(tommy_tree* tree, tommy_tree_node* node);
  *
  * The elements are processed in order.
  *
- * You can use this function to deallocate all the elements inserted.
+ * You cannot add or remove elements from the inside of the callback,
+ * but can use it to deallocate them.
  *
  * \code
  * tommy_tree tree;

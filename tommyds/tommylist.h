@@ -345,8 +345,8 @@ tommy_inline tommy_count_t tommy_list_count(tommy_list* list)
 /**
  * Calls the specified function for each element in the list.
  *
- * You can use this function to deallocate all the elements
- * inserted in a list.
+ * You cannot add or remove elements from the inside of the callback,
+ * but can use it to deallocate them.
  *
  * \code
  * tommy_list list;

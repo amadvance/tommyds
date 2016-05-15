@@ -297,7 +297,8 @@ void* tommy_hashlin_remove_existing(tommy_hashlin* hashlin, tommy_hashlin_node* 
 /**
  * Calls the specified function for each element in the hashtable.
  *
- * You can use this function to deallocate all the elements inserted.
+ * You cannot add or remove elements from the inside of the callback,
+ * but can use it to deallocate them.
  *
  * \code
  * tommy_hashlin hashlin;
