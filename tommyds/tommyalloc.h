@@ -41,7 +41,7 @@
  * Allocator entry.
  */
 struct tommy_allocator_entry_struct {
-	struct tommy_allocator_entry_struct* next; /**< Pointer at the next entry. 0 for last. */
+	struct tommy_allocator_entry_struct* next; /**< Pointer to the next entry. 0 for last. */
 };
 typedef struct tommy_allocator_entry_struct tommy_allocator_entry;
 

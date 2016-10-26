@@ -194,7 +194,7 @@ typedef struct tommy_node_struct {
 	struct tommy_node_struct* prev;
 
 	/**
-	 * Pointer at the object containing the node.
+	 * Pointer to the object containing the node.
 	 * This field is initialized when inserting nodes into a data structure.
 	 */
 	void* data;
@@ -212,8 +212,8 @@ typedef struct tommy_node_struct {
 
 /**
  * Compare function for elements.
- * \param obj_a Pointer at the first object to compare.
- * \param obj_b Pointer at the second object to compare.
+ * \param obj_a Pointer to the first object to compare.
+ * \param obj_b Pointer to the second object to compare.
  * \return <0 if the first element is less than the second, ==0 equal, >0 if greather.
  *
  * This function is like the C strcmp().
@@ -241,8 +241,8 @@ typedef int tommy_compare_func(const void* obj_a, const void* obj_b);
 
 /**
  * Search function for elements.
- * \param arg Pointer at the value to search as passed at the search function.
- * \param obj Pointer at the object to compare to.
+ * \param arg Pointer to the value to search as passed at the search function.
+ * \param obj Pointer to the object to compare to.
  * \return ==0 if the value matches the element. !=0 if different.
  *
  * The first argument is a pointer to the value to search exactly
@@ -279,7 +279,7 @@ typedef int tommy_search_func(const void* arg, const void* obj);
 
 /**
  * Foreach function.
- * \param obj Pointer at the object to iterate.
+ * \param obj Pointer to the object to iterate.
  *
  * A typical example is to use free() to deallocate all the objects in a list.
  * \code
@@ -290,8 +290,8 @@ typedef void tommy_foreach_func(void* obj);
 
 /**
  * Foreach function with an argument.
- * \param arg Pointer at a generic argument.
- * \param obj Pointer at the object to iterate.
+ * \param arg Pointer to a generic argument.
+ * \param obj Pointer to the object to iterate.
  */
 typedef void tommy_foreach_arg_func(void* arg, void* obj);
 

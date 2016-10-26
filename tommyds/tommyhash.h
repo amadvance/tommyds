@@ -54,7 +54,7 @@ typedef tommy_key_t tommy_hash_t;
  * \param init_val Initialization value.
  * Using a different initialization value, you can generate a completely different set of hash values.
  * Use 0 if not relevant.
- * \param void_key Pointer at the data to hash.
+ * \param void_key Pointer to the data to hash.
  * \param key_len Size of the data to hash.
  * \note
  * This function is endianess independent.
@@ -74,7 +74,7 @@ tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* void_key, tom
  * \param init_val Initialization value.
  * Using a different initialization value, you can generate a completely different set of hash values.
  * Use 0 if not relevant.
- * \param void_key Pointer at the data to hash.
+ * \param void_key Pointer to the data to hash.
  * \param key_len Size of the data to hash.
  * \note
  * This function is endianess independent.
@@ -93,7 +93,7 @@ tommy_uint64_t tommy_hash_u64(tommy_uint64_t init_val, const void* void_key, tom
  * \param init_val Initialization value.
  * Using a different initialization value, you can generate a completely different set of hash values.
  * Use 0 if not relevant.
- * \param void_key Pointer at the string to hash. It has to be 0 terminated.
+ * \param void_key Pointer to the string to hash. It has to be 0 terminated.
  * \note
  * This function is endianess independent.
  * \return The hash value of 32 bits.

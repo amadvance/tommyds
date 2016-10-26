@@ -193,8 +193,8 @@ void tommy_trie_init(tommy_trie* trie, tommy_allocator* alloc);
  * Inserts an element in the trie.
  * You have to provide the pointer of the node embedded into the object,
  * the pointer at the object and the key to use.
- * \param node Pointer at the node embedded into the object to insert.
- * \param data Pointer at the object to insert.
+ * \param node Pointer to the node embedded into the object to insert.
+ * \param data Pointer to the object to insert.
  * \param key Key to use to insert the object.
  */
 void tommy_trie_insert(tommy_trie* trie, tommy_trie_node* node, void* data, tommy_key_t key);
