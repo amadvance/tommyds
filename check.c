@@ -298,6 +298,26 @@ void stop()
 /******************************************************************************/
 /* test */
 
+static unsigned the_count;
+
+static void count_callback(void* data)
+{
+	(void)data;
+	++the_count;
+}
+
+static void count_arg_callback(void* arg, void* data)
+{
+	unsigned* count = arg;
+	(void)data;
+	++*count;
+}
+
+static int search_callback(const void* arg, const void* obj)
+{
+	return arg != obj;
+}
+
 struct hash32_test {
 	char* data;
 	tommy_uint32_t len;
@@ -749,6 +769,16 @@ void test_list(void)
 		tommy_list_insert_tail(&list, &LIST[i].node, &LIST[i]);
 	}
 
+	if (tommy_list_tail(&list) == 0)
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+
+	if (tommy_list_head(&list) == 0)
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+
 	START("sort random");
 	tommy_list_sort(&list, compare);
 	STOP();
@@ -838,19 +868,23 @@ void test_tree(void)
 	tommy_tree tree;
 	struct object_tree* OBJ;
 	unsigned i;
-	const unsigned size = TOMMY_SIZE;
+	const unsigned size = TOMMY_SIZE / 4;
 
 	OBJ = malloc(size * sizeof(struct object_tree));
-
-	for(i=0;i<size;++i)
-		OBJ[i].value = i;
 
 	START("tree");
 	tommy_tree_init(&tree, &compare);
 
+	/* forward order */
+	for(i=0;i<size;++i)
+		OBJ[i].value = i;
+
 	/* insert */
 	for(i=0;i<size;++i)
-		tommy_tree_insert(&tree, &OBJ[i].node, &OBJ[i]);
+		if (tommy_tree_insert(&tree, &OBJ[i].node, &OBJ[i]) != &OBJ[i])
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
 
 	if (tommy_tree_memory_usage(&tree) < size * sizeof(tommy_tree_node))
 		/* LCOV_EXCL_START */
@@ -862,12 +896,41 @@ void test_tree(void)
 		abort();
 		/* LCOV_EXCL_STOP */
 
+	the_count = 0;
+	tommy_tree_foreach(&tree, count_callback);
+	if (the_count != size)
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+
+	the_count = 0;
+	tommy_tree_foreach_arg(&tree, count_arg_callback, &the_count);
+	if (the_count != size)
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+
 	/* search present */
-	for(i=0;i<size/2;++i)
+	for(i=0;i<size/2;++i) {
 		if (tommy_tree_search(&tree, &OBJ[i]) == 0)
+				/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		if (tommy_tree_search_compare(&tree, &compare, &OBJ[i]) == 0)
 			/* LCOV_EXCL_START */
 			abort();
 			/* LCOV_EXCL_STOP */
+	}
+
+	/* insert existing */
+	for(i=0;i<size;++i) {
+		struct object_tree EXTRA;
+		EXTRA.value = i;
+		if (tommy_tree_insert(&tree, &EXTRA.node, &EXTRA) == &EXTRA)
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+	}
 
 	/* remove existing */
 	for(i=0;i<size/2;++i)
@@ -881,11 +944,16 @@ void test_tree(void)
 			/* LCOV_EXCL_STOP */
 
 	/* search missing */
-	for(i=0;i<size/2;++i)
+	for(i=0;i<size/2;++i) {
 		if (tommy_tree_search(&tree, &OBJ[i]) != 0)
 			/* LCOV_EXCL_START */
 			abort();
 			/* LCOV_EXCL_STOP */
+		if (tommy_tree_search_compare(&tree, &compare, &OBJ[i]) != 0)
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+	}
 
 	/* remove present */
 	for(i=0;i<size/2;++i)
@@ -893,6 +961,37 @@ void test_tree(void)
 			/* LCOV_EXCL_START */
 			abort();
 			/* LCOV_EXCL_STOP */
+
+	/* reverse order */
+	for(i=0;i<size;++i)
+		OBJ[i].value = size - i;
+
+	/* insert */
+	for(i=0;i<size;++i)
+		if (tommy_tree_insert(&tree, &OBJ[i].node, &OBJ[i]) != &OBJ[i])
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+
+	/* remove all */
+	for(i=0;i<size;++i)
+		tommy_tree_remove_existing(&tree, &OBJ[i].node);
+
+	/* random order */
+	for(i=0;i<size;++i)
+		OBJ[i].value = tommy_inthash_u32(i);
+
+	/* insert */
+	for(i=0;i<size;++i)
+		if (tommy_tree_insert(&tree, &OBJ[i].node, &OBJ[i]) != &OBJ[i])
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+
+	/* remove all */
+	for(i=0;i<size;++i)
+		tommy_tree_remove_existing(&tree, &OBJ[i].node);
+
 	STOP();
 }
 
@@ -903,6 +1002,9 @@ void test_array(void)
 	const unsigned size = 50 * TOMMY_SIZE;
 
 	tommy_array_init(&array);
+
+	/* no op */
+	tommy_array_grow(&array, 0);
 
 	START("array init");
 	for(i=0;i<size;++i) {
@@ -944,6 +1046,9 @@ void test_arrayof(void)
 	const unsigned size = 50 * TOMMY_SIZE;
 
 	tommy_arrayof_init(&arrayof, sizeof(unsigned));
+
+	/* no op */
+	tommy_arrayof_grow(&arrayof, 0);
 
 	START("arrayof init");
 	for(i=0;i<size;++i) {
@@ -989,6 +1094,9 @@ void test_arrayblk(void)
 
 	tommy_arrayblk_init(&arrayblk);
 
+	/* no op */
+	tommy_arrayblk_grow(&arrayblk, 0);
+
 	START("arrayblk init");
 	for(i=0;i<size;++i) {
 		tommy_arrayblk_grow(&arrayblk, i + 1);
@@ -1030,6 +1138,9 @@ void test_arrayblkof(void)
 
 	tommy_arrayblkof_init(&arrayblkof, sizeof(unsigned));
 
+	/* no op */
+	tommy_arrayblkof_grow(&arrayblkof, 0);
+
 	START("arrayblkof init");
 	for(i=0;i<size;++i) {
 		tommy_arrayblkof_grow(&arrayblkof, i + 1);
@@ -1064,26 +1175,6 @@ void test_arrayblkof(void)
 		/* LCOV_EXCL_STOP */
 
 	tommy_arrayblkof_done(&arrayblkof);
-}
-
-static unsigned the_count;
-
-static void count_callback(void* data)
-{
-	(void)data;
-	++the_count;
-}
-
-static void count_arg_callback(void* arg, void* data)
-{
-	unsigned* count = arg;
-	(void)data;
-	++*count;
-}
-
-static int search_callback(const void* arg, const void* obj)
-{
-	return arg != obj;
 }
 
 void test_hashtable(void)
