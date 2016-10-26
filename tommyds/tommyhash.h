@@ -46,6 +46,11 @@ typedef tommy_key_t tommy_hash_t;
  * Hash function with a 32 bits result.
  * Implementation of the Robert Jenkins "lookup3" hash 32 bits version,
  * from http://www.burtleburtle.net/bob/hash/doobs.html, function hashlittle().
+ *
+ * This hash is designed to provide a good overall performance in all platforms,
+ * including 32 bits. If you target only 64 bits, you can use faster hashes,
+ * like SpookyHash or FarmHash.
+ *
  * \param init_val Initialization value.
  * Using a different initialization value, you can generate a completely different set of hash values.
  * Use 0 if not relevant.
@@ -61,6 +66,11 @@ tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* void_key, tom
  * Hash function with a 64 bits result.
  * Implementation of the Robert Jenkins "lookup3" hash 64 bits versions,
  * from http://www.burtleburtle.net/bob/hash/doobs.html, function hashlittle2().
+ *
+ * This hash is designed to provide a good overall performance in all platforms,
+ * including 32 bits. If you target only 64 bits, you can use faster hashes,
+ * like SpookyHash or FarmHash.
+ *
  * \param init_val Initialization value.
  * Using a different initialization value, you can generate a completely different set of hash values.
  * Use 0 if not relevant.
@@ -76,6 +86,10 @@ tommy_uint64_t tommy_hash_u64(tommy_uint64_t init_val, const void* void_key, tom
  * String hash function with a 32 bits result.
  * Implementation is based on the the Robert Jenkins "lookup3" hash 32 bits version,
  * from http://www.burtleburtle.net/bob/hash/doobs.html, function hashlittle().
+ *
+ * This hash is designed to handle strings with an unknown length. If you
+ * know the string length, the other hash functions are surely faster.
+ *
  * \param init_val Initialization value.
  * Using a different initialization value, you can generate a completely different set of hash values.
  * Use 0 if not relevant.
