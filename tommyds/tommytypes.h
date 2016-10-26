@@ -406,5 +406,14 @@ tommy_inline tommy_uint32_t tommy_roundup_pow2_u32(tommy_uint32_t value)
 
 	return value;
 }
+
+/**
+ * Check if the specified word has a byte at 0.
+ * \return 0 or 1.
+ */
+tommy_inline int tommy_haszero_u32(tommy_uint32_t value)
+{
+	return ((value - 0x01010101) & ~value & 0x80808080) != 0;
+}
 #endif
 
