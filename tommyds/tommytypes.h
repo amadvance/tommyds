@@ -241,13 +241,15 @@ typedef int tommy_compare_func(const void* obj_a, const void* obj_b);
 
 /**
  * Search function for elements.
- * \param arg Pointer at the value to search.
+ * \param arg Pointer at the value to search as passed at the search function.
  * \param obj Pointer at the object to compare to.
  * \return ==0 if the value matches the element. !=0 if different.
  *
- * Note that the first argument is a pointer to the value to search and
- * the second one is a pointer to the object to compare.
- * They are pointers of two different types.
+ * The first argument is a pointer to the value to search exactly
+ * as it's passed at the search function called.
+ * The second argument is a pointer to the object inside the hashtable to compare.
+ *
+ * The return value has to be 0 if the values are equal. != 0 if they are different.
  *
  * \code
  * struct object {
@@ -257,7 +259,10 @@ typedef int tommy_compare_func(const void* obj_a, const void* obj_b);
  *
  * int compare(const void* arg, const void* obj)
  * {
- *     return *(const int*)arg != ((const struct object*)obj)->value;
+ *     const int* value_to_find = arg;
+ *     const struct object* object_to_compare = obj;
+ *
+ *     return *value_to_find != object_to_compare->value;
  * }
  *
  * int value_to_find = 1;
