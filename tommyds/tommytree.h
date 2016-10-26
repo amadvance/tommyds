@@ -29,15 +29,15 @@
  * AVL tree.
  *
  * This tree is a standard AVL tree implementation that stores elements in the
- * order defined by the comparsion function.
+ * order defined by the comparison function.
  *
- * As difference from other tommy containers, duplicate elements cannot be inserted.
- *
- * \code
- * tommy_tree tree;
+ * As difference than other tommy containers, duplicate elements cannot be inserted.
  *
  * To initialize a tree you have to call tommy_tree_init() specifing a comparison
  * function that will define the order in the tree.
+ *
+ * \code
+ * tommy_tree tree;
  *
  * tommy_tree_init(&tree, cmp);
  * \endcode
@@ -79,7 +79,7 @@
  * To remove an element from the tree you have to call tommy_tree_remove()
  * providing the key to search and remove.
  *
- * \code
+ * \code
  * struct object value_to_remove = { 1 };
  * struct object* obj = tommy_tree_remove(&tree, &value_to_remove);
  * if (obj) {
@@ -87,7 +87,8 @@
  * }
  * \endcode
  *
- * To destroy the tree you have to remove all the elements.
+ * To destroy the tree you have to remove or destroy all the contained elements.
+ * The tree itself doesn't have or need a deallocation function.
  *
  * If you need to iterate over all the elements in the tree, you can use
  * tommy_tree_foreach() or tommy_tree_foreach_arg().

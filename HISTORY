@@ -4,6 +4,8 @@ TommyDS HISTORY
 2.1 2016/10
 ===========
  * Added a new hash function for strings: tommy_strhash_u32().
+ * Added a new AVL tree implementation. Not really fast but useful if
+   you need elements in order.
  * Fixed some references to TOMMY_ARRAYBLKOF_SIZE, where instead
    TOMMY_ARRAYBLK_SIZE was incorrectly used [Rocco].
 
