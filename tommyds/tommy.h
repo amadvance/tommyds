@@ -56,6 +56,7 @@
  * it doesn't fragment the heap.
  * - ::tommy_trie - A trie optimized for cache utilization.
  * - ::tommy_trie_inplace - A trie completely inplace.
+ * - ::tommy_tree - A tree to keep elements in order.
  *
  * The most interesting are ::tommy_array, ::tommy_hashdyn, ::tommy_hashlin, ::tommy_trie and ::tommy_trie_inplace.
  *

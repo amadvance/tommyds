@@ -613,6 +613,7 @@ FILE_PATTERNS          = tommy.h \
                          tommylist.h \
                          tommytrie.h \
                          tommytrieinp.h \
+                         tommytree.h \
                          tommytypes.h
 
 # The RECURSIVE tag can be used to turn specify whether or not subdirectories
