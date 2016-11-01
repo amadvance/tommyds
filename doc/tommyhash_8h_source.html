@@ -80,38 +80,40 @@
 <a name="l00039"></a>00039 
 <a name="l00043"></a><a class="code" href="tommyhash_8h.html#a4f9b62639e55aa933ebcf10f2125f862">00043</a> <span class="keyword">typedef</span> <a class="code" href="tommytypes_8h.html#a8812c3379df4aaf65a3605a22faf4787" title="Key type used in indexed data structures to store the key or the hash value.">tommy_key_t</a> <a class="code" href="tommyhash_8h.html#a4f9b62639e55aa933ebcf10f2125f862" title="Hash type used in hashtables.">tommy_hash_t</a>;
 <a name="l00044"></a>00044 
-<a name="l00058"></a>00058 <a class="code" href="tommytypes_8h.html#a21bc1d926c6dcd89e5c10fb201ee03a4" title="Generic uint32_t type.">tommy_uint32_t</a> <a class="code" href="tommyhash_8h.html#ab020046d7799cda5b440bd49b4e282d8" title="Hash function with a 32 bits result.">tommy_hash_u32</a>(<a class="code" href="tommytypes_8h.html#a21bc1d926c6dcd89e5c10fb201ee03a4" title="Generic uint32_t type.">tommy_uint32_t</a> init_val, <span class="keyword">const</span> <span class="keywordtype">void</span>* void_key, <a class="code" href="tommytypes_8h.html#a32aad870b975610a257f9c2d14b0825e" title="Generic size_t type.">tommy_size_t</a> key_len);
-<a name="l00059"></a>00059 
-<a name="l00073"></a>00073 <a class="code" href="tommytypes_8h.html#a169e7168a1f2b4c01cbd525204c3be63" title="Generic uint64_t type.">tommy_uint64_t</a> <a class="code" href="tommyhash_8h.html#ab8bec53cea498dcff8982382c82a0695" title="Hash function with a 64 bits result.">tommy_hash_u64</a>(<a class="code" href="tommytypes_8h.html#a169e7168a1f2b4c01cbd525204c3be63" title="Generic uint64_t type.">tommy_uint64_t</a> init_val, <span class="keyword">const</span> <span class="keywordtype">void</span>* void_key, <a class="code" href="tommytypes_8h.html#a32aad870b975610a257f9c2d14b0825e" title="Generic size_t type.">tommy_size_t</a> key_len);
-<a name="l00074"></a>00074 
-<a name="l00080"></a><a class="code" href="tommyhash_8h.html#aea9c8438064a941d13e6f5462b5bff71">00080</a> tommy_inline <a class="code" href="tommytypes_8h.html#a21bc1d926c6dcd89e5c10fb201ee03a4" title="Generic uint32_t type.">tommy_uint32_t</a> <a class="code" href="tommyhash_8h.html#aea9c8438064a941d13e6f5462b5bff71" title="Integer reversible hash function for 32 bits.">tommy_inthash_u32</a>(<a class="code" href="tommytypes_8h.html#a21bc1d926c6dcd89e5c10fb201ee03a4" title="Generic uint32_t type.">tommy_uint32_t</a> key)
-<a name="l00081"></a>00081 {
-<a name="l00082"></a>00082         key -= key &lt;&lt; 6;
-<a name="l00083"></a>00083         key ^= key &gt;&gt; 17;
-<a name="l00084"></a>00084         key -= key &lt;&lt; 9;
-<a name="l00085"></a>00085         key ^= key &lt;&lt; 4;
-<a name="l00086"></a>00086         key -= key &lt;&lt; 3;
-<a name="l00087"></a>00087         key ^= key &lt;&lt; 10;
-<a name="l00088"></a>00088         key ^= key &gt;&gt; 15;
-<a name="l00089"></a>00089 
-<a name="l00090"></a>00090         <span class="keywordflow">return</span> key;
-<a name="l00091"></a>00091 }
-<a name="l00092"></a>00092 
-<a name="l00098"></a><a class="code" href="tommyhash_8h.html#a5260825416b2b49d08761f10a5ef981b">00098</a> tommy_inline <a class="code" href="tommytypes_8h.html#a169e7168a1f2b4c01cbd525204c3be63" title="Generic uint64_t type.">tommy_uint64_t</a> <a class="code" href="tommyhash_8h.html#a5260825416b2b49d08761f10a5ef981b" title="Integer reversible hash function for 64 bits.">tommy_inthash_u64</a>(<a class="code" href="tommytypes_8h.html#a169e7168a1f2b4c01cbd525204c3be63" title="Generic uint64_t type.">tommy_uint64_t</a> key)
-<a name="l00099"></a>00099 {
-<a name="l00100"></a>00100         key = ~key + (key &lt;&lt; 21);
-<a name="l00101"></a>00101         key = key ^ (key &gt;&gt; 24);
-<a name="l00102"></a>00102         key = key + (key &lt;&lt; 3) + (key &lt;&lt; 8);
-<a name="l00103"></a>00103         key = key ^ (key &gt;&gt; 14);
-<a name="l00104"></a>00104         key = key + (key &lt;&lt; 2) + (key &lt;&lt; 4);
-<a name="l00105"></a>00105         key = key ^ (key &gt;&gt; 28);
-<a name="l00106"></a>00106         key = key + (key &lt;&lt; 31);
-<a name="l00107"></a>00107 
-<a name="l00108"></a>00108         <span class="keywordflow">return</span> key;
-<a name="l00109"></a>00109 }
-<a name="l00110"></a>00110 
-<a name="l00111"></a>00111 <span class="preprocessor">#endif</span>
-<a name="l00112"></a>00112 <span class="preprocessor"></span>
+<a name="l00063"></a>00063 <a class="code" href="tommytypes_8h.html#a21bc1d926c6dcd89e5c10fb201ee03a4" title="Generic uint32_t type.">tommy_uint32_t</a> <a class="code" href="tommyhash_8h.html#ab020046d7799cda5b440bd49b4e282d8" title="Hash function with a 32 bits result.">tommy_hash_u32</a>(<a class="code" href="tommytypes_8h.html#a21bc1d926c6dcd89e5c10fb201ee03a4" title="Generic uint32_t type.">tommy_uint32_t</a> init_val, <span class="keyword">const</span> <span class="keywordtype">void</span>* void_key, <a class="code" href="tommytypes_8h.html#a32aad870b975610a257f9c2d14b0825e" title="Generic size_t type.">tommy_size_t</a> key_len);
+<a name="l00064"></a>00064 
+<a name="l00083"></a>00083 <a class="code" href="tommytypes_8h.html#a169e7168a1f2b4c01cbd525204c3be63" title="Generic uint64_t type.">tommy_uint64_t</a> <a class="code" href="tommyhash_8h.html#ab8bec53cea498dcff8982382c82a0695" title="Hash function with a 64 bits result.">tommy_hash_u64</a>(<a class="code" href="tommytypes_8h.html#a169e7168a1f2b4c01cbd525204c3be63" title="Generic uint64_t type.">tommy_uint64_t</a> init_val, <span class="keyword">const</span> <span class="keywordtype">void</span>* void_key, <a class="code" href="tommytypes_8h.html#a32aad870b975610a257f9c2d14b0825e" title="Generic size_t type.">tommy_size_t</a> key_len);
+<a name="l00084"></a>00084 
+<a name="l00101"></a>00101 <a class="code" href="tommytypes_8h.html#a21bc1d926c6dcd89e5c10fb201ee03a4" title="Generic uint32_t type.">tommy_uint32_t</a> <a class="code" href="tommyhash_8h.html#a80d2f13a8a2737131a17b03031e06e9a" title="String hash function with a 32 bits result.">tommy_strhash_u32</a>(<a class="code" href="tommytypes_8h.html#a169e7168a1f2b4c01cbd525204c3be63" title="Generic uint64_t type.">tommy_uint64_t</a> init_val, <span class="keyword">const</span> <span class="keywordtype">void</span>* void_key);
+<a name="l00102"></a>00102 
+<a name="l00108"></a><a class="code" href="tommyhash_8h.html#aea9c8438064a941d13e6f5462b5bff71">00108</a> tommy_inline <a class="code" href="tommytypes_8h.html#a21bc1d926c6dcd89e5c10fb201ee03a4" title="Generic uint32_t type.">tommy_uint32_t</a> <a class="code" href="tommyhash_8h.html#aea9c8438064a941d13e6f5462b5bff71" title="Integer reversible hash function for 32 bits.">tommy_inthash_u32</a>(<a class="code" href="tommytypes_8h.html#a21bc1d926c6dcd89e5c10fb201ee03a4" title="Generic uint32_t type.">tommy_uint32_t</a> key)
+<a name="l00109"></a>00109 {
+<a name="l00110"></a>00110         key -= key &lt;&lt; 6;
+<a name="l00111"></a>00111         key ^= key &gt;&gt; 17;
+<a name="l00112"></a>00112         key -= key &lt;&lt; 9;
+<a name="l00113"></a>00113         key ^= key &lt;&lt; 4;
+<a name="l00114"></a>00114         key -= key &lt;&lt; 3;
+<a name="l00115"></a>00115         key ^= key &lt;&lt; 10;
+<a name="l00116"></a>00116         key ^= key &gt;&gt; 15;
+<a name="l00117"></a>00117 
+<a name="l00118"></a>00118         <span class="keywordflow">return</span> key;
+<a name="l00119"></a>00119 }
+<a name="l00120"></a>00120 
+<a name="l00126"></a><a class="code" href="tommyhash_8h.html#a5260825416b2b49d08761f10a5ef981b">00126</a> tommy_inline <a class="code" href="tommytypes_8h.html#a169e7168a1f2b4c01cbd525204c3be63" title="Generic uint64_t type.">tommy_uint64_t</a> <a class="code" href="tommyhash_8h.html#a5260825416b2b49d08761f10a5ef981b" title="Integer reversible hash function for 64 bits.">tommy_inthash_u64</a>(<a class="code" href="tommytypes_8h.html#a169e7168a1f2b4c01cbd525204c3be63" title="Generic uint64_t type.">tommy_uint64_t</a> key)
+<a name="l00127"></a>00127 {
+<a name="l00128"></a>00128         key = ~key + (key &lt;&lt; 21);
+<a name="l00129"></a>00129         key = key ^ (key &gt;&gt; 24);
+<a name="l00130"></a>00130         key = key + (key &lt;&lt; 3) + (key &lt;&lt; 8);
+<a name="l00131"></a>00131         key = key ^ (key &gt;&gt; 14);
+<a name="l00132"></a>00132         key = key + (key &lt;&lt; 2) + (key &lt;&lt; 4);
+<a name="l00133"></a>00133         key = key ^ (key &gt;&gt; 28);
+<a name="l00134"></a>00134         key = key + (key &lt;&lt; 31);
+<a name="l00135"></a>00135 
+<a name="l00136"></a>00136         <span class="keywordflow">return</span> key;
+<a name="l00137"></a>00137 }
+<a name="l00138"></a>00138 
+<a name="l00139"></a>00139 <span class="preprocessor">#endif</span>
+<a name="l00140"></a>00140 <span class="preprocessor"></span>
 </pre></div></div>
 </div>
 </body>

@@ -145,7 +145,7 @@
 <a name="l00206"></a>00206         <span class="keywordflow">else</span>
 <a name="l00207"></a>00207                 tommy_list_insert_first(list, node);
 <a name="l00208"></a>00208 
-<a name="l00209"></a>00209         node-&gt;<a class="code" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f" title="Pointer at the object containing the node.">data</a> = data;
+<a name="l00209"></a>00209         node-&gt;<a class="code" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f" title="Pointer to the object containing the node.">data</a> = data;
 <a name="l00210"></a>00210 }
 <a name="l00211"></a>00211 
 <a name="l00217"></a><a class="code" href="tommylist_8h.html#a98e34efdc68731f3e6da976e4d54ef63">00217</a> tommy_inline <span class="keywordtype">void</span> <a class="code" href="tommylist_8h.html#a98e34efdc68731f3e6da976e4d54ef63" title="Inserts an element at the tail of a list.">tommy_list_insert_tail</a>(<a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_list</a>* list, <a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_node</a>* node, <span class="keywordtype">void</span>* data)
@@ -157,7 +157,7 @@
 <a name="l00223"></a>00223         <span class="keywordflow">else</span>
 <a name="l00224"></a>00224                 tommy_list_insert_first(list, node);
 <a name="l00225"></a>00225 
-<a name="l00226"></a>00226         node-&gt;<a class="code" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f" title="Pointer at the object containing the node.">data</a> = data;
+<a name="l00226"></a>00226         node-&gt;<a class="code" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f" title="Pointer to the object containing the node.">data</a> = data;
 <a name="l00227"></a>00227 }
 <a name="l00228"></a>00228 
 <a name="l00234"></a>00234 tommy_inline <a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_node</a>* tommy_list_remove_head_not_empty(<a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_list</a>* list)
@@ -189,55 +189,82 @@
 <a name="l00268"></a>00268         <span class="keywordflow">else</span>
 <a name="l00269"></a>00269                 node-&gt;<a class="code" href="structtommy__node__struct.html#a5f5ffba676428636553612ddd809443c" title="Previous node.">prev</a>-&gt;<a class="code" href="structtommy__node__struct.html#a53338f3f5366866598ed9ac7e46e64a2" title="Next node.">next</a> = node-&gt;<a class="code" href="structtommy__node__struct.html#a53338f3f5366866598ed9ac7e46e64a2" title="Next node.">next</a>;
 <a name="l00270"></a>00270 
-<a name="l00271"></a>00271         <span class="keywordflow">return</span> node-&gt;<a class="code" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f" title="Pointer at the object containing the node.">data</a>;
+<a name="l00271"></a>00271         <span class="keywordflow">return</span> node-&gt;<a class="code" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f" title="Pointer to the object containing the node.">data</a>;
 <a name="l00272"></a>00272 }
 <a name="l00273"></a>00273 
-<a name="l00281"></a>00281 <span class="keywordtype">void</span> <a class="code" href="tommylist_8h.html#aa23d4cbad2a1b0c9015de64dee8a95f6" title="Concats two lists.">tommy_list_concat</a>(<a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_list</a>* first, <a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_list</a>* second);
-<a name="l00282"></a>00282 
-<a name="l00290"></a>00290 <span class="keywordtype">void</span> <a class="code" href="tommylist_8h.html#a0edd81ae314ffaccc527945a68df1165" title="Sorts a list.">tommy_list_sort</a>(<a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_list</a>* list, <a class="code" href="tommytypes_8h.html#a2e56e0b56065d3200e65f2a5518651d0" title="Compare function for elements.">tommy_compare_func</a>* cmp);
+<a name="l00281"></a><a class="code" href="tommylist_8h.html#aa23d4cbad2a1b0c9015de64dee8a95f6">00281</a> tommy_inline <span class="keywordtype">void</span> <a class="code" href="tommylist_8h.html#aa23d4cbad2a1b0c9015de64dee8a95f6" title="Concats two lists.">tommy_list_concat</a>(<a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_list</a>* first, <a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_list</a>* second)
+<a name="l00282"></a>00282 {
+<a name="l00283"></a>00283         <a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_node</a>* first_head;
+<a name="l00284"></a>00284         <a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_node</a>* first_tail;
+<a name="l00285"></a>00285         <a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_node</a>* second_head;
+<a name="l00286"></a>00286 
+<a name="l00287"></a>00287         <span class="comment">/* if the second is empty, nothing to do */</span>
+<a name="l00288"></a>00288         second_head = <a class="code" href="tommylist_8h.html#aa9e7b5d591c265d71d518e27f7589d47" title="Gets the head of the list.">tommy_list_head</a>(second);
+<a name="l00289"></a>00289         <span class="keywordflow">if</span> (second_head == 0)
+<a name="l00290"></a>00290                 <span class="keywordflow">return</span>;
 <a name="l00291"></a>00291 
-<a name="l00296"></a><a class="code" href="tommylist_8h.html#aa5c92e5869f68dc5c55c55336e01ba6f">00296</a> tommy_inline <a class="code" href="tommytypes_8h.html#afa577fad20a7ce79f14522a0d202bc96" title="Generic boolean type.">tommy_bool_t</a> <a class="code" href="tommylist_8h.html#aa5c92e5869f68dc5c55c55336e01ba6f" title="Checks if empty.">tommy_list_empty</a>(<a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_list</a>* list)
-<a name="l00297"></a>00297 {
-<a name="l00298"></a>00298         <span class="keywordflow">return</span> <a class="code" href="tommylist_8h.html#aa9e7b5d591c265d71d518e27f7589d47" title="Gets the head of the list.">tommy_list_head</a>(list) == 0;
-<a name="l00299"></a>00299 }
-<a name="l00300"></a>00300 
-<a name="l00305"></a><a class="code" href="tommylist_8h.html#a931501223fc80c9c8a5998e21afc5c64">00305</a> tommy_inline <a class="code" href="tommytypes_8h.html#a802a296e9903e3bc098432b9bdad03ab" title="Generic unsigned integer for counting objects.">tommy_count_t</a> <a class="code" href="tommylist_8h.html#a931501223fc80c9c8a5998e21afc5c64" title="Gets the number of elements.">tommy_list_count</a>(<a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_list</a>* list)
-<a name="l00306"></a>00306 {
-<a name="l00307"></a>00307         <a class="code" href="tommytypes_8h.html#a802a296e9903e3bc098432b9bdad03ab" title="Generic unsigned integer for counting objects.">tommy_count_t</a> count = 0;
-<a name="l00308"></a>00308         <a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_node</a>* i = <a class="code" href="tommylist_8h.html#aa9e7b5d591c265d71d518e27f7589d47" title="Gets the head of the list.">tommy_list_head</a>(list);
+<a name="l00292"></a>00292         <span class="comment">/* if the first is empty, copy the second */</span>
+<a name="l00293"></a>00293         first_head = <a class="code" href="tommylist_8h.html#aa9e7b5d591c265d71d518e27f7589d47" title="Gets the head of the list.">tommy_list_head</a>(first);
+<a name="l00294"></a>00294         <span class="keywordflow">if</span> (first_head == 0) {
+<a name="l00295"></a>00295                 *first = *second;
+<a name="l00296"></a>00296                 <span class="keywordflow">return</span>;
+<a name="l00297"></a>00297         }
+<a name="l00298"></a>00298 
+<a name="l00299"></a>00299         <span class="comment">/* tail of the first list */</span>
+<a name="l00300"></a>00300         first_tail = first_head-&gt;<a class="code" href="structtommy__node__struct.html#a5f5ffba676428636553612ddd809443c" title="Previous node.">prev</a>;
+<a name="l00301"></a>00301 
+<a name="l00302"></a>00302         <span class="comment">/* set the &quot;circular&quot; prev list */</span>
+<a name="l00303"></a>00303         first_head-&gt;<a class="code" href="structtommy__node__struct.html#a5f5ffba676428636553612ddd809443c" title="Previous node.">prev</a> = second_head-&gt;<a class="code" href="structtommy__node__struct.html#a5f5ffba676428636553612ddd809443c" title="Previous node.">prev</a>;
+<a name="l00304"></a>00304         second_head-&gt;<a class="code" href="structtommy__node__struct.html#a5f5ffba676428636553612ddd809443c" title="Previous node.">prev</a> = first_tail;
+<a name="l00305"></a>00305 
+<a name="l00306"></a>00306         <span class="comment">/* set the &quot;0 terminated&quot; next list */</span>
+<a name="l00307"></a>00307         first_tail-&gt;<a class="code" href="structtommy__node__struct.html#a53338f3f5366866598ed9ac7e46e64a2" title="Next node.">next</a> = second_head;
+<a name="l00308"></a>00308 }
 <a name="l00309"></a>00309 
-<a name="l00310"></a>00310         <span class="keywordflow">while</span> (i) {
-<a name="l00311"></a>00311                 ++count;
-<a name="l00312"></a>00312                 i = i-&gt;<a class="code" href="structtommy__node__struct.html#a53338f3f5366866598ed9ac7e46e64a2" title="Next node.">next</a>;
-<a name="l00313"></a>00313         }
-<a name="l00314"></a>00314 
-<a name="l00315"></a>00315         <span class="keywordflow">return</span> count;
-<a name="l00316"></a>00316 }
-<a name="l00317"></a>00317 
-<a name="l00346"></a><a class="code" href="tommylist_8h.html#aff0d5bf37382622516d889faac501b61">00346</a> tommy_inline <span class="keywordtype">void</span> <a class="code" href="tommylist_8h.html#aff0d5bf37382622516d889faac501b61" title="Calls the specified function for each element in the list.">tommy_list_foreach</a>(<a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_list</a>* list, <a class="code" href="tommytypes_8h.html#a8caf78c4fb7706a85093f99598d61b5d" title="Foreach function.">tommy_foreach_func</a>* func)
-<a name="l00347"></a>00347 {
-<a name="l00348"></a>00348         <a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_node</a>* node = <a class="code" href="tommylist_8h.html#aa9e7b5d591c265d71d518e27f7589d47" title="Gets the head of the list.">tommy_list_head</a>(list);
-<a name="l00349"></a>00349 
-<a name="l00350"></a>00350         <span class="keywordflow">while</span> (node) {
-<a name="l00351"></a>00351                 <span class="keywordtype">void</span>* data = node-&gt;<a class="code" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f" title="Pointer at the object containing the node.">data</a>;
-<a name="l00352"></a>00352                 node = node-&gt;<a class="code" href="structtommy__node__struct.html#a53338f3f5366866598ed9ac7e46e64a2" title="Next node.">next</a>;
-<a name="l00353"></a>00353                 func(data);
-<a name="l00354"></a>00354         }
-<a name="l00355"></a>00355 }
-<a name="l00356"></a>00356 
-<a name="l00360"></a><a class="code" href="tommylist_8h.html#a1ee2d137f6ebee0237b6535a5f1b9ba3">00360</a> tommy_inline <span class="keywordtype">void</span> <a class="code" href="tommylist_8h.html#a1ee2d137f6ebee0237b6535a5f1b9ba3" title="Calls the specified function with an argument for each element in the list.">tommy_list_foreach_arg</a>(<a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_list</a>* list, <a class="code" href="tommytypes_8h.html#ae0aea577584dfbe750f078b3801d0ee6" title="Foreach function with an argument.">tommy_foreach_arg_func</a>* func, <span class="keywordtype">void</span>* arg)
-<a name="l00361"></a>00361 {
-<a name="l00362"></a>00362         <a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_node</a>* node = <a class="code" href="tommylist_8h.html#aa9e7b5d591c265d71d518e27f7589d47" title="Gets the head of the list.">tommy_list_head</a>(list);
-<a name="l00363"></a>00363 
-<a name="l00364"></a>00364         <span class="keywordflow">while</span> (node) {
-<a name="l00365"></a>00365                 <span class="keywordtype">void</span>* data = node-&gt;<a class="code" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f" title="Pointer at the object containing the node.">data</a>;
-<a name="l00366"></a>00366                 node = node-&gt;<a class="code" href="structtommy__node__struct.html#a53338f3f5366866598ed9ac7e46e64a2" title="Next node.">next</a>;
-<a name="l00367"></a>00367                 func(arg, data);
-<a name="l00368"></a>00368         }
-<a name="l00369"></a>00369 }
-<a name="l00370"></a>00370 
-<a name="l00371"></a>00371 <span class="preprocessor">#endif</span>
-<a name="l00372"></a>00372 <span class="preprocessor"></span>
+<a name="l00317"></a>00317 <span class="keywordtype">void</span> <a class="code" href="tommylist_8h.html#a0edd81ae314ffaccc527945a68df1165" title="Sorts a list.">tommy_list_sort</a>(<a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_list</a>* list, <a class="code" href="tommytypes_8h.html#a2e56e0b56065d3200e65f2a5518651d0" title="Compare function for elements.">tommy_compare_func</a>* cmp);
+<a name="l00318"></a>00318 
+<a name="l00323"></a><a class="code" href="tommylist_8h.html#aa5c92e5869f68dc5c55c55336e01ba6f">00323</a> tommy_inline <a class="code" href="tommytypes_8h.html#afa577fad20a7ce79f14522a0d202bc96" title="Generic boolean type.">tommy_bool_t</a> <a class="code" href="tommylist_8h.html#aa5c92e5869f68dc5c55c55336e01ba6f" title="Checks if empty.">tommy_list_empty</a>(<a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_list</a>* list)
+<a name="l00324"></a>00324 {
+<a name="l00325"></a>00325         <span class="keywordflow">return</span> <a class="code" href="tommylist_8h.html#aa9e7b5d591c265d71d518e27f7589d47" title="Gets the head of the list.">tommy_list_head</a>(list) == 0;
+<a name="l00326"></a>00326 }
+<a name="l00327"></a>00327 
+<a name="l00332"></a><a class="code" href="tommylist_8h.html#a931501223fc80c9c8a5998e21afc5c64">00332</a> tommy_inline <a class="code" href="tommytypes_8h.html#a802a296e9903e3bc098432b9bdad03ab" title="Generic unsigned integer for counting objects.">tommy_count_t</a> <a class="code" href="tommylist_8h.html#a931501223fc80c9c8a5998e21afc5c64" title="Gets the number of elements.">tommy_list_count</a>(<a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_list</a>* list)
+<a name="l00333"></a>00333 {
+<a name="l00334"></a>00334         <a class="code" href="tommytypes_8h.html#a802a296e9903e3bc098432b9bdad03ab" title="Generic unsigned integer for counting objects.">tommy_count_t</a> count = 0;
+<a name="l00335"></a>00335         <a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_node</a>* i = <a class="code" href="tommylist_8h.html#aa9e7b5d591c265d71d518e27f7589d47" title="Gets the head of the list.">tommy_list_head</a>(list);
+<a name="l00336"></a>00336 
+<a name="l00337"></a>00337         <span class="keywordflow">while</span> (i) {
+<a name="l00338"></a>00338                 ++count;
+<a name="l00339"></a>00339                 i = i-&gt;<a class="code" href="structtommy__node__struct.html#a53338f3f5366866598ed9ac7e46e64a2" title="Next node.">next</a>;
+<a name="l00340"></a>00340         }
+<a name="l00341"></a>00341 
+<a name="l00342"></a>00342         <span class="keywordflow">return</span> count;
+<a name="l00343"></a>00343 }
+<a name="l00344"></a>00344 
+<a name="l00373"></a><a class="code" href="tommylist_8h.html#aff0d5bf37382622516d889faac501b61">00373</a> tommy_inline <span class="keywordtype">void</span> <a class="code" href="tommylist_8h.html#aff0d5bf37382622516d889faac501b61" title="Calls the specified function for each element in the list.">tommy_list_foreach</a>(<a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_list</a>* list, <a class="code" href="tommytypes_8h.html#a8caf78c4fb7706a85093f99598d61b5d" title="Foreach function.">tommy_foreach_func</a>* func)
+<a name="l00374"></a>00374 {
+<a name="l00375"></a>00375         <a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_node</a>* node = <a class="code" href="tommylist_8h.html#aa9e7b5d591c265d71d518e27f7589d47" title="Gets the head of the list.">tommy_list_head</a>(list);
+<a name="l00376"></a>00376 
+<a name="l00377"></a>00377         <span class="keywordflow">while</span> (node) {
+<a name="l00378"></a>00378                 <span class="keywordtype">void</span>* data = node-&gt;<a class="code" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f" title="Pointer to the object containing the node.">data</a>;
+<a name="l00379"></a>00379                 node = node-&gt;<a class="code" href="structtommy__node__struct.html#a53338f3f5366866598ed9ac7e46e64a2" title="Next node.">next</a>;
+<a name="l00380"></a>00380                 func(data);
+<a name="l00381"></a>00381         }
+<a name="l00382"></a>00382 }
+<a name="l00383"></a>00383 
+<a name="l00387"></a><a class="code" href="tommylist_8h.html#a1ee2d137f6ebee0237b6535a5f1b9ba3">00387</a> tommy_inline <span class="keywordtype">void</span> <a class="code" href="tommylist_8h.html#a1ee2d137f6ebee0237b6535a5f1b9ba3" title="Calls the specified function with an argument for each element in the list.">tommy_list_foreach_arg</a>(<a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_list</a>* list, <a class="code" href="tommytypes_8h.html#ae0aea577584dfbe750f078b3801d0ee6" title="Foreach function with an argument.">tommy_foreach_arg_func</a>* func, <span class="keywordtype">void</span>* arg)
+<a name="l00388"></a>00388 {
+<a name="l00389"></a>00389         <a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_node</a>* node = <a class="code" href="tommylist_8h.html#aa9e7b5d591c265d71d518e27f7589d47" title="Gets the head of the list.">tommy_list_head</a>(list);
+<a name="l00390"></a>00390 
+<a name="l00391"></a>00391         <span class="keywordflow">while</span> (node) {
+<a name="l00392"></a>00392                 <span class="keywordtype">void</span>* data = node-&gt;<a class="code" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f" title="Pointer to the object containing the node.">data</a>;
+<a name="l00393"></a>00393                 node = node-&gt;<a class="code" href="structtommy__node__struct.html#a53338f3f5366866598ed9ac7e46e64a2" title="Next node.">next</a>;
+<a name="l00394"></a>00394                 func(arg, data);
+<a name="l00395"></a>00395         }
+<a name="l00396"></a>00396 }
+<a name="l00397"></a>00397 
+<a name="l00398"></a>00398 <span class="preprocessor">#endif</span>
+<a name="l00399"></a>00399 <span class="preprocessor"></span>
 </pre></div></div>
 </div>
 </body>

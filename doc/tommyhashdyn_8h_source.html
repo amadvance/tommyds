@@ -109,8 +109,8 @@
 <a name="l00226"></a>00226 
 <a name="l00227"></a>00227         <span class="keywordflow">while</span> (i) {
 <a name="l00228"></a>00228                 <span class="comment">/* we first check if the hash matches, as in the same bucket we may have multiples hash values */</span>
-<a name="l00229"></a>00229                 <span class="keywordflow">if</span> (i-&gt;<a class="code" href="structtommy__node__struct.html#a124aaecab9e5d3d1fbb9239dac779d23" title="Key used to store the node.">key</a> == hash &amp;&amp; cmp(cmp_arg, i-&gt;<a class="code" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f" title="Pointer at the object containing the node.">data</a>) == 0)
-<a name="l00230"></a>00230                         <span class="keywordflow">return</span> i-&gt;<a class="code" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f" title="Pointer at the object containing the node.">data</a>;
+<a name="l00229"></a>00229                 <span class="keywordflow">if</span> (i-&gt;<a class="code" href="structtommy__node__struct.html#a124aaecab9e5d3d1fbb9239dac779d23" title="Key used to store the node.">key</a> == hash &amp;&amp; cmp(cmp_arg, i-&gt;<a class="code" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f" title="Pointer to the object containing the node.">data</a>) == 0)
+<a name="l00230"></a>00230                         <span class="keywordflow">return</span> i-&gt;<a class="code" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f" title="Pointer to the object containing the node.">data</a>;
 <a name="l00231"></a>00231                 i = i-&gt;<a class="code" href="structtommy__node__struct.html#a53338f3f5366866598ed9ac7e46e64a2" title="Next node.">next</a>;
 <a name="l00232"></a>00232         }
 <a name="l00233"></a>00233         <span class="keywordflow">return</span> 0;
@@ -118,19 +118,19 @@
 <a name="l00235"></a>00235 
 <a name="l00241"></a>00241 <span class="keywordtype">void</span>* <a class="code" href="tommyhashdyn_8h.html#a0d9f4ca17314d1a0e8b7072b5fda25cc" title="Removes an element from the hashtable.">tommy_hashdyn_remove_existing</a>(<a class="code" href="structtommy__hashdyn__struct.html" title="Hashtable container type.">tommy_hashdyn</a>* hashdyn, <a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_hashdyn_node</a>* node);
 <a name="l00242"></a>00242 
-<a name="l00273"></a>00273 <span class="keywordtype">void</span> <a class="code" href="tommyhashdyn_8h.html#a010d0131e6e5ddd071dff7dadd181cfa" title="Calls the specified function for each element in the hashtable.">tommy_hashdyn_foreach</a>(<a class="code" href="structtommy__hashdyn__struct.html" title="Hashtable container type.">tommy_hashdyn</a>* hashdyn, <a class="code" href="tommytypes_8h.html#a8caf78c4fb7706a85093f99598d61b5d" title="Foreach function.">tommy_foreach_func</a>* func);
-<a name="l00274"></a>00274 
-<a name="l00278"></a>00278 <span class="keywordtype">void</span> <a class="code" href="tommyhashdyn_8h.html#af1cf2aabf2d7acd3fd78f943384aac9c" title="Calls the specified function with an argument for each element in the hashtable.">tommy_hashdyn_foreach_arg</a>(<a class="code" href="structtommy__hashdyn__struct.html" title="Hashtable container type.">tommy_hashdyn</a>* hashdyn, <a class="code" href="tommytypes_8h.html#ae0aea577584dfbe750f078b3801d0ee6" title="Foreach function with an argument.">tommy_foreach_arg_func</a>* func, <span class="keywordtype">void</span>* arg);
-<a name="l00279"></a>00279 
-<a name="l00283"></a><a class="code" href="tommyhashdyn_8h.html#a37b1f501d4d2ac31d262a2506f9f93a2">00283</a> tommy_inline <a class="code" href="tommytypes_8h.html#a802a296e9903e3bc098432b9bdad03ab" title="Generic unsigned integer for counting objects.">tommy_count_t</a> <a class="code" href="tommyhashdyn_8h.html#a37b1f501d4d2ac31d262a2506f9f93a2" title="Gets the number of elements.">tommy_hashdyn_count</a>(<a class="code" href="structtommy__hashdyn__struct.html" title="Hashtable container type.">tommy_hashdyn</a>* hashdyn)
-<a name="l00284"></a>00284 {
-<a name="l00285"></a>00285         <span class="keywordflow">return</span> hashdyn-&gt;<a class="code" href="structtommy__hashdyn__struct.html#a9981222af13cc17e3a8a857337f9f8c7" title="Number of elements.">count</a>;
-<a name="l00286"></a>00286 }
-<a name="l00287"></a>00287 
-<a name="l00292"></a>00292 <a class="code" href="tommytypes_8h.html#a32aad870b975610a257f9c2d14b0825e" title="Generic size_t type.">tommy_size_t</a> <a class="code" href="tommyhashdyn_8h.html#a3662ac977607f8192738aa9887d70d06" title="Gets the size of allocated memory.">tommy_hashdyn_memory_usage</a>(<a class="code" href="structtommy__hashdyn__struct.html" title="Hashtable container type.">tommy_hashdyn</a>* hashdyn);
-<a name="l00293"></a>00293 
-<a name="l00294"></a>00294 <span class="preprocessor">#endif</span>
-<a name="l00295"></a>00295 <span class="preprocessor"></span>
+<a name="l00274"></a>00274 <span class="keywordtype">void</span> <a class="code" href="tommyhashdyn_8h.html#a010d0131e6e5ddd071dff7dadd181cfa" title="Calls the specified function for each element in the hashtable.">tommy_hashdyn_foreach</a>(<a class="code" href="structtommy__hashdyn__struct.html" title="Hashtable container type.">tommy_hashdyn</a>* hashdyn, <a class="code" href="tommytypes_8h.html#a8caf78c4fb7706a85093f99598d61b5d" title="Foreach function.">tommy_foreach_func</a>* func);
+<a name="l00275"></a>00275 
+<a name="l00279"></a>00279 <span class="keywordtype">void</span> <a class="code" href="tommyhashdyn_8h.html#af1cf2aabf2d7acd3fd78f943384aac9c" title="Calls the specified function with an argument for each element in the hashtable.">tommy_hashdyn_foreach_arg</a>(<a class="code" href="structtommy__hashdyn__struct.html" title="Hashtable container type.">tommy_hashdyn</a>* hashdyn, <a class="code" href="tommytypes_8h.html#ae0aea577584dfbe750f078b3801d0ee6" title="Foreach function with an argument.">tommy_foreach_arg_func</a>* func, <span class="keywordtype">void</span>* arg);
+<a name="l00280"></a>00280 
+<a name="l00284"></a><a class="code" href="tommyhashdyn_8h.html#a37b1f501d4d2ac31d262a2506f9f93a2">00284</a> tommy_inline <a class="code" href="tommytypes_8h.html#a802a296e9903e3bc098432b9bdad03ab" title="Generic unsigned integer for counting objects.">tommy_count_t</a> <a class="code" href="tommyhashdyn_8h.html#a37b1f501d4d2ac31d262a2506f9f93a2" title="Gets the number of elements.">tommy_hashdyn_count</a>(<a class="code" href="structtommy__hashdyn__struct.html" title="Hashtable container type.">tommy_hashdyn</a>* hashdyn)
+<a name="l00285"></a>00285 {
+<a name="l00286"></a>00286         <span class="keywordflow">return</span> hashdyn-&gt;<a class="code" href="structtommy__hashdyn__struct.html#a9981222af13cc17e3a8a857337f9f8c7" title="Number of elements.">count</a>;
+<a name="l00287"></a>00287 }
+<a name="l00288"></a>00288 
+<a name="l00293"></a>00293 <a class="code" href="tommytypes_8h.html#a32aad870b975610a257f9c2d14b0825e" title="Generic size_t type.">tommy_size_t</a> <a class="code" href="tommyhashdyn_8h.html#a3662ac977607f8192738aa9887d70d06" title="Gets the size of allocated memory.">tommy_hashdyn_memory_usage</a>(<a class="code" href="structtommy__hashdyn__struct.html" title="Hashtable container type.">tommy_hashdyn</a>* hashdyn);
+<a name="l00294"></a>00294 
+<a name="l00295"></a>00295 <span class="preprocessor">#endif</span>
+<a name="l00296"></a>00296 <span class="preprocessor"></span>
 </pre></div></div>
 </div>
 </body>

@@ -102,11 +102,11 @@ Functions</h2></td></tr>
 <div class="fragment"><pre class="fragment"> <a class="code" href="structtommy__trie__inplace__struct.html" title="Trie container type.">tommy_trie_inplace</a> trie_inplace;
 
  <a class="code" href="tommytrieinp_8h.html#a47963de4194259261eac0a7733eb07c1" title="Initializes the trie.">tommy_trie_inplace_init</a>(&amp;trie_inplace);
-</pre></div><p>To insert elements in the trie you have to call <a class="el" href="tommytrieinp_8h.html#a039e3ee0bd22185536b6ede483d46758" title="Inserts an element in the trie.">tommy_trie_inplace_insert()</a> for each element. In the insertion call you have to specify the address of the node, the address of the object, and the key value to use. The address of the object is used to initialize the <a class="el" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f" title="Pointer at the object containing the node.">tommy_node::data</a> field of the node, and the key to initialize the <a class="el" href="structtommy__node__struct.html#a124aaecab9e5d3d1fbb9239dac779d23" title="Key used to store the node.">tommy_node::key</a> field.</p>
+</pre></div><p>To insert elements in the trie you have to call <a class="el" href="tommytrieinp_8h.html#a039e3ee0bd22185536b6ede483d46758" title="Inserts an element in the trie.">tommy_trie_inplace_insert()</a> for each element. In the insertion call you have to specify the address of the node, the address of the object, and the key value to use. The address of the object is used to initialize the <a class="el" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f" title="Pointer to the object containing the node.">tommy_node::data</a> field of the node, and the key to initialize the <a class="el" href="structtommy__node__struct.html#a124aaecab9e5d3d1fbb9239dac779d23" title="Key used to store the node.">tommy_node::key</a> field.</p>
 <div class="fragment"><pre class="fragment"> <span class="keyword">struct </span>object {
-     <a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_node</a> node;
-     <span class="comment">// other fields</span>
      <span class="keywordtype">int</span> value;
+     <span class="comment">// other fields</span>
+     <a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_node</a> node;
  };
 
  <span class="keyword">struct </span>object* obj = malloc(<span class="keyword">sizeof</span>(<span class="keyword">struct</span> <span class="keywordtype">object</span>)); <span class="comment">// creates the object</span>
@@ -126,7 +126,7 @@ Functions</h2></td></tr>
 <div class="fragment"><pre class="fragment"> <span class="keywordtype">int</span> value_to_find = 1;
  <a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_node</a>* i = <a class="code" href="tommytrieinp_8h.html#aabd719e53c812e7106141f4ca008045d" title="Gets the bucket of the specified key.">tommy_trie_inplace_bucket</a>(&amp;trie_inplace, value_to_find);
  <span class="keywordflow">while</span> (i) {
-     <span class="keyword">struct </span>object* obj = i-&gt;<a class="code" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f" title="Pointer at the object containing the node.">data</a>; <span class="comment">// gets the object pointer</span>
+     <span class="keyword">struct </span>object* obj = i-&gt;<a class="code" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f" title="Pointer to the object containing the node.">data</a>; <span class="comment">// gets the object pointer</span>
 
      printf(<span class="stringliteral">&quot;%d\n&quot;</span>, obj-&gt;value); <span class="comment">// process the object</span>
 
@@ -389,7 +389,7 @@ Functions</h2></td></tr>
 
 <p>Removes an element from the trie. </p>
 <p>You must already have the address of the element to remove. </p>
-<dl class="return"><dt><b>Returns:</b></dt><dd>The <a class="el" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f" title="Pointer at the object containing the node.">tommy_node::data</a> field of the node removed. </dd></dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>The <a class="el" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f" title="Pointer to the object containing the node.">tommy_node::data</a> field of the node removed. </dd></dl>
 
 </div>
 </div>

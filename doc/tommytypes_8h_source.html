@@ -174,7 +174,7 @@
 <a name="l00189"></a>00189 
 <a name="l00194"></a><a class="code" href="structtommy__node__struct.html#a5f5ffba676428636553612ddd809443c">00194</a>         <span class="keyword">struct </span><a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_node_struct</a>* <a class="code" href="structtommy__node__struct.html#a5f5ffba676428636553612ddd809443c" title="Previous node.">prev</a>;
 <a name="l00195"></a>00195 
-<a name="l00200"></a><a class="code" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f">00200</a>         <span class="keywordtype">void</span>* <a class="code" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f" title="Pointer at the object containing the node.">data</a>;
+<a name="l00200"></a><a class="code" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f">00200</a>         <span class="keywordtype">void</span>* <a class="code" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f" title="Pointer to the object containing the node.">data</a>;
 <a name="l00201"></a>00201 
 <a name="l00207"></a><a class="code" href="structtommy__node__struct.html#a124aaecab9e5d3d1fbb9239dac779d23">00207</a>         <a class="code" href="tommytypes_8h.html#a8812c3379df4aaf65a3605a22faf4787" title="Key type used in indexed data structures to store the key or the hash value.">tommy_key_t</a> <a class="code" href="structtommy__node__struct.html#a124aaecab9e5d3d1fbb9239dac779d23" title="Key used to store the node.">key</a>;
 <a name="l00208"></a>00208 } <a class="code" href="tommytypes_8h.html#a56a5b6211015e83fd69c4f990ac5612b" title="Data structure node.">tommy_node</a>;
@@ -184,95 +184,100 @@
 <a name="l00212"></a>00212 
 <a name="l00240"></a><a class="code" href="tommytypes_8h.html#a2e56e0b56065d3200e65f2a5518651d0">00240</a> <span class="keyword">typedef</span> <span class="keywordtype">int</span> <a class="code" href="tommytypes_8h.html#a2e56e0b56065d3200e65f2a5518651d0" title="Compare function for elements.">tommy_compare_func</a>(<span class="keyword">const</span> <span class="keywordtype">void</span>* obj_a, <span class="keyword">const</span> <span class="keywordtype">void</span>* obj_b);
 <a name="l00241"></a>00241 
-<a name="l00273"></a><a class="code" href="tommytypes_8h.html#a9008971cd09a3f9c4f9da45cffb4627d">00273</a> <span class="keyword">typedef</span> <span class="keywordtype">int</span> <a class="code" href="tommytypes_8h.html#a9008971cd09a3f9c4f9da45cffb4627d" title="Search function for elements.">tommy_search_func</a>(<span class="keyword">const</span> <span class="keywordtype">void</span>* arg, <span class="keyword">const</span> <span class="keywordtype">void</span>* obj);
-<a name="l00274"></a>00274 
-<a name="l00284"></a><a class="code" href="tommytypes_8h.html#a8caf78c4fb7706a85093f99598d61b5d">00284</a> <span class="keyword">typedef</span> <span class="keywordtype">void</span> <a class="code" href="tommytypes_8h.html#a8caf78c4fb7706a85093f99598d61b5d" title="Foreach function.">tommy_foreach_func</a>(<span class="keywordtype">void</span>* obj);
-<a name="l00285"></a>00285 
-<a name="l00291"></a><a class="code" href="tommytypes_8h.html#ae0aea577584dfbe750f078b3801d0ee6">00291</a> <span class="keyword">typedef</span> <span class="keywordtype">void</span> <a class="code" href="tommytypes_8h.html#ae0aea577584dfbe750f078b3801d0ee6" title="Foreach function with an argument.">tommy_foreach_arg_func</a>(<span class="keywordtype">void</span>* arg, <span class="keywordtype">void</span>* obj);
-<a name="l00292"></a>00292 
-<a name="l00293"></a>00293 <span class="comment">/******************************************************************************/</span>
-<a name="l00294"></a>00294 <span class="comment">/* bit hacks */</span>
-<a name="l00295"></a>00295 
-<a name="l00296"></a>00296 <span class="preprocessor">#if defined(_MSC_VER) &amp;&amp; !defined(__cplusplus)</span>
-<a name="l00297"></a>00297 <span class="preprocessor"></span><span class="preprocessor">#include &lt;intrin.h&gt;</span>
-<a name="l00298"></a>00298 <span class="preprocessor">#pragma intrinsic(_BitScanReverse)</span>
-<a name="l00299"></a>00299 <span class="preprocessor"></span><span class="preprocessor">#pragma intrinsic(_BitScanForward)</span>
-<a name="l00300"></a>00300 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
-<a name="l00301"></a>00301 <span class="preprocessor"></span>
-<a name="l00306"></a>00306 <span class="preprocessor">#define TOMMY_ILOG2(value) ((value) == 256 ? 8 : (value) == 128 ? 7 : (value) == 64 ? 6 : (value) == 32 ? 5 : (value) == 16 ? 4 : (value) == 8 ? 3 : (value) == 4 ? 2 : (value) == 2 ? 1 : 0)</span>
-<a name="l00307"></a>00307 <span class="preprocessor"></span>
-<a name="l00326"></a><a class="code" href="tommytypes_8h.html#ac175ae124fdc23cf0ffa7bb8e4f09f45">00326</a> tommy_inline <a class="code" href="tommytypes_8h.html#aeb21ea228f19971e47c8fba1023a598d" title="Generic unsigned integer type.">tommy_uint_t</a> <a class="code" href="tommytypes_8h.html#ac175ae124fdc23cf0ffa7bb8e4f09f45" title="Bit scan reverse or integer log2.">tommy_ilog2_u32</a>(<a class="code" href="tommytypes_8h.html#a21bc1d926c6dcd89e5c10fb201ee03a4" title="Generic uint32_t type.">tommy_uint32_t</a> value)
-<a name="l00327"></a>00327 {
-<a name="l00328"></a>00328 <span class="preprocessor">#if defined(_MSC_VER)</span>
-<a name="l00329"></a>00329 <span class="preprocessor"></span>        <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> count;
-<a name="l00330"></a>00330         _BitScanReverse(&amp;count, value);
-<a name="l00331"></a>00331         <span class="keywordflow">return</span> count;
-<a name="l00332"></a>00332 <span class="preprocessor">#elif defined(__GNUC__)</span>
-<a name="l00333"></a>00333 <span class="preprocessor"></span>        <span class="comment">/*</span>
-<a name="l00334"></a>00334 <span class="comment">         * GCC implements __builtin_clz(x) as &quot;__builtin_clz(x) = bsr(x) ^ 31&quot;</span>
-<a name="l00335"></a>00335 <span class="comment">         *</span>
-<a name="l00336"></a>00336 <span class="comment">         * Where &quot;x ^ 31 = 31 - x&quot;, but gcc does not optimize &quot;31 - __builtin_clz(x)&quot; to bsr(x),</span>
-<a name="l00337"></a>00337 <span class="comment">         * but generates 31 - (bsr(x) xor 31).</span>
-<a name="l00338"></a>00338 <span class="comment">         *</span>
-<a name="l00339"></a>00339 <span class="comment">         * So we write &quot;__builtin_clz(x) ^ 31&quot; instead of &quot;31 - __builtin_clz(x)&quot;,</span>
-<a name="l00340"></a>00340 <span class="comment">         * to allow the double xor to be optimized out.</span>
-<a name="l00341"></a>00341 <span class="comment">         */</span>
-<a name="l00342"></a>00342         <span class="keywordflow">return</span> __builtin_clz(value) ^ 31;
-<a name="l00343"></a>00343 <span class="preprocessor">#else</span>
-<a name="l00344"></a>00344 <span class="preprocessor"></span>        <span class="comment">/* Find the log base 2 of an N-bit integer in O(lg(N)) operations with multiply and lookup */</span>
-<a name="l00345"></a>00345         <span class="comment">/* from http://graphics.stanford.edu/~seander/bithacks.html */</span>
-<a name="l00346"></a>00346         <span class="keyword">static</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> TOMMY_DE_BRUIJN_INDEX_ILOG2[32] = {
-<a name="l00347"></a>00347                 0, 9, 1, 10, 13, 21, 2, 29, 11, 14, 16, 18, 22, 25, 3, 30,
-<a name="l00348"></a>00348                 8, 12, 20, 28, 15, 17, 24, 7, 19, 27, 23, 6, 26, 5, 4, 31
-<a name="l00349"></a>00349         };
-<a name="l00350"></a>00350 
-<a name="l00351"></a>00351         value |= value &gt;&gt; 1;
-<a name="l00352"></a>00352         value |= value &gt;&gt; 2;
-<a name="l00353"></a>00353         value |= value &gt;&gt; 4;
-<a name="l00354"></a>00354         value |= value &gt;&gt; 8;
-<a name="l00355"></a>00355         value |= value &gt;&gt; 16;
-<a name="l00356"></a>00356 
-<a name="l00357"></a>00357         <span class="keywordflow">return</span> TOMMY_DE_BRUIJN_INDEX_ILOG2[(<a class="code" href="tommytypes_8h.html#a21bc1d926c6dcd89e5c10fb201ee03a4" title="Generic uint32_t type.">tommy_uint32_t</a>)(value * 0x07C4ACDDU) &gt;&gt; 27];
-<a name="l00358"></a>00358 <span class="preprocessor">#endif</span>
-<a name="l00359"></a>00359 <span class="preprocessor"></span>}
-<a name="l00360"></a>00360 
-<a name="l00369"></a><a class="code" href="tommytypes_8h.html#a3a147d59b268e82f25cf70f3d6ab45e4">00369</a> tommy_inline <a class="code" href="tommytypes_8h.html#aeb21ea228f19971e47c8fba1023a598d" title="Generic unsigned integer type.">tommy_uint_t</a> <a class="code" href="tommytypes_8h.html#a3a147d59b268e82f25cf70f3d6ab45e4" title="Bit scan forward or trailing zero count.">tommy_ctz_u32</a>(<a class="code" href="tommytypes_8h.html#a21bc1d926c6dcd89e5c10fb201ee03a4" title="Generic uint32_t type.">tommy_uint32_t</a> value)
-<a name="l00370"></a>00370 {
-<a name="l00371"></a>00371 <span class="preprocessor">#if defined(_MSC_VER)</span>
-<a name="l00372"></a>00372 <span class="preprocessor"></span>        <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> count;
-<a name="l00373"></a>00373         _BitScanForward(&amp;count, value);
-<a name="l00374"></a>00374         <span class="keywordflow">return</span> count;
-<a name="l00375"></a>00375 <span class="preprocessor">#elif defined(__GNUC__)</span>
-<a name="l00376"></a>00376 <span class="preprocessor"></span>        <span class="keywordflow">return</span> __builtin_ctz(value);
-<a name="l00377"></a>00377 <span class="preprocessor">#else</span>
-<a name="l00378"></a>00378 <span class="preprocessor"></span>        <span class="comment">/* Count the consecutive zero bits (trailing) on the right with multiply and lookup */</span>
-<a name="l00379"></a>00379         <span class="comment">/* from http://graphics.stanford.edu/~seander/bithacks.html */</span>
-<a name="l00380"></a>00380         <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> TOMMY_DE_BRUIJN_INDEX_CTZ[32] = {
-<a name="l00381"></a>00381                 0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8,
-<a name="l00382"></a>00382                 31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
-<a name="l00383"></a>00383         };
-<a name="l00384"></a>00384 
-<a name="l00385"></a>00385         <span class="keywordflow">return</span> TOMMY_DE_BRUIJN_INDEX_CTZ[(<a class="code" href="tommytypes_8h.html#a21bc1d926c6dcd89e5c10fb201ee03a4" title="Generic uint32_t type.">tommy_uint32_t</a>)(((value &amp; - value) * 0x077CB531U)) &gt;&gt; 27];
-<a name="l00386"></a>00386 <span class="preprocessor">#endif</span>
-<a name="l00387"></a>00387 <span class="preprocessor"></span>}
-<a name="l00388"></a>00388 
-<a name="l00394"></a><a class="code" href="tommytypes_8h.html#aba7650ee6d157e30528da979408a5af9">00394</a> tommy_inline <a class="code" href="tommytypes_8h.html#a21bc1d926c6dcd89e5c10fb201ee03a4" title="Generic uint32_t type.">tommy_uint32_t</a> <a class="code" href="tommytypes_8h.html#aba7650ee6d157e30528da979408a5af9" title="Rounds up to the next power of 2.">tommy_roundup_pow2_u32</a>(<a class="code" href="tommytypes_8h.html#a21bc1d926c6dcd89e5c10fb201ee03a4" title="Generic uint32_t type.">tommy_uint32_t</a> value)
-<a name="l00395"></a>00395 {
-<a name="l00396"></a>00396         <span class="comment">/* Round up to the next highest power of 2 */</span>
-<a name="l00397"></a>00397         <span class="comment">/* from http://www-graphics.stanford.edu/~seander/bithacks.html */</span>
-<a name="l00398"></a>00398 
-<a name="l00399"></a>00399         --value;
-<a name="l00400"></a>00400         value |= value &gt;&gt; 1;
-<a name="l00401"></a>00401         value |= value &gt;&gt; 2;
-<a name="l00402"></a>00402         value |= value &gt;&gt; 4;
-<a name="l00403"></a>00403         value |= value &gt;&gt; 8;
-<a name="l00404"></a>00404         value |= value &gt;&gt; 16;
-<a name="l00405"></a>00405         ++value;
-<a name="l00406"></a>00406 
-<a name="l00407"></a>00407         <span class="keywordflow">return</span> value;
-<a name="l00408"></a>00408 }
-<a name="l00409"></a>00409 <span class="preprocessor">#endif</span>
-<a name="l00410"></a>00410 <span class="preprocessor"></span>
+<a name="l00278"></a><a class="code" href="tommytypes_8h.html#a9008971cd09a3f9c4f9da45cffb4627d">00278</a> <span class="keyword">typedef</span> <span class="keywordtype">int</span> <a class="code" href="tommytypes_8h.html#a9008971cd09a3f9c4f9da45cffb4627d" title="Search function for elements.">tommy_search_func</a>(<span class="keyword">const</span> <span class="keywordtype">void</span>* arg, <span class="keyword">const</span> <span class="keywordtype">void</span>* obj);
+<a name="l00279"></a>00279 
+<a name="l00289"></a><a class="code" href="tommytypes_8h.html#a8caf78c4fb7706a85093f99598d61b5d">00289</a> <span class="keyword">typedef</span> <span class="keywordtype">void</span> <a class="code" href="tommytypes_8h.html#a8caf78c4fb7706a85093f99598d61b5d" title="Foreach function.">tommy_foreach_func</a>(<span class="keywordtype">void</span>* obj);
+<a name="l00290"></a>00290 
+<a name="l00296"></a><a class="code" href="tommytypes_8h.html#ae0aea577584dfbe750f078b3801d0ee6">00296</a> <span class="keyword">typedef</span> <span class="keywordtype">void</span> <a class="code" href="tommytypes_8h.html#ae0aea577584dfbe750f078b3801d0ee6" title="Foreach function with an argument.">tommy_foreach_arg_func</a>(<span class="keywordtype">void</span>* arg, <span class="keywordtype">void</span>* obj);
+<a name="l00297"></a>00297 
+<a name="l00298"></a>00298 <span class="comment">/******************************************************************************/</span>
+<a name="l00299"></a>00299 <span class="comment">/* bit hacks */</span>
+<a name="l00300"></a>00300 
+<a name="l00301"></a>00301 <span class="preprocessor">#if defined(_MSC_VER) &amp;&amp; !defined(__cplusplus)</span>
+<a name="l00302"></a>00302 <span class="preprocessor"></span><span class="preprocessor">#include &lt;intrin.h&gt;</span>
+<a name="l00303"></a>00303 <span class="preprocessor">#pragma intrinsic(_BitScanReverse)</span>
+<a name="l00304"></a>00304 <span class="preprocessor"></span><span class="preprocessor">#pragma intrinsic(_BitScanForward)</span>
+<a name="l00305"></a>00305 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
+<a name="l00306"></a>00306 <span class="preprocessor"></span>
+<a name="l00311"></a>00311 <span class="preprocessor">#define TOMMY_ILOG2(value) ((value) == 256 ? 8 : (value) == 128 ? 7 : (value) == 64 ? 6 : (value) == 32 ? 5 : (value) == 16 ? 4 : (value) == 8 ? 3 : (value) == 4 ? 2 : (value) == 2 ? 1 : 0)</span>
+<a name="l00312"></a>00312 <span class="preprocessor"></span>
+<a name="l00331"></a><a class="code" href="tommytypes_8h.html#ac175ae124fdc23cf0ffa7bb8e4f09f45">00331</a> tommy_inline <a class="code" href="tommytypes_8h.html#aeb21ea228f19971e47c8fba1023a598d" title="Generic unsigned integer type.">tommy_uint_t</a> <a class="code" href="tommytypes_8h.html#ac175ae124fdc23cf0ffa7bb8e4f09f45" title="Bit scan reverse or integer log2.">tommy_ilog2_u32</a>(<a class="code" href="tommytypes_8h.html#a21bc1d926c6dcd89e5c10fb201ee03a4" title="Generic uint32_t type.">tommy_uint32_t</a> value)
+<a name="l00332"></a>00332 {
+<a name="l00333"></a>00333 <span class="preprocessor">#if defined(_MSC_VER)</span>
+<a name="l00334"></a>00334 <span class="preprocessor"></span>        <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> count;
+<a name="l00335"></a>00335         _BitScanReverse(&amp;count, value);
+<a name="l00336"></a>00336         <span class="keywordflow">return</span> count;
+<a name="l00337"></a>00337 <span class="preprocessor">#elif defined(__GNUC__)</span>
+<a name="l00338"></a>00338 <span class="preprocessor"></span>        <span class="comment">/*</span>
+<a name="l00339"></a>00339 <span class="comment">         * GCC implements __builtin_clz(x) as &quot;__builtin_clz(x) = bsr(x) ^ 31&quot;</span>
+<a name="l00340"></a>00340 <span class="comment">         *</span>
+<a name="l00341"></a>00341 <span class="comment">         * Where &quot;x ^ 31 = 31 - x&quot;, but gcc does not optimize &quot;31 - __builtin_clz(x)&quot; to bsr(x),</span>
+<a name="l00342"></a>00342 <span class="comment">         * but generates 31 - (bsr(x) xor 31).</span>
+<a name="l00343"></a>00343 <span class="comment">         *</span>
+<a name="l00344"></a>00344 <span class="comment">         * So we write &quot;__builtin_clz(x) ^ 31&quot; instead of &quot;31 - __builtin_clz(x)&quot;,</span>
+<a name="l00345"></a>00345 <span class="comment">         * to allow the double xor to be optimized out.</span>
+<a name="l00346"></a>00346 <span class="comment">         */</span>
+<a name="l00347"></a>00347         <span class="keywordflow">return</span> __builtin_clz(value) ^ 31;
+<a name="l00348"></a>00348 <span class="preprocessor">#else</span>
+<a name="l00349"></a>00349 <span class="preprocessor"></span>        <span class="comment">/* Find the log base 2 of an N-bit integer in O(lg(N)) operations with multiply and lookup */</span>
+<a name="l00350"></a>00350         <span class="comment">/* from http://graphics.stanford.edu/~seander/bithacks.html */</span>
+<a name="l00351"></a>00351         <span class="keyword">static</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> TOMMY_DE_BRUIJN_INDEX_ILOG2[32] = {
+<a name="l00352"></a>00352                 0, 9, 1, 10, 13, 21, 2, 29, 11, 14, 16, 18, 22, 25, 3, 30,
+<a name="l00353"></a>00353                 8, 12, 20, 28, 15, 17, 24, 7, 19, 27, 23, 6, 26, 5, 4, 31
+<a name="l00354"></a>00354         };
+<a name="l00355"></a>00355 
+<a name="l00356"></a>00356         value |= value &gt;&gt; 1;
+<a name="l00357"></a>00357         value |= value &gt;&gt; 2;
+<a name="l00358"></a>00358         value |= value &gt;&gt; 4;
+<a name="l00359"></a>00359         value |= value &gt;&gt; 8;
+<a name="l00360"></a>00360         value |= value &gt;&gt; 16;
+<a name="l00361"></a>00361 
+<a name="l00362"></a>00362         <span class="keywordflow">return</span> TOMMY_DE_BRUIJN_INDEX_ILOG2[(<a class="code" href="tommytypes_8h.html#a21bc1d926c6dcd89e5c10fb201ee03a4" title="Generic uint32_t type.">tommy_uint32_t</a>)(value * 0x07C4ACDDU) &gt;&gt; 27];
+<a name="l00363"></a>00363 <span class="preprocessor">#endif</span>
+<a name="l00364"></a>00364 <span class="preprocessor"></span>}
+<a name="l00365"></a>00365 
+<a name="l00374"></a><a class="code" href="tommytypes_8h.html#a3a147d59b268e82f25cf70f3d6ab45e4">00374</a> tommy_inline <a class="code" href="tommytypes_8h.html#aeb21ea228f19971e47c8fba1023a598d" title="Generic unsigned integer type.">tommy_uint_t</a> <a class="code" href="tommytypes_8h.html#a3a147d59b268e82f25cf70f3d6ab45e4" title="Bit scan forward or trailing zero count.">tommy_ctz_u32</a>(<a class="code" href="tommytypes_8h.html#a21bc1d926c6dcd89e5c10fb201ee03a4" title="Generic uint32_t type.">tommy_uint32_t</a> value)
+<a name="l00375"></a>00375 {
+<a name="l00376"></a>00376 <span class="preprocessor">#if defined(_MSC_VER)</span>
+<a name="l00377"></a>00377 <span class="preprocessor"></span>        <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> count;
+<a name="l00378"></a>00378         _BitScanForward(&amp;count, value);
+<a name="l00379"></a>00379         <span class="keywordflow">return</span> count;
+<a name="l00380"></a>00380 <span class="preprocessor">#elif defined(__GNUC__)</span>
+<a name="l00381"></a>00381 <span class="preprocessor"></span>        <span class="keywordflow">return</span> __builtin_ctz(value);
+<a name="l00382"></a>00382 <span class="preprocessor">#else</span>
+<a name="l00383"></a>00383 <span class="preprocessor"></span>        <span class="comment">/* Count the consecutive zero bits (trailing) on the right with multiply and lookup */</span>
+<a name="l00384"></a>00384         <span class="comment">/* from http://graphics.stanford.edu/~seander/bithacks.html */</span>
+<a name="l00385"></a>00385         <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> TOMMY_DE_BRUIJN_INDEX_CTZ[32] = {
+<a name="l00386"></a>00386                 0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8,
+<a name="l00387"></a>00387                 31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
+<a name="l00388"></a>00388         };
+<a name="l00389"></a>00389 
+<a name="l00390"></a>00390         <span class="keywordflow">return</span> TOMMY_DE_BRUIJN_INDEX_CTZ[(<a class="code" href="tommytypes_8h.html#a21bc1d926c6dcd89e5c10fb201ee03a4" title="Generic uint32_t type.">tommy_uint32_t</a>)(((value &amp; - value) * 0x077CB531U)) &gt;&gt; 27];
+<a name="l00391"></a>00391 <span class="preprocessor">#endif</span>
+<a name="l00392"></a>00392 <span class="preprocessor"></span>}
+<a name="l00393"></a>00393 
+<a name="l00399"></a><a class="code" href="tommytypes_8h.html#aba7650ee6d157e30528da979408a5af9">00399</a> tommy_inline <a class="code" href="tommytypes_8h.html#a21bc1d926c6dcd89e5c10fb201ee03a4" title="Generic uint32_t type.">tommy_uint32_t</a> <a class="code" href="tommytypes_8h.html#aba7650ee6d157e30528da979408a5af9" title="Rounds up to the next power of 2.">tommy_roundup_pow2_u32</a>(<a class="code" href="tommytypes_8h.html#a21bc1d926c6dcd89e5c10fb201ee03a4" title="Generic uint32_t type.">tommy_uint32_t</a> value)
+<a name="l00400"></a>00400 {
+<a name="l00401"></a>00401         <span class="comment">/* Round up to the next highest power of 2 */</span>
+<a name="l00402"></a>00402         <span class="comment">/* from http://graphics.stanford.edu/~seander/bithacks.html */</span>
+<a name="l00403"></a>00403 
+<a name="l00404"></a>00404         --value;
+<a name="l00405"></a>00405         value |= value &gt;&gt; 1;
+<a name="l00406"></a>00406         value |= value &gt;&gt; 2;
+<a name="l00407"></a>00407         value |= value &gt;&gt; 4;
+<a name="l00408"></a>00408         value |= value &gt;&gt; 8;
+<a name="l00409"></a>00409         value |= value &gt;&gt; 16;
+<a name="l00410"></a>00410         ++value;
+<a name="l00411"></a>00411 
+<a name="l00412"></a>00412         <span class="keywordflow">return</span> value;
+<a name="l00413"></a>00413 }
+<a name="l00414"></a>00414 
+<a name="l00419"></a><a class="code" href="tommytypes_8h.html#a36e826cdcc0c9957d3541de4d10a787e">00419</a> tommy_inline <span class="keywordtype">int</span> <a class="code" href="tommytypes_8h.html#a36e826cdcc0c9957d3541de4d10a787e" title="Check if the specified word has a byte at 0.">tommy_haszero_u32</a>(<a class="code" href="tommytypes_8h.html#a21bc1d926c6dcd89e5c10fb201ee03a4" title="Generic uint32_t type.">tommy_uint32_t</a> value)
+<a name="l00420"></a>00420 {
+<a name="l00421"></a>00421         <span class="keywordflow">return</span> ((value - 0x01010101) &amp; ~value &amp; 0x80808080) != 0;
+<a name="l00422"></a>00422 }
+<a name="l00423"></a>00423 <span class="preprocessor">#endif</span>
+<a name="l00424"></a>00424 <span class="preprocessor"></span>
 </pre></div></div>
 </div>
 </body>

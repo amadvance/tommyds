@@ -103,6 +103,8 @@ Functions</h2></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Bit scan forward or trailing zero count.  <a href="#a3a147d59b268e82f25cf70f3d6ab45e4"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="tommytypes_8h.html#a21bc1d926c6dcd89e5c10fb201ee03a4">tommy_uint32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tommytypes_8h.html#aba7650ee6d157e30528da979408a5af9">tommy_roundup_pow2_u32</a> (<a class="el" href="tommytypes_8h.html#a21bc1d926c6dcd89e5c10fb201ee03a4">tommy_uint32_t</a> value)</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Rounds up to the next power of 2.  <a href="#aba7650ee6d157e30528da979408a5af9"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tommytypes_8h.html#a36e826cdcc0c9957d3541de4d10a787e">tommy_haszero_u32</a> (<a class="el" href="tommytypes_8h.html#a21bc1d926c6dcd89e5c10fb201ee03a4">tommy_uint32_t</a> value)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if the specified word has a byte at 0.  <a href="#a36e826cdcc0c9957d3541de4d10a787e"></a><br/></td></tr>
 </table>
 <hr/><a name="_details"></a><h2>Detailed Description</h2>
 <div class="textblock"><p>Generic types. </p>
@@ -311,8 +313,8 @@ Functions</h2></td></tr>
 <p>Compare function for elements. </p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table class="params">
-    <tr><td class="paramname">obj_a</td><td>Pointer at the first object to compare. </td></tr>
-    <tr><td class="paramname">obj_b</td><td>Pointer at the second object to compare. </td></tr>
+    <tr><td class="paramname">obj_a</td><td>Pointer to the first object to compare. </td></tr>
+    <tr><td class="paramname">obj_b</td><td>Pointer to the second object to compare. </td></tr>
   </table>
   </dd>
 </dl>
@@ -350,13 +352,14 @@ Functions</h2></td></tr>
 <p>Search function for elements. </p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table class="params">
-    <tr><td class="paramname">arg</td><td>Pointer at the value to search. </td></tr>
-    <tr><td class="paramname">obj</td><td>Pointer at the object to compare to. </td></tr>
+    <tr><td class="paramname">arg</td><td>Pointer to the value to search as passed at the search function. </td></tr>
+    <tr><td class="paramname">obj</td><td>Pointer to the object to compare to. </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="return"><dt><b>Returns:</b></dt><dd>==0 if the value matches the element. !=0 if different.</dd></dl>
-<p>Note that the first argument is a pointer to the value to search and the second one is a pointer to the object to compare. They are pointers of two different types.</p>
+<p>The first argument is a pointer to the value to search exactly as it's passed at the search function called. The second argument is a pointer to the object inside the hashtable to compare.</p>
+<p>The return value has to be 0 if the values are equal. != 0 if they are different.</p>
 <div class="fragment"><pre class="fragment"> <span class="keyword">struct </span>object {
      <a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_node</a> node;
      <span class="keywordtype">int</span> value;
@@ -364,7 +367,10 @@ Functions</h2></td></tr>
 
  <span class="keywordtype">int</span> compare(<span class="keyword">const</span> <span class="keywordtype">void</span>* arg, <span class="keyword">const</span> <span class="keywordtype">void</span>* obj)
  {
-     <span class="keywordflow">return</span> *(<span class="keyword">const</span> <span class="keywordtype">int</span>*)arg != ((<span class="keyword">const</span> <span class="keyword">struct</span> <span class="keywordtype">object</span>*)obj)-&gt;value;
+     <span class="keyword">const</span> <span class="keywordtype">int</span>* value_to_find = arg;
+     <span class="keyword">const</span> <span class="keyword">struct </span>object* object_to_compare = obj;
+
+     <span class="keywordflow">return</span> *value_to_find != object_to_compare-&gt;value;
  }
 
  <span class="keywordtype">int</span> value_to_find = 1;
@@ -391,7 +397,7 @@ Functions</h2></td></tr>
 <p>Foreach function. </p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table class="params">
-    <tr><td class="paramname">obj</td><td>Pointer at the object to iterate.</td></tr>
+    <tr><td class="paramname">obj</td><td>Pointer to the object to iterate.</td></tr>
   </table>
   </dd>
 </dl>
@@ -414,8 +420,8 @@ Functions</h2></td></tr>
 <p>Foreach function with an argument. </p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table class="params">
-    <tr><td class="paramname">arg</td><td>Pointer at a generic argument. </td></tr>
-    <tr><td class="paramname">obj</td><td>Pointer at the object to iterate. </td></tr>
+    <tr><td class="paramname">arg</td><td>Pointer to a generic argument. </td></tr>
+    <tr><td class="paramname">obj</td><td>Pointer to the object to iterate. </td></tr>
   </table>
   </dd>
 </dl>
@@ -500,6 +506,26 @@ Functions</h2></td></tr>
 <p>Rounds up to the next power of 2. </p>
 <p>For the value 0, the result is undefined. </p>
 <dl class="return"><dt><b>Returns:</b></dt><dd>The smallest power of 2 not less than the specified value. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a36e826cdcc0c9957d3541de4d10a787e"></a><!-- doxytag: member="tommytypes.h::tommy_haszero_u32" ref="a36e826cdcc0c9957d3541de4d10a787e" args="(tommy_uint32_t value)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int tommy_haszero_u32 </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="tommytypes_8h.html#a21bc1d926c6dcd89e5c10fb201ee03a4">tommy_uint32_t</a>&#160;</td>
+          <td class="paramname"><em>value</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Check if the specified word has a byte at 0. </p>
+<dl class="return"><dt><b>Returns:</b></dt><dd>0 or 1. </dd></dl>
 
 </div>
 </div>

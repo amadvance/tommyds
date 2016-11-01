@@ -103,11 +103,11 @@ Functions</h2></td></tr>
  <a class="code" href="tommyalloc_8h.html#a586c23ea36edb2ee6e07e4ce48eca2e0" title="Initializes the allocator.">tommy_allocator_init</a>(&amp;alloc, <a class="code" href="tommytrie_8h.html#a12bee56b6b3ae6ee817d641f148220f1" title="Trie block size.">TOMMY_TRIE_BLOCK_SIZE</a>, <a class="code" href="tommytrie_8h.html#a12bee56b6b3ae6ee817d641f148220f1" title="Trie block size.">TOMMY_TRIE_BLOCK_SIZE</a>);
 
  <a class="code" href="tommytrie_8h.html#ac6f775ce5ef3dcf2b5d0bf0588f39e7c" title="Initializes the trie.">tommy_trie_init</a>(&amp;trie, &amp;alloc);
-</pre></div><p>To insert elements in the trie you have to call <a class="el" href="tommytrie_8h.html#a7f48a4942d6b607c24b7236ab257b7d7" title="Inserts an element in the trie.">tommy_trie_insert()</a> for each element. In the insertion call you have to specify the address of the node, the address of the object, and the key value to use. The address of the object is used to initialize the <a class="el" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f" title="Pointer at the object containing the node.">tommy_node::data</a> field of the node, and the key to initialize the <a class="el" href="structtommy__node__struct.html#a124aaecab9e5d3d1fbb9239dac779d23" title="Key used to store the node.">tommy_node::key</a> field.</p>
+</pre></div><p>To insert elements in the trie you have to call <a class="el" href="tommytrie_8h.html#a7f48a4942d6b607c24b7236ab257b7d7" title="Inserts an element in the trie.">tommy_trie_insert()</a> for each element. In the insertion call you have to specify the address of the node, the address of the object, and the key value to use. The address of the object is used to initialize the <a class="el" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f" title="Pointer to the object containing the node.">tommy_node::data</a> field of the node, and the key to initialize the <a class="el" href="structtommy__node__struct.html#a124aaecab9e5d3d1fbb9239dac779d23" title="Key used to store the node.">tommy_node::key</a> field.</p>
 <div class="fragment"><pre class="fragment"> <span class="keyword">struct </span>object {
-     <a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_node</a> node;
-     <span class="comment">// other fields</span>
      <span class="keywordtype">int</span> value;
+     <span class="comment">// other fields</span>
+     <a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_node</a> node;
  };
 
  <span class="keyword">struct </span>object* obj = malloc(<span class="keyword">sizeof</span>(<span class="keyword">struct</span> <span class="keywordtype">object</span>)); <span class="comment">// creates the object</span>
@@ -127,7 +127,7 @@ Functions</h2></td></tr>
 <div class="fragment"><pre class="fragment"> <span class="keywordtype">int</span> value_to_find = 1;
  <a class="code" href="structtommy__node__struct.html" title="Data structure node.">tommy_node</a>* i = <a class="code" href="tommytrie_8h.html#a0ab11f26139ff2a1d405ace4a1af0e6a" title="Gets the bucket of the specified key.">tommy_trie_bucket</a>(&amp;trie, value_to_find);
  <span class="keywordflow">while</span> (i) {
-     <span class="keyword">struct </span>object* obj = i-&gt;<a class="code" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f" title="Pointer at the object containing the node.">data</a>; <span class="comment">// gets the object pointer</span>
+     <span class="keyword">struct </span>object* obj = i-&gt;<a class="code" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f" title="Pointer to the object containing the node.">data</a>; <span class="comment">// gets the object pointer</span>
 
      printf(<span class="stringliteral">&quot;%d\n&quot;</span>, obj-&gt;value); <span class="comment">// process the object</span>
 
@@ -284,11 +284,11 @@ Functions</h2></td></tr>
 <div class="memdoc">
 
 <p>Inserts an element in the trie. </p>
-<p>You have to provide the pointer of the node embedded into the object, the pointer at the object and the key to use. </p>
+<p>You have to provide the pointer of the node embedded into the object, the pointer to the object and the key to use. </p>
 <dl><dt><b>Parameters:</b></dt><dd>
   <table class="params">
-    <tr><td class="paramname">node</td><td>Pointer at the node embedded into the object to insert. </td></tr>
-    <tr><td class="paramname">data</td><td>Pointer at the object to insert. </td></tr>
+    <tr><td class="paramname">node</td><td>Pointer to the node embedded into the object to insert. </td></tr>
+    <tr><td class="paramname">data</td><td>Pointer to the object to insert. </td></tr>
     <tr><td class="paramname">key</td><td>Key to use to insert the object. </td></tr>
   </table>
   </dd>
@@ -434,7 +434,7 @@ Functions</h2></td></tr>
 
 <p>Removes an element from the trie. </p>
 <p>You must already have the address of the element to remove. </p>
-<dl class="return"><dt><b>Returns:</b></dt><dd>The <a class="el" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f" title="Pointer at the object containing the node.">tommy_node::data</a> field of the node removed. </dd></dl>
+<dl class="return"><dt><b>Returns:</b></dt><dd>The <a class="el" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f" title="Pointer to the object containing the node.">tommy_node::data</a> field of the node removed. </dd></dl>
 
 </div>
 </div>
