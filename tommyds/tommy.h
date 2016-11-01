@@ -125,10 +125,11 @@
  * }
  * \endcode
  *
- * Dealing with hashtables, instead of the key, you have to provide the hash value of the object,
- * and a compare function able to differentiate objects with the same hash value.
- * To compute the hash value, you can use the generic tommy_hash_u32() function, or the
- * specialized integer hash function tommy_inthash_u32().
+ * Dealing with hashtables, instead of the key, you have to provide the hash
+ * value of the object, and a compare function able to differentiate objects with
+ * the same hash value.
+ * To compute the hash value, you can use the generic tommy_hash_u32() function,
+ * or the specialized integer hash function tommy_inthash_u32().
  *
  * \section Features
  *
@@ -146,9 +147,10 @@
  *
  * \section Performance
  * Here you can see some timings comparing with other notable implementations.
- * The <i>Hit</i> graph shows the time required for searching random objects with a key.
- * The <i>Change</i> graph shows the time required for searching, removing and reinsert random objects
- * with a different key value.
+ * The <i>Hit</i> graph shows the time required for searching random objects
+ * with a key.
+ * The <i>Change</i> graph shows the time required for searching, removing and
+ * reinsert random objects with a different key value.
  *
  * Times are expressed in nanoseconds for each element, and <b>lower is better</b>.
  *
@@ -194,11 +196,11 @@
  * The benchmark consists in storing a set of N pointers to objects and
  * searching them using integer keys.
  *
- * Compared to the case of mapping integers to integers, mapping pointers to objects means that
- * the pointers are also dereferenced, to simulate the object access,
- * resulting in additional cache misses.
- * This gives an advantage to implementations that store information in the objects itself,
- * as the additional cache misses are already implicit.
+ * Compared to the case of mapping integers to integers, mapping pointers to
+ * objects means that the pointers are also dereferenced, to simulate the
+ * object access, resulting in additional cache misses.
+ * This gives an advantage to implementations that store information in the
+ * objects itself, as the additional cache misses are already implicit.
  *
  * The test done are:
  *  - <b>Insert</b> Insert all the objects starting with an empty container.
@@ -214,8 +216,8 @@
  * The objects are always dereferenced, as we are supposing to use them. This
  * happens even in the remove case, as we are supposing to deallocate them.
  *
- * All the objects are preallocated in the heap, and this allocation time is not
- * included in the test.
+ * All the objects are preallocated in the heap, and the allocation and deallocation
+ * time is not included in the test.
  *
  * The objects contain an integer <i>value</i> field used for consistency checks,
  * an unused <i>payload</i> field of 16 bytes, and any other data required by the
@@ -226,33 +228,35 @@
  * of N even numbers starting from 0x80000000 to 0x80000000+2*N.
  *
  * The use of even numbers allows to have missing keys inside the domain for
- * the <i>Change</i> test.
+ * the <i>Miss</i> and <i>Change</i> test.
  * In such tests it's used the key domain defined by the set of N odd numbers
  * starting from 0x80000000+1 to 0x80000000+2*N+1.
  * Note that using additional keys at the corners of the domain would have given
  * an unfair advantage to tries and trees as they implicitly keep track of the
- * maximum and minimum key values inserted.
+ * maximum and minimum key value inserted.
  *
  * The use of the 0x80000000 base, allow to test a key domain not necessarily
  * starting at 0. Using a 0 base would have given an unfair advantage to some
  * implementation handling it as a special case.
  *
- * For all the hashtables the keys are hashed using the tommy_inthash_u32() function
- * that ensures an uniform distribution. This hash function is also reversible,
- * meaning that no collision is going to be caused by hashing the keys.
- * For tries and trees the keys are not hashed, and used directly.
+ * For all the hashtables the keys are hashed using the tommy_inthash_u32()
+ * function that ensures an uniform distribution. This hash function is also
+ * reversible, meaning that no collision is going to be caused by hashing the
+ * keys. For tries and trees the keys are not hashed, and used directly.
  *
- * The tests are repeated using keys in <i>Random</i> mode and in <i>Forward</i> mode.
- * In the forward mode the key values are used in order from the lowest to the highest.
+ * The tests are repeated using keys in <i>Random</i> mode and in <i>Forward</i>
+ * mode. In the forward mode the key values are used in order from the lowest
+ * to the highest.
  * In the random mode the key values are used in a completely random order.
- * In the <i>Change</i> test in forward mode, each object is reinserted using the previous
- * key incremented by 1. In random mode each object is reinserted using a completely
- * different and uncorrelated key.
+ * In the <i>Change</i> test in forward mode, each object is reinserted using
+ * the previous key incremented by 1. In random mode each object is reinserted
+ * using a completely different and uncorrelated key.
  *
- * The forward order advantages tries and trees as they use the key directly and they have a
- * cache advantage on using consecutive keys.
- * The random order advantages hashtables, as the hash function already randomizes the key.
- * Usually real uses case are in between, and the random one is the worst.
+ * The forward order advantages tries and trees as they use the key directly
+ * and they have a cache advantage on using consecutive keys.
+ * The random order advantages hashtables, as the hash function already
+ * randomizes the key. Usually real uses case are in between, and the random
+ * one is the worst case.
  *
  * \section result Results
  *
@@ -262,18 +266,24 @@
  *
  * <img src="def/img_random_hit.png"/>
  *
- * In the <i>Random Hit</i> graph you can see a vertical split at the 100.000 elements limit.
- * Before this limit the cache of modern processor is able to contains most of the data, and it allow a very fast access with almost all data structures.
- * After this limit, the number of cache misses is the dominant factor, and the curve depends mainly on the number of cache-miss
- * required.
+ * In the <i>Random Hit</i> graph you can see a vertical split at the 100.000
+ * elements limit. Before this limit the cache of modern processor is able to
+ * contains most of the data, and it allows a very fast access with almost all
+ * data structures.
+ * After this limit, the number of cache misses is the dominant factor, and
+ * the curve depends mainly on the number of cache-miss required.
  *
- * For rbtree and nedtrie, it's log2(N) as they have two branches on each node, log4(N) for ::tommy_trie_inplace, log8(N) for ::tommy_trie and 1 for hashtables.
- * For ::tommy_trie_inplace and ::tommy_trie you can change the slope configuring a different number of branches for node.
+ * rbtree and nedtrie grow as log2(N) as they have two branches on each node,
+ * ::tommy_trie_inplace grows as log4(N), ::tommy_trie as log8(N) and hashtables
+ * are almost constant and don't grow.
+ * For ::tommy_trie_inplace and ::tommy_trie you can change the grow curve
+ * configuring a different number of branches for node.
  *
  * <img src="def/img_random_change.png"/>
  *
- * The <i>Random Change</i> graph confirms the vertical split at the 100.000 elements limit.
- * It also show that hashtables are almost unbeatable with a random access.
+ * The <i>Random Change</i> graph confirms the vertical split at the 100.000
+ * elements limit. It also show that hashtables are almost unbeatable with a
+ * random access.
  *
  * \section random Random order
  * Here you can see the whole <i>Random</i> test results in different platforms.
@@ -281,8 +291,8 @@
  * In the <i>Random</i> test, hashtables are almost always winning, seconds are
  * tries, and as last trees.
  *
- * The best choices are ::tommy_hashdyn, ::tommy_hashlin, and googledensehash, with
- * ::tommy_hashlin having the advantage to be real-time friendly and not
+ * The best choices are ::tommy_hashdyn, ::tommy_hashlin, and googledensehash,
+ * with ::tommy_hashlin having the advantage to be real-time friendly and not
  * increasing the heap fragmentation.
  * <table border="0">
  * <tr><td>
@@ -323,16 +333,15 @@
  * memory, and accessing them in order, improves the cache utilization, even if
  * the hashed key is random.
  *
- * Note that you can make hashtables to reach tries performance tweaking
- * the hash function to put near keys allocated nearby.
+ * Note that you can make hashtables to reach tries performance tweaking the hash
+ * function to put near keys allocated nearby.
  * This is possible if you know in advance the distribution of keys.
  * For example, in the benchmark you could use something like:
  * \code
  * #define hash(v) tommy_inthash_u32(v & ~0xF) + (v & 0xF)
  * \endcode
- * and make keys that differ only by the lowest bits
- * to have hashes with the same property, resulting in
- * objects stored nearby, and improving cache utilization.
+ * and make keys that differ only by the lowest bits to have hashes with the same
+ * property, resulting in objects stored nearby, and improving cache utilization.
  *
  * <table border="0">
  * <tr><td>
@@ -374,7 +383,8 @@
  *  - <b>gcc 4.9.2</b> in Linux with options: -O3 -march=nehalem
  *  - <b>Visual C 2012</b> in Windows with options: /Ox /Oy- /GL /GS- /arch:SSE2
  *
- * The following is pseudo code of the benchmark used. In this case it's written for the C++ unordered_map.
+ * The following is pseudo code of the benchmark used. In this case it's written
+ * for the C++ unordered_map.
  *
  * \code
  * #define N 10000000 // Number of elements
@@ -669,8 +679,10 @@
  *
  * \section compromise Compromises
  *
- * Finding the right balance between efficency and easy to use, required some
- * comprimises, mostly on memory efficency, to avoid to cripple the interface.
+ * Finding the right balance between efficency and easy to use required some
+ * comprimises. Most of them are on memory efficency, and were done to avoid to
+ * cripple the interface.
+ *
  * The following is a list of such decisions.
  *
  * \subsection multi_key Multi key
@@ -686,7 +698,7 @@
  *
  * \subsection data_pointer Data pointer
  * The tommy_node::data field is present to allow search and remove functions to return
- * directly a pointer at the element stored in the container.
+ * directly a pointer to the element stored in the container.
  *
  * A more memory conservative approach is to require the user to compute
  * the element pointer from the embedded node with a fixed displacement.
@@ -703,13 +715,13 @@
  * original insertion order.
  *
  * \subsection zero_list Zero terminated list
- * The 0 terminated format of tommy_node::next is present to provide
- * a forward iterator terminating in 0. This allows the user to write a simple
- * iteration loop over the list of elements in the same bucket.
+ * The 0 terminated format of tommy_node::next is present to provide a forward
+ * iterator terminating in 0. This allows the user to write a simple iteration
+ * loop over the list of elements in the same bucket.
  *
- * A more efficient approach is to use a circular list, as operating on
- * nodes in a circular list doesn't requires to manage the special
- * terminating case when adding or removing elements.
+ * A more efficient approach is to use a circular list, because operating on nodes
+ * in a circular list doesn't requires to manage the special terminating case when
+ * adding or removing elements.
  *
  * \page license Tommy License
  * Tommy is released with a <i>2-clause BSD license</i>.
