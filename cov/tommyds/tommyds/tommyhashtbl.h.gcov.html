@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2014-12-27</td>
+            <td class="headerValue">2016-11-01</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">1</td>
@@ -113,9 +113,9 @@
 <span class="lineNum">      51 </span>            :  *
 <span class="lineNum">      52 </span>            :  * \code
 <span class="lineNum">      53 </span>            :  * struct object {
-<span class="lineNum">      54 </span>            :  *     tommy_node node;
+<span class="lineNum">      54 </span>            :  *     int value;
 <span class="lineNum">      55 </span>            :  *     // other fields
-<span class="lineNum">      56 </span>            :  *     int value;
+<span class="lineNum">      56 </span>            :  *     tommy_node node;
 <span class="lineNum">      57 </span>            :  * };
 <span class="lineNum">      58 </span>            :  *
 <span class="lineNum">      59 </span>            :  * struct object* obj = malloc(sizeof(struct object)); // creates the object
@@ -289,56 +289,57 @@
 <span class="lineNum">     227 </span>            : /**
 <span class="lineNum">     228 </span>            :  * Calls the specified function for each element in the hashtable.
 <span class="lineNum">     229 </span>            :  *
-<span class="lineNum">     230 </span>            :  * You can use this function to deallocate all the elements inserted.
-<span class="lineNum">     231 </span>            :  *
-<span class="lineNum">     232 </span>            :  * \code
-<span class="lineNum">     233 </span>            :  * tommy_hashtable hashtable;
-<span class="lineNum">     234 </span>            :  *
-<span class="lineNum">     235 </span>            :  * // initializes the hashtable
-<span class="lineNum">     236 </span>            :  * tommy_hashtable_init(&amp;hashtable, ...);
-<span class="lineNum">     237 </span>            :  *
-<span class="lineNum">     238 </span>            :  * ...
-<span class="lineNum">     239 </span>            :  *
-<span class="lineNum">     240 </span>            :  * // creates an object
-<span class="lineNum">     241 </span>            :  * struct object* obj = malloc(sizeof(struct object));
-<span class="lineNum">     242 </span>            :  *
-<span class="lineNum">     243 </span>            :  * ...
-<span class="lineNum">     244 </span>            :  *
-<span class="lineNum">     245 </span>            :  * // insert it in the hashtable
-<span class="lineNum">     246 </span>            :  * tommy_hashdyn_insert(&amp;hashtable, &amp;obj-&gt;node, obj, tommy_inthash_u32(obj-&gt;value));
-<span class="lineNum">     247 </span>            :  *
-<span class="lineNum">     248 </span>            :  * ...
-<span class="lineNum">     249 </span>            :  *
-<span class="lineNum">     250 </span>            :  * // deallocates all the objects iterating the hashtable
-<span class="lineNum">     251 </span>            :  * tommy_hashtable_foreach(&amp;hashtable, free);
-<span class="lineNum">     252 </span>            :  *
-<span class="lineNum">     253 </span>            :  * // deallocates the hashtable
-<span class="lineNum">     254 </span>            :  * tommy_hashdyn_done(&amp;hashtable);
-<span class="lineNum">     255 </span>            :  * \endcode
-<span class="lineNum">     256 </span>            :  */
-<span class="lineNum">     257 </span>            : void tommy_hashtable_foreach(tommy_hashtable* hashtable, tommy_foreach_func* func);
-<span class="lineNum">     258 </span>            : 
-<span class="lineNum">     259 </span>            : /**
-<span class="lineNum">     260 </span>            :  * Calls the specified function with an argument for each element in the hashtable.
-<span class="lineNum">     261 </span>            :  */
-<span class="lineNum">     262 </span>            : void tommy_hashtable_foreach_arg(tommy_hashtable* hashtable, tommy_foreach_arg_func* func, void* arg);
-<span class="lineNum">     263 </span>            : 
-<span class="lineNum">     264 </span>            : /**
-<a name="265"><span class="lineNum">     265 </span>            :  * Gets the number of elements.</a>
-<span class="lineNum">     266 </span>            :  */
-<span class="lineNum">     267 </span><span class="lineCov">       5001 : tommy_inline tommy_count_t tommy_hashtable_count(tommy_hashtable* hashtable)</span>
-<span class="lineNum">     268 </span>            : {
-<span class="lineNum">     269 </span><span class="lineCov">       5001 :         return hashtable-&gt;count;</span>
-<span class="lineNum">     270 </span>            : }
-<span class="lineNum">     271 </span>            : 
-<span class="lineNum">     272 </span>            : /**
-<span class="lineNum">     273 </span>            :  * Gets the size of allocated memory.
-<span class="lineNum">     274 </span>            :  * It includes the size of the ::tommy_hashtable_node of the stored elements.
-<span class="lineNum">     275 </span>            :  */
-<span class="lineNum">     276 </span>            : tommy_size_t tommy_hashtable_memory_usage(tommy_hashtable* hashtable);
-<span class="lineNum">     277 </span>            : 
-<span class="lineNum">     278 </span>            : #endif
-<span class="lineNum">     279 </span>            : 
+<span class="lineNum">     230 </span>            :  * You cannot add or remove elements from the inside of the callback,
+<span class="lineNum">     231 </span>            :  * but can use it to deallocate them.
+<span class="lineNum">     232 </span>            :  *
+<span class="lineNum">     233 </span>            :  * \code
+<span class="lineNum">     234 </span>            :  * tommy_hashtable hashtable;
+<span class="lineNum">     235 </span>            :  *
+<span class="lineNum">     236 </span>            :  * // initializes the hashtable
+<span class="lineNum">     237 </span>            :  * tommy_hashtable_init(&amp;hashtable, ...);
+<span class="lineNum">     238 </span>            :  *
+<span class="lineNum">     239 </span>            :  * ...
+<span class="lineNum">     240 </span>            :  *
+<span class="lineNum">     241 </span>            :  * // creates an object
+<span class="lineNum">     242 </span>            :  * struct object* obj = malloc(sizeof(struct object));
+<span class="lineNum">     243 </span>            :  *
+<span class="lineNum">     244 </span>            :  * ...
+<span class="lineNum">     245 </span>            :  *
+<span class="lineNum">     246 </span>            :  * // insert it in the hashtable
+<span class="lineNum">     247 </span>            :  * tommy_hashdyn_insert(&amp;hashtable, &amp;obj-&gt;node, obj, tommy_inthash_u32(obj-&gt;value));
+<span class="lineNum">     248 </span>            :  *
+<span class="lineNum">     249 </span>            :  * ...
+<span class="lineNum">     250 </span>            :  *
+<span class="lineNum">     251 </span>            :  * // deallocates all the objects iterating the hashtable
+<span class="lineNum">     252 </span>            :  * tommy_hashtable_foreach(&amp;hashtable, free);
+<span class="lineNum">     253 </span>            :  *
+<span class="lineNum">     254 </span>            :  * // deallocates the hashtable
+<span class="lineNum">     255 </span>            :  * tommy_hashdyn_done(&amp;hashtable);
+<span class="lineNum">     256 </span>            :  * \endcode
+<span class="lineNum">     257 </span>            :  */
+<span class="lineNum">     258 </span>            : void tommy_hashtable_foreach(tommy_hashtable* hashtable, tommy_foreach_func* func);
+<span class="lineNum">     259 </span>            : 
+<span class="lineNum">     260 </span>            : /**
+<span class="lineNum">     261 </span>            :  * Calls the specified function with an argument for each element in the hashtable.
+<span class="lineNum">     262 </span>            :  */
+<span class="lineNum">     263 </span>            : void tommy_hashtable_foreach_arg(tommy_hashtable* hashtable, tommy_foreach_arg_func* func, void* arg);
+<span class="lineNum">     264 </span>            : 
+<span class="lineNum">     265 </span>            : /**
+<a name="266"><span class="lineNum">     266 </span>            :  * Gets the number of elements.</a>
+<span class="lineNum">     267 </span>            :  */
+<span class="lineNum">     268 </span><span class="lineCov">      10002 : tommy_inline tommy_count_t tommy_hashtable_count(tommy_hashtable* hashtable)</span>
+<span class="lineNum">     269 </span>            : {
+<span class="lineNum">     270 </span><span class="lineCov">      10002 :         return hashtable-&gt;count;</span>
+<span class="lineNum">     271 </span>            : }
+<span class="lineNum">     272 </span>            : 
+<span class="lineNum">     273 </span>            : /**
+<span class="lineNum">     274 </span>            :  * Gets the size of allocated memory.
+<span class="lineNum">     275 </span>            :  * It includes the size of the ::tommy_hashtable_node of the stored elements.
+<span class="lineNum">     276 </span>            :  */
+<span class="lineNum">     277 </span>            : tommy_size_t tommy_hashtable_memory_usage(tommy_hashtable* hashtable);
+<span class="lineNum">     278 </span>            : 
+<span class="lineNum">     279 </span>            : #endif
+<span class="lineNum">     280 </span>            : 
 </pre>
       </td>
     </tr>

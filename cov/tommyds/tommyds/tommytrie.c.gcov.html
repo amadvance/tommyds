@@ -1,0 +1,399 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - lcov.info - tommyds/tommyds/tommytrie.c</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">tommyds/tommyds</a> - tommytrie.c<span style="font-size: 80%;"> (source / <a href="tommytrie.c.func.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">lcov.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">109</td>
+            <td class="headerCovTableEntry">109</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2016-11-01</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">8</td>
+            <td class="headerCovTableEntry">8</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*</a>
+<span class="lineNum">       2 </span>            :  * Copyright (c) 2010, Andrea Mazzoleni. All rights reserved.
+<span class="lineNum">       3 </span>            :  *
+<span class="lineNum">       4 </span>            :  * Redistribution and use in source and binary forms, with or without
+<span class="lineNum">       5 </span>            :  * modification, are permitted provided that the following conditions
+<span class="lineNum">       6 </span>            :  * are met:
+<span class="lineNum">       7 </span>            :  *
+<span class="lineNum">       8 </span>            :  * 1. Redistributions of source code must retain the above copyright
+<span class="lineNum">       9 </span>            :  *    notice, this list of conditions and the following disclaimer.
+<span class="lineNum">      10 </span>            :  *
+<span class="lineNum">      11 </span>            :  * 2. Redistributions in binary form must reproduce the above copyright
+<span class="lineNum">      12 </span>            :  *    notice, this list of conditions and the following disclaimer in the
+<span class="lineNum">      13 </span>            :  *    documentation and/or other materials provided with the distribution.
+<span class="lineNum">      14 </span>            :  *
+<span class="lineNum">      15 </span>            :  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS IS&quot;
+<span class="lineNum">      16 </span>            :  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+<span class="lineNum">      17 </span>            :  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+<span class="lineNum">      18 </span>            :  * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+<span class="lineNum">      19 </span>            :  * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+<span class="lineNum">      20 </span>            :  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+<span class="lineNum">      21 </span>            :  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+<span class="lineNum">      22 </span>            :  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+<span class="lineNum">      23 </span>            :  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+<span class="lineNum">      24 </span>            :  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+<span class="lineNum">      25 </span>            :  * POSSIBILITY OF SUCH DAMAGE.
+<span class="lineNum">      26 </span>            :  */
+<span class="lineNum">      27 </span>            : 
+<span class="lineNum">      28 </span>            : #include &quot;tommytrie.h&quot;
+<span class="lineNum">      29 </span>            : #include &quot;tommylist.h&quot;
+<span class="lineNum">      30 </span>            : 
+<span class="lineNum">      31 </span>            : #include &lt;assert.h&gt; /* for assert */
+<span class="lineNum">      32 </span>            : 
+<span class="lineNum">      33 </span>            : /******************************************************************************/
+<span class="lineNum">      34 </span>            : /* trie */
+<span class="lineNum">      35 </span>            : 
+<span class="lineNum">      36 </span>            : /**
+<span class="lineNum">      37 </span>            :  * Mask for the inner branches.
+<span class="lineNum">      38 </span>            :  */
+<span class="lineNum">      39 </span>            : #define TOMMY_TRIE_TREE_MASK (TOMMY_TRIE_TREE_MAX - 1)
+<span class="lineNum">      40 </span>            : 
+<span class="lineNum">      41 </span>            : /**
+<span class="lineNum">      42 </span>            :  * Shift for the first level of branches.
+<span class="lineNum">      43 </span>            :  */
+<span class="lineNum">      44 </span>            : #define TOMMY_TRIE_BUCKET_SHIFT (TOMMY_KEY_BIT - TOMMY_TRIE_BUCKET_BIT)
+<span class="lineNum">      45 </span>            : 
+<span class="lineNum">      46 </span>            : /**
+<span class="lineNum">      47 </span>            :  * Max number of levels.
+<span class="lineNum">      48 </span>            :  */
+<span class="lineNum">      49 </span>            : #define TOMMY_TRIE_LEVEL_MAX ((TOMMY_KEY_BIT - TOMMY_TRIE_BUCKET_BIT) / TOMMY_TRIE_TREE_BIT)
+<span class="lineNum">      50 </span>            : 
+<span class="lineNum">      51 </span>            : /**
+<span class="lineNum">      52 </span>            :  * Hashtrie tree.
+<span class="lineNum">      53 </span>            :  * A tree contains TOMMY_TRIE_TREE_MAX ordered pointers to &lt;null/node/tree&gt;.
+<span class="lineNum">      54 </span>            :  *
+<span class="lineNum">      55 </span>            :  * Each tree level uses exactly TOMMY_TRIE_TREE_BIT bits from the key.
+<span class="lineNum">      56 </span>            :  */
+<span class="lineNum">      57 </span>            : struct tommy_trie_tree_struct {
+<span class="lineNum">      58 </span>            :         tommy_trie_node* map[TOMMY_TRIE_TREE_MAX];
+<span class="lineNum">      59 </span>            : };
+<span class="lineNum">      60 </span>            : typedef struct tommy_trie_tree_struct tommy_trie_tree;
+<span class="lineNum">      61 </span>            : 
+<span class="lineNum">      62 </span>            : /**
+<span class="lineNum">      63 </span>            :  * Kinds of an trie node.
+<span class="lineNum">      64 </span>            :  */
+<span class="lineNum">      65 </span>            : #define TOMMY_TRIE_TYPE_NODE 0 /**&lt; The node is of type ::tommy_trie_node. */
+<span class="lineNum">      66 </span>            : #define TOMMY_TRIE_TYPE_TREE 1 /**&lt; The node is of type ::tommy_trie_tree. */
+<span class="lineNum">      67 </span>            : 
+<span class="lineNum">      68 </span>            : /**
+<span class="lineNum">      69 </span>            :  * Get and set pointer of trie nodes.
+<span class="lineNum">      70 </span>            :  *
+<span class="lineNum">      71 </span>            :  * The pointer type is stored in the lower bit.
+<span class="lineNum">      72 </span>            :  */
+<span class="lineNum">      73 </span>            : #define trie_get_type(ptr) (((tommy_uintptr_t)(ptr)) &amp; 1)
+<span class="lineNum">      74 </span>            : #define trie_get_tree(ptr) ((tommy_trie_tree*)(((tommy_uintptr_t)(ptr)) - TOMMY_TRIE_TYPE_TREE))
+<a name="75"><span class="lineNum">      75 </span>            : #define trie_set_tree(ptr) (void*)(((tommy_uintptr_t)(ptr)) + TOMMY_TRIE_TYPE_TREE)</a>
+<span class="lineNum">      76 </span>            : 
+<span class="lineNum">      77 </span><span class="lineCov">          1 : void tommy_trie_init(tommy_trie* trie, tommy_allocator* alloc)</span>
+<span class="lineNum">      78 </span>            : {
+<span class="lineNum">      79 </span>            :         tommy_uint_t i;
+<span class="lineNum">      80 </span>            : 
+<span class="lineNum">      81 </span><span class="lineCov">         17 :         for (i = 0; i &lt; TOMMY_TRIE_BUCKET_MAX; ++i)</span>
+<span class="lineNum">      82 </span><span class="lineCov">         16 :                 trie-&gt;bucket[i] = 0;</span>
+<span class="lineNum">      83 </span>            : 
+<span class="lineNum">      84 </span><span class="lineCov">          1 :         trie-&gt;count = 0;</span>
+<span class="lineNum">      85 </span><span class="lineCov">          1 :         trie-&gt;node_count = 0;</span>
+<span class="lineNum">      86 </span>            : 
+<span class="lineNum">      87 </span><span class="lineCov">          1 :         trie-&gt;alloc = alloc;</span>
+<a name="88"><span class="lineNum">      88 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">      89 </span>            : 
+<span class="lineNum">      90 </span><span class="lineCov">   35466676 : static void trie_bucket_insert(tommy_trie* trie, tommy_uint_t shift, tommy_trie_node** let_ptr, tommy_trie_node* insert, tommy_key_t key)</span>
+<span class="lineNum">      91 </span>            : {
+<span class="lineNum">      92 </span>            :         tommy_trie_tree* tree;
+<span class="lineNum">      93 </span>            :         tommy_trie_node* node;
+<span class="lineNum">      94 </span>            :         void* ptr;
+<span class="lineNum">      95 </span>            :         tommy_uint_t i;
+<span class="lineNum">      96 </span>            :         tommy_uint_t j;
+<span class="lineNum">      97 </span>            : 
+<span class="lineNum">      98 </span>            : recurse:
+<span class="lineNum">      99 </span><span class="lineCov">   35466676 :         ptr = *let_ptr;</span>
+<span class="lineNum">     100 </span>            : 
+<span class="lineNum">     101 </span>            :         /* if null, just insert the node */
+<span class="lineNum">     102 </span><span class="lineCov">   35466676 :         if (!ptr) {</span>
+<span class="lineNum">     103 </span>            :                 /* setup the node as a list */
+<span class="lineNum">     104 </span><span class="lineCov">    3750000 :                 tommy_list_insert_first(let_ptr, insert);</span>
+<span class="lineNum">     105 </span><span class="lineCov">    3750000 :                 return;</span>
+<span class="lineNum">     106 </span>            :         }
+<span class="lineNum">     107 </span>            : 
+<span class="lineNum">     108 </span><span class="lineCov">   31716676 :         if (trie_get_type(ptr) == TOMMY_TRIE_TYPE_TREE) {</span>
+<span class="lineNum">     109 </span>            :                 /* repeat the process one level down */
+<span class="lineNum">     110 </span><span class="lineCov">   31466674 :                 let_ptr = &amp;trie_get_tree(ptr)-&gt;map[(key &gt;&gt; shift) &amp; TOMMY_TRIE_TREE_MASK];</span>
+<span class="lineNum">     111 </span><span class="lineCov">   31466674 :                 shift -= TOMMY_TRIE_TREE_BIT;</span>
+<span class="lineNum">     112 </span><span class="lineCov">   31466674 :                 goto recurse;</span>
+<span class="lineNum">     113 </span>            :         }
+<span class="lineNum">     114 </span>            : 
+<span class="lineNum">     115 </span><span class="lineCov">     250002 :         node = tommy_cast(tommy_trie_node*, ptr);</span>
+<span class="lineNum">     116 </span>            : 
+<span class="lineNum">     117 </span>            :         /* if it's the same key, insert in the list */
+<span class="lineNum">     118 </span><span class="lineCov">     250002 :         if (node-&gt;key == key) {</span>
+<span class="lineNum">     119 </span><span class="lineCov">          2 :                 tommy_list_insert_tail_not_empty(node, insert);</span>
+<span class="lineNum">     120 </span><span class="lineCov">          2 :                 return;</span>
+<span class="lineNum">     121 </span>            :         }
+<span class="lineNum">     122 </span>            : 
+<span class="lineNum">     123 </span>            : expand:
+<span class="lineNum">     124 </span>            :         /* convert to a tree */
+<span class="lineNum">     125 </span><span class="lineCov">     266671 :         tree = tommy_cast(tommy_trie_tree*, tommy_allocator_alloc(trie-&gt;alloc));</span>
+<span class="lineNum">     126 </span><span class="lineCov">     266671 :         ++trie-&gt;node_count;</span>
+<span class="lineNum">     127 </span><span class="lineCov">     266671 :         *let_ptr = tommy_cast(tommy_trie_node*, trie_set_tree(tree));</span>
+<span class="lineNum">     128 </span>            : 
+<span class="lineNum">     129 </span>            :         /* initialize it */
+<span class="lineNum">     130 </span><span class="lineCov">    4533407 :         for (i = 0; i &lt; TOMMY_TRIE_TREE_MAX; ++i)</span>
+<span class="lineNum">     131 </span><span class="lineCov">    4266736 :                 tree-&gt;map[i] = 0;</span>
+<span class="lineNum">     132 </span>            : 
+<span class="lineNum">     133 </span>            :         /* get the position of the two elements */
+<span class="lineNum">     134 </span><span class="lineCov">     266671 :         i = (node-&gt;key &gt;&gt; shift) &amp; TOMMY_TRIE_TREE_MASK;</span>
+<span class="lineNum">     135 </span><span class="lineCov">     266671 :         j = (key &gt;&gt; shift) &amp; TOMMY_TRIE_TREE_MASK;</span>
+<span class="lineNum">     136 </span>            : 
+<span class="lineNum">     137 </span>            :         /* if they don't collide */
+<span class="lineNum">     138 </span><span class="lineCov">     266671 :         if (i != j) {</span>
+<span class="lineNum">     139 </span>            :                 /* insert the already existing element */
+<span class="lineNum">     140 </span><span class="lineCov">     250000 :                 tree-&gt;map[i] = node;</span>
+<span class="lineNum">     141 </span>            : 
+<span class="lineNum">     142 </span>            :                 /* insert the new node */
+<span class="lineNum">     143 </span><span class="lineCov">     250000 :                 tommy_list_insert_first(&amp;tree-&gt;map[j], insert);</span>
+<span class="lineNum">     144 </span><span class="lineCov">     250000 :                 return;</span>
+<span class="lineNum">     145 </span>            :         }
+<span class="lineNum">     146 </span>            : 
+<span class="lineNum">     147 </span>            :         /* expand one more level */
+<span class="lineNum">     148 </span><span class="lineCov">      16671 :         let_ptr = &amp;tree-&gt;map[i];</span>
+<span class="lineNum">     149 </span><span class="lineCov">      16671 :         shift -= TOMMY_TRIE_TREE_BIT;</span>
+<span class="lineNum">     150 </span><span class="lineCov">      16671 :         goto expand;</span>
+<a name="151"><span class="lineNum">     151 </span>            : }</a>
+<span class="lineNum">     152 </span>            : 
+<span class="lineNum">     153 </span><span class="lineCov">    4000002 : void tommy_trie_insert(tommy_trie* trie, tommy_trie_node* node, void* data, tommy_key_t key)</span>
+<span class="lineNum">     154 </span>            : {
+<span class="lineNum">     155 </span>            :         tommy_trie_node** let_ptr;
+<span class="lineNum">     156 </span>            : 
+<span class="lineNum">     157 </span><span class="lineCov">    4000002 :         node-&gt;data = data;</span>
+<span class="lineNum">     158 </span><span class="lineCov">    4000002 :         node-&gt;key = key;</span>
+<span class="lineNum">     159 </span>            : 
+<span class="lineNum">     160 </span><span class="lineCov">    4000002 :         let_ptr = &amp;trie-&gt;bucket[key &gt;&gt; TOMMY_TRIE_BUCKET_SHIFT];</span>
+<span class="lineNum">     161 </span>            : 
+<span class="lineNum">     162 </span><span class="lineCov">    4000002 :         trie_bucket_insert(trie, TOMMY_TRIE_BUCKET_SHIFT, let_ptr, node, key);</span>
+<span class="lineNum">     163 </span>            : 
+<span class="lineNum">     164 </span><span class="lineCov">    4000002 :         ++trie-&gt;count;</span>
+<a name="165"><span class="lineNum">     165 </span><span class="lineCov">    4000002 : }</span></a>
+<span class="lineNum">     166 </span>            : 
+<span class="lineNum">     167 </span><span class="lineCov">    6000003 : static tommy_trie_node* trie_bucket_remove_existing(tommy_trie* trie, tommy_uint_t shift, tommy_trie_node** let_ptr, tommy_trie_node* remove, tommy_key_t key)</span>
+<span class="lineNum">     168 </span>            : {
+<span class="lineNum">     169 </span>            :         tommy_trie_node* node;
+<span class="lineNum">     170 </span>            :         tommy_trie_tree* tree;
+<span class="lineNum">     171 </span>            :         void* ptr;
+<span class="lineNum">     172 </span>            :         tommy_trie_node** let_back[TOMMY_TRIE_LEVEL_MAX + 1];
+<span class="lineNum">     173 </span>            :         tommy_uint_t level;
+<span class="lineNum">     174 </span>            :         tommy_uint_t i;
+<span class="lineNum">     175 </span>            :         tommy_uint_t count;
+<span class="lineNum">     176 </span>            :         tommy_uint_t last;
+<span class="lineNum">     177 </span>            : 
+<span class="lineNum">     178 </span><span class="lineCov">    6000003 :         level = 0;</span>
+<span class="lineNum">     179 </span>            : recurse:
+<span class="lineNum">     180 </span><span class="lineCov">   44719975 :         ptr = *let_ptr;</span>
+<span class="lineNum">     181 </span>            : 
+<span class="lineNum">     182 </span><span class="lineCov">   44719975 :         if (!ptr)</span>
+<span class="lineNum">     183 </span><span class="lineCov">    2000000 :                 return 0;</span>
+<span class="lineNum">     184 </span>            : 
+<span class="lineNum">     185 </span><span class="lineCov">   42719975 :         if (trie_get_type(ptr) == TOMMY_TRIE_TYPE_TREE) {</span>
+<span class="lineNum">     186 </span><span class="lineCov">   38719972 :                 tree = trie_get_tree(ptr);</span>
+<span class="lineNum">     187 </span>            : 
+<span class="lineNum">     188 </span>            :                 /* save the path */
+<span class="lineNum">     189 </span><span class="lineCov">   38719972 :                 let_back[level++] = let_ptr;</span>
+<span class="lineNum">     190 </span>            : 
+<span class="lineNum">     191 </span>            :                 /* go down one level */
+<span class="lineNum">     192 </span><span class="lineCov">   38719972 :                 let_ptr = &amp;tree-&gt;map[(key &gt;&gt; shift) &amp; TOMMY_TRIE_TREE_MASK];</span>
+<span class="lineNum">     193 </span><span class="lineCov">   38719972 :                 shift -= TOMMY_TRIE_TREE_BIT;</span>
+<span class="lineNum">     194 </span>            : 
+<span class="lineNum">     195 </span><span class="lineCov">   38719972 :                 goto recurse;</span>
+<span class="lineNum">     196 </span>            :         }
+<span class="lineNum">     197 </span>            : 
+<span class="lineNum">     198 </span><span class="lineCov">    4000003 :         node = tommy_cast(tommy_trie_node*, ptr);</span>
+<span class="lineNum">     199 </span>            : 
+<span class="lineNum">     200 </span>            :         /* if the node to remove is not specified */
+<span class="lineNum">     201 </span><span class="lineCov">    4000003 :         if (!remove) {</span>
+<span class="lineNum">     202 </span>            :                 /* remove the first */
+<span class="lineNum">     203 </span><span class="lineCov">    2000001 :                 remove = node;</span>
+<span class="lineNum">     204 </span>            : 
+<span class="lineNum">     205 </span>            :                 /* check if it's really the element to remove */
+<span class="lineNum">     206 </span><span class="lineCov">    2000001 :                 if (remove-&gt;key != key)</span>
+<span class="lineNum">     207 </span><span class="lineCov">          1 :                         return 0;</span>
+<span class="lineNum">     208 </span>            :         }
+<span class="lineNum">     209 </span>            : 
+<span class="lineNum">     210 </span><span class="lineCov">    4000002 :         tommy_list_remove_existing(let_ptr, remove);</span>
+<span class="lineNum">     211 </span>            : 
+<span class="lineNum">     212 </span>            :         /* if the list is not empty, try to reduce */
+<span class="lineNum">     213 </span><span class="lineCov">    4000002 :         if (*let_ptr || !level)</span>
+<span class="lineNum">     214 </span><span class="lineCov">          3 :                 return remove;</span>
+<span class="lineNum">     215 </span>            : 
+<span class="lineNum">     216 </span>            : reduce:
+<span class="lineNum">     217 </span>            :         /* go one level up */
+<span class="lineNum">     218 </span><span class="lineCov">    4266669 :         let_ptr = let_back[--level];</span>
+<span class="lineNum">     219 </span>            : 
+<span class="lineNum">     220 </span><span class="lineCov">    4266669 :         tree = trie_get_tree(*let_ptr);</span>
+<span class="lineNum">     221 </span>            : 
+<span class="lineNum">     222 </span>            :         /* check if there is only one child node */
+<span class="lineNum">     223 </span><span class="lineCov">    4266669 :         count = 0;</span>
+<span class="lineNum">     224 </span><span class="lineCov">    4266669 :         last = 0;</span>
+<span class="lineNum">     225 </span><span class="lineCov">   42283271 :         for (i = 0; i &lt; TOMMY_TRIE_TREE_MAX; ++i) {</span>
+<span class="lineNum">     226 </span><span class="lineCov">   42016600 :                 if (tree-&gt;map[i]) {</span>
+<span class="lineNum">     227 </span>            :                         /* if we have a sub tree, we cannot reduce */
+<span class="lineNum">     228 </span><span class="lineCov">    8016728 :                         if (trie_get_type(tree-&gt;map[i]) != TOMMY_TRIE_TYPE_NODE)</span>
+<span class="lineNum">     229 </span><span class="lineCov">     499938 :                                 return remove;</span>
+<span class="lineNum">     230 </span>            :                         /* if more than one node, we cannot reduce */
+<span class="lineNum">     231 </span><span class="lineCov">    7516790 :                         if (++count &gt; 1)</span>
+<span class="lineNum">     232 </span><span class="lineCov">    3500060 :                                 return remove;</span>
+<span class="lineNum">     233 </span><span class="lineCov">    4016730 :                         last = i;</span>
+<span class="lineNum">     234 </span>            :                 }
+<span class="lineNum">     235 </span>            :         }
+<span class="lineNum">     236 </span>            : 
+<span class="lineNum">     237 </span>            :         /* here count is never 0, as we cannot have a tree with only one sub node */
+<span class="lineNum">     238 </span><span class="lineCov">     266671 :         assert(count == 1);</span>
+<span class="lineNum">     239 </span>            : 
+<span class="lineNum">     240 </span><span class="lineCov">     266671 :         *let_ptr = tree-&gt;map[last];</span>
+<span class="lineNum">     241 </span>            : 
+<span class="lineNum">     242 </span><span class="lineCov">     266671 :         tommy_allocator_free(trie-&gt;alloc, tree);</span>
+<span class="lineNum">     243 </span><span class="lineCov">     266671 :         --trie-&gt;node_count;</span>
+<span class="lineNum">     244 </span>            : 
+<span class="lineNum">     245 </span>            :         /* repeat until more level */
+<span class="lineNum">     246 </span><span class="lineCov">     266671 :         if (level)</span>
+<span class="lineNum">     247 </span><span class="lineCov">     266670 :                 goto reduce;</span>
+<span class="lineNum">     248 </span>            : 
+<span class="lineNum">     249 </span><span class="lineCov">          1 :         return remove;</span>
+<a name="250"><span class="lineNum">     250 </span>            : }</a>
+<span class="lineNum">     251 </span>            : 
+<span class="lineNum">     252 </span><span class="lineCov">    4000001 : void* tommy_trie_remove(tommy_trie* trie, tommy_key_t key)</span>
+<span class="lineNum">     253 </span>            : {
+<span class="lineNum">     254 </span>            :         tommy_trie_node* ret;
+<span class="lineNum">     255 </span>            :         tommy_trie_node** let_ptr;
+<span class="lineNum">     256 </span>            : 
+<span class="lineNum">     257 </span><span class="lineCov">    4000001 :         let_ptr = &amp;trie-&gt;bucket[key &gt;&gt; TOMMY_TRIE_BUCKET_SHIFT];</span>
+<span class="lineNum">     258 </span>            : 
+<span class="lineNum">     259 </span><span class="lineCov">    4000001 :         ret = trie_bucket_remove_existing(trie, TOMMY_TRIE_BUCKET_SHIFT, let_ptr, 0, key);</span>
+<span class="lineNum">     260 </span>            : 
+<span class="lineNum">     261 </span><span class="lineCov">    4000001 :         if (!ret)</span>
+<span class="lineNum">     262 </span><span class="lineCov">    2000001 :                 return 0;</span>
+<span class="lineNum">     263 </span>            : 
+<span class="lineNum">     264 </span><span class="lineCov">    2000000 :         --trie-&gt;count;</span>
+<span class="lineNum">     265 </span>            : 
+<span class="lineNum">     266 </span><span class="lineCov">    2000000 :         return ret-&gt;data;</span>
+<a name="267"><span class="lineNum">     267 </span>            : }</a>
+<span class="lineNum">     268 </span>            : 
+<span class="lineNum">     269 </span><span class="lineCov">    2000002 : void* tommy_trie_remove_existing(tommy_trie* trie, tommy_trie_node* node)</span>
+<span class="lineNum">     270 </span>            : {
+<span class="lineNum">     271 </span>            :         tommy_trie_node* ret;
+<span class="lineNum">     272 </span><span class="lineCov">    2000002 :         tommy_key_t key = node-&gt;key;</span>
+<span class="lineNum">     273 </span>            :         tommy_trie_node** let_ptr;
+<span class="lineNum">     274 </span>            : 
+<span class="lineNum">     275 </span><span class="lineCov">    2000002 :         let_ptr = &amp;trie-&gt;bucket[key &gt;&gt; TOMMY_TRIE_BUCKET_SHIFT];</span>
+<span class="lineNum">     276 </span>            : 
+<span class="lineNum">     277 </span><span class="lineCov">    2000002 :         ret = trie_bucket_remove_existing(trie, TOMMY_TRIE_BUCKET_SHIFT, let_ptr, node, key);</span>
+<span class="lineNum">     278 </span>            : 
+<span class="lineNum">     279 </span>            :         /* the element removed must match the one passed */
+<span class="lineNum">     280 </span><span class="lineCov">    2000002 :         assert(ret == node);</span>
+<span class="lineNum">     281 </span>            : 
+<span class="lineNum">     282 </span><span class="lineCov">    2000002 :         --trie-&gt;count;</span>
+<span class="lineNum">     283 </span>            : 
+<span class="lineNum">     284 </span><span class="lineCov">    2000002 :         return ret-&gt;data;</span>
+<a name="285"><span class="lineNum">     285 </span>            : }</a>
+<span class="lineNum">     286 </span>            : 
+<span class="lineNum">     287 </span><span class="lineCov">    4000001 : tommy_trie_node* tommy_trie_bucket(tommy_trie* trie, tommy_key_t key)</span>
+<span class="lineNum">     288 </span>            : {
+<span class="lineNum">     289 </span>            :         tommy_trie_node* node;
+<span class="lineNum">     290 </span>            :         void* ptr;
+<span class="lineNum">     291 </span>            :         tommy_uint_t type;
+<span class="lineNum">     292 </span>            :         tommy_uint_t shift;
+<span class="lineNum">     293 </span>            : 
+<span class="lineNum">     294 </span><span class="lineCov">    4000001 :         ptr = trie-&gt;bucket[key &gt;&gt; TOMMY_TRIE_BUCKET_SHIFT];</span>
+<span class="lineNum">     295 </span>            : 
+<span class="lineNum">     296 </span><span class="lineCov">    4000001 :         shift = TOMMY_TRIE_BUCKET_SHIFT;</span>
+<span class="lineNum">     297 </span>            : 
+<span class="lineNum">     298 </span>            : recurse:
+<span class="lineNum">     299 </span><span class="lineCov">   26986628 :         if (!ptr)</span>
+<span class="lineNum">     300 </span><span class="lineCov">    2000000 :                 return 0;</span>
+<span class="lineNum">     301 </span>            : 
+<span class="lineNum">     302 </span><span class="lineCov">   24986628 :         type = trie_get_type(ptr);</span>
+<span class="lineNum">     303 </span>            : 
+<span class="lineNum">     304 </span><span class="lineCov">   24986628 :         switch (type) {</span>
+<span class="lineNum">     305 </span>            :         case TOMMY_TRIE_TYPE_NODE :
+<span class="lineNum">     306 </span><span class="lineCov">    2000001 :                 node = tommy_cast(tommy_trie_node*, ptr);</span>
+<span class="lineNum">     307 </span><span class="lineCov">    2000001 :                 if (node-&gt;key != key)</span>
+<span class="lineNum">     308 </span><span class="lineCov">          1 :                         return 0;</span>
+<span class="lineNum">     309 </span><span class="lineCov">    2000000 :                 return node;</span>
+<span class="lineNum">     310 </span>            :         default :
+<span class="lineNum">     311 </span>            :         case TOMMY_TRIE_TYPE_TREE :
+<span class="lineNum">     312 </span><span class="lineCov">   22986627 :                 ptr = trie_get_tree(ptr)-&gt;map[(key &gt;&gt; shift) &amp; TOMMY_TRIE_TREE_MASK];</span>
+<span class="lineNum">     313 </span><span class="lineCov">   22986627 :                 shift -= TOMMY_TRIE_TREE_BIT;</span>
+<span class="lineNum">     314 </span><span class="lineCov">   22986627 :                 goto recurse;</span>
+<span class="lineNum">     315 </span>            :         }
+<a name="316"><span class="lineNum">     316 </span>            : }</a>
+<span class="lineNum">     317 </span>            : 
+<span class="lineNum">     318 </span><span class="lineCov">          1 : tommy_size_t tommy_trie_memory_usage(tommy_trie* trie)</span>
+<span class="lineNum">     319 </span>            : {
+<span class="lineNum">     320 </span><span class="lineCov">          2 :         return tommy_trie_count(trie) * (tommy_size_t)sizeof(tommy_trie_node)</span>
+<span class="lineNum">     321 </span><span class="lineCov">          1 :                + trie-&gt;node_count * (tommy_size_t)TOMMY_TRIE_BLOCK_SIZE;</span>
+<span class="lineNum">     322 </span>            : }
+<span class="lineNum">     323 </span>            : 
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.10</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

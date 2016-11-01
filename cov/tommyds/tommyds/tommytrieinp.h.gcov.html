@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2014-12-27</td>
+            <td class="headerValue">2016-11-01</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">2</td>
@@ -118,9 +118,9 @@
 <span class="lineNum">      56 </span>            :  *
 <span class="lineNum">      57 </span>            :  * \code
 <span class="lineNum">      58 </span>            :  * struct object {
-<span class="lineNum">      59 </span>            :  *     tommy_node node;
+<span class="lineNum">      59 </span>            :  *     int value;
 <span class="lineNum">      60 </span>            :  *     // other fields
-<span class="lineNum">      61 </span>            :  *     int value;
+<span class="lineNum">      61 </span>            :  *     tommy_node node;
 <span class="lineNum">      62 </span>            :  * };
 <span class="lineNum">      63 </span>            :  *
 <span class="lineNum">      64 </span>            :  * struct object* obj = malloc(sizeof(struct object)); // creates the object
@@ -214,7 +214,7 @@
 <span class="lineNum">     152 </span>            : typedef struct tommy_trie_inplace_node_struct {
 <span class="lineNum">     153 </span>            :         struct tommy_trie_inplace_node_struct* next; /**&lt; Next element. 0 if it's the last. */
 <span class="lineNum">     154 </span>            :         struct tommy_trie_inplace_node_struct* prev; /**&lt; Circular previous element. */
-<span class="lineNum">     155 </span>            :         void* data; /**&lt; Pointer at the data. */
+<span class="lineNum">     155 </span>            :         void* data; /**&lt; Pointer to the data. */
 <span class="lineNum">     156 </span>            :         tommy_key_t key; /**&lt; Used to store the key or the hash. */
 <span class="lineNum">     157 </span>            :         struct tommy_trie_inplace_node_struct* map[TOMMY_TRIE_INPLACE_TREE_MAX]; /** Branches of the node. */
 <span class="lineNum">     158 </span>            : } tommy_trie_inplace_node;
@@ -284,11 +284,11 @@
 <span class="lineNum">     222 </span>            : void* tommy_trie_inplace_remove_existing(tommy_trie_inplace* trie_inplace, tommy_trie_inplace_node* node);
 <span class="lineNum">     223 </span>            : 
 <span class="lineNum">     224 </span>            : /**
-<a name="225"><span class="lineNum">     225 </span>            :  * Returns the number of elements.</a>
+<a name="225"><span class="lineNum">     225 </span>            :  * Gets the number of elements.</a>
 <span class="lineNum">     226 </span>            :  */
-<span class="lineNum">     227 </span><span class="lineCov">          1 : tommy_inline tommy_count_t tommy_trie_inplace_count(tommy_trie_inplace* trie_inplace)</span>
+<span class="lineNum">     227 </span><span class="lineCov">          2 : tommy_inline tommy_count_t tommy_trie_inplace_count(tommy_trie_inplace* trie_inplace)</span>
 <span class="lineNum">     228 </span>            : {
-<span class="lineNum">     229 </span><span class="lineCov">          1 :         return trie_inplace-&gt;count;</span>
+<span class="lineNum">     229 </span><span class="lineCov">          2 :         return trie_inplace-&gt;count;</span>
 <span class="lineNum">     230 </span>            : }
 <span class="lineNum">     231 </span>            : 
 <span class="lineNum">     232 </span>            : /**

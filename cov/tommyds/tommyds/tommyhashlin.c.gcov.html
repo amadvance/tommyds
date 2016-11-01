@@ -1,0 +1,410 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - lcov.info - tommyds/tommyds/tommyhashlin.c</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">tommyds/tommyds</a> - tommyhashlin.c<span style="font-size: 80%;"> (source / <a href="tommyhashlin.c.func.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">lcov.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">124</td>
+            <td class="headerCovTableEntry">124</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2016-11-01</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">11</td>
+            <td class="headerCovTableEntry">11</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*</a>
+<span class="lineNum">       2 </span>            :  * Copyright (c) 2010, Andrea Mazzoleni. All rights reserved.
+<span class="lineNum">       3 </span>            :  *
+<span class="lineNum">       4 </span>            :  * Redistribution and use in source and binary forms, with or without
+<span class="lineNum">       5 </span>            :  * modification, are permitted provided that the following conditions
+<span class="lineNum">       6 </span>            :  * are met:
+<span class="lineNum">       7 </span>            :  *
+<span class="lineNum">       8 </span>            :  * 1. Redistributions of source code must retain the above copyright
+<span class="lineNum">       9 </span>            :  *    notice, this list of conditions and the following disclaimer.
+<span class="lineNum">      10 </span>            :  *
+<span class="lineNum">      11 </span>            :  * 2. Redistributions in binary form must reproduce the above copyright
+<span class="lineNum">      12 </span>            :  *    notice, this list of conditions and the following disclaimer in the
+<span class="lineNum">      13 </span>            :  *    documentation and/or other materials provided with the distribution.
+<span class="lineNum">      14 </span>            :  *
+<span class="lineNum">      15 </span>            :  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS IS&quot;
+<span class="lineNum">      16 </span>            :  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+<span class="lineNum">      17 </span>            :  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+<span class="lineNum">      18 </span>            :  * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+<span class="lineNum">      19 </span>            :  * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+<span class="lineNum">      20 </span>            :  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+<span class="lineNum">      21 </span>            :  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+<span class="lineNum">      22 </span>            :  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+<span class="lineNum">      23 </span>            :  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+<span class="lineNum">      24 </span>            :  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+<span class="lineNum">      25 </span>            :  * POSSIBILITY OF SUCH DAMAGE.
+<span class="lineNum">      26 </span>            :  */
+<span class="lineNum">      27 </span>            : 
+<span class="lineNum">      28 </span>            : #include &quot;tommyhashlin.h&quot;
+<span class="lineNum">      29 </span>            : #include &quot;tommylist.h&quot;
+<span class="lineNum">      30 </span>            : 
+<span class="lineNum">      31 </span>            : #include &lt;assert.h&gt; /* for assert */
+<span class="lineNum">      32 </span>            : 
+<span class="lineNum">      33 </span>            : /******************************************************************************/
+<span class="lineNum">      34 </span>            : /* hashlin */
+<span class="lineNum">      35 </span>            : 
+<span class="lineNum">      36 </span>            : /**
+<span class="lineNum">      37 </span>            :  * Reallocation states.
+<span class="lineNum">      38 </span>            :  */
+<span class="lineNum">      39 </span>            : #define TOMMY_HASHLIN_STATE_STABLE 0
+<span class="lineNum">      40 </span>            : #define TOMMY_HASHLIN_STATE_GROW 1
+<span class="lineNum">      41 </span>            : #define TOMMY_HASHLIN_STATE_SHRINK 2
+<span class="lineNum">      42 </span>            : 
+<span class="lineNum">      43 </span>            : /**
+<a name="44"><span class="lineNum">      44 </span>            :  * Set the hashtable in stable state.</a>
+<span class="lineNum">      45 </span>            :  */
+<span class="lineNum">      46 </span><span class="lineCov">      63871 : tommy_inline void tommy_hashlin_stable(tommy_hashlin* hashlin)</span>
+<span class="lineNum">      47 </span>            : {
+<span class="lineNum">      48 </span><span class="lineCov">      63871 :         hashlin-&gt;state = TOMMY_HASHLIN_STATE_STABLE;</span>
+<span class="lineNum">      49 </span>            : 
+<span class="lineNum">      50 </span>            :         /* setup low_mask/max/split to allow tommy_hashlin_bucket_ref() */
+<span class="lineNum">      51 </span>            :         /* and tommy_hashlin_foreach() to work regardless we are in stable state */
+<span class="lineNum">      52 </span><span class="lineCov">      63871 :         hashlin-&gt;low_max = hashlin-&gt;bucket_max;</span>
+<span class="lineNum">      53 </span><span class="lineCov">      63871 :         hashlin-&gt;low_mask = hashlin-&gt;bucket_mask;</span>
+<span class="lineNum">      54 </span><span class="lineCov">      63871 :         hashlin-&gt;split = 0;</span>
+<a name="55"><span class="lineNum">      55 </span><span class="lineCov">      63871 : }</span></a>
+<span class="lineNum">      56 </span>            : 
+<span class="lineNum">      57 </span><span class="lineCov">       5065 : void tommy_hashlin_init(tommy_hashlin* hashlin)</span>
+<span class="lineNum">      58 </span>            : {
+<span class="lineNum">      59 </span>            :         tommy_uint_t i;
+<span class="lineNum">      60 </span>            : 
+<span class="lineNum">      61 </span>            :         /* fixed initial size */
+<span class="lineNum">      62 </span><span class="lineCov">       5065 :         hashlin-&gt;bucket_bit = TOMMY_HASHLIN_BIT;</span>
+<span class="lineNum">      63 </span><span class="lineCov">       5065 :         hashlin-&gt;bucket_max = 1 &lt;&lt; hashlin-&gt;bucket_bit;</span>
+<span class="lineNum">      64 </span><span class="lineCov">       5065 :         hashlin-&gt;bucket_mask = hashlin-&gt;bucket_max - 1;</span>
+<span class="lineNum">      65 </span><span class="lineCov">       5065 :         hashlin-&gt;bucket[0] = tommy_cast(tommy_hashlin_node**, tommy_calloc(hashlin-&gt;bucket_max, sizeof(tommy_hashlin_node*)));</span>
+<span class="lineNum">      66 </span><span class="lineCov">      30390 :         for (i = 1; i &lt; TOMMY_HASHLIN_BIT; ++i)</span>
+<span class="lineNum">      67 </span><span class="lineCov">      25325 :                 hashlin-&gt;bucket[i] = hashlin-&gt;bucket[0];</span>
+<span class="lineNum">      68 </span>            : 
+<span class="lineNum">      69 </span>            :         /* stable state */
+<span class="lineNum">      70 </span><span class="lineCov">       5065 :         tommy_hashlin_stable(hashlin);</span>
+<span class="lineNum">      71 </span>            : 
+<span class="lineNum">      72 </span><span class="lineCov">       5065 :         hashlin-&gt;count = 0;</span>
+<a name="73"><span class="lineNum">      73 </span><span class="lineCov">       5065 : }</span></a>
+<span class="lineNum">      74 </span>            : 
+<span class="lineNum">      75 </span><span class="lineCov">       5065 : void tommy_hashlin_done(tommy_hashlin* hashlin)</span>
+<span class="lineNum">      76 </span>            : {
+<span class="lineNum">      77 </span>            :         tommy_uint_t i;
+<span class="lineNum">      78 </span>            : 
+<span class="lineNum">      79 </span><span class="lineCov">       5065 :         tommy_free(hashlin-&gt;bucket[0]);</span>
+<span class="lineNum">      80 </span><span class="lineCov">       5080 :         for (i = TOMMY_HASHLIN_BIT; i &lt; hashlin-&gt;bucket_bit; ++i) {</span>
+<span class="lineNum">      81 </span><span class="lineCov">         15 :                 tommy_hashlin_node** segment = hashlin-&gt;bucket[i];</span>
+<span class="lineNum">      82 </span><span class="lineCov">         15 :                 tommy_free(&amp;segment[((tommy_ptrdiff_t)1) &lt;&lt; i]);</span>
+<span class="lineNum">      83 </span>            :         }
+<span class="lineNum">      84 </span><span class="lineCov">       5065 : }</span>
+<span class="lineNum">      85 </span>            : 
+<span class="lineNum">      86 </span>            : /**
+<a name="87"><span class="lineNum">      87 </span>            :  * Grow one step.</a>
+<span class="lineNum">      88 </span>            :  */
+<span class="lineNum">      89 </span><span class="lineCov">   77497500 : tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)</span>
+<span class="lineNum">      90 </span>            : {
+<span class="lineNum">      91 </span>            :         /* grow if more than 50% full */
+<span class="lineNum">      92 </span><span class="lineCov">   77497500 :         if (hashlin-&gt;state != TOMMY_HASHLIN_STATE_GROW</span>
+<span class="lineNum">      93 </span><span class="lineCov">   32192435 :                 &amp;&amp; hashlin-&gt;count &gt; hashlin-&gt;bucket_max / 2</span>
+<span class="lineNum">      94 </span>            :         ) {
+<span class="lineNum">      95 </span>            :                 /* if we are stable, setup a new grow state */
+<span class="lineNum">      96 </span>            :                 /* otherwise continue with the already setup shrink one */
+<span class="lineNum">      97 </span>            :                 /* but in backward direction */
+<span class="lineNum">      98 </span><span class="lineCov">      31907 :                 if (hashlin-&gt;state == TOMMY_HASHLIN_STATE_STABLE) {</span>
+<span class="lineNum">      99 </span>            :                         tommy_hashlin_node** segment;
+<span class="lineNum">     100 </span>            : 
+<span class="lineNum">     101 </span>            :                         /* set the lower size */
+<span class="lineNum">     102 </span><span class="lineCov">      31907 :                         hashlin-&gt;low_max = hashlin-&gt;bucket_max;</span>
+<span class="lineNum">     103 </span><span class="lineCov">      31907 :                         hashlin-&gt;low_mask = hashlin-&gt;bucket_mask;</span>
+<span class="lineNum">     104 </span>            : 
+<span class="lineNum">     105 </span>            :                         /* allocate the new vector using malloc() and not calloc() */
+<span class="lineNum">     106 </span>            :                         /* because data is fully initialized in the split process */
+<span class="lineNum">     107 </span><span class="lineCov">      31907 :                         segment = tommy_cast(tommy_hashlin_node**, tommy_malloc(hashlin-&gt;low_max * sizeof(tommy_hashlin_node*)));</span>
+<span class="lineNum">     108 </span>            : 
+<span class="lineNum">     109 </span>            :                         /* store it adjusting the offset */
+<span class="lineNum">     110 </span>            :                         /* cast to ptrdiff_t to ensure to get a negative value */
+<span class="lineNum">     111 </span><span class="lineCov">      31907 :                         hashlin-&gt;bucket[hashlin-&gt;bucket_bit] = &amp;segment[-(tommy_ptrdiff_t)hashlin-&gt;low_max];</span>
+<span class="lineNum">     112 </span>            : 
+<span class="lineNum">     113 </span>            :                         /* grow the hash size */
+<span class="lineNum">     114 </span><span class="lineCov">      31907 :                         ++hashlin-&gt;bucket_bit;</span>
+<span class="lineNum">     115 </span><span class="lineCov">      31907 :                         hashlin-&gt;bucket_max = 1 &lt;&lt; hashlin-&gt;bucket_bit;</span>
+<span class="lineNum">     116 </span><span class="lineCov">      31907 :                         hashlin-&gt;bucket_mask = hashlin-&gt;bucket_max - 1;</span>
+<span class="lineNum">     117 </span>            : 
+<span class="lineNum">     118 </span>            :                         /* start from the beginning going forward */
+<span class="lineNum">     119 </span><span class="lineCov">      31907 :                         hashlin-&gt;split = 0;</span>
+<span class="lineNum">     120 </span>            :                 }
+<span class="lineNum">     121 </span>            : 
+<span class="lineNum">     122 </span>            :                 /* grow state */
+<span class="lineNum">     123 </span><span class="lineCov">      31907 :                 hashlin-&gt;state = TOMMY_HASHLIN_STATE_GROW;</span>
+<span class="lineNum">     124 </span>            :         }
+<span class="lineNum">     125 </span>            : 
+<span class="lineNum">     126 </span>            :         /* if we are growing */
+<span class="lineNum">     127 </span><span class="lineCov">   77497500 :         if (hashlin-&gt;state == TOMMY_HASHLIN_STATE_GROW) {</span>
+<span class="lineNum">     128 </span>            :                 /* compute the split target required to finish the reallocation before the next resize */
+<span class="lineNum">     129 </span><span class="lineCov">   45336972 :                 tommy_count_t split_target = 2 * hashlin-&gt;count;</span>
+<span class="lineNum">     130 </span>            : 
+<span class="lineNum">     131 </span>            :                 /* reallocate buckets until the split target */
+<span class="lineNum">     132 </span><span class="lineCov">  121323824 :                 while (hashlin-&gt;split + hashlin-&gt;low_max &lt; split_target) {</span>
+<span class="lineNum">     133 </span>            :                         tommy_hashlin_node** split[2];
+<span class="lineNum">     134 </span>            :                         tommy_hashlin_node* j;
+<span class="lineNum">     135 </span>            :                         tommy_count_t mask;
+<span class="lineNum">     136 </span>            : 
+<span class="lineNum">     137 </span>            :                         /* get the low bucket */
+<span class="lineNum">     138 </span><span class="lineCov">   30676794 :                         split[0] = tommy_hashlin_pos(hashlin, hashlin-&gt;split);</span>
+<span class="lineNum">     139 </span>            : 
+<span class="lineNum">     140 </span>            :                         /* get the high bucket */
+<span class="lineNum">     141 </span><span class="lineCov">   30676794 :                         split[1] = tommy_hashlin_pos(hashlin, hashlin-&gt;split + hashlin-&gt;low_max);</span>
+<span class="lineNum">     142 </span>            : 
+<span class="lineNum">     143 </span>            :                         /* save the low bucket */
+<span class="lineNum">     144 </span><span class="lineCov">   30676794 :                         j = *split[0];</span>
+<span class="lineNum">     145 </span>            : 
+<span class="lineNum">     146 </span>            :                         /* reinitialize the buckets */
+<span class="lineNum">     147 </span><span class="lineCov">   30676794 :                         *split[0] = 0;</span>
+<span class="lineNum">     148 </span><span class="lineCov">   30676794 :                         *split[1] = 0;</span>
+<span class="lineNum">     149 </span>            : 
+<span class="lineNum">     150 </span>            :                         /* the bit used to identify the bucket */
+<span class="lineNum">     151 </span><span class="lineCov">   30676794 :                         mask = hashlin-&gt;low_max;</span>
+<span class="lineNum">     152 </span>            : 
+<span class="lineNum">     153 </span>            :                         /* flush the bucket */
+<span class="lineNum">     154 </span><span class="lineCov">   90035412 :                         while (j) {</span>
+<span class="lineNum">     155 </span><span class="lineCov">   28681824 :                                 tommy_hashlin_node* j_next = j-&gt;next;</span>
+<span class="lineNum">     156 </span><span class="lineCov">   28681824 :                                 tommy_count_t pos = (j-&gt;key &amp; mask) != 0;</span>
+<span class="lineNum">     157 </span><span class="lineCov">   28681824 :                                 if (*split[pos])</span>
+<span class="lineNum">     158 </span><span class="lineCov">     968598 :                                         tommy_list_insert_tail_not_empty(*split[pos], j);</span>
+<span class="lineNum">     159 </span>            :                                 else
+<span class="lineNum">     160 </span><span class="lineCov">   27713226 :                                         tommy_list_insert_first(split[pos], j);</span>
+<span class="lineNum">     161 </span><span class="lineCov">   28681824 :                                 j = j_next;</span>
+<span class="lineNum">     162 </span>            :                         }
+<span class="lineNum">     163 </span>            : 
+<span class="lineNum">     164 </span>            :                         /* go forward */
+<span class="lineNum">     165 </span><span class="lineCov">   30676794 :                         ++hashlin-&gt;split;</span>
+<span class="lineNum">     166 </span>            : 
+<span class="lineNum">     167 </span>            :                         /* if we have finished, change the state */
+<span class="lineNum">     168 </span><span class="lineCov">   30676794 :                         if (hashlin-&gt;split == hashlin-&gt;low_max) {</span>
+<span class="lineNum">     169 </span>            :                                 /* go in stable mode */
+<span class="lineNum">     170 </span><span class="lineCov">      26914 :                                 tommy_hashlin_stable(hashlin);</span>
+<span class="lineNum">     171 </span><span class="lineCov">      26914 :                                 break;</span>
+<span class="lineNum">     172 </span>            :                         }
+<span class="lineNum">     173 </span>            :                 }
+<span class="lineNum">     174 </span>            :         }
+<span class="lineNum">     175 </span><span class="lineCov">   77497500 : }</span>
+<span class="lineNum">     176 </span>            : 
+<span class="lineNum">     177 </span>            : /**
+<a name="178"><span class="lineNum">     178 </span>            :  * Shrink one step.</a>
+<span class="lineNum">     179 </span>            :  */
+<span class="lineNum">     180 </span><span class="lineCov">   76495000 : tommy_inline void hashlin_shrink_step(tommy_hashlin* hashlin)</span>
+<span class="lineNum">     181 </span>            : {
+<span class="lineNum">     182 </span>            :         /* shrink if less than 12.5% full */
+<span class="lineNum">     183 </span><span class="lineCov">   76495000 :         if (hashlin-&gt;state != TOMMY_HASHLIN_STATE_SHRINK</span>
+<span class="lineNum">     184 </span><span class="lineCov">   71396740 :                 &amp;&amp; hashlin-&gt;count &lt; hashlin-&gt;bucket_max / 8</span>
+<span class="lineNum">     185 </span>            :         ) {
+<span class="lineNum">     186 </span>            :                 /* avoid to shrink the first bucket */
+<span class="lineNum">     187 </span><span class="lineCov">    8069804 :                 if (hashlin-&gt;bucket_bit &gt; TOMMY_HASHLIN_BIT) {</span>
+<span class="lineNum">     188 </span>            :                         /* if we are stable, setup a new shrink state */
+<span class="lineNum">     189 </span>            :                         /* otherwise continue with the already setup grow one */
+<span class="lineNum">     190 </span>            :                         /* but in backward direction */
+<span class="lineNum">     191 </span><span class="lineCov">      31892 :                         if (hashlin-&gt;state == TOMMY_HASHLIN_STATE_STABLE) {</span>
+<span class="lineNum">     192 </span>            :                                 /* set the lower size */
+<span class="lineNum">     193 </span><span class="lineCov">      26900 :                                 hashlin-&gt;low_max = hashlin-&gt;bucket_max / 2;</span>
+<span class="lineNum">     194 </span><span class="lineCov">      26900 :                                 hashlin-&gt;low_mask = hashlin-&gt;bucket_mask / 2;</span>
+<span class="lineNum">     195 </span>            : 
+<span class="lineNum">     196 </span>            :                                 /* start from the half going backward */
+<span class="lineNum">     197 </span><span class="lineCov">      26900 :                                 hashlin-&gt;split = hashlin-&gt;low_max;</span>
+<span class="lineNum">     198 </span>            :                         }
+<span class="lineNum">     199 </span>            : 
+<span class="lineNum">     200 </span>            :                         /* start reallocation */
+<span class="lineNum">     201 </span><span class="lineCov">      31892 :                         hashlin-&gt;state = TOMMY_HASHLIN_STATE_SHRINK;</span>
+<span class="lineNum">     202 </span>            :                 }
+<span class="lineNum">     203 </span>            :         }
+<span class="lineNum">     204 </span>            : 
+<span class="lineNum">     205 </span>            :         /* if we are shrinking */
+<span class="lineNum">     206 </span><span class="lineCov">   76495000 :         if (hashlin-&gt;state == TOMMY_HASHLIN_STATE_SHRINK) {</span>
+<span class="lineNum">     207 </span>            :                 /* compute the split target required to finish the reallocation before the next resize */
+<span class="lineNum">     208 </span><span class="lineCov">    5130152 :                 tommy_count_t split_target = 8 * hashlin-&gt;count;</span>
+<span class="lineNum">     209 </span>            : 
+<span class="lineNum">     210 </span>            :                 /* reallocate buckets until the split target */
+<span class="lineNum">     211 </span><span class="lineCov">   38905270 :                 while (hashlin-&gt;split + hashlin-&gt;low_max &gt; split_target) {</span>
+<span class="lineNum">     212 </span>            :                         tommy_hashlin_node** split[2];
+<span class="lineNum">     213 </span>            : 
+<span class="lineNum">     214 </span>            :                         /* go backward position */
+<span class="lineNum">     215 </span><span class="lineCov">   28676858 :                         --hashlin-&gt;split;</span>
+<span class="lineNum">     216 </span>            : 
+<span class="lineNum">     217 </span>            :                         /* get the low bucket */
+<span class="lineNum">     218 </span><span class="lineCov">   28676858 :                         split[0] = tommy_hashlin_pos(hashlin, hashlin-&gt;split);</span>
+<span class="lineNum">     219 </span>            : 
+<span class="lineNum">     220 </span>            :                         /* get the high bucket */
+<span class="lineNum">     221 </span><span class="lineCov">   28676858 :                         split[1] = tommy_hashlin_pos(hashlin, hashlin-&gt;split + hashlin-&gt;low_max);</span>
+<span class="lineNum">     222 </span>            : 
+<span class="lineNum">     223 </span>            :                         /* concat the high bucket into the low one */
+<span class="lineNum">     224 </span><span class="lineCov">   28676858 :                         tommy_list_concat(split[0], split[1]);</span>
+<span class="lineNum">     225 </span>            : 
+<span class="lineNum">     226 </span>            :                         /* if we have finished, clean up and change the state */
+<span class="lineNum">     227 </span><span class="lineCov">   28676858 :                         if (hashlin-&gt;split == 0) {</span>
+<span class="lineNum">     228 </span>            :                                 tommy_hashlin_node** segment;
+<span class="lineNum">     229 </span>            : 
+<span class="lineNum">     230 </span>            :                                 /* shrink the hash size */
+<span class="lineNum">     231 </span><span class="lineCov">      31892 :                                 --hashlin-&gt;bucket_bit;</span>
+<span class="lineNum">     232 </span><span class="lineCov">      31892 :                                 hashlin-&gt;bucket_max = 1 &lt;&lt; hashlin-&gt;bucket_bit;</span>
+<span class="lineNum">     233 </span><span class="lineCov">      31892 :                                 hashlin-&gt;bucket_mask = hashlin-&gt;bucket_max - 1;</span>
+<span class="lineNum">     234 </span>            : 
+<span class="lineNum">     235 </span>            :                                 /* free the last segment */
+<span class="lineNum">     236 </span><span class="lineCov">      31892 :                                 segment = hashlin-&gt;bucket[hashlin-&gt;bucket_bit];</span>
+<span class="lineNum">     237 </span><span class="lineCov">      31892 :                                 tommy_free(&amp;segment[((tommy_ptrdiff_t)1) &lt;&lt; hashlin-&gt;bucket_bit]);</span>
+<span class="lineNum">     238 </span>            : 
+<span class="lineNum">     239 </span>            :                                 /* go in stable mode */
+<span class="lineNum">     240 </span><span class="lineCov">      31892 :                                 tommy_hashlin_stable(hashlin);</span>
+<span class="lineNum">     241 </span><span class="lineCov">      31892 :                                 break;</span>
+<span class="lineNum">     242 </span>            :                         }
+<span class="lineNum">     243 </span>            :                 }
+<span class="lineNum">     244 </span>            :         }
+<a name="245"><span class="lineNum">     245 </span><span class="lineCov">   76495000 : }</span></a>
+<span class="lineNum">     246 </span>            : 
+<span class="lineNum">     247 </span><span class="lineCov">   77497500 : void tommy_hashlin_insert(tommy_hashlin* hashlin, tommy_hashlin_node* node, void* data, tommy_hash_t hash)</span>
+<span class="lineNum">     248 </span>            : {
+<span class="lineNum">     249 </span><span class="lineCov">   77497500 :         tommy_list_insert_tail(tommy_hashlin_bucket_ref(hashlin, hash), node, data);</span>
+<span class="lineNum">     250 </span>            : 
+<span class="lineNum">     251 </span><span class="lineCov">   77497500 :         node-&gt;key = hash;</span>
+<span class="lineNum">     252 </span>            : 
+<span class="lineNum">     253 </span><span class="lineCov">   77497500 :         ++hashlin-&gt;count;</span>
+<span class="lineNum">     254 </span>            : 
+<span class="lineNum">     255 </span><span class="lineCov">   77497500 :         hashlin_grow_step(hashlin);</span>
+<a name="256"><span class="lineNum">     256 </span><span class="lineCov">   77497500 : }</span></a>
+<span class="lineNum">     257 </span>            : 
+<span class="lineNum">     258 </span><span class="lineCov">   68745609 : void* tommy_hashlin_remove_existing(tommy_hashlin* hashlin, tommy_hashlin_node* node)</span>
+<span class="lineNum">     259 </span>            : {
+<span class="lineNum">     260 </span><span class="lineCov">   68745609 :         tommy_list_remove_existing(tommy_hashlin_bucket_ref(hashlin, node-&gt;key), node);</span>
+<span class="lineNum">     261 </span>            : 
+<span class="lineNum">     262 </span><span class="lineCov">   68745609 :         --hashlin-&gt;count;</span>
+<span class="lineNum">     263 </span>            : 
+<span class="lineNum">     264 </span><span class="lineCov">   68745609 :         hashlin_shrink_step(hashlin);</span>
+<span class="lineNum">     265 </span>            : 
+<span class="lineNum">     266 </span><span class="lineCov">   68745609 :         return node-&gt;data;</span>
+<a name="267"><span class="lineNum">     267 </span>            : }</a>
+<span class="lineNum">     268 </span>            : 
+<span class="lineNum">     269 </span><span class="lineCov">   14496891 : void* tommy_hashlin_remove(tommy_hashlin* hashlin, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)</span>
+<span class="lineNum">     270 </span>            : {
+<span class="lineNum">     271 </span><span class="lineCov">   14496891 :         tommy_hashlin_node** let_ptr = tommy_hashlin_bucket_ref(hashlin, hash);</span>
+<span class="lineNum">     272 </span><span class="lineCov">   14496891 :         tommy_hashlin_node* node = *let_ptr;</span>
+<span class="lineNum">     273 </span>            : 
+<span class="lineNum">     274 </span><span class="lineCov">   30243782 :         while (node) {</span>
+<span class="lineNum">     275 </span>            :                 /* we first check if the hash matches, as in the same bucket we may have multiples hash values */
+<span class="lineNum">     276 </span><span class="lineCov">    8999391 :                 if (node-&gt;key == hash &amp;&amp; cmp(cmp_arg, node-&gt;data) == 0) {</span>
+<span class="lineNum">     277 </span><span class="lineCov">    7749391 :                         tommy_list_remove_existing(let_ptr, node);</span>
+<span class="lineNum">     278 </span>            : 
+<span class="lineNum">     279 </span><span class="lineCov">    7749391 :                         --hashlin-&gt;count;</span>
+<span class="lineNum">     280 </span>            : 
+<span class="lineNum">     281 </span><span class="lineCov">    7749391 :                         hashlin_shrink_step(hashlin);</span>
+<span class="lineNum">     282 </span>            : 
+<span class="lineNum">     283 </span><span class="lineCov">    7749391 :                         return node-&gt;data;</span>
+<span class="lineNum">     284 </span>            :                 }
+<span class="lineNum">     285 </span><span class="lineCov">    1250000 :                 node = node-&gt;next;</span>
+<span class="lineNum">     286 </span>            :         }
+<span class="lineNum">     287 </span>            : 
+<span class="lineNum">     288 </span><span class="lineCov">    6747500 :         return 0;</span>
+<a name="289"><span class="lineNum">     289 </span>            : }</a>
+<span class="lineNum">     290 </span>            : 
+<span class="lineNum">     291 </span><span class="lineCov">       5001 : void tommy_hashlin_foreach(tommy_hashlin* hashlin, tommy_foreach_func* func)</span>
+<span class="lineNum">     292 </span>            : {
+<span class="lineNum">     293 </span>            :         tommy_count_t bucket_max;
+<span class="lineNum">     294 </span>            :         tommy_count_t pos;
+<span class="lineNum">     295 </span>            : 
+<span class="lineNum">     296 </span>            :         /* number of valid buckets */
+<span class="lineNum">     297 </span><span class="lineCov">       5001 :         bucket_max = hashlin-&gt;low_max + hashlin-&gt;split;</span>
+<span class="lineNum">     298 </span>            : 
+<span class="lineNum">     299 </span><span class="lineCov">   27001057 :         for (pos = 0; pos &lt; bucket_max; ++pos) {</span>
+<span class="lineNum">     300 </span><span class="lineCov">   26996056 :                 tommy_hashlin_node* node = *tommy_hashlin_pos(hashlin, pos);</span>
+<span class="lineNum">     301 </span>            : 
+<span class="lineNum">     302 </span><span class="lineCov">   67489612 :                 while (node) {</span>
+<span class="lineNum">     303 </span><span class="lineCov">   13497500 :                         void* data = node-&gt;data;</span>
+<span class="lineNum">     304 </span><span class="lineCov">   13497500 :                         node = node-&gt;next;</span>
+<span class="lineNum">     305 </span><span class="lineCov">   13497500 :                         func(data);</span>
+<span class="lineNum">     306 </span>            :                 }
+<span class="lineNum">     307 </span>            :         }
+<a name="308"><span class="lineNum">     308 </span><span class="lineCov">       5001 : }</span></a>
+<span class="lineNum">     309 </span>            : 
+<span class="lineNum">     310 </span><span class="lineCov">         63 : void tommy_hashlin_foreach_arg(tommy_hashlin* hashlin, tommy_foreach_arg_func* func, void* arg)</span>
+<span class="lineNum">     311 </span>            : {
+<span class="lineNum">     312 </span>            :         tommy_count_t bucket_max;
+<span class="lineNum">     313 </span>            :         tommy_count_t pos;
+<span class="lineNum">     314 </span>            : 
+<span class="lineNum">     315 </span>            :         /* number of valid buckets */
+<span class="lineNum">     316 </span><span class="lineCov">         63 :         bucket_max = hashlin-&gt;low_max + hashlin-&gt;split;</span>
+<span class="lineNum">     317 </span>            : 
+<span class="lineNum">     318 </span><span class="lineCov">    2004901 :         for (pos = 0; pos &lt; bucket_max; ++pos) {</span>
+<span class="lineNum">     319 </span><span class="lineCov">    2004838 :                 tommy_hashlin_node* node = *tommy_hashlin_pos(hashlin, pos);</span>
+<span class="lineNum">     320 </span>            : 
+<span class="lineNum">     321 </span><span class="lineCov">    5011567 :                 while (node) {</span>
+<span class="lineNum">     322 </span><span class="lineCov">    1001891 :                         void* data = node-&gt;data;</span>
+<span class="lineNum">     323 </span><span class="lineCov">    1001891 :                         node = node-&gt;next;</span>
+<span class="lineNum">     324 </span><span class="lineCov">    1001891 :                         func(arg, data);</span>
+<span class="lineNum">     325 </span>            :                 }
+<span class="lineNum">     326 </span>            :         }
+<a name="327"><span class="lineNum">     327 </span><span class="lineCov">         63 : }</span></a>
+<span class="lineNum">     328 </span>            : 
+<span class="lineNum">     329 </span><span class="lineCov">       5001 : tommy_size_t tommy_hashlin_memory_usage(tommy_hashlin* hashlin)</span>
+<span class="lineNum">     330 </span>            : {
+<span class="lineNum">     331 </span><span class="lineCov">      10002 :         return hashlin-&gt;bucket_max * (tommy_size_t)sizeof(hashlin-&gt;bucket[0][0])</span>
+<span class="lineNum">     332 </span><span class="lineCov">       5001 :                + hashlin-&gt;count * (tommy_size_t)sizeof(tommy_hashlin_node);</span>
+<span class="lineNum">     333 </span>            : }
+<span class="lineNum">     334 </span>            : 
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.10</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>
