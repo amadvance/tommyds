@@ -85,9 +85,19 @@ void* tommy_allocator_alloc(tommy_allocator* alloc)
 	/* if no free block available */
 	if (!alloc->free_block) {
 		tommy_uintptr_t off, mis;
-		tommy_size_t size = TOMMY_ALLOCATOR_BLOCK_SIZE;
-		char* data = tommy_cast(char*, tommy_malloc(size));
-		tommy_allocator_entry* segment = (tommy_allocator_entry*)data;
+		tommy_size_t size;
+		char* data;
+		tommy_allocator_entry* segment;
+
+		/* default allocation size */
+		size = TOMMY_ALLOCATOR_BLOCK_SIZE;
+
+		/* ensure that we can allocate at least one block */
+		if (size < sizeof(tommy_allocator_entry) + alloc->align_size + alloc->block_size)
+			size = sizeof(tommy_allocator_entry) + alloc->align_size + alloc->block_size;
+
+		data = tommy_cast(char*, tommy_malloc(size));
+		segment = (tommy_allocator_entry*)data;
 
 		/* put in the segment list */
 		segment->next = alloc->used_segment;
@@ -103,14 +113,14 @@ void* tommy_allocator_alloc(tommy_allocator* alloc)
 		}
 
 		/* insert in free list */
-		while (size >= alloc->block_size) {
+		do {
 			tommy_allocator_entry* free_block = (tommy_allocator_entry*)data;
 			free_block->next = alloc->free_block;
 			alloc->free_block = free_block;
 
 			data += alloc->block_size;
 			size -= alloc->block_size;
-		}
+		} while (size >= alloc->block_size);
 	}
 
 	/* remove one from the free list */

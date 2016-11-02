@@ -689,6 +689,14 @@ void test_alloc(void)
 		/* LCOV_EXCL_STOP */
 	tommy_allocator_done(&alloc);
 
+	/* check big blocks */
+	tommy_allocator_init(&alloc, 128000, 64);
+	if (tommy_allocator_alloc(&alloc) == 0)
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	tommy_allocator_done(&alloc);
+
 	tommy_allocator_init(&alloc, 64, 64);
 
 	START("alloc");
