@@ -8,6 +8,7 @@ gnuplot gr_def_random_change.gnu
 gnuplot gr_other_judy_problem.gnu
 gnuplot gr_other_googlelibchash_problem.gnu
 gnuplot gr_other_ck_problem.gnu
+gnuplot gr_other_libdynamic_problem.gnu
 
 DIR=data/core_i5_650_3G2_linux
 gnuplot $DIR/gr_def.gnu gr_forward_insert.gnu
