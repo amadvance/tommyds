@@ -9,5 +9,5 @@ set yrange [0:80]
 data = bdir.tdir.'dat_forward_size.lst'
 
 plot data using 1:2 title columnheader(2), \
-	for [i=3:20] '' using 1:i title columnheader(i) ls i-1
+	for [i=3:21] '' using 1:i title columnheader(i) ls i-1
 

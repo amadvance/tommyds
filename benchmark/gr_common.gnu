@@ -34,6 +34,7 @@ set style line 14 lc 14 lt 14 # stxbtree
 set style line 15 lc 15 lt 15 # c++unorderedmap
 set style line 16 lc 16 lt 16 # c++map
 set style line 17 lc 17 lt 17 # tesseract
-set style line 18 lc rgb "#FF69B4" lt 18 # googlelibchash
-set style line 19 lc rgb "#1E90FF" lt 19 # concurrencykit
+set style line 18 lc 4 lt 18 pt 1 # libdynamic
+set style line 19 lc rgb "#FF69B4" lt 19 # googlelibchash
+set style line 20 lc rgb "#1E90FF" lt 20 # concurrencykit
 
