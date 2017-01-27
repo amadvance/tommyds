@@ -298,24 +298,14 @@
  * <table border="0">
  * <tr><td>
  * <img src="core_i5_650_3G2_linux/img_random_insert.png"/>
- * </td><td>
- * <img src="core_i7_3740_2G7_win/img_random_insert.png"/>
  * </td></tr><tr><td>
  * <img src="core_i5_650_3G2_linux/img_random_hit.png"/>
- * </td><td>
- * <img src="core_i7_3740_2G7_win/img_random_hit.png"/>
  * </td></tr><tr><td>
  * <img src="core_i5_650_3G2_linux/img_random_miss.png"/>
- * </td><td>
- * <img src="core_i7_3740_2G7_win/img_random_miss.png"/>
  * </td></tr><tr><td>
  * <img src="core_i5_650_3G2_linux/img_random_change.png"/>
- * </td><td>
- * <img src="core_i7_3740_2G7_win/img_random_change.png"/>
  * </td></tr><tr><td>
  * <img src="core_i5_650_3G2_linux/img_random_remove.png"/>
- * </td><td>
- * <img src="core_i7_3740_2G7_win/img_random_remove.png"/>
  * </td></tr>
  * </table>
  *
@@ -347,24 +337,14 @@
  * <table border="0">
  * <tr><td>
  * <img src="core_i5_650_3G2_linux/img_forward_insert.png"/>
- * </td><td>
- * <img src="core_i7_3740_2G7_win/img_forward_insert.png"/>
  * </td></tr><tr><td>
  * <img src="core_i5_650_3G2_linux/img_forward_hit.png"/>
- * </td><td>
- * <img src="core_i7_3740_2G7_win/img_forward_hit.png"/>
  * </td></tr><tr><td>
  * <img src="core_i5_650_3G2_linux/img_forward_miss.png"/>
- * </td><td>
- * <img src="core_i7_3740_2G7_win/img_forward_miss.png"/>
  * </td></tr><tr><td>
  * <img src="core_i5_650_3G2_linux/img_forward_change.png"/>
- * </td><td>
- * <img src="core_i7_3740_2G7_win/img_forward_change.png"/>
  * </td></tr><tr><td>
  * <img src="core_i5_650_3G2_linux/img_forward_remove.png"/>
- * </td><td>
- * <img src="core_i7_3740_2G7_win/img_forward_remove.png"/>
  * </td></tr>
  * </table>
  *
@@ -373,8 +353,6 @@
  * <table border="0">
  * <tr><td>
  * <img src="core_i5_650_3G2_linux/img_random_size.png"/>
- * </td><td>
- * <img src="core_i7_3740_2G7_win/img_random_size.png"/>
  * </td></tr>
  * </table>
  *
