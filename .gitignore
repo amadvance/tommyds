@@ -35,6 +35,7 @@ cov/
 # project
 *.dst
 *.epr
+makebench.sh
 
 # specific
 tommycheck
