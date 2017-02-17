@@ -38,7 +38,7 @@ void tommy_hashdyn_init(tommy_hashdyn* hashdyn)
 	hashdyn->bucket_max = 1 << hashdyn->bucket_bit;
 	hashdyn->bucket_mask = hashdyn->bucket_max - 1;
 	hashdyn->bucket = tommy_cast(tommy_hashdyn_node**, tommy_calloc(hashdyn->bucket_max, sizeof(tommy_hashdyn_node*)));
-
+	hashdyn->resize_lock = 0;
 	hashdyn->count = 0;
 }
 
@@ -100,8 +100,11 @@ static void tommy_hashdyn_resize(tommy_hashdyn* hashdyn, tommy_count_t new_bucke
 			/* setup the new bucket with the lower bucket*/
 			new_bucket[i] = hashdyn->bucket[i];
 
-			/* concat the upper bucket */
-			tommy_list_concat(&new_bucket[i], &hashdyn->bucket[i + new_bucket_max]);
+			/* concat the upper buckets */
+			tommy_count_t bucket_option = i;
+			for (bucket_option = i + new_bucket_max; bucket_option < bucket_max; bucket_option += new_bucket_max) {
+				tommy_list_concat(&new_bucket[i], &hashdyn->bucket[bucket_option]);
+			}
 		}
 	}
 
@@ -120,7 +123,7 @@ static void tommy_hashdyn_resize(tommy_hashdyn* hashdyn, tommy_count_t new_bucke
 tommy_inline void hashdyn_grow_step(tommy_hashdyn* hashdyn)
 {
 	/* grow if more than 50% full */
-	if (hashdyn->count >= hashdyn->bucket_max / 2)
+	if (!hashdyn->resize_lock && hashdyn->count >= hashdyn->bucket_max / 2)
 		tommy_hashdyn_resize(hashdyn, hashdyn->bucket_bit + 1);
 }
 
@@ -130,8 +133,28 @@ tommy_inline void hashdyn_grow_step(tommy_hashdyn* hashdyn)
 tommy_inline void hashdyn_shrink_step(tommy_hashdyn* hashdyn)
 {
 	/* shrink if less than 12.5% full */
-	if (hashdyn->count <= hashdyn->bucket_max / 8 && hashdyn->bucket_bit > TOMMY_HASHDYN_BIT)
+	if (!hashdyn->resize_lock &&
+			hashdyn->count <= hashdyn->bucket_max / 8 &&
+			hashdyn->bucket_bit > TOMMY_HASHDYN_BIT)
 		tommy_hashdyn_resize(hashdyn, hashdyn->bucket_bit - 1);
+}
+
+tommy_inline void tommy_hashdyn_shrink(tommy_hashdyn* hashdyn) {
+	if (hashdyn->resize_lock) {
+		return;
+	}
+
+	tommy_count_t final_bits = hashdyn->bucket_bit;
+	tommy_count_t final_bucket_max = (1 << final_bits);
+
+	while (hashdyn->count <= (final_bucket_max / 8) && final_bits > TOMMY_HASHDYN_BIT) {
+		final_bits -= 1;
+		final_bucket_max = (1 << final_bits);
+	}
+
+	if (final_bits != hashdyn->bucket_bit) {
+		tommy_hashdyn_resize(hashdyn, final_bits);
+	}
 }
 
 void tommy_hashdyn_insert(tommy_hashdyn* hashdyn, tommy_hashdyn_node* node, void* data, tommy_hash_t hash)
@@ -188,6 +211,7 @@ void tommy_hashdyn_foreach(tommy_hashdyn* hashdyn, tommy_foreach_func* func)
 	tommy_hashdyn_node** bucket = hashdyn->bucket;
 	tommy_count_t pos;
 
+	hashdyn->resize_lock = 1;
 	for (pos = 0; pos < bucket_max; ++pos) {
 		tommy_hashdyn_node* node = bucket[pos];
 
@@ -197,6 +221,9 @@ void tommy_hashdyn_foreach(tommy_hashdyn* hashdyn, tommy_foreach_func* func)
 			func(data);
 		}
 	}
+
+	hashdyn->resize_lock = 0;
+	tommy_hashdyn_shrink(hashdyn);
 }
 
 void tommy_hashdyn_foreach_arg(tommy_hashdyn* hashdyn, tommy_foreach_arg_func* func, void* arg)
@@ -205,6 +232,7 @@ void tommy_hashdyn_foreach_arg(tommy_hashdyn* hashdyn, tommy_foreach_arg_func* f
 	tommy_hashdyn_node** bucket = hashdyn->bucket;
 	tommy_count_t pos;
 
+	hashdyn->resize_lock = 1;
 	for (pos = 0; pos < bucket_max; ++pos) {
 		tommy_hashdyn_node* node = bucket[pos];
 
@@ -214,6 +242,9 @@ void tommy_hashdyn_foreach_arg(tommy_hashdyn* hashdyn, tommy_foreach_arg_func* f
 			func(arg, data);
 		}
 	}
+
+	hashdyn->resize_lock = 0;
+	tommy_hashdyn_shrink(hashdyn);
 }
 
 tommy_size_t tommy_hashdyn_memory_usage(tommy_hashdyn* hashdyn)
@@ -221,4 +252,3 @@ tommy_size_t tommy_hashdyn_memory_usage(tommy_hashdyn* hashdyn)
 	return hashdyn->bucket_max * (tommy_size_t)sizeof(hashdyn->bucket[0])
 	       + tommy_hashdyn_count(hashdyn) * (tommy_size_t)sizeof(tommy_hashdyn_node);
 }
-

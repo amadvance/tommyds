@@ -164,6 +164,7 @@ typedef struct tommy_hashdyn_struct {
 	tommy_count_t bucket_max; /**< Number of buckets. */
 	tommy_count_t bucket_mask; /**< Bit mask to access the buckets. */
 	tommy_count_t count; /**< Number of elements. */
+	tommy_bool_t resize_lock; /**< Lock to make sure the hash isn't resized during a foreach iteration. */
 } tommy_hashdyn;
 
 /**
@@ -246,6 +247,8 @@ void* tommy_hashdyn_remove_existing(tommy_hashdyn* hashdyn, tommy_hashdyn_node* 
  * You cannot add or remove elements from the inside of the callback,
  * but can use it to deallocate them.
  *
+ * Note: it is safe to remove items from the hash table during a foreach, but
+ *       not safe to add them.
  * \code
  * tommy_hashdyn hashdyn;
  *
@@ -293,4 +296,3 @@ tommy_inline tommy_count_t tommy_hashdyn_count(tommy_hashdyn* hashdyn)
 tommy_size_t tommy_hashdyn_memory_usage(tommy_hashdyn* hashdyn);
 
 #endif
-
