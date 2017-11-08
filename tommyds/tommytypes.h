@@ -74,7 +74,7 @@ typedef tommy_uint32_t tommy_count_t;
 #ifdef __cplusplus
 #define tommy_cast(type, value) static_cast<type>(value)
 #else
-#define tommy_cast(type, value) (value)
+#define tommy_cast(type, value) ((type)value)
 #endif
 
 /******************************************************************************/
