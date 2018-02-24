@@ -236,7 +236,8 @@ tommy_inline tommy_node* tommy_list_remove_head_not_empty(tommy_list* list)
 	tommy_node* head = tommy_list_head(list);
 
 	/* remove from the "circular" prev list */
-	head->next->prev = head->prev;
+	if (head->next)
+		head->next->prev = head->prev;
 
 	/* remove from the "0 terminated" next list */
 	*list = head->next; /* the new head, in case 0 */
