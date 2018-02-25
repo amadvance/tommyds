@@ -1447,3 +1447,125 @@ tr.heading h2 {
   }
 }
 
+/* TommyDS customization */
+
+/* general */
+
+body, table, div, p, dl {
+	font-family: Lucida Grande, Verdana, Geneva, Arial, sans-serif;
+	font-size: 18px;
+}
+
+pre.fragment {
+	font-size: 12pt;
+}
+
+h1 {
+	font-size: 200%;
+	font-weight: bold;
+	color: #283a5d;
+}
+
+h2, h2.a {
+	font-size: 150%;
+	font-weight: bold;
+	color: #283a5d;
+}
+
+/* top bar */
+
+.tablist a {
+	text-shadow: none;
+	background-image: none;
+	background-color: #ebeff6;
+	text-decoration: none;
+}
+
+.tablist a:hover {
+	text-shadow: none;
+	background-image: none;
+	text-decoration: underline;
+	color: #283a5d;
+	background-color: #ebeff6;
+}
+
+.tablist li {
+	background-image: none;
+	background-color: #ebeff6;
+}
+
+.tablist li.current a {
+	text-shadow: none;
+	background-image: none;
+	background-color: #4665a2;
+	text-decoration: none;
+}
+
+.tabs {
+	font-size: 20px;
+	background-image: none;
+	background-color: #ebeff6;
+	border-bottom: 1px solid #C4CFE5;
+}
+
+.tabs2 {
+	font-size: 18px;
+	background-image: none;
+	background-color: #ebeff6;
+	border-bottom: 1px solid #C4CFE5;
+}
+
+.tabs3 {
+	font-size: 16px;
+	background-image: none;
+	background-color: #ebeff6;
+	border-bottom: 1px solid #C4CFE5;
+}
+
+div.header {
+	background-image:none;
+}
+
+/* padding */
+
+p, .fragment, .textblock, table {
+	padding-left: 40px;
+	padding-right: 40px;
+}
+
+ul {
+	padding-left: 80px;
+	padding-right: 40px;
+}
+
+table.memberdecls {
+	padding-left: 20px;
+}
+
+h1, h2, h3 {
+	padding-left: 20px;
+}
+
+/* padding inside .memitem */
+
+.memitem {
+	padding-left: 20px;
+	padding-right: 20px;
+}
+
+.memitem p, .memitem .fragment, dl {
+	padding-left: 20px;
+	padding-right: 20px;
+}
+
+.memname {
+	padding-left: 0px;
+	padding-right: 0px;
+}
+
+/* padding inside .memberdecls */
+
+.memberdecls h2 {
+	padding-left: 0px;
+}
+
