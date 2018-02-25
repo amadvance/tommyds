@@ -117,8 +117,8 @@ typedef tommy_node tommy_tree_node;
  */
 typedef struct tommy_tree_struct {
 	tommy_tree_node* root; /**< Root node. */
-	tommy_count_t count; /**< Number of elements. */
 	tommy_compare_func* cmp; /**< Comparison function. */
+	tommy_count_t count; /**< Number of elements. */
 } tommy_tree;
 
 /**

@@ -153,8 +153,8 @@ typedef struct tommy_trie_inplace_node_struct {
 	struct tommy_trie_inplace_node_struct* next; /**< Next element. 0 if it's the last. */
 	struct tommy_trie_inplace_node_struct* prev; /**< Circular previous element. */
 	void* data; /**< Pointer to the data. */
-	tommy_key_t key; /**< Used to store the key or the hash. */
 	struct tommy_trie_inplace_node_struct* map[TOMMY_TRIE_INPLACE_TREE_MAX]; /** Branches of the node. */
+	tommy_key_t key; /**< Used to store the key or the hash. */
 } tommy_trie_inplace_node;
 
 /**
