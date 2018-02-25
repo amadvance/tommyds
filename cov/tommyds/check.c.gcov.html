@@ -19,7 +19,7 @@
         <table cellpadding=1 border=0 width="100%">
           <tr>
             <td width="10%" class="headerItem">Current view:</td>
-            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">tommyds</a> - check.c<span style="font-size: 80%;"> (source / <a href="check.c.func.html">functions</a>)</span></td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">tommyds</a> - check.c<span style="font-size: 80%;"> (source / <a href="check.c.func-sort-c.html">functions</a>)</span></td>
             <td width="5%"></td>
             <td width="15%"></td>
             <td width="10%" class="headerCovTableHead">Hit</td>
@@ -31,13 +31,13 @@
             <td class="headerValue">lcov.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntry">561</td>
-            <td class="headerCovTableEntry">561</td>
+            <td class="headerCovTableEntry">562</td>
+            <td class="headerCovTableEntry">562</td>
             <td class="headerCovTableEntryHi">100.0 %</td>
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2016-11-03</td>
+            <td class="headerValue">2018-02-25 09:37:06</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">27</td>
@@ -819,979 +819,982 @@
 <span class="lineNum">     757 </span>            : 
 <span class="lineNum">     758 </span><span class="lineCov">          1 :         tommy_list_init(&amp;list);</span>
 <span class="lineNum">     759 </span>            : 
-<span class="lineNum">     760 </span><span class="lineCov">          1 :         if (!tommy_list_empty(&amp;list))</span>
-<span class="lineNum">     761 </span>            :                 /* LCOV_EXCL_START */
-<span class="lineNum">     762 </span>            :                 abort();
-<span class="lineNum">     763 </span>            :                 /* LCOV_EXCL_STOP */
-<span class="lineNum">     764 </span>            : 
-<span class="lineNum">     765 </span><span class="lineCov">          1 :         if (tommy_list_tail(&amp;list) != 0)</span>
-<span class="lineNum">     766 </span>            :                 /* LCOV_EXCL_START */
-<span class="lineNum">     767 </span>            :                 abort();
-<span class="lineNum">     768 </span>            :                 /* LCOV_EXCL_STOP */
-<span class="lineNum">     769 </span>            : 
-<span class="lineNum">     770 </span><span class="lineCov">          1 :         if (tommy_list_head(&amp;list) != 0)</span>
-<span class="lineNum">     771 </span>            :                 /* LCOV_EXCL_START */
-<span class="lineNum">     772 </span>            :                 abort();
-<span class="lineNum">     773 </span>            :                 /* LCOV_EXCL_STOP */
-<span class="lineNum">     774 </span>            : 
-<span class="lineNum">     775 </span><span class="lineCov">    1000001 :         for(i=0;i&lt;size;++i) {</span>
-<span class="lineNum">     776 </span><span class="lineCov">    1000000 :                 VECTOR[i].value = LIST[i].value = rnd(size);</span>
-<span class="lineNum">     777 </span><span class="lineCov">    1000000 :                 tommy_list_insert_tail(&amp;list, &amp;LIST[i].node, &amp;LIST[i]);</span>
-<span class="lineNum">     778 </span>            :         }
-<span class="lineNum">     779 </span>            : 
-<span class="lineNum">     780 </span><span class="lineCov">          1 :         if (tommy_list_tail(&amp;list) == 0)</span>
-<span class="lineNum">     781 </span>            :                 /* LCOV_EXCL_START */
-<span class="lineNum">     782 </span>            :                 abort();
-<span class="lineNum">     783 </span>            :                 /* LCOV_EXCL_STOP */
-<span class="lineNum">     784 </span>            : 
-<span class="lineNum">     785 </span><span class="lineCov">          1 :         if (tommy_list_head(&amp;list) == 0)</span>
-<span class="lineNum">     786 </span>            :                 /* LCOV_EXCL_START */
-<span class="lineNum">     787 </span>            :                 abort();
-<span class="lineNum">     788 </span>            :                 /* LCOV_EXCL_STOP */
-<span class="lineNum">     789 </span>            : 
-<span class="lineNum">     790 </span><span class="lineCov">          1 :         START(&quot;sort random&quot;);</span>
-<span class="lineNum">     791 </span><span class="lineCov">          1 :         tommy_list_sort(&amp;list, compare);</span>
-<span class="lineNum">     792 </span><span class="lineCov">          1 :         STOP();</span>
-<span class="lineNum">     793 </span>            : 
-<span class="lineNum">     794 </span><span class="lineCov">          1 :         START(&quot;C qsort random&quot;);</span>
-<span class="lineNum">     795 </span><span class="lineCov">          1 :         qsort(VECTOR, size, sizeof(VECTOR[0]), compare_vector);</span>
-<span class="lineNum">     796 </span><span class="lineCov">          1 :         STOP();</span>
-<span class="lineNum">     797 </span>            : 
-<span class="lineNum">     798 </span><span class="lineCov">          1 :         test_list_order(list);</span>
-<span class="lineNum">     799 </span>            : 
-<span class="lineNum">     800 </span>            :         /* forward order with some (1%) random values */
-<span class="lineNum">     801 </span><span class="lineCov">          1 :         list = 0;</span>
-<span class="lineNum">     802 </span><span class="lineCov">    1000001 :         for(i=0;i&lt;size;++i) {</span>
-<span class="lineNum">     803 </span><span class="lineCov">    1000000 :                 VECTOR[i].value = LIST[i].value = i;</span>
-<span class="lineNum">     804 </span><span class="lineCov">    1000000 :                 if (rnd(100) == 0)</span>
-<span class="lineNum">     805 </span><span class="lineCov">       9981 :                         VECTOR[i].value = LIST[i].value = rnd(size);</span>
-<span class="lineNum">     806 </span><span class="lineCov">    1000000 :                 tommy_list_insert_tail(&amp;list, &amp;LIST[i].node, &amp;LIST[i]);</span>
-<span class="lineNum">     807 </span>            :         }
-<span class="lineNum">     808 </span>            : 
-<span class="lineNum">     809 </span><span class="lineCov">          1 :         START(&quot;sort partially ordered&quot;);</span>
-<span class="lineNum">     810 </span><span class="lineCov">          1 :         tommy_list_sort(&amp;list, compare);</span>
-<span class="lineNum">     811 </span><span class="lineCov">          1 :         STOP();</span>
-<span class="lineNum">     812 </span>            : 
-<span class="lineNum">     813 </span><span class="lineCov">          1 :         START(&quot;C qsort partially ordered&quot;);</span>
-<span class="lineNum">     814 </span><span class="lineCov">          1 :         qsort(VECTOR, size, sizeof(VECTOR[0]), compare_vector);</span>
-<span class="lineNum">     815 </span><span class="lineCov">          1 :         STOP();</span>
-<span class="lineNum">     816 </span>            : 
-<span class="lineNum">     817 </span><span class="lineCov">          1 :         test_list_order(list);</span>
-<span class="lineNum">     818 </span>            : 
-<span class="lineNum">     819 </span>            :         /* forward order */
-<span class="lineNum">     820 </span><span class="lineCov">          1 :         list = 0;</span>
-<span class="lineNum">     821 </span><span class="lineCov">    1000001 :         for(i=0;i&lt;size;++i) {</span>
-<span class="lineNum">     822 </span><span class="lineCov">    1000000 :                 VECTOR[i].value = LIST[i].value = i;</span>
-<span class="lineNum">     823 </span><span class="lineCov">    1000000 :                 tommy_list_insert_tail(&amp;list, &amp;LIST[i].node, &amp;LIST[i]);</span>
-<span class="lineNum">     824 </span>            :         }
-<span class="lineNum">     825 </span>            : 
-<span class="lineNum">     826 </span><span class="lineCov">          1 :         START(&quot;sort forward&quot;);</span>
-<span class="lineNum">     827 </span><span class="lineCov">          1 :         tommy_list_sort(&amp;list, compare);</span>
-<span class="lineNum">     828 </span><span class="lineCov">          1 :         STOP();</span>
-<span class="lineNum">     829 </span>            : 
-<span class="lineNum">     830 </span><span class="lineCov">          1 :         START(&quot;C qsort forward&quot;);</span>
-<span class="lineNum">     831 </span><span class="lineCov">          1 :         qsort(VECTOR, size, sizeof(VECTOR[0]), compare_vector);</span>
-<span class="lineNum">     832 </span><span class="lineCov">          1 :         STOP();</span>
-<span class="lineNum">     833 </span>            : 
-<span class="lineNum">     834 </span><span class="lineCov">          1 :         test_list_order(list);</span>
-<span class="lineNum">     835 </span>            : 
-<span class="lineNum">     836 </span>            :         /* backward order */
-<span class="lineNum">     837 </span><span class="lineCov">          1 :         list = 0;</span>
-<span class="lineNum">     838 </span><span class="lineCov">    1000001 :         for(i=0;i&lt;size;++i) {</span>
-<span class="lineNum">     839 </span><span class="lineCov">    1000000 :                 VECTOR[i].value = LIST[i].value = size - 1 - i;</span>
-<span class="lineNum">     840 </span><span class="lineCov">    1000000 :                 tommy_list_insert_tail(&amp;list, &amp;LIST[i].node, &amp;LIST[i]);</span>
-<span class="lineNum">     841 </span>            :         }
-<span class="lineNum">     842 </span>            : 
-<span class="lineNum">     843 </span><span class="lineCov">          1 :         START(&quot;sort backward&quot;);</span>
-<span class="lineNum">     844 </span><span class="lineCov">          1 :         tommy_list_sort(&amp;list, compare);</span>
-<span class="lineNum">     845 </span><span class="lineCov">          1 :         STOP();</span>
-<span class="lineNum">     846 </span>            : 
-<span class="lineNum">     847 </span><span class="lineCov">          1 :         START(&quot;C qsort backward&quot;);</span>
-<span class="lineNum">     848 </span><span class="lineCov">          1 :         qsort(VECTOR, size, sizeof(VECTOR[0]), compare_vector);</span>
-<span class="lineNum">     849 </span><span class="lineCov">          1 :         STOP();</span>
-<span class="lineNum">     850 </span>            : 
-<span class="lineNum">     851 </span><span class="lineCov">          1 :         test_list_order(list);</span>
-<span class="lineNum">     852 </span>            : 
-<span class="lineNum">     853 </span>            :         /* use a small range of random value to insert a lot of duplicates */
-<span class="lineNum">     854 </span><span class="lineCov">          1 :         list = 0;</span>
-<span class="lineNum">     855 </span><span class="lineCov">    1000001 :         for(i=0;i&lt;size;++i) {</span>
-<span class="lineNum">     856 </span><span class="lineCov">    1000000 :                 VECTOR[i].value = LIST[i].value = rnd(size / 1000 + 2);</span>
-<span class="lineNum">     857 </span><span class="lineCov">    1000000 :                 tommy_list_insert_tail(&amp;list, &amp;LIST[i].node, &amp;LIST[i]);</span>
-<span class="lineNum">     858 </span>            :         }
-<span class="lineNum">     859 </span>            : 
-<span class="lineNum">     860 </span><span class="lineCov">          1 :         START(&quot;sort random duplicate&quot;);</span>
-<span class="lineNum">     861 </span><span class="lineCov">          1 :         tommy_list_sort(&amp;list, compare);</span>
-<span class="lineNum">     862 </span><span class="lineCov">          1 :         STOP();</span>
-<span class="lineNum">     863 </span>            : 
-<span class="lineNum">     864 </span><span class="lineCov">          1 :         START(&quot;C qsort random duplicate&quot;);</span>
-<span class="lineNum">     865 </span><span class="lineCov">          1 :         qsort(VECTOR, size, sizeof(VECTOR[0]), compare_vector);</span>
-<span class="lineNum">     866 </span><span class="lineCov">          1 :         STOP();</span>
-<span class="lineNum">     867 </span>            : 
-<span class="lineNum">     868 </span><span class="lineCov">          1 :         test_list_order(list);</span>
-<span class="lineNum">     869 </span>            : 
-<span class="lineNum">     870 </span><span class="lineCov">          1 :         free(LIST);</span>
-<span class="lineNum">     871 </span><span class="lineCov">          1 :         free(VECTOR);</span>
-<a name="872"><span class="lineNum">     872 </span><span class="lineCov">          1 : }</span></a>
-<span class="lineNum">     873 </span>            : 
-<span class="lineNum">     874 </span><span class="lineCov">          1 : void test_tree(void)</span>
-<span class="lineNum">     875 </span>            : {
-<span class="lineNum">     876 </span>            :         tommy_tree tree;
-<span class="lineNum">     877 </span>            :         struct object_tree* OBJ;
-<span class="lineNum">     878 </span>            :         unsigned i;
-<span class="lineNum">     879 </span><span class="lineCov">          1 :         const unsigned size = TOMMY_SIZE / 4;</span>
-<span class="lineNum">     880 </span>            : 
-<span class="lineNum">     881 </span><span class="lineCov">          1 :         OBJ = malloc(size * sizeof(struct object_tree));</span>
-<span class="lineNum">     882 </span>            : 
-<span class="lineNum">     883 </span><span class="lineCov">          1 :         START(&quot;tree&quot;);</span>
-<span class="lineNum">     884 </span><span class="lineCov">          1 :         tommy_tree_init(&amp;tree, &amp;compare);</span>
+<span class="lineNum">     760 </span>            :         /* sort an empty list */
+<span class="lineNum">     761 </span><span class="lineCov">          1 :         tommy_list_sort(&amp;list, compare);</span>
+<span class="lineNum">     762 </span>            : 
+<span class="lineNum">     763 </span><span class="lineCov">          1 :         if (!tommy_list_empty(&amp;list))</span>
+<span class="lineNum">     764 </span>            :                 /* LCOV_EXCL_START */
+<span class="lineNum">     765 </span>            :                 abort();
+<span class="lineNum">     766 </span>            :                 /* LCOV_EXCL_STOP */
+<span class="lineNum">     767 </span>            : 
+<span class="lineNum">     768 </span><span class="lineCov">          1 :         if (tommy_list_tail(&amp;list) != 0)</span>
+<span class="lineNum">     769 </span>            :                 /* LCOV_EXCL_START */
+<span class="lineNum">     770 </span>            :                 abort();
+<span class="lineNum">     771 </span>            :                 /* LCOV_EXCL_STOP */
+<span class="lineNum">     772 </span>            : 
+<span class="lineNum">     773 </span><span class="lineCov">          1 :         if (tommy_list_head(&amp;list) != 0)</span>
+<span class="lineNum">     774 </span>            :                 /* LCOV_EXCL_START */
+<span class="lineNum">     775 </span>            :                 abort();
+<span class="lineNum">     776 </span>            :                 /* LCOV_EXCL_STOP */
+<span class="lineNum">     777 </span>            : 
+<span class="lineNum">     778 </span><span class="lineCov">    1000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">     779 </span><span class="lineCov">    1000000 :                 VECTOR[i].value = LIST[i].value = rnd(size);</span>
+<span class="lineNum">     780 </span><span class="lineCov">    1000000 :                 tommy_list_insert_tail(&amp;list, &amp;LIST[i].node, &amp;LIST[i]);</span>
+<span class="lineNum">     781 </span>            :         }
+<span class="lineNum">     782 </span>            : 
+<span class="lineNum">     783 </span><span class="lineCov">          1 :         if (tommy_list_tail(&amp;list) == 0)</span>
+<span class="lineNum">     784 </span>            :                 /* LCOV_EXCL_START */
+<span class="lineNum">     785 </span>            :                 abort();
+<span class="lineNum">     786 </span>            :                 /* LCOV_EXCL_STOP */
+<span class="lineNum">     787 </span>            : 
+<span class="lineNum">     788 </span><span class="lineCov">          1 :         if (tommy_list_head(&amp;list) == 0)</span>
+<span class="lineNum">     789 </span>            :                 /* LCOV_EXCL_START */
+<span class="lineNum">     790 </span>            :                 abort();
+<span class="lineNum">     791 </span>            :                 /* LCOV_EXCL_STOP */
+<span class="lineNum">     792 </span>            : 
+<span class="lineNum">     793 </span><span class="lineCov">          1 :         START(&quot;sort random&quot;);</span>
+<span class="lineNum">     794 </span><span class="lineCov">          1 :         tommy_list_sort(&amp;list, compare);</span>
+<span class="lineNum">     795 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     796 </span>            : 
+<span class="lineNum">     797 </span><span class="lineCov">          1 :         START(&quot;C qsort random&quot;);</span>
+<span class="lineNum">     798 </span><span class="lineCov">          1 :         qsort(VECTOR, size, sizeof(VECTOR[0]), compare_vector);</span>
+<span class="lineNum">     799 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     800 </span>            : 
+<span class="lineNum">     801 </span><span class="lineCov">          1 :         test_list_order(list);</span>
+<span class="lineNum">     802 </span>            : 
+<span class="lineNum">     803 </span>            :         /* forward order with some (1%) random values */
+<span class="lineNum">     804 </span><span class="lineCov">          1 :         list = 0;</span>
+<span class="lineNum">     805 </span><span class="lineCov">    1000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">     806 </span><span class="lineCov">    1000000 :                 VECTOR[i].value = LIST[i].value = i;</span>
+<span class="lineNum">     807 </span><span class="lineCov">    1000000 :                 if (rnd(100) == 0)</span>
+<span class="lineNum">     808 </span><span class="lineCov">       9981 :                         VECTOR[i].value = LIST[i].value = rnd(size);</span>
+<span class="lineNum">     809 </span><span class="lineCov">    1000000 :                 tommy_list_insert_tail(&amp;list, &amp;LIST[i].node, &amp;LIST[i]);</span>
+<span class="lineNum">     810 </span>            :         }
+<span class="lineNum">     811 </span>            : 
+<span class="lineNum">     812 </span><span class="lineCov">          1 :         START(&quot;sort partially ordered&quot;);</span>
+<span class="lineNum">     813 </span><span class="lineCov">          1 :         tommy_list_sort(&amp;list, compare);</span>
+<span class="lineNum">     814 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     815 </span>            : 
+<span class="lineNum">     816 </span><span class="lineCov">          1 :         START(&quot;C qsort partially ordered&quot;);</span>
+<span class="lineNum">     817 </span><span class="lineCov">          1 :         qsort(VECTOR, size, sizeof(VECTOR[0]), compare_vector);</span>
+<span class="lineNum">     818 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     819 </span>            : 
+<span class="lineNum">     820 </span><span class="lineCov">          1 :         test_list_order(list);</span>
+<span class="lineNum">     821 </span>            : 
+<span class="lineNum">     822 </span>            :         /* forward order */
+<span class="lineNum">     823 </span><span class="lineCov">          1 :         list = 0;</span>
+<span class="lineNum">     824 </span><span class="lineCov">    1000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">     825 </span><span class="lineCov">    1000000 :                 VECTOR[i].value = LIST[i].value = i;</span>
+<span class="lineNum">     826 </span><span class="lineCov">    1000000 :                 tommy_list_insert_tail(&amp;list, &amp;LIST[i].node, &amp;LIST[i]);</span>
+<span class="lineNum">     827 </span>            :         }
+<span class="lineNum">     828 </span>            : 
+<span class="lineNum">     829 </span><span class="lineCov">          1 :         START(&quot;sort forward&quot;);</span>
+<span class="lineNum">     830 </span><span class="lineCov">          1 :         tommy_list_sort(&amp;list, compare);</span>
+<span class="lineNum">     831 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     832 </span>            : 
+<span class="lineNum">     833 </span><span class="lineCov">          1 :         START(&quot;C qsort forward&quot;);</span>
+<span class="lineNum">     834 </span><span class="lineCov">          1 :         qsort(VECTOR, size, sizeof(VECTOR[0]), compare_vector);</span>
+<span class="lineNum">     835 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     836 </span>            : 
+<span class="lineNum">     837 </span><span class="lineCov">          1 :         test_list_order(list);</span>
+<span class="lineNum">     838 </span>            : 
+<span class="lineNum">     839 </span>            :         /* backward order */
+<span class="lineNum">     840 </span><span class="lineCov">          1 :         list = 0;</span>
+<span class="lineNum">     841 </span><span class="lineCov">    1000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">     842 </span><span class="lineCov">    1000000 :                 VECTOR[i].value = LIST[i].value = size - 1 - i;</span>
+<span class="lineNum">     843 </span><span class="lineCov">    1000000 :                 tommy_list_insert_tail(&amp;list, &amp;LIST[i].node, &amp;LIST[i]);</span>
+<span class="lineNum">     844 </span>            :         }
+<span class="lineNum">     845 </span>            : 
+<span class="lineNum">     846 </span><span class="lineCov">          1 :         START(&quot;sort backward&quot;);</span>
+<span class="lineNum">     847 </span><span class="lineCov">          1 :         tommy_list_sort(&amp;list, compare);</span>
+<span class="lineNum">     848 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     849 </span>            : 
+<span class="lineNum">     850 </span><span class="lineCov">          1 :         START(&quot;C qsort backward&quot;);</span>
+<span class="lineNum">     851 </span><span class="lineCov">          1 :         qsort(VECTOR, size, sizeof(VECTOR[0]), compare_vector);</span>
+<span class="lineNum">     852 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     853 </span>            : 
+<span class="lineNum">     854 </span><span class="lineCov">          1 :         test_list_order(list);</span>
+<span class="lineNum">     855 </span>            : 
+<span class="lineNum">     856 </span>            :         /* use a small range of random value to insert a lot of duplicates */
+<span class="lineNum">     857 </span><span class="lineCov">          1 :         list = 0;</span>
+<span class="lineNum">     858 </span><span class="lineCov">    1000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">     859 </span><span class="lineCov">    1000000 :                 VECTOR[i].value = LIST[i].value = rnd(size / 1000 + 2);</span>
+<span class="lineNum">     860 </span><span class="lineCov">    1000000 :                 tommy_list_insert_tail(&amp;list, &amp;LIST[i].node, &amp;LIST[i]);</span>
+<span class="lineNum">     861 </span>            :         }
+<span class="lineNum">     862 </span>            : 
+<span class="lineNum">     863 </span><span class="lineCov">          1 :         START(&quot;sort random duplicate&quot;);</span>
+<span class="lineNum">     864 </span><span class="lineCov">          1 :         tommy_list_sort(&amp;list, compare);</span>
+<span class="lineNum">     865 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     866 </span>            : 
+<span class="lineNum">     867 </span><span class="lineCov">          1 :         START(&quot;C qsort random duplicate&quot;);</span>
+<span class="lineNum">     868 </span><span class="lineCov">          1 :         qsort(VECTOR, size, sizeof(VECTOR[0]), compare_vector);</span>
+<span class="lineNum">     869 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">     870 </span>            : 
+<span class="lineNum">     871 </span><span class="lineCov">          1 :         test_list_order(list);</span>
+<span class="lineNum">     872 </span>            : 
+<span class="lineNum">     873 </span><span class="lineCov">          1 :         free(LIST);</span>
+<span class="lineNum">     874 </span><span class="lineCov">          1 :         free(VECTOR);</span>
+<a name="875"><span class="lineNum">     875 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">     876 </span>            : 
+<span class="lineNum">     877 </span><span class="lineCov">          1 : void test_tree(void)</span>
+<span class="lineNum">     878 </span>            : {
+<span class="lineNum">     879 </span>            :         tommy_tree tree;
+<span class="lineNum">     880 </span>            :         struct object_tree* OBJ;
+<span class="lineNum">     881 </span>            :         unsigned i;
+<span class="lineNum">     882 </span><span class="lineCov">          1 :         const unsigned size = TOMMY_SIZE / 4;</span>
+<span class="lineNum">     883 </span>            : 
+<span class="lineNum">     884 </span><span class="lineCov">          1 :         OBJ = malloc(size * sizeof(struct object_tree));</span>
 <span class="lineNum">     885 </span>            : 
-<span class="lineNum">     886 </span>            :         /* forward order */
-<span class="lineNum">     887 </span><span class="lineCov">     250001 :         for(i=0;i&lt;size;++i)</span>
-<span class="lineNum">     888 </span><span class="lineCov">     250000 :                 OBJ[i].value = i;</span>
-<span class="lineNum">     889 </span>            : 
-<span class="lineNum">     890 </span>            :         /* insert */
-<span class="lineNum">     891 </span><span class="lineCov">     250001 :         for(i=0;i&lt;size;++i)</span>
-<span class="lineNum">     892 </span><span class="lineCov">     250000 :                 if (tommy_tree_insert(&amp;tree, &amp;OBJ[i].node, &amp;OBJ[i]) != &amp;OBJ[i])</span>
-<span class="lineNum">     893 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">     894 </span>            :                         abort();
-<span class="lineNum">     895 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">     896 </span>            : 
-<span class="lineNum">     897 </span><span class="lineCov">          1 :         if (tommy_tree_memory_usage(&amp;tree) &lt; size * sizeof(tommy_tree_node))</span>
-<span class="lineNum">     898 </span>            :                 /* LCOV_EXCL_START */
-<span class="lineNum">     899 </span>            :                 abort();
-<span class="lineNum">     900 </span>            :                 /* LCOV_EXCL_STOP */
-<span class="lineNum">     901 </span>            : 
-<span class="lineNum">     902 </span><span class="lineCov">          1 :         if (tommy_tree_count(&amp;tree) != size)</span>
-<span class="lineNum">     903 </span>            :                 /* LCOV_EXCL_START */
-<span class="lineNum">     904 </span>            :                 abort();
-<span class="lineNum">     905 </span>            :                 /* LCOV_EXCL_STOP */
-<span class="lineNum">     906 </span>            : 
-<span class="lineNum">     907 </span><span class="lineCov">          1 :         the_count = 0;</span>
-<span class="lineNum">     908 </span><span class="lineCov">          1 :         tommy_tree_foreach(&amp;tree, count_callback);</span>
-<span class="lineNum">     909 </span><span class="lineCov">          1 :         if (the_count != size)</span>
-<span class="lineNum">     910 </span>            :                 /* LCOV_EXCL_START */
-<span class="lineNum">     911 </span>            :                 abort();
-<span class="lineNum">     912 </span>            :                 /* LCOV_EXCL_STOP */
-<span class="lineNum">     913 </span>            : 
-<span class="lineNum">     914 </span><span class="lineCov">          1 :         the_count = 0;</span>
-<span class="lineNum">     915 </span><span class="lineCov">          1 :         tommy_tree_foreach_arg(&amp;tree, count_arg_callback, &amp;the_count);</span>
-<span class="lineNum">     916 </span><span class="lineCov">          1 :         if (the_count != size)</span>
-<span class="lineNum">     917 </span>            :                 /* LCOV_EXCL_START */
-<span class="lineNum">     918 </span>            :                 abort();
-<span class="lineNum">     919 </span>            :                 /* LCOV_EXCL_STOP */
-<span class="lineNum">     920 </span>            : 
-<span class="lineNum">     921 </span>            :         /* search present */
-<span class="lineNum">     922 </span><span class="lineCov">     125001 :         for(i=0;i&lt;size/2;++i) {</span>
-<span class="lineNum">     923 </span><span class="lineCov">     125000 :                 if (tommy_tree_search(&amp;tree, &amp;OBJ[i]) == 0)</span>
-<span class="lineNum">     924 </span>            :                                 /* LCOV_EXCL_START */
-<span class="lineNum">     925 </span>            :                         abort();
-<span class="lineNum">     926 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">     927 </span><span class="lineCov">     125000 :                 if (tommy_tree_search_compare(&amp;tree, &amp;compare, &amp;OBJ[i]) == 0)</span>
-<span class="lineNum">     928 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">     929 </span>            :                         abort();
-<span class="lineNum">     930 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">     931 </span>            :         }
-<span class="lineNum">     932 </span>            : 
-<span class="lineNum">     933 </span>            :         /* insert existing */
-<span class="lineNum">     934 </span><span class="lineCov">     250001 :         for(i=0;i&lt;size;++i) {</span>
-<span class="lineNum">     935 </span>            :                 struct object_tree EXTRA;
-<span class="lineNum">     936 </span><span class="lineCov">     250000 :                 EXTRA.value = i;</span>
-<span class="lineNum">     937 </span><span class="lineCov">     250000 :                 if (tommy_tree_insert(&amp;tree, &amp;EXTRA.node, &amp;EXTRA) == &amp;EXTRA)</span>
-<span class="lineNum">     938 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">     939 </span>            :                         abort();
-<span class="lineNum">     940 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">     941 </span>            :         }
-<span class="lineNum">     942 </span>            : 
-<span class="lineNum">     943 </span>            :         /* remove existing */
-<span class="lineNum">     944 </span><span class="lineCov">     125001 :         for(i=0;i&lt;size/2;++i)</span>
-<span class="lineNum">     945 </span><span class="lineCov">     125000 :                 tommy_tree_remove_existing(&amp;tree, &amp;OBJ[i].node);</span>
-<span class="lineNum">     946 </span>            : 
-<span class="lineNum">     947 </span>            :         /* remove missing */
-<span class="lineNum">     948 </span><span class="lineCov">     125001 :         for(i=0;i&lt;size/2;++i)</span>
-<span class="lineNum">     949 </span><span class="lineCov">     125000 :                 if (tommy_tree_remove(&amp;tree, &amp;OBJ[i]) != 0)</span>
-<span class="lineNum">     950 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">     951 </span>            :                         abort();
-<span class="lineNum">     952 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">     953 </span>            : 
-<span class="lineNum">     954 </span>            :         /* search missing */
-<span class="lineNum">     955 </span><span class="lineCov">     125001 :         for(i=0;i&lt;size/2;++i) {</span>
-<span class="lineNum">     956 </span><span class="lineCov">     125000 :                 if (tommy_tree_search(&amp;tree, &amp;OBJ[i]) != 0)</span>
-<span class="lineNum">     957 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">     958 </span>            :                         abort();
-<span class="lineNum">     959 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">     960 </span><span class="lineCov">     125000 :                 if (tommy_tree_search_compare(&amp;tree, &amp;compare, &amp;OBJ[i]) != 0)</span>
-<span class="lineNum">     961 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">     962 </span>            :                         abort();
-<span class="lineNum">     963 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">     964 </span>            :         }
-<span class="lineNum">     965 </span>            : 
-<span class="lineNum">     966 </span>            :         /* remove present */
-<span class="lineNum">     967 </span><span class="lineCov">     125001 :         for(i=0;i&lt;size/2;++i)</span>
-<span class="lineNum">     968 </span><span class="lineCov">     125000 :                 if (tommy_tree_remove(&amp;tree, &amp;OBJ[size/2+i]) == 0)</span>
-<span class="lineNum">     969 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">     970 </span>            :                         abort();
-<span class="lineNum">     971 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">     972 </span>            : 
-<span class="lineNum">     973 </span>            :         /* reverse order */
-<span class="lineNum">     974 </span><span class="lineCov">     250001 :         for(i=0;i&lt;size;++i)</span>
-<span class="lineNum">     975 </span><span class="lineCov">     250000 :                 OBJ[i].value = size - i;</span>
-<span class="lineNum">     976 </span>            : 
-<span class="lineNum">     977 </span>            :         /* insert */
-<span class="lineNum">     978 </span><span class="lineCov">     250001 :         for(i=0;i&lt;size;++i)</span>
-<span class="lineNum">     979 </span><span class="lineCov">     250000 :                 if (tommy_tree_insert(&amp;tree, &amp;OBJ[i].node, &amp;OBJ[i]) != &amp;OBJ[i])</span>
-<span class="lineNum">     980 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">     981 </span>            :                         abort();
-<span class="lineNum">     982 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">     983 </span>            : 
-<span class="lineNum">     984 </span>            :         /* remove all */
-<span class="lineNum">     985 </span><span class="lineCov">     250001 :         for(i=0;i&lt;size;++i)</span>
-<span class="lineNum">     986 </span><span class="lineCov">     250000 :                 tommy_tree_remove_existing(&amp;tree, &amp;OBJ[i].node);</span>
-<span class="lineNum">     987 </span>            : 
-<span class="lineNum">     988 </span>            :         /* random order */
-<span class="lineNum">     989 </span><span class="lineCov">     250001 :         for(i=0;i&lt;size;++i)</span>
-<span class="lineNum">     990 </span><span class="lineCov">     250000 :                 OBJ[i].value = tommy_inthash_u32(i);</span>
-<span class="lineNum">     991 </span>            : 
-<span class="lineNum">     992 </span>            :         /* insert */
-<span class="lineNum">     993 </span><span class="lineCov">     250001 :         for(i=0;i&lt;size;++i)</span>
-<span class="lineNum">     994 </span><span class="lineCov">     250000 :                 if (tommy_tree_insert(&amp;tree, &amp;OBJ[i].node, &amp;OBJ[i]) != &amp;OBJ[i])</span>
-<span class="lineNum">     995 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">     996 </span>            :                         abort();
-<span class="lineNum">     997 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">     998 </span>            : 
-<span class="lineNum">     999 </span>            :         /* remove all */
-<span class="lineNum">    1000 </span><span class="lineCov">     250001 :         for(i=0;i&lt;size;++i)</span>
-<span class="lineNum">    1001 </span><span class="lineCov">     250000 :                 tommy_tree_remove_existing(&amp;tree, &amp;OBJ[i].node);</span>
-<span class="lineNum">    1002 </span>            : 
-<span class="lineNum">    1003 </span><span class="lineCov">          1 :         STOP();</span>
-<a name="1004"><span class="lineNum">    1004 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">     886 </span><span class="lineCov">          1 :         START(&quot;tree&quot;);</span>
+<span class="lineNum">     887 </span><span class="lineCov">          1 :         tommy_tree_init(&amp;tree, &amp;compare);</span>
+<span class="lineNum">     888 </span>            : 
+<span class="lineNum">     889 </span>            :         /* forward order */
+<span class="lineNum">     890 </span><span class="lineCov">     250001 :         for(i=0;i&lt;size;++i)</span>
+<span class="lineNum">     891 </span><span class="lineCov">     250000 :                 OBJ[i].value = i;</span>
+<span class="lineNum">     892 </span>            : 
+<span class="lineNum">     893 </span>            :         /* insert */
+<span class="lineNum">     894 </span><span class="lineCov">     250001 :         for(i=0;i&lt;size;++i)</span>
+<span class="lineNum">     895 </span><span class="lineCov">     250000 :                 if (tommy_tree_insert(&amp;tree, &amp;OBJ[i].node, &amp;OBJ[i]) != &amp;OBJ[i])</span>
+<span class="lineNum">     896 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">     897 </span>            :                         abort();
+<span class="lineNum">     898 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">     899 </span>            : 
+<span class="lineNum">     900 </span><span class="lineCov">          1 :         if (tommy_tree_memory_usage(&amp;tree) &lt; size * sizeof(tommy_tree_node))</span>
+<span class="lineNum">     901 </span>            :                 /* LCOV_EXCL_START */
+<span class="lineNum">     902 </span>            :                 abort();
+<span class="lineNum">     903 </span>            :                 /* LCOV_EXCL_STOP */
+<span class="lineNum">     904 </span>            : 
+<span class="lineNum">     905 </span><span class="lineCov">          1 :         if (tommy_tree_count(&amp;tree) != size)</span>
+<span class="lineNum">     906 </span>            :                 /* LCOV_EXCL_START */
+<span class="lineNum">     907 </span>            :                 abort();
+<span class="lineNum">     908 </span>            :                 /* LCOV_EXCL_STOP */
+<span class="lineNum">     909 </span>            : 
+<span class="lineNum">     910 </span><span class="lineCov">          1 :         the_count = 0;</span>
+<span class="lineNum">     911 </span><span class="lineCov">          1 :         tommy_tree_foreach(&amp;tree, count_callback);</span>
+<span class="lineNum">     912 </span><span class="lineCov">          1 :         if (the_count != size)</span>
+<span class="lineNum">     913 </span>            :                 /* LCOV_EXCL_START */
+<span class="lineNum">     914 </span>            :                 abort();
+<span class="lineNum">     915 </span>            :                 /* LCOV_EXCL_STOP */
+<span class="lineNum">     916 </span>            : 
+<span class="lineNum">     917 </span><span class="lineCov">          1 :         the_count = 0;</span>
+<span class="lineNum">     918 </span><span class="lineCov">          1 :         tommy_tree_foreach_arg(&amp;tree, count_arg_callback, &amp;the_count);</span>
+<span class="lineNum">     919 </span><span class="lineCov">          1 :         if (the_count != size)</span>
+<span class="lineNum">     920 </span>            :                 /* LCOV_EXCL_START */
+<span class="lineNum">     921 </span>            :                 abort();
+<span class="lineNum">     922 </span>            :                 /* LCOV_EXCL_STOP */
+<span class="lineNum">     923 </span>            : 
+<span class="lineNum">     924 </span>            :         /* search present */
+<span class="lineNum">     925 </span><span class="lineCov">     125001 :         for(i=0;i&lt;size/2;++i) {</span>
+<span class="lineNum">     926 </span><span class="lineCov">     125000 :                 if (tommy_tree_search(&amp;tree, &amp;OBJ[i]) == 0)</span>
+<span class="lineNum">     927 </span>            :                                 /* LCOV_EXCL_START */
+<span class="lineNum">     928 </span>            :                         abort();
+<span class="lineNum">     929 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">     930 </span><span class="lineCov">     125000 :                 if (tommy_tree_search_compare(&amp;tree, &amp;compare, &amp;OBJ[i]) == 0)</span>
+<span class="lineNum">     931 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">     932 </span>            :                         abort();
+<span class="lineNum">     933 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">     934 </span>            :         }
+<span class="lineNum">     935 </span>            : 
+<span class="lineNum">     936 </span>            :         /* insert existing */
+<span class="lineNum">     937 </span><span class="lineCov">     250001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">     938 </span>            :                 struct object_tree EXTRA;
+<span class="lineNum">     939 </span><span class="lineCov">     250000 :                 EXTRA.value = i;</span>
+<span class="lineNum">     940 </span><span class="lineCov">     250000 :                 if (tommy_tree_insert(&amp;tree, &amp;EXTRA.node, &amp;EXTRA) == &amp;EXTRA)</span>
+<span class="lineNum">     941 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">     942 </span>            :                         abort();
+<span class="lineNum">     943 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">     944 </span>            :         }
+<span class="lineNum">     945 </span>            : 
+<span class="lineNum">     946 </span>            :         /* remove existing */
+<span class="lineNum">     947 </span><span class="lineCov">     125001 :         for(i=0;i&lt;size/2;++i)</span>
+<span class="lineNum">     948 </span><span class="lineCov">     125000 :                 tommy_tree_remove_existing(&amp;tree, &amp;OBJ[i].node);</span>
+<span class="lineNum">     949 </span>            : 
+<span class="lineNum">     950 </span>            :         /* remove missing */
+<span class="lineNum">     951 </span><span class="lineCov">     125001 :         for(i=0;i&lt;size/2;++i)</span>
+<span class="lineNum">     952 </span><span class="lineCov">     125000 :                 if (tommy_tree_remove(&amp;tree, &amp;OBJ[i]) != 0)</span>
+<span class="lineNum">     953 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">     954 </span>            :                         abort();
+<span class="lineNum">     955 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">     956 </span>            : 
+<span class="lineNum">     957 </span>            :         /* search missing */
+<span class="lineNum">     958 </span><span class="lineCov">     125001 :         for(i=0;i&lt;size/2;++i) {</span>
+<span class="lineNum">     959 </span><span class="lineCov">     125000 :                 if (tommy_tree_search(&amp;tree, &amp;OBJ[i]) != 0)</span>
+<span class="lineNum">     960 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">     961 </span>            :                         abort();
+<span class="lineNum">     962 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">     963 </span><span class="lineCov">     125000 :                 if (tommy_tree_search_compare(&amp;tree, &amp;compare, &amp;OBJ[i]) != 0)</span>
+<span class="lineNum">     964 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">     965 </span>            :                         abort();
+<span class="lineNum">     966 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">     967 </span>            :         }
+<span class="lineNum">     968 </span>            : 
+<span class="lineNum">     969 </span>            :         /* remove present */
+<span class="lineNum">     970 </span><span class="lineCov">     125001 :         for(i=0;i&lt;size/2;++i)</span>
+<span class="lineNum">     971 </span><span class="lineCov">     125000 :                 if (tommy_tree_remove(&amp;tree, &amp;OBJ[size/2+i]) == 0)</span>
+<span class="lineNum">     972 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">     973 </span>            :                         abort();
+<span class="lineNum">     974 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">     975 </span>            : 
+<span class="lineNum">     976 </span>            :         /* reverse order */
+<span class="lineNum">     977 </span><span class="lineCov">     250001 :         for(i=0;i&lt;size;++i)</span>
+<span class="lineNum">     978 </span><span class="lineCov">     250000 :                 OBJ[i].value = size - i;</span>
+<span class="lineNum">     979 </span>            : 
+<span class="lineNum">     980 </span>            :         /* insert */
+<span class="lineNum">     981 </span><span class="lineCov">     250001 :         for(i=0;i&lt;size;++i)</span>
+<span class="lineNum">     982 </span><span class="lineCov">     250000 :                 if (tommy_tree_insert(&amp;tree, &amp;OBJ[i].node, &amp;OBJ[i]) != &amp;OBJ[i])</span>
+<span class="lineNum">     983 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">     984 </span>            :                         abort();
+<span class="lineNum">     985 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">     986 </span>            : 
+<span class="lineNum">     987 </span>            :         /* remove all */
+<span class="lineNum">     988 </span><span class="lineCov">     250001 :         for(i=0;i&lt;size;++i)</span>
+<span class="lineNum">     989 </span><span class="lineCov">     250000 :                 tommy_tree_remove_existing(&amp;tree, &amp;OBJ[i].node);</span>
+<span class="lineNum">     990 </span>            : 
+<span class="lineNum">     991 </span>            :         /* random order */
+<span class="lineNum">     992 </span><span class="lineCov">     250001 :         for(i=0;i&lt;size;++i)</span>
+<span class="lineNum">     993 </span><span class="lineCov">     250000 :                 OBJ[i].value = tommy_inthash_u32(i);</span>
+<span class="lineNum">     994 </span>            : 
+<span class="lineNum">     995 </span>            :         /* insert */
+<span class="lineNum">     996 </span><span class="lineCov">     250001 :         for(i=0;i&lt;size;++i)</span>
+<span class="lineNum">     997 </span><span class="lineCov">     250000 :                 if (tommy_tree_insert(&amp;tree, &amp;OBJ[i].node, &amp;OBJ[i]) != &amp;OBJ[i])</span>
+<span class="lineNum">     998 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">     999 </span>            :                         abort();
+<span class="lineNum">    1000 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">    1001 </span>            : 
+<span class="lineNum">    1002 </span>            :         /* remove all */
+<span class="lineNum">    1003 </span><span class="lineCov">     250001 :         for(i=0;i&lt;size;++i)</span>
+<span class="lineNum">    1004 </span><span class="lineCov">     250000 :                 tommy_tree_remove_existing(&amp;tree, &amp;OBJ[i].node);</span>
 <span class="lineNum">    1005 </span>            : 
-<span class="lineNum">    1006 </span><span class="lineCov">          1 : void test_array(void)</span>
-<span class="lineNum">    1007 </span>            : {
-<span class="lineNum">    1008 </span>            :         tommy_array array;
-<span class="lineNum">    1009 </span>            :         tommy_uintptr_t i;
-<span class="lineNum">    1010 </span><span class="lineCov">          1 :         const unsigned size = 50 * TOMMY_SIZE;</span>
-<span class="lineNum">    1011 </span>            : 
-<span class="lineNum">    1012 </span><span class="lineCov">          1 :         tommy_array_init(&amp;array);</span>
-<span class="lineNum">    1013 </span>            : 
-<span class="lineNum">    1014 </span>            :         /* no op */
-<span class="lineNum">    1015 </span><span class="lineCov">          1 :         tommy_array_grow(&amp;array, 0);</span>
+<span class="lineNum">    1006 </span><span class="lineCov">          1 :         STOP();</span>
+<a name="1007"><span class="lineNum">    1007 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">    1008 </span>            : 
+<span class="lineNum">    1009 </span><span class="lineCov">          1 : void test_array(void)</span>
+<span class="lineNum">    1010 </span>            : {
+<span class="lineNum">    1011 </span>            :         tommy_array array;
+<span class="lineNum">    1012 </span>            :         tommy_uintptr_t i;
+<span class="lineNum">    1013 </span><span class="lineCov">          1 :         const unsigned size = 50 * TOMMY_SIZE;</span>
+<span class="lineNum">    1014 </span>            : 
+<span class="lineNum">    1015 </span><span class="lineCov">          1 :         tommy_array_init(&amp;array);</span>
 <span class="lineNum">    1016 </span>            : 
-<span class="lineNum">    1017 </span><span class="lineCov">          1 :         START(&quot;array init&quot;);</span>
-<span class="lineNum">    1018 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
-<span class="lineNum">    1019 </span><span class="lineCov">   50000000 :                 tommy_array_grow(&amp;array, i + 1);</span>
-<span class="lineNum">    1020 </span><span class="lineCov">   50000000 :                 if (tommy_array_get(&amp;array, i) != 0)</span>
-<span class="lineNum">    1021 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">    1022 </span>            :                         abort();
-<span class="lineNum">    1023 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">    1024 </span>            :         }
-<span class="lineNum">    1025 </span><span class="lineCov">          1 :         STOP();</span>
-<span class="lineNum">    1026 </span>            : 
-<span class="lineNum">    1027 </span><span class="lineCov">          1 :         START(&quot;array set&quot;);</span>
-<span class="lineNum">    1028 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
-<span class="lineNum">    1029 </span><span class="lineCov">   50000000 :                 tommy_array_set(&amp;array, i, (void*)i);</span>
-<span class="lineNum">    1030 </span>            :         }
-<span class="lineNum">    1031 </span><span class="lineCov">          1 :         STOP();</span>
-<span class="lineNum">    1032 </span>            : 
-<span class="lineNum">    1033 </span><span class="lineCov">          1 :         START(&quot;array get&quot;);</span>
-<span class="lineNum">    1034 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
-<span class="lineNum">    1035 </span><span class="lineCov">   50000000 :                 if (tommy_array_get(&amp;array, i) != (void*)i)</span>
-<span class="lineNum">    1036 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">    1037 </span>            :                         abort();
-<span class="lineNum">    1038 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">    1039 </span>            :         }
-<span class="lineNum">    1040 </span><span class="lineCov">          1 :         STOP();</span>
-<span class="lineNum">    1041 </span>            : 
-<span class="lineNum">    1042 </span><span class="lineCov">          1 :         if (tommy_array_memory_usage(&amp;array) &lt; size * sizeof(void*))</span>
-<span class="lineNum">    1043 </span>            :                 /* LCOV_EXCL_START */
-<span class="lineNum">    1044 </span>            :                 abort();
-<span class="lineNum">    1045 </span>            :                 /* LCOV_EXCL_STOP */
-<span class="lineNum">    1046 </span>            : 
-<span class="lineNum">    1047 </span><span class="lineCov">          1 :         tommy_array_done(&amp;array);</span>
-<a name="1048"><span class="lineNum">    1048 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">    1017 </span>            :         /* no op */
+<span class="lineNum">    1018 </span><span class="lineCov">          1 :         tommy_array_grow(&amp;array, 0);</span>
+<span class="lineNum">    1019 </span>            : 
+<span class="lineNum">    1020 </span><span class="lineCov">          1 :         START(&quot;array init&quot;);</span>
+<span class="lineNum">    1021 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">    1022 </span><span class="lineCov">   50000000 :                 tommy_array_grow(&amp;array, i + 1);</span>
+<span class="lineNum">    1023 </span><span class="lineCov">   50000000 :                 if (tommy_array_get(&amp;array, i) != 0)</span>
+<span class="lineNum">    1024 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">    1025 </span>            :                         abort();
+<span class="lineNum">    1026 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">    1027 </span>            :         }
+<span class="lineNum">    1028 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">    1029 </span>            : 
+<span class="lineNum">    1030 </span><span class="lineCov">          1 :         START(&quot;array set&quot;);</span>
+<span class="lineNum">    1031 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">    1032 </span><span class="lineCov">   50000000 :                 tommy_array_set(&amp;array, i, (void*)i);</span>
+<span class="lineNum">    1033 </span>            :         }
+<span class="lineNum">    1034 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">    1035 </span>            : 
+<span class="lineNum">    1036 </span><span class="lineCov">          1 :         START(&quot;array get&quot;);</span>
+<span class="lineNum">    1037 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">    1038 </span><span class="lineCov">   50000000 :                 if (tommy_array_get(&amp;array, i) != (void*)i)</span>
+<span class="lineNum">    1039 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">    1040 </span>            :                         abort();
+<span class="lineNum">    1041 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">    1042 </span>            :         }
+<span class="lineNum">    1043 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">    1044 </span>            : 
+<span class="lineNum">    1045 </span><span class="lineCov">          1 :         if (tommy_array_memory_usage(&amp;array) &lt; size * sizeof(void*))</span>
+<span class="lineNum">    1046 </span>            :                 /* LCOV_EXCL_START */
+<span class="lineNum">    1047 </span>            :                 abort();
+<span class="lineNum">    1048 </span>            :                 /* LCOV_EXCL_STOP */
 <span class="lineNum">    1049 </span>            : 
-<span class="lineNum">    1050 </span><span class="lineCov">          1 : void test_arrayof(void)</span>
-<span class="lineNum">    1051 </span>            : {
-<span class="lineNum">    1052 </span>            :         tommy_arrayof arrayof;
-<span class="lineNum">    1053 </span>            :         unsigned i;
-<span class="lineNum">    1054 </span><span class="lineCov">          1 :         const unsigned size = 50 * TOMMY_SIZE;</span>
-<span class="lineNum">    1055 </span>            : 
-<span class="lineNum">    1056 </span><span class="lineCov">          1 :         tommy_arrayof_init(&amp;arrayof, sizeof(unsigned));</span>
-<span class="lineNum">    1057 </span>            : 
-<span class="lineNum">    1058 </span>            :         /* no op */
-<span class="lineNum">    1059 </span><span class="lineCov">          1 :         tommy_arrayof_grow(&amp;arrayof, 0);</span>
+<span class="lineNum">    1050 </span><span class="lineCov">          1 :         tommy_array_done(&amp;array);</span>
+<a name="1051"><span class="lineNum">    1051 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">    1052 </span>            : 
+<span class="lineNum">    1053 </span><span class="lineCov">          1 : void test_arrayof(void)</span>
+<span class="lineNum">    1054 </span>            : {
+<span class="lineNum">    1055 </span>            :         tommy_arrayof arrayof;
+<span class="lineNum">    1056 </span>            :         unsigned i;
+<span class="lineNum">    1057 </span><span class="lineCov">          1 :         const unsigned size = 50 * TOMMY_SIZE;</span>
+<span class="lineNum">    1058 </span>            : 
+<span class="lineNum">    1059 </span><span class="lineCov">          1 :         tommy_arrayof_init(&amp;arrayof, sizeof(unsigned));</span>
 <span class="lineNum">    1060 </span>            : 
-<span class="lineNum">    1061 </span><span class="lineCov">          1 :         START(&quot;arrayof init&quot;);</span>
-<span class="lineNum">    1062 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
-<span class="lineNum">    1063 </span><span class="lineCov">   50000000 :                 tommy_arrayof_grow(&amp;arrayof, i + 1);</span>
-<span class="lineNum">    1064 </span><span class="lineCov">   50000000 :                 unsigned* ref = tommy_arrayof_ref(&amp;arrayof, i);</span>
-<span class="lineNum">    1065 </span><span class="lineCov">   50000000 :                 if (*ref != 0)</span>
-<span class="lineNum">    1066 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">    1067 </span>            :                         abort();
-<span class="lineNum">    1068 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">    1069 </span>            :         }
-<span class="lineNum">    1070 </span><span class="lineCov">          1 :         STOP();</span>
-<span class="lineNum">    1071 </span>            : 
-<span class="lineNum">    1072 </span><span class="lineCov">          1 :         START(&quot;arrayof set&quot;);</span>
-<span class="lineNum">    1073 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
-<span class="lineNum">    1074 </span><span class="lineCov">   50000000 :                 unsigned* ref = tommy_arrayof_ref(&amp;arrayof, i);</span>
-<span class="lineNum">    1075 </span><span class="lineCov">   50000000 :                 *ref = i;</span>
-<span class="lineNum">    1076 </span>            :         }
-<span class="lineNum">    1077 </span><span class="lineCov">          1 :         STOP();</span>
-<span class="lineNum">    1078 </span>            : 
-<span class="lineNum">    1079 </span><span class="lineCov">          1 :         START(&quot;arrayof get&quot;);</span>
-<span class="lineNum">    1080 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
-<span class="lineNum">    1081 </span><span class="lineCov">   50000000 :                 unsigned* ref = tommy_arrayof_ref(&amp;arrayof, i);</span>
-<span class="lineNum">    1082 </span><span class="lineCov">   50000000 :                 if (*ref != i)</span>
-<span class="lineNum">    1083 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">    1084 </span>            :                         abort();
-<span class="lineNum">    1085 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">    1086 </span>            :         }
-<span class="lineNum">    1087 </span><span class="lineCov">          1 :         STOP();</span>
-<span class="lineNum">    1088 </span>            : 
-<span class="lineNum">    1089 </span><span class="lineCov">          1 :         if (tommy_arrayof_memory_usage(&amp;arrayof) &lt; size * sizeof(unsigned))</span>
-<span class="lineNum">    1090 </span>            :                 /* LCOV_EXCL_START */
-<span class="lineNum">    1091 </span>            :                 abort();
-<span class="lineNum">    1092 </span>            :                 /* LCOV_EXCL_STOP */
-<span class="lineNum">    1093 </span>            : 
-<span class="lineNum">    1094 </span><span class="lineCov">          1 :         tommy_arrayof_done(&amp;arrayof);</span>
-<a name="1095"><span class="lineNum">    1095 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">    1061 </span>            :         /* no op */
+<span class="lineNum">    1062 </span><span class="lineCov">          1 :         tommy_arrayof_grow(&amp;arrayof, 0);</span>
+<span class="lineNum">    1063 </span>            : 
+<span class="lineNum">    1064 </span><span class="lineCov">          1 :         START(&quot;arrayof init&quot;);</span>
+<span class="lineNum">    1065 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">    1066 </span><span class="lineCov">   50000000 :                 tommy_arrayof_grow(&amp;arrayof, i + 1);</span>
+<span class="lineNum">    1067 </span><span class="lineCov">   50000000 :                 unsigned* ref = tommy_arrayof_ref(&amp;arrayof, i);</span>
+<span class="lineNum">    1068 </span><span class="lineCov">   50000000 :                 if (*ref != 0)</span>
+<span class="lineNum">    1069 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">    1070 </span>            :                         abort();
+<span class="lineNum">    1071 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">    1072 </span>            :         }
+<span class="lineNum">    1073 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">    1074 </span>            : 
+<span class="lineNum">    1075 </span><span class="lineCov">          1 :         START(&quot;arrayof set&quot;);</span>
+<span class="lineNum">    1076 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">    1077 </span><span class="lineCov">   50000000 :                 unsigned* ref = tommy_arrayof_ref(&amp;arrayof, i);</span>
+<span class="lineNum">    1078 </span><span class="lineCov">   50000000 :                 *ref = i;</span>
+<span class="lineNum">    1079 </span>            :         }
+<span class="lineNum">    1080 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">    1081 </span>            : 
+<span class="lineNum">    1082 </span><span class="lineCov">          1 :         START(&quot;arrayof get&quot;);</span>
+<span class="lineNum">    1083 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">    1084 </span><span class="lineCov">   50000000 :                 unsigned* ref = tommy_arrayof_ref(&amp;arrayof, i);</span>
+<span class="lineNum">    1085 </span><span class="lineCov">   50000000 :                 if (*ref != i)</span>
+<span class="lineNum">    1086 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">    1087 </span>            :                         abort();
+<span class="lineNum">    1088 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">    1089 </span>            :         }
+<span class="lineNum">    1090 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">    1091 </span>            : 
+<span class="lineNum">    1092 </span><span class="lineCov">          1 :         if (tommy_arrayof_memory_usage(&amp;arrayof) &lt; size * sizeof(unsigned))</span>
+<span class="lineNum">    1093 </span>            :                 /* LCOV_EXCL_START */
+<span class="lineNum">    1094 </span>            :                 abort();
+<span class="lineNum">    1095 </span>            :                 /* LCOV_EXCL_STOP */
 <span class="lineNum">    1096 </span>            : 
-<span class="lineNum">    1097 </span><span class="lineCov">          1 : void test_arrayblk(void)</span>
-<span class="lineNum">    1098 </span>            : {
-<span class="lineNum">    1099 </span>            :         tommy_arrayblk arrayblk;
-<span class="lineNum">    1100 </span>            :         tommy_uintptr_t i;
-<span class="lineNum">    1101 </span><span class="lineCov">          1 :         const unsigned size = 50 * TOMMY_SIZE;</span>
-<span class="lineNum">    1102 </span>            : 
-<span class="lineNum">    1103 </span><span class="lineCov">          1 :         tommy_arrayblk_init(&amp;arrayblk);</span>
-<span class="lineNum">    1104 </span>            : 
-<span class="lineNum">    1105 </span>            :         /* no op */
-<span class="lineNum">    1106 </span><span class="lineCov">          1 :         tommy_arrayblk_grow(&amp;arrayblk, 0);</span>
+<span class="lineNum">    1097 </span><span class="lineCov">          1 :         tommy_arrayof_done(&amp;arrayof);</span>
+<a name="1098"><span class="lineNum">    1098 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">    1099 </span>            : 
+<span class="lineNum">    1100 </span><span class="lineCov">          1 : void test_arrayblk(void)</span>
+<span class="lineNum">    1101 </span>            : {
+<span class="lineNum">    1102 </span>            :         tommy_arrayblk arrayblk;
+<span class="lineNum">    1103 </span>            :         tommy_uintptr_t i;
+<span class="lineNum">    1104 </span><span class="lineCov">          1 :         const unsigned size = 50 * TOMMY_SIZE;</span>
+<span class="lineNum">    1105 </span>            : 
+<span class="lineNum">    1106 </span><span class="lineCov">          1 :         tommy_arrayblk_init(&amp;arrayblk);</span>
 <span class="lineNum">    1107 </span>            : 
-<span class="lineNum">    1108 </span><span class="lineCov">          1 :         START(&quot;arrayblk init&quot;);</span>
-<span class="lineNum">    1109 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
-<span class="lineNum">    1110 </span><span class="lineCov">   50000000 :                 tommy_arrayblk_grow(&amp;arrayblk, i + 1);</span>
-<span class="lineNum">    1111 </span><span class="lineCov">   50000000 :                 if (tommy_arrayblk_get(&amp;arrayblk, i) != 0)</span>
-<span class="lineNum">    1112 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">    1113 </span>            :                         abort();
-<span class="lineNum">    1114 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">    1115 </span>            :         }
-<span class="lineNum">    1116 </span><span class="lineCov">          1 :         STOP();</span>
-<span class="lineNum">    1117 </span>            : 
-<span class="lineNum">    1118 </span><span class="lineCov">          1 :         START(&quot;arrayblk set&quot;);</span>
-<span class="lineNum">    1119 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
-<span class="lineNum">    1120 </span><span class="lineCov">   50000000 :                 tommy_arrayblk_set(&amp;arrayblk, i, (void*)i);</span>
-<span class="lineNum">    1121 </span>            :         }
-<span class="lineNum">    1122 </span><span class="lineCov">          1 :         STOP();</span>
-<span class="lineNum">    1123 </span>            : 
-<span class="lineNum">    1124 </span><span class="lineCov">          1 :         START(&quot;arrayblk get&quot;);</span>
-<span class="lineNum">    1125 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
-<span class="lineNum">    1126 </span><span class="lineCov">   50000000 :                 if (tommy_arrayblk_get(&amp;arrayblk, i) != (void*)i)</span>
-<span class="lineNum">    1127 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">    1128 </span>            :                         abort();
-<span class="lineNum">    1129 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">    1130 </span>            :         }
-<span class="lineNum">    1131 </span><span class="lineCov">          1 :         STOP();</span>
-<span class="lineNum">    1132 </span>            : 
-<span class="lineNum">    1133 </span><span class="lineCov">          1 :         if (tommy_arrayblk_memory_usage(&amp;arrayblk) &lt; size * sizeof(void*))</span>
-<span class="lineNum">    1134 </span>            :                 /* LCOV_EXCL_START */
-<span class="lineNum">    1135 </span>            :                 abort();
-<span class="lineNum">    1136 </span>            :                 /* LCOV_EXCL_STOP */
-<span class="lineNum">    1137 </span>            : 
-<span class="lineNum">    1138 </span><span class="lineCov">          1 :         tommy_arrayblk_done(&amp;arrayblk);</span>
-<a name="1139"><span class="lineNum">    1139 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">    1108 </span>            :         /* no op */
+<span class="lineNum">    1109 </span><span class="lineCov">          1 :         tommy_arrayblk_grow(&amp;arrayblk, 0);</span>
+<span class="lineNum">    1110 </span>            : 
+<span class="lineNum">    1111 </span><span class="lineCov">          1 :         START(&quot;arrayblk init&quot;);</span>
+<span class="lineNum">    1112 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">    1113 </span><span class="lineCov">   50000000 :                 tommy_arrayblk_grow(&amp;arrayblk, i + 1);</span>
+<span class="lineNum">    1114 </span><span class="lineCov">   50000000 :                 if (tommy_arrayblk_get(&amp;arrayblk, i) != 0)</span>
+<span class="lineNum">    1115 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">    1116 </span>            :                         abort();
+<span class="lineNum">    1117 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">    1118 </span>            :         }
+<span class="lineNum">    1119 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">    1120 </span>            : 
+<span class="lineNum">    1121 </span><span class="lineCov">          1 :         START(&quot;arrayblk set&quot;);</span>
+<span class="lineNum">    1122 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">    1123 </span><span class="lineCov">   50000000 :                 tommy_arrayblk_set(&amp;arrayblk, i, (void*)i);</span>
+<span class="lineNum">    1124 </span>            :         }
+<span class="lineNum">    1125 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">    1126 </span>            : 
+<span class="lineNum">    1127 </span><span class="lineCov">          1 :         START(&quot;arrayblk get&quot;);</span>
+<span class="lineNum">    1128 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">    1129 </span><span class="lineCov">   50000000 :                 if (tommy_arrayblk_get(&amp;arrayblk, i) != (void*)i)</span>
+<span class="lineNum">    1130 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">    1131 </span>            :                         abort();
+<span class="lineNum">    1132 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">    1133 </span>            :         }
+<span class="lineNum">    1134 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">    1135 </span>            : 
+<span class="lineNum">    1136 </span><span class="lineCov">          1 :         if (tommy_arrayblk_memory_usage(&amp;arrayblk) &lt; size * sizeof(void*))</span>
+<span class="lineNum">    1137 </span>            :                 /* LCOV_EXCL_START */
+<span class="lineNum">    1138 </span>            :                 abort();
+<span class="lineNum">    1139 </span>            :                 /* LCOV_EXCL_STOP */
 <span class="lineNum">    1140 </span>            : 
-<span class="lineNum">    1141 </span><span class="lineCov">          1 : void test_arrayblkof(void)</span>
-<span class="lineNum">    1142 </span>            : {
-<span class="lineNum">    1143 </span>            :         tommy_arrayblkof arrayblkof;
-<span class="lineNum">    1144 </span>            :         unsigned i;
-<span class="lineNum">    1145 </span><span class="lineCov">          1 :         const unsigned size = 50 * TOMMY_SIZE;</span>
-<span class="lineNum">    1146 </span>            : 
-<span class="lineNum">    1147 </span><span class="lineCov">          1 :         tommy_arrayblkof_init(&amp;arrayblkof, sizeof(unsigned));</span>
-<span class="lineNum">    1148 </span>            : 
-<span class="lineNum">    1149 </span>            :         /* no op */
-<span class="lineNum">    1150 </span><span class="lineCov">          1 :         tommy_arrayblkof_grow(&amp;arrayblkof, 0);</span>
+<span class="lineNum">    1141 </span><span class="lineCov">          1 :         tommy_arrayblk_done(&amp;arrayblk);</span>
+<a name="1142"><span class="lineNum">    1142 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">    1143 </span>            : 
+<span class="lineNum">    1144 </span><span class="lineCov">          1 : void test_arrayblkof(void)</span>
+<span class="lineNum">    1145 </span>            : {
+<span class="lineNum">    1146 </span>            :         tommy_arrayblkof arrayblkof;
+<span class="lineNum">    1147 </span>            :         unsigned i;
+<span class="lineNum">    1148 </span><span class="lineCov">          1 :         const unsigned size = 50 * TOMMY_SIZE;</span>
+<span class="lineNum">    1149 </span>            : 
+<span class="lineNum">    1150 </span><span class="lineCov">          1 :         tommy_arrayblkof_init(&amp;arrayblkof, sizeof(unsigned));</span>
 <span class="lineNum">    1151 </span>            : 
-<span class="lineNum">    1152 </span><span class="lineCov">          1 :         START(&quot;arrayblkof init&quot;);</span>
-<span class="lineNum">    1153 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
-<span class="lineNum">    1154 </span><span class="lineCov">   50000000 :                 tommy_arrayblkof_grow(&amp;arrayblkof, i + 1);</span>
-<span class="lineNum">    1155 </span><span class="lineCov">   50000000 :                 unsigned* ref = tommy_arrayblkof_ref(&amp;arrayblkof, i);</span>
-<span class="lineNum">    1156 </span><span class="lineCov">   50000000 :                 if (*ref != 0)</span>
-<span class="lineNum">    1157 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">    1158 </span>            :                         abort();
-<span class="lineNum">    1159 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">    1160 </span>            :         }
-<span class="lineNum">    1161 </span><span class="lineCov">          1 :         STOP();</span>
-<span class="lineNum">    1162 </span>            : 
-<span class="lineNum">    1163 </span><span class="lineCov">          1 :         START(&quot;arrayblkof set&quot;);</span>
-<span class="lineNum">    1164 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
-<span class="lineNum">    1165 </span><span class="lineCov">   50000000 :                 unsigned* ref = tommy_arrayblkof_ref(&amp;arrayblkof, i);</span>
-<span class="lineNum">    1166 </span><span class="lineCov">   50000000 :                 *ref = i;</span>
-<span class="lineNum">    1167 </span>            :         }
-<span class="lineNum">    1168 </span><span class="lineCov">          1 :         STOP();</span>
-<span class="lineNum">    1169 </span>            : 
-<span class="lineNum">    1170 </span><span class="lineCov">          1 :         START(&quot;arrayblkof get&quot;);</span>
-<span class="lineNum">    1171 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
-<span class="lineNum">    1172 </span><span class="lineCov">   50000000 :                 unsigned* ref = tommy_arrayblkof_ref(&amp;arrayblkof, i);</span>
-<span class="lineNum">    1173 </span><span class="lineCov">   50000000 :                 if (*ref != i)</span>
-<span class="lineNum">    1174 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">    1175 </span>            :                         abort();
-<span class="lineNum">    1176 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">    1177 </span>            :         }
-<span class="lineNum">    1178 </span><span class="lineCov">          1 :         STOP();</span>
-<span class="lineNum">    1179 </span>            : 
-<span class="lineNum">    1180 </span><span class="lineCov">          1 :         if (tommy_arrayblkof_memory_usage(&amp;arrayblkof) &lt; size * sizeof(unsigned))</span>
-<span class="lineNum">    1181 </span>            :                 /* LCOV_EXCL_START */
-<span class="lineNum">    1182 </span>            :                 abort();
-<span class="lineNum">    1183 </span>            :                 /* LCOV_EXCL_STOP */
-<span class="lineNum">    1184 </span>            : 
-<span class="lineNum">    1185 </span><span class="lineCov">          1 :         tommy_arrayblkof_done(&amp;arrayblkof);</span>
-<a name="1186"><span class="lineNum">    1186 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">    1152 </span>            :         /* no op */
+<span class="lineNum">    1153 </span><span class="lineCov">          1 :         tommy_arrayblkof_grow(&amp;arrayblkof, 0);</span>
+<span class="lineNum">    1154 </span>            : 
+<span class="lineNum">    1155 </span><span class="lineCov">          1 :         START(&quot;arrayblkof init&quot;);</span>
+<span class="lineNum">    1156 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">    1157 </span><span class="lineCov">   50000000 :                 tommy_arrayblkof_grow(&amp;arrayblkof, i + 1);</span>
+<span class="lineNum">    1158 </span><span class="lineCov">   50000000 :                 unsigned* ref = tommy_arrayblkof_ref(&amp;arrayblkof, i);</span>
+<span class="lineNum">    1159 </span><span class="lineCov">   50000000 :                 if (*ref != 0)</span>
+<span class="lineNum">    1160 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">    1161 </span>            :                         abort();
+<span class="lineNum">    1162 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">    1163 </span>            :         }
+<span class="lineNum">    1164 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">    1165 </span>            : 
+<span class="lineNum">    1166 </span><span class="lineCov">          1 :         START(&quot;arrayblkof set&quot;);</span>
+<span class="lineNum">    1167 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">    1168 </span><span class="lineCov">   50000000 :                 unsigned* ref = tommy_arrayblkof_ref(&amp;arrayblkof, i);</span>
+<span class="lineNum">    1169 </span><span class="lineCov">   50000000 :                 *ref = i;</span>
+<span class="lineNum">    1170 </span>            :         }
+<span class="lineNum">    1171 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">    1172 </span>            : 
+<span class="lineNum">    1173 </span><span class="lineCov">          1 :         START(&quot;arrayblkof get&quot;);</span>
+<span class="lineNum">    1174 </span><span class="lineCov">   50000001 :         for(i=0;i&lt;size;++i) {</span>
+<span class="lineNum">    1175 </span><span class="lineCov">   50000000 :                 unsigned* ref = tommy_arrayblkof_ref(&amp;arrayblkof, i);</span>
+<span class="lineNum">    1176 </span><span class="lineCov">   50000000 :                 if (*ref != i)</span>
+<span class="lineNum">    1177 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">    1178 </span>            :                         abort();
+<span class="lineNum">    1179 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">    1180 </span>            :         }
+<span class="lineNum">    1181 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">    1182 </span>            : 
+<span class="lineNum">    1183 </span><span class="lineCov">          1 :         if (tommy_arrayblkof_memory_usage(&amp;arrayblkof) &lt; size * sizeof(unsigned))</span>
+<span class="lineNum">    1184 </span>            :                 /* LCOV_EXCL_START */
+<span class="lineNum">    1185 </span>            :                 abort();
+<span class="lineNum">    1186 </span>            :                 /* LCOV_EXCL_STOP */
 <span class="lineNum">    1187 </span>            : 
-<span class="lineNum">    1188 </span><span class="lineCov">          1 : void test_hashtable(void)</span>
-<span class="lineNum">    1189 </span>            : {
-<span class="lineNum">    1190 </span>            :         tommy_hashtable hashtable;
-<span class="lineNum">    1191 </span>            :         struct object_hash* HASH;
-<span class="lineNum">    1192 </span>            :         unsigned i, j, n;
-<span class="lineNum">    1193 </span>            :         unsigned limit;
-<span class="lineNum">    1194 </span><span class="lineCov">          1 :         const unsigned size = TOMMY_SIZE;</span>
-<span class="lineNum">    1195 </span><span class="lineCov">          1 :         const unsigned module = TOMMY_SIZE / 4;</span>
-<span class="lineNum">    1196 </span>            : 
-<span class="lineNum">    1197 </span><span class="lineCov">          1 :         HASH = malloc(size * sizeof(struct object_hash));</span>
-<span class="lineNum">    1198 </span>            : 
-<span class="lineNum">    1199 </span><span class="lineCov">    1000001 :         for(i=0;i&lt;size;++i)</span>
-<span class="lineNum">    1200 </span><span class="lineCov">    1000000 :                 HASH[i].value = i % module;</span>
+<span class="lineNum">    1188 </span><span class="lineCov">          1 :         tommy_arrayblkof_done(&amp;arrayblkof);</span>
+<a name="1189"><span class="lineNum">    1189 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">    1190 </span>            : 
+<span class="lineNum">    1191 </span><span class="lineCov">          1 : void test_hashtable(void)</span>
+<span class="lineNum">    1192 </span>            : {
+<span class="lineNum">    1193 </span>            :         tommy_hashtable hashtable;
+<span class="lineNum">    1194 </span>            :         struct object_hash* HASH;
+<span class="lineNum">    1195 </span>            :         unsigned i, j, n;
+<span class="lineNum">    1196 </span>            :         unsigned limit;
+<span class="lineNum">    1197 </span><span class="lineCov">          1 :         const unsigned size = TOMMY_SIZE;</span>
+<span class="lineNum">    1198 </span><span class="lineCov">          1 :         const unsigned module = TOMMY_SIZE / 4;</span>
+<span class="lineNum">    1199 </span>            : 
+<span class="lineNum">    1200 </span><span class="lineCov">          1 :         HASH = malloc(size * sizeof(struct object_hash));</span>
 <span class="lineNum">    1201 </span>            : 
-<span class="lineNum">    1202 </span>            :         /* initialize a very small hashtable */
-<span class="lineNum">    1203 </span><span class="lineCov">          1 :         tommy_hashtable_init(&amp;hashtable, 1);</span>
+<span class="lineNum">    1202 </span><span class="lineCov">    1000001 :         for(i=0;i&lt;size;++i)</span>
+<span class="lineNum">    1203 </span><span class="lineCov">    1000000 :                 HASH[i].value = i % module;</span>
 <span class="lineNum">    1204 </span>            : 
-<span class="lineNum">    1205 </span>            :         /* check that we allocated space for more elements */
-<span class="lineNum">    1206 </span><span class="lineCov">          1 :         if (hashtable.bucket_max == 1)</span>
-<span class="lineNum">    1207 </span>            :                 /* LCOV_EXCL_START */
-<span class="lineNum">    1208 </span>            :                 abort();
-<span class="lineNum">    1209 </span>            :                 /* LCOV_EXCL_STOP */
-<span class="lineNum">    1210 </span>            : 
-<span class="lineNum">    1211 </span>            :         /* destroy it as empty */
-<span class="lineNum">    1212 </span><span class="lineCov">          1 :         tommy_hashtable_done(&amp;hashtable);</span>
+<span class="lineNum">    1205 </span>            :         /* initialize a very small hashtable */
+<span class="lineNum">    1206 </span><span class="lineCov">          1 :         tommy_hashtable_init(&amp;hashtable, 1);</span>
+<span class="lineNum">    1207 </span>            : 
+<span class="lineNum">    1208 </span>            :         /* check that we allocated space for more elements */
+<span class="lineNum">    1209 </span><span class="lineCov">          1 :         if (hashtable.bucket_max == 1)</span>
+<span class="lineNum">    1210 </span>            :                 /* LCOV_EXCL_START */
+<span class="lineNum">    1211 </span>            :                 abort();
+<span class="lineNum">    1212 </span>            :                 /* LCOV_EXCL_STOP */
 <span class="lineNum">    1213 </span>            : 
-<span class="lineNum">    1214 </span><span class="lineCov">          1 :         START(&quot;hashtable stack&quot;);</span>
-<span class="lineNum">    1215 </span><span class="lineCov">          1 :         limit = 5 * isqrt(size);</span>
-<span class="lineNum">    1216 </span><span class="lineCov">       5002 :         for(n=0;n&lt;=limit;++n) {</span>
-<span class="lineNum">    1217 </span>            :                 /* last iteration is full size */
-<span class="lineNum">    1218 </span><span class="lineCov">       5001 :                 if (n == limit)</span>
-<span class="lineNum">    1219 </span><span class="lineCov">          1 :                         n = limit = size;</span>
-<span class="lineNum">    1220 </span>            : 
-<span class="lineNum">    1221 </span><span class="lineCov">       5001 :                 tommy_hashtable_init(&amp;hashtable, limit / 2);</span>
-<span class="lineNum">    1222 </span>            : 
-<span class="lineNum">    1223 </span>            :                 /* insert */
-<span class="lineNum">    1224 </span><span class="lineCov">   13502501 :                 for(i=0;i&lt;n;++i)</span>
-<span class="lineNum">    1225 </span><span class="lineCov">   13497500 :                         tommy_hashtable_insert(&amp;hashtable, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
-<span class="lineNum">    1226 </span>            : 
-<span class="lineNum">    1227 </span><span class="lineCov">       5001 :                 if (tommy_hashtable_memory_usage(&amp;hashtable) &lt; n * sizeof(void*))</span>
-<span class="lineNum">    1228 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">    1229 </span>            :                         abort();
-<span class="lineNum">    1230 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">    1231 </span>            : 
-<span class="lineNum">    1232 </span><span class="lineCov">       5001 :                 if (tommy_hashtable_count(&amp;hashtable) != n)</span>
-<span class="lineNum">    1233 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">    1234 </span>            :                         abort();
-<span class="lineNum">    1235 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">    1236 </span>            : 
-<span class="lineNum">    1237 </span><span class="lineCov">       5001 :                 the_count = 0;</span>
-<span class="lineNum">    1238 </span><span class="lineCov">       5001 :                 tommy_hashtable_foreach(&amp;hashtable, count_callback);</span>
-<span class="lineNum">    1239 </span><span class="lineCov">       5001 :                 if (the_count != n)</span>
-<span class="lineNum">    1240 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">    1241 </span>            :                         abort();
-<span class="lineNum">    1242 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">    1243 </span>            : 
-<span class="lineNum">    1244 </span>            :                 /* remove in backward order */
-<span class="lineNum">    1245 </span><span class="lineCov">    6752501 :                 for(i=0;i&lt;n/2;++i)</span>
-<span class="lineNum">    1246 </span><span class="lineCov">    6747500 :                         tommy_hashtable_remove_existing(&amp;hashtable, &amp;HASH[n-i-1].node);</span>
-<span class="lineNum">    1247 </span>            : 
-<span class="lineNum">    1248 </span>            :                 /* remove missing */
-<span class="lineNum">    1249 </span><span class="lineCov">    6752501 :                 for(i=0;i&lt;n/2;++i)</span>
-<span class="lineNum">    1250 </span><span class="lineCov">    6747500 :                         if (tommy_hashtable_remove(&amp;hashtable, search_callback, &amp;HASH[n-i-1], HASH[n-i-1].value) != 0)</span>
-<span class="lineNum">    1251 </span>            :                                 /* LCOV_EXCL_START */
-<span class="lineNum">    1252 </span>            :                                 abort();
-<span class="lineNum">    1253 </span>            :                                 /* LCOV_EXCL_STOP */
-<span class="lineNum">    1254 </span>            : 
-<span class="lineNum">    1255 </span>            :                 /* remove search */
-<span class="lineNum">    1256 </span><span class="lineCov">    6752501 :                 for(i=0;i&lt;n/2;++i)</span>
-<span class="lineNum">    1257 </span><span class="lineCov">    6747500 :                         if (tommy_hashtable_remove(&amp;hashtable, search_callback, &amp;HASH[n/2-i-1], HASH[n/2-i-1].value) == 0)</span>
-<span class="lineNum">    1258 </span>            :                                 /* LCOV_EXCL_START */
-<span class="lineNum">    1259 </span>            :                                 abort();
-<span class="lineNum">    1260 </span>            :                                 /* LCOV_EXCL_STOP */
-<span class="lineNum">    1261 </span>            : 
-<span class="lineNum">    1262 </span><span class="lineCov">       5001 :                 tommy_hashtable_done(&amp;hashtable);</span>
-<span class="lineNum">    1263 </span>            :         }
-<span class="lineNum">    1264 </span><span class="lineCov">          1 :         STOP();</span>
-<span class="lineNum">    1265 </span>            : 
-<span class="lineNum">    1266 </span><span class="lineCov">          1 :         START(&quot;hashtable queue&quot;);</span>
-<span class="lineNum">    1267 </span><span class="lineCov">          1 :         limit = isqrt(size) / 16;</span>
-<span class="lineNum">    1268 </span><span class="lineCov">         64 :         for(n=0;n&lt;=limit;++n) {</span>
-<span class="lineNum">    1269 </span>            :                 /* last iteration is full size */
-<span class="lineNum">    1270 </span><span class="lineCov">         63 :                 if (n == limit)</span>
-<span class="lineNum">    1271 </span><span class="lineCov">          1 :                         n = limit = size;</span>
-<span class="lineNum">    1272 </span>            : 
-<span class="lineNum">    1273 </span><span class="lineCov">         63 :                 tommy_hashtable_init(&amp;hashtable, limit / 2);</span>
-<span class="lineNum">    1274 </span>            : 
-<span class="lineNum">    1275 </span>            :                 /* insert first run */
-<span class="lineNum">    1276 </span><span class="lineCov">    1001954 :                 for(j=0,i=0;i&lt;n;++i)</span>
-<span class="lineNum">    1277 </span><span class="lineCov">    1001891 :                         tommy_hashtable_insert(&amp;hashtable, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
-<span class="lineNum">    1278 </span>            : 
-<span class="lineNum">    1279 </span><span class="lineCov">         63 :                 the_count = 0;</span>
-<span class="lineNum">    1280 </span><span class="lineCov">         63 :                 tommy_hashtable_foreach_arg(&amp;hashtable, count_arg_callback, &amp;the_count);</span>
-<span class="lineNum">    1281 </span><span class="lineCov">         63 :                 if (the_count != n)</span>
-<span class="lineNum">    1282 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">    1283 </span>            :                         abort();
-<span class="lineNum">    1284 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">    1285 </span>            : 
-<span class="lineNum">    1286 </span>            :                 /* insert all the others */
-<span class="lineNum">    1287 </span><span class="lineCov">   61998172 :                 for(;i&lt;size;++i,++j) {</span>
-<span class="lineNum">    1288 </span>            :                         /* insert one */
-<span class="lineNum">    1289 </span><span class="lineCov">   61998109 :                         tommy_hashtable_insert(&amp;hashtable, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
-<span class="lineNum">    1290 </span>            : 
-<span class="lineNum">    1291 </span>            :                         /* remove one */
-<span class="lineNum">    1292 </span><span class="lineCov">   61998109 :                         tommy_hashtable_remove_existing(&amp;hashtable, &amp;HASH[j].node);</span>
-<span class="lineNum">    1293 </span>            :                 }
-<span class="lineNum">    1294 </span>            : 
-<span class="lineNum">    1295 </span><span class="lineCov">    1001954 :                 for(;j&lt;size;++j)</span>
-<span class="lineNum">    1296 </span><span class="lineCov">    1001891 :                         if (tommy_hashtable_remove(&amp;hashtable, search_callback, &amp;HASH[j], HASH[j].value) == 0)</span>
-<span class="lineNum">    1297 </span>            :                                 /* LCOV_EXCL_START */
-<span class="lineNum">    1298 </span>            :                                 abort();
-<span class="lineNum">    1299 </span>            :                                 /* LCOV_EXCL_STOP */
-<span class="lineNum">    1300 </span>            : 
-<span class="lineNum">    1301 </span><span class="lineCov">         63 :                 tommy_hashtable_done(&amp;hashtable);</span>
-<span class="lineNum">    1302 </span>            :         }
-<span class="lineNum">    1303 </span><span class="lineCov">          1 :         STOP();</span>
-<a name="1304"><span class="lineNum">    1304 </span><span class="lineCov">          1 : }</span></a>
-<span class="lineNum">    1305 </span>            : 
-<span class="lineNum">    1306 </span><span class="lineCov">          1 : void test_hashdyn(void)</span>
-<span class="lineNum">    1307 </span>            : {
-<span class="lineNum">    1308 </span>            :         tommy_hashdyn hashdyn;
-<span class="lineNum">    1309 </span>            :         struct object_hash* HASH;
-<span class="lineNum">    1310 </span>            :         unsigned i, j, n;
-<span class="lineNum">    1311 </span>            :         unsigned limit;
-<span class="lineNum">    1312 </span><span class="lineCov">          1 :         const unsigned size = TOMMY_SIZE;</span>
-<span class="lineNum">    1313 </span><span class="lineCov">          1 :         const unsigned module = TOMMY_SIZE / 4;</span>
-<span class="lineNum">    1314 </span>            : 
-<span class="lineNum">    1315 </span><span class="lineCov">          1 :         HASH = malloc(size * sizeof(struct object_hash));</span>
-<span class="lineNum">    1316 </span>            : 
-<span class="lineNum">    1317 </span><span class="lineCov">    1000001 :         for(i=0;i&lt;size;++i)</span>
-<span class="lineNum">    1318 </span><span class="lineCov">    1000000 :                 HASH[i].value = i % module;</span>
+<span class="lineNum">    1214 </span>            :         /* destroy it as empty */
+<span class="lineNum">    1215 </span><span class="lineCov">          1 :         tommy_hashtable_done(&amp;hashtable);</span>
+<span class="lineNum">    1216 </span>            : 
+<span class="lineNum">    1217 </span><span class="lineCov">          1 :         START(&quot;hashtable stack&quot;);</span>
+<span class="lineNum">    1218 </span><span class="lineCov">          1 :         limit = 5 * isqrt(size);</span>
+<span class="lineNum">    1219 </span><span class="lineCov">       5002 :         for(n=0;n&lt;=limit;++n) {</span>
+<span class="lineNum">    1220 </span>            :                 /* last iteration is full size */
+<span class="lineNum">    1221 </span><span class="lineCov">       5001 :                 if (n == limit)</span>
+<span class="lineNum">    1222 </span><span class="lineCov">          1 :                         n = limit = size;</span>
+<span class="lineNum">    1223 </span>            : 
+<span class="lineNum">    1224 </span><span class="lineCov">       5001 :                 tommy_hashtable_init(&amp;hashtable, limit / 2);</span>
+<span class="lineNum">    1225 </span>            : 
+<span class="lineNum">    1226 </span>            :                 /* insert */
+<span class="lineNum">    1227 </span><span class="lineCov">   13502501 :                 for(i=0;i&lt;n;++i)</span>
+<span class="lineNum">    1228 </span><span class="lineCov">   13497500 :                         tommy_hashtable_insert(&amp;hashtable, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
+<span class="lineNum">    1229 </span>            : 
+<span class="lineNum">    1230 </span><span class="lineCov">       5001 :                 if (tommy_hashtable_memory_usage(&amp;hashtable) &lt; n * sizeof(void*))</span>
+<span class="lineNum">    1231 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">    1232 </span>            :                         abort();
+<span class="lineNum">    1233 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">    1234 </span>            : 
+<span class="lineNum">    1235 </span><span class="lineCov">       5001 :                 if (tommy_hashtable_count(&amp;hashtable) != n)</span>
+<span class="lineNum">    1236 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">    1237 </span>            :                         abort();
+<span class="lineNum">    1238 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">    1239 </span>            : 
+<span class="lineNum">    1240 </span><span class="lineCov">       5001 :                 the_count = 0;</span>
+<span class="lineNum">    1241 </span><span class="lineCov">       5001 :                 tommy_hashtable_foreach(&amp;hashtable, count_callback);</span>
+<span class="lineNum">    1242 </span><span class="lineCov">       5001 :                 if (the_count != n)</span>
+<span class="lineNum">    1243 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">    1244 </span>            :                         abort();
+<span class="lineNum">    1245 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">    1246 </span>            : 
+<span class="lineNum">    1247 </span>            :                 /* remove in backward order */
+<span class="lineNum">    1248 </span><span class="lineCov">    6752501 :                 for(i=0;i&lt;n/2;++i)</span>
+<span class="lineNum">    1249 </span><span class="lineCov">    6747500 :                         tommy_hashtable_remove_existing(&amp;hashtable, &amp;HASH[n-i-1].node);</span>
+<span class="lineNum">    1250 </span>            : 
+<span class="lineNum">    1251 </span>            :                 /* remove missing */
+<span class="lineNum">    1252 </span><span class="lineCov">    6752501 :                 for(i=0;i&lt;n/2;++i)</span>
+<span class="lineNum">    1253 </span><span class="lineCov">    6747500 :                         if (tommy_hashtable_remove(&amp;hashtable, search_callback, &amp;HASH[n-i-1], HASH[n-i-1].value) != 0)</span>
+<span class="lineNum">    1254 </span>            :                                 /* LCOV_EXCL_START */
+<span class="lineNum">    1255 </span>            :                                 abort();
+<span class="lineNum">    1256 </span>            :                                 /* LCOV_EXCL_STOP */
+<span class="lineNum">    1257 </span>            : 
+<span class="lineNum">    1258 </span>            :                 /* remove search */
+<span class="lineNum">    1259 </span><span class="lineCov">    6752501 :                 for(i=0;i&lt;n/2;++i)</span>
+<span class="lineNum">    1260 </span><span class="lineCov">    6747500 :                         if (tommy_hashtable_remove(&amp;hashtable, search_callback, &amp;HASH[n/2-i-1], HASH[n/2-i-1].value) == 0)</span>
+<span class="lineNum">    1261 </span>            :                                 /* LCOV_EXCL_START */
+<span class="lineNum">    1262 </span>            :                                 abort();
+<span class="lineNum">    1263 </span>            :                                 /* LCOV_EXCL_STOP */
+<span class="lineNum">    1264 </span>            : 
+<span class="lineNum">    1265 </span><span class="lineCov">       5001 :                 tommy_hashtable_done(&amp;hashtable);</span>
+<span class="lineNum">    1266 </span>            :         }
+<span class="lineNum">    1267 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">    1268 </span>            : 
+<span class="lineNum">    1269 </span><span class="lineCov">          1 :         START(&quot;hashtable queue&quot;);</span>
+<span class="lineNum">    1270 </span><span class="lineCov">          1 :         limit = isqrt(size) / 16;</span>
+<span class="lineNum">    1271 </span><span class="lineCov">         64 :         for(n=0;n&lt;=limit;++n) {</span>
+<span class="lineNum">    1272 </span>            :                 /* last iteration is full size */
+<span class="lineNum">    1273 </span><span class="lineCov">         63 :                 if (n == limit)</span>
+<span class="lineNum">    1274 </span><span class="lineCov">          1 :                         n = limit = size;</span>
+<span class="lineNum">    1275 </span>            : 
+<span class="lineNum">    1276 </span><span class="lineCov">         63 :                 tommy_hashtable_init(&amp;hashtable, limit / 2);</span>
+<span class="lineNum">    1277 </span>            : 
+<span class="lineNum">    1278 </span>            :                 /* insert first run */
+<span class="lineNum">    1279 </span><span class="lineCov">    1001954 :                 for(j=0,i=0;i&lt;n;++i)</span>
+<span class="lineNum">    1280 </span><span class="lineCov">    1001891 :                         tommy_hashtable_insert(&amp;hashtable, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
+<span class="lineNum">    1281 </span>            : 
+<span class="lineNum">    1282 </span><span class="lineCov">         63 :                 the_count = 0;</span>
+<span class="lineNum">    1283 </span><span class="lineCov">         63 :                 tommy_hashtable_foreach_arg(&amp;hashtable, count_arg_callback, &amp;the_count);</span>
+<span class="lineNum">    1284 </span><span class="lineCov">         63 :                 if (the_count != n)</span>
+<span class="lineNum">    1285 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">    1286 </span>            :                         abort();
+<span class="lineNum">    1287 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">    1288 </span>            : 
+<span class="lineNum">    1289 </span>            :                 /* insert all the others */
+<span class="lineNum">    1290 </span><span class="lineCov">   61998172 :                 for(;i&lt;size;++i,++j) {</span>
+<span class="lineNum">    1291 </span>            :                         /* insert one */
+<span class="lineNum">    1292 </span><span class="lineCov">   61998109 :                         tommy_hashtable_insert(&amp;hashtable, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
+<span class="lineNum">    1293 </span>            : 
+<span class="lineNum">    1294 </span>            :                         /* remove one */
+<span class="lineNum">    1295 </span><span class="lineCov">   61998109 :                         tommy_hashtable_remove_existing(&amp;hashtable, &amp;HASH[j].node);</span>
+<span class="lineNum">    1296 </span>            :                 }
+<span class="lineNum">    1297 </span>            : 
+<span class="lineNum">    1298 </span><span class="lineCov">    1001954 :                 for(;j&lt;size;++j)</span>
+<span class="lineNum">    1299 </span><span class="lineCov">    1001891 :                         if (tommy_hashtable_remove(&amp;hashtable, search_callback, &amp;HASH[j], HASH[j].value) == 0)</span>
+<span class="lineNum">    1300 </span>            :                                 /* LCOV_EXCL_START */
+<span class="lineNum">    1301 </span>            :                                 abort();
+<span class="lineNum">    1302 </span>            :                                 /* LCOV_EXCL_STOP */
+<span class="lineNum">    1303 </span>            : 
+<span class="lineNum">    1304 </span><span class="lineCov">         63 :                 tommy_hashtable_done(&amp;hashtable);</span>
+<span class="lineNum">    1305 </span>            :         }
+<span class="lineNum">    1306 </span><span class="lineCov">          1 :         STOP();</span>
+<a name="1307"><span class="lineNum">    1307 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">    1308 </span>            : 
+<span class="lineNum">    1309 </span><span class="lineCov">          1 : void test_hashdyn(void)</span>
+<span class="lineNum">    1310 </span>            : {
+<span class="lineNum">    1311 </span>            :         tommy_hashdyn hashdyn;
+<span class="lineNum">    1312 </span>            :         struct object_hash* HASH;
+<span class="lineNum">    1313 </span>            :         unsigned i, j, n;
+<span class="lineNum">    1314 </span>            :         unsigned limit;
+<span class="lineNum">    1315 </span><span class="lineCov">          1 :         const unsigned size = TOMMY_SIZE;</span>
+<span class="lineNum">    1316 </span><span class="lineCov">          1 :         const unsigned module = TOMMY_SIZE / 4;</span>
+<span class="lineNum">    1317 </span>            : 
+<span class="lineNum">    1318 </span><span class="lineCov">          1 :         HASH = malloc(size * sizeof(struct object_hash));</span>
 <span class="lineNum">    1319 </span>            : 
-<span class="lineNum">    1320 </span><span class="lineCov">          1 :         START(&quot;hashdyn stack&quot;);</span>
-<span class="lineNum">    1321 </span><span class="lineCov">          1 :         limit = 5 * isqrt(size);</span>
-<span class="lineNum">    1322 </span><span class="lineCov">       5002 :         for(n=0;n&lt;=limit;++n) {</span>
-<span class="lineNum">    1323 </span>            :                 /* last iteration is full size */
-<span class="lineNum">    1324 </span><span class="lineCov">       5001 :                 if (n == limit)</span>
-<span class="lineNum">    1325 </span><span class="lineCov">          1 :                         n = limit = size;</span>
-<span class="lineNum">    1326 </span>            : 
-<span class="lineNum">    1327 </span><span class="lineCov">       5001 :                 tommy_hashdyn_init(&amp;hashdyn);</span>
-<span class="lineNum">    1328 </span>            : 
-<span class="lineNum">    1329 </span>            :                 /* insert */
-<span class="lineNum">    1330 </span><span class="lineCov">   13502501 :                 for(i=0;i&lt;n;++i)</span>
-<span class="lineNum">    1331 </span><span class="lineCov">   13497500 :                         tommy_hashdyn_insert(&amp;hashdyn, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
-<span class="lineNum">    1332 </span>            : 
-<span class="lineNum">    1333 </span><span class="lineCov">       5001 :                 if (tommy_hashdyn_memory_usage(&amp;hashdyn) &lt; n * sizeof(void*))</span>
-<span class="lineNum">    1334 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">    1335 </span>            :                         abort();
-<span class="lineNum">    1336 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">    1337 </span>            : 
-<span class="lineNum">    1338 </span><span class="lineCov">       5001 :                 if (tommy_hashdyn_count(&amp;hashdyn) != n)</span>
-<span class="lineNum">    1339 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">    1340 </span>            :                         abort();
-<span class="lineNum">    1341 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">    1342 </span>            : 
-<span class="lineNum">    1343 </span><span class="lineCov">       5001 :                 the_count = 0;</span>
-<span class="lineNum">    1344 </span><span class="lineCov">       5001 :                 tommy_hashdyn_foreach(&amp;hashdyn, count_callback);</span>
-<span class="lineNum">    1345 </span><span class="lineCov">       5001 :                 if (the_count != n)</span>
-<span class="lineNum">    1346 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">    1347 </span>            :                         abort();
-<span class="lineNum">    1348 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">    1349 </span>            : 
-<span class="lineNum">    1350 </span>            :                 /* remove in backward order */
-<span class="lineNum">    1351 </span><span class="lineCov">    6752501 :                 for(i=0;i&lt;n/2;++i)</span>
-<span class="lineNum">    1352 </span><span class="lineCov">    6747500 :                         tommy_hashdyn_remove_existing(&amp;hashdyn, &amp;HASH[n-i-1].node);</span>
-<span class="lineNum">    1353 </span>            : 
-<span class="lineNum">    1354 </span>            :                 /* remove missing */
-<span class="lineNum">    1355 </span><span class="lineCov">    6752501 :                 for(i=0;i&lt;n/2;++i)</span>
-<span class="lineNum">    1356 </span><span class="lineCov">    6747500 :                         if (tommy_hashdyn_remove(&amp;hashdyn, search_callback, &amp;HASH[n-i-1], HASH[n-i-1].value) != 0)</span>
-<span class="lineNum">    1357 </span>            :                                 /* LCOV_EXCL_START */
-<span class="lineNum">    1358 </span>            :                                 abort();
-<span class="lineNum">    1359 </span>            :                                 /* LCOV_EXCL_STOP */
-<span class="lineNum">    1360 </span>            : 
-<span class="lineNum">    1361 </span>            :                 /* remove search */
-<span class="lineNum">    1362 </span><span class="lineCov">    6752501 :                 for(i=0;i&lt;n/2;++i)</span>
-<span class="lineNum">    1363 </span><span class="lineCov">    6747500 :                         if (tommy_hashdyn_remove(&amp;hashdyn, search_callback, &amp;HASH[n/2-i-1], HASH[n/2-i-1].value) == 0)</span>
-<span class="lineNum">    1364 </span>            :                                 /* LCOV_EXCL_START */
-<span class="lineNum">    1365 </span>            :                                 abort();
-<span class="lineNum">    1366 </span>            :                                 /* LCOV_EXCL_STOP */
-<span class="lineNum">    1367 </span>            : 
-<span class="lineNum">    1368 </span><span class="lineCov">       5001 :                 tommy_hashdyn_done(&amp;hashdyn);</span>
-<span class="lineNum">    1369 </span>            :         }
-<span class="lineNum">    1370 </span><span class="lineCov">          1 :         STOP();</span>
-<span class="lineNum">    1371 </span>            : 
-<span class="lineNum">    1372 </span><span class="lineCov">          1 :         START(&quot;hashdyn queue&quot;);</span>
-<span class="lineNum">    1373 </span><span class="lineCov">          1 :         limit = isqrt(size) / 16;</span>
-<span class="lineNum">    1374 </span><span class="lineCov">         64 :         for(n=0;n&lt;=limit;++n) {</span>
-<span class="lineNum">    1375 </span>            :                 /* last iteration is full size */
-<span class="lineNum">    1376 </span><span class="lineCov">         63 :                 if (n == limit)</span>
-<span class="lineNum">    1377 </span><span class="lineCov">          1 :                         n = limit = size;</span>
-<span class="lineNum">    1378 </span>            : 
-<span class="lineNum">    1379 </span><span class="lineCov">         63 :                 tommy_hashdyn_init(&amp;hashdyn);</span>
-<span class="lineNum">    1380 </span>            : 
-<span class="lineNum">    1381 </span>            :                 /* insert first run */
-<span class="lineNum">    1382 </span><span class="lineCov">    1001954 :                 for(j=0,i=0;i&lt;n;++i)</span>
-<span class="lineNum">    1383 </span><span class="lineCov">    1001891 :                         tommy_hashdyn_insert(&amp;hashdyn, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
-<span class="lineNum">    1384 </span>            : 
-<span class="lineNum">    1385 </span><span class="lineCov">         63 :                 the_count = 0;</span>
-<span class="lineNum">    1386 </span><span class="lineCov">         63 :                 tommy_hashdyn_foreach_arg(&amp;hashdyn, count_arg_callback, &amp;the_count);</span>
-<span class="lineNum">    1387 </span><span class="lineCov">         63 :                 if (the_count != n)</span>
-<span class="lineNum">    1388 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">    1389 </span>            :                         abort();
-<span class="lineNum">    1390 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">    1391 </span>            : 
-<span class="lineNum">    1392 </span>            :                 /* insert all the others */
-<span class="lineNum">    1393 </span><span class="lineCov">   61998172 :                 for(;i&lt;size;++i,++j) {</span>
-<span class="lineNum">    1394 </span>            :                         /* insert one */
-<span class="lineNum">    1395 </span><span class="lineCov">   61998109 :                         tommy_hashdyn_insert(&amp;hashdyn, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
-<span class="lineNum">    1396 </span>            : 
-<span class="lineNum">    1397 </span>            :                         /* remove one */
-<span class="lineNum">    1398 </span><span class="lineCov">   61998109 :                         tommy_hashdyn_remove_existing(&amp;hashdyn, &amp;HASH[j].node);</span>
-<span class="lineNum">    1399 </span>            :                 }
-<span class="lineNum">    1400 </span>            : 
-<span class="lineNum">    1401 </span><span class="lineCov">    1001954 :                 for(;j&lt;size;++j)</span>
-<span class="lineNum">    1402 </span><span class="lineCov">    1001891 :                         if (tommy_hashdyn_remove(&amp;hashdyn, search_callback, &amp;HASH[j], HASH[j].value) == 0)</span>
-<span class="lineNum">    1403 </span>            :                                 /* LCOV_EXCL_START */
-<span class="lineNum">    1404 </span>            :                                 abort();
-<span class="lineNum">    1405 </span>            :                                 /* LCOV_EXCL_STOP */
-<span class="lineNum">    1406 </span>            : 
-<span class="lineNum">    1407 </span><span class="lineCov">         63 :                 tommy_hashdyn_done(&amp;hashdyn);</span>
-<span class="lineNum">    1408 </span>            :         }
-<span class="lineNum">    1409 </span><span class="lineCov">          1 :         STOP();</span>
-<a name="1410"><span class="lineNum">    1410 </span><span class="lineCov">          1 : }</span></a>
-<span class="lineNum">    1411 </span>            : 
-<span class="lineNum">    1412 </span><span class="lineCov">          1 : void test_hashlin(void)</span>
-<span class="lineNum">    1413 </span>            : {
-<span class="lineNum">    1414 </span>            :         tommy_hashlin hashlin;
-<span class="lineNum">    1415 </span>            :         struct object_hash* HASH;
-<span class="lineNum">    1416 </span>            :         unsigned i, j, n;
-<span class="lineNum">    1417 </span>            :         unsigned limit;
-<span class="lineNum">    1418 </span><span class="lineCov">          1 :         const unsigned size = TOMMY_SIZE;</span>
-<span class="lineNum">    1419 </span><span class="lineCov">          1 :         const unsigned module = TOMMY_SIZE / 4;</span>
-<span class="lineNum">    1420 </span>            :         tommy_hashlin_node* bucket;
-<span class="lineNum">    1421 </span>            : 
-<span class="lineNum">    1422 </span><span class="lineCov">          1 :         HASH = malloc(size * sizeof(struct object_hash));</span>
-<span class="lineNum">    1423 </span>            : 
-<span class="lineNum">    1424 </span><span class="lineCov">    1000001 :         for(i=0;i&lt;size;++i)</span>
-<span class="lineNum">    1425 </span><span class="lineCov">    1000000 :                 HASH[i].value = i % module;</span>
+<span class="lineNum">    1320 </span><span class="lineCov">    1000001 :         for(i=0;i&lt;size;++i)</span>
+<span class="lineNum">    1321 </span><span class="lineCov">    1000000 :                 HASH[i].value = i % module;</span>
+<span class="lineNum">    1322 </span>            : 
+<span class="lineNum">    1323 </span><span class="lineCov">          1 :         START(&quot;hashdyn stack&quot;);</span>
+<span class="lineNum">    1324 </span><span class="lineCov">          1 :         limit = 5 * isqrt(size);</span>
+<span class="lineNum">    1325 </span><span class="lineCov">       5002 :         for(n=0;n&lt;=limit;++n) {</span>
+<span class="lineNum">    1326 </span>            :                 /* last iteration is full size */
+<span class="lineNum">    1327 </span><span class="lineCov">       5001 :                 if (n == limit)</span>
+<span class="lineNum">    1328 </span><span class="lineCov">          1 :                         n = limit = size;</span>
+<span class="lineNum">    1329 </span>            : 
+<span class="lineNum">    1330 </span><span class="lineCov">       5001 :                 tommy_hashdyn_init(&amp;hashdyn);</span>
+<span class="lineNum">    1331 </span>            : 
+<span class="lineNum">    1332 </span>            :                 /* insert */
+<span class="lineNum">    1333 </span><span class="lineCov">   13502501 :                 for(i=0;i&lt;n;++i)</span>
+<span class="lineNum">    1334 </span><span class="lineCov">   13497500 :                         tommy_hashdyn_insert(&amp;hashdyn, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
+<span class="lineNum">    1335 </span>            : 
+<span class="lineNum">    1336 </span><span class="lineCov">       5001 :                 if (tommy_hashdyn_memory_usage(&amp;hashdyn) &lt; n * sizeof(void*))</span>
+<span class="lineNum">    1337 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">    1338 </span>            :                         abort();
+<span class="lineNum">    1339 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">    1340 </span>            : 
+<span class="lineNum">    1341 </span><span class="lineCov">       5001 :                 if (tommy_hashdyn_count(&amp;hashdyn) != n)</span>
+<span class="lineNum">    1342 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">    1343 </span>            :                         abort();
+<span class="lineNum">    1344 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">    1345 </span>            : 
+<span class="lineNum">    1346 </span><span class="lineCov">       5001 :                 the_count = 0;</span>
+<span class="lineNum">    1347 </span><span class="lineCov">       5001 :                 tommy_hashdyn_foreach(&amp;hashdyn, count_callback);</span>
+<span class="lineNum">    1348 </span><span class="lineCov">       5001 :                 if (the_count != n)</span>
+<span class="lineNum">    1349 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">    1350 </span>            :                         abort();
+<span class="lineNum">    1351 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">    1352 </span>            : 
+<span class="lineNum">    1353 </span>            :                 /* remove in backward order */
+<span class="lineNum">    1354 </span><span class="lineCov">    6752501 :                 for(i=0;i&lt;n/2;++i)</span>
+<span class="lineNum">    1355 </span><span class="lineCov">    6747500 :                         tommy_hashdyn_remove_existing(&amp;hashdyn, &amp;HASH[n-i-1].node);</span>
+<span class="lineNum">    1356 </span>            : 
+<span class="lineNum">    1357 </span>            :                 /* remove missing */
+<span class="lineNum">    1358 </span><span class="lineCov">    6752501 :                 for(i=0;i&lt;n/2;++i)</span>
+<span class="lineNum">    1359 </span><span class="lineCov">    6747500 :                         if (tommy_hashdyn_remove(&amp;hashdyn, search_callback, &amp;HASH[n-i-1], HASH[n-i-1].value) != 0)</span>
+<span class="lineNum">    1360 </span>            :                                 /* LCOV_EXCL_START */
+<span class="lineNum">    1361 </span>            :                                 abort();
+<span class="lineNum">    1362 </span>            :                                 /* LCOV_EXCL_STOP */
+<span class="lineNum">    1363 </span>            : 
+<span class="lineNum">    1364 </span>            :                 /* remove search */
+<span class="lineNum">    1365 </span><span class="lineCov">    6752501 :                 for(i=0;i&lt;n/2;++i)</span>
+<span class="lineNum">    1366 </span><span class="lineCov">    6747500 :                         if (tommy_hashdyn_remove(&amp;hashdyn, search_callback, &amp;HASH[n/2-i-1], HASH[n/2-i-1].value) == 0)</span>
+<span class="lineNum">    1367 </span>            :                                 /* LCOV_EXCL_START */
+<span class="lineNum">    1368 </span>            :                                 abort();
+<span class="lineNum">    1369 </span>            :                                 /* LCOV_EXCL_STOP */
+<span class="lineNum">    1370 </span>            : 
+<span class="lineNum">    1371 </span><span class="lineCov">       5001 :                 tommy_hashdyn_done(&amp;hashdyn);</span>
+<span class="lineNum">    1372 </span>            :         }
+<span class="lineNum">    1373 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">    1374 </span>            : 
+<span class="lineNum">    1375 </span><span class="lineCov">          1 :         START(&quot;hashdyn queue&quot;);</span>
+<span class="lineNum">    1376 </span><span class="lineCov">          1 :         limit = isqrt(size) / 16;</span>
+<span class="lineNum">    1377 </span><span class="lineCov">         64 :         for(n=0;n&lt;=limit;++n) {</span>
+<span class="lineNum">    1378 </span>            :                 /* last iteration is full size */
+<span class="lineNum">    1379 </span><span class="lineCov">         63 :                 if (n == limit)</span>
+<span class="lineNum">    1380 </span><span class="lineCov">          1 :                         n = limit = size;</span>
+<span class="lineNum">    1381 </span>            : 
+<span class="lineNum">    1382 </span><span class="lineCov">         63 :                 tommy_hashdyn_init(&amp;hashdyn);</span>
+<span class="lineNum">    1383 </span>            : 
+<span class="lineNum">    1384 </span>            :                 /* insert first run */
+<span class="lineNum">    1385 </span><span class="lineCov">    1001954 :                 for(j=0,i=0;i&lt;n;++i)</span>
+<span class="lineNum">    1386 </span><span class="lineCov">    1001891 :                         tommy_hashdyn_insert(&amp;hashdyn, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
+<span class="lineNum">    1387 </span>            : 
+<span class="lineNum">    1388 </span><span class="lineCov">         63 :                 the_count = 0;</span>
+<span class="lineNum">    1389 </span><span class="lineCov">         63 :                 tommy_hashdyn_foreach_arg(&amp;hashdyn, count_arg_callback, &amp;the_count);</span>
+<span class="lineNum">    1390 </span><span class="lineCov">         63 :                 if (the_count != n)</span>
+<span class="lineNum">    1391 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">    1392 </span>            :                         abort();
+<span class="lineNum">    1393 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">    1394 </span>            : 
+<span class="lineNum">    1395 </span>            :                 /* insert all the others */
+<span class="lineNum">    1396 </span><span class="lineCov">   61998172 :                 for(;i&lt;size;++i,++j) {</span>
+<span class="lineNum">    1397 </span>            :                         /* insert one */
+<span class="lineNum">    1398 </span><span class="lineCov">   61998109 :                         tommy_hashdyn_insert(&amp;hashdyn, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
+<span class="lineNum">    1399 </span>            : 
+<span class="lineNum">    1400 </span>            :                         /* remove one */
+<span class="lineNum">    1401 </span><span class="lineCov">   61998109 :                         tommy_hashdyn_remove_existing(&amp;hashdyn, &amp;HASH[j].node);</span>
+<span class="lineNum">    1402 </span>            :                 }
+<span class="lineNum">    1403 </span>            : 
+<span class="lineNum">    1404 </span><span class="lineCov">    1001954 :                 for(;j&lt;size;++j)</span>
+<span class="lineNum">    1405 </span><span class="lineCov">    1001891 :                         if (tommy_hashdyn_remove(&amp;hashdyn, search_callback, &amp;HASH[j], HASH[j].value) == 0)</span>
+<span class="lineNum">    1406 </span>            :                                 /* LCOV_EXCL_START */
+<span class="lineNum">    1407 </span>            :                                 abort();
+<span class="lineNum">    1408 </span>            :                                 /* LCOV_EXCL_STOP */
+<span class="lineNum">    1409 </span>            : 
+<span class="lineNum">    1410 </span><span class="lineCov">         63 :                 tommy_hashdyn_done(&amp;hashdyn);</span>
+<span class="lineNum">    1411 </span>            :         }
+<span class="lineNum">    1412 </span><span class="lineCov">          1 :         STOP();</span>
+<a name="1413"><span class="lineNum">    1413 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">    1414 </span>            : 
+<span class="lineNum">    1415 </span><span class="lineCov">          1 : void test_hashlin(void)</span>
+<span class="lineNum">    1416 </span>            : {
+<span class="lineNum">    1417 </span>            :         tommy_hashlin hashlin;
+<span class="lineNum">    1418 </span>            :         struct object_hash* HASH;
+<span class="lineNum">    1419 </span>            :         unsigned i, j, n;
+<span class="lineNum">    1420 </span>            :         unsigned limit;
+<span class="lineNum">    1421 </span><span class="lineCov">          1 :         const unsigned size = TOMMY_SIZE;</span>
+<span class="lineNum">    1422 </span><span class="lineCov">          1 :         const unsigned module = TOMMY_SIZE / 4;</span>
+<span class="lineNum">    1423 </span>            :         tommy_hashlin_node* bucket;
+<span class="lineNum">    1424 </span>            : 
+<span class="lineNum">    1425 </span><span class="lineCov">          1 :         HASH = malloc(size * sizeof(struct object_hash));</span>
 <span class="lineNum">    1426 </span>            : 
-<span class="lineNum">    1427 </span><span class="lineCov">          1 :         tommy_hashlin_init(&amp;hashlin);</span>
-<span class="lineNum">    1428 </span>            : 
-<span class="lineNum">    1429 </span>            :         /* insert */
-<span class="lineNum">    1430 </span><span class="lineCov">    1000001 :         for(i=0;i&lt;size;++i)</span>
-<span class="lineNum">    1431 </span><span class="lineCov">    1000000 :                 tommy_hashlin_insert(&amp;hashlin, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
-<span class="lineNum">    1432 </span>            : 
-<span class="lineNum">    1433 </span>            :         /* get the bucket of the last element */
-<span class="lineNum">    1434 </span><span class="lineCov">          1 :         bucket = tommy_hashlin_bucket(&amp;hashlin, module - 1);</span>
-<span class="lineNum">    1435 </span><span class="lineCov">          1 :         if (bucket == 0)</span>
-<span class="lineNum">    1436 </span>            :                 /* LCOV_EXCL_START */
-<span class="lineNum">    1437 </span>            :                 abort();
-<span class="lineNum">    1438 </span>            :                 /* LCOV_EXCL_STOP */
-<span class="lineNum">    1439 </span>            : 
-<span class="lineNum">    1440 </span>            :         /* deinitialize without removing elements to force deallocation */
-<span class="lineNum">    1441 </span><span class="lineCov">          1 :         tommy_hashlin_done(&amp;hashlin);</span>
+<span class="lineNum">    1427 </span><span class="lineCov">    1000001 :         for(i=0;i&lt;size;++i)</span>
+<span class="lineNum">    1428 </span><span class="lineCov">    1000000 :                 HASH[i].value = i % module;</span>
+<span class="lineNum">    1429 </span>            : 
+<span class="lineNum">    1430 </span><span class="lineCov">          1 :         tommy_hashlin_init(&amp;hashlin);</span>
+<span class="lineNum">    1431 </span>            : 
+<span class="lineNum">    1432 </span>            :         /* insert */
+<span class="lineNum">    1433 </span><span class="lineCov">    1000001 :         for(i=0;i&lt;size;++i)</span>
+<span class="lineNum">    1434 </span><span class="lineCov">    1000000 :                 tommy_hashlin_insert(&amp;hashlin, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
+<span class="lineNum">    1435 </span>            : 
+<span class="lineNum">    1436 </span>            :         /* get the bucket of the last element */
+<span class="lineNum">    1437 </span><span class="lineCov">          1 :         bucket = tommy_hashlin_bucket(&amp;hashlin, module - 1);</span>
+<span class="lineNum">    1438 </span><span class="lineCov">          1 :         if (bucket == 0)</span>
+<span class="lineNum">    1439 </span>            :                 /* LCOV_EXCL_START */
+<span class="lineNum">    1440 </span>            :                 abort();
+<span class="lineNum">    1441 </span>            :                 /* LCOV_EXCL_STOP */
 <span class="lineNum">    1442 </span>            : 
-<span class="lineNum">    1443 </span><span class="lineCov">          1 :         START(&quot;hashlin stack&quot;);</span>
-<span class="lineNum">    1444 </span><span class="lineCov">          1 :         limit = 5 * isqrt(size);</span>
-<span class="lineNum">    1445 </span><span class="lineCov">       5002 :         for(n=0;n&lt;=limit;++n) {</span>
-<span class="lineNum">    1446 </span>            :                 /* last iteration is full size */
-<span class="lineNum">    1447 </span><span class="lineCov">       5001 :                 if (n == limit)</span>
-<span class="lineNum">    1448 </span><span class="lineCov">          1 :                         n = limit = size;</span>
-<span class="lineNum">    1449 </span>            : 
-<span class="lineNum">    1450 </span><span class="lineCov">       5001 :                 tommy_hashlin_init(&amp;hashlin);</span>
-<span class="lineNum">    1451 </span>            : 
-<span class="lineNum">    1452 </span>            :                 /* insert */
-<span class="lineNum">    1453 </span><span class="lineCov">   13502501 :                 for(i=0;i&lt;n;++i)</span>
-<span class="lineNum">    1454 </span><span class="lineCov">   13497500 :                         tommy_hashlin_insert(&amp;hashlin, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
-<span class="lineNum">    1455 </span>            : 
-<span class="lineNum">    1456 </span><span class="lineCov">       5001 :                 if (tommy_hashlin_memory_usage(&amp;hashlin) &lt; n * sizeof(void*))</span>
-<span class="lineNum">    1457 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">    1458 </span>            :                         abort();
-<span class="lineNum">    1459 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">    1460 </span>            : 
-<span class="lineNum">    1461 </span><span class="lineCov">       5001 :                 if (tommy_hashlin_count(&amp;hashlin) != n)</span>
-<span class="lineNum">    1462 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">    1463 </span>            :                         abort();
-<span class="lineNum">    1464 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">    1465 </span>            : 
-<span class="lineNum">    1466 </span><span class="lineCov">       5001 :                 the_count = 0;</span>
-<span class="lineNum">    1467 </span><span class="lineCov">       5001 :                 tommy_hashlin_foreach(&amp;hashlin, count_callback);</span>
-<span class="lineNum">    1468 </span><span class="lineCov">       5001 :                 if (the_count != n)</span>
-<span class="lineNum">    1469 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">    1470 </span>            :                         abort();
-<span class="lineNum">    1471 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">    1472 </span>            : 
-<span class="lineNum">    1473 </span>            :                 /* remove in backward order */
-<span class="lineNum">    1474 </span><span class="lineCov">    6752501 :                 for(i=0;i&lt;n/2;++i)</span>
-<span class="lineNum">    1475 </span><span class="lineCov">    6747500 :                         tommy_hashlin_remove_existing(&amp;hashlin, &amp;HASH[n-i-1].node);</span>
-<span class="lineNum">    1476 </span>            : 
-<span class="lineNum">    1477 </span>            :                 /* remove missing */
-<span class="lineNum">    1478 </span><span class="lineCov">    6752501 :                 for(i=0;i&lt;n/2;++i)</span>
-<span class="lineNum">    1479 </span><span class="lineCov">    6747500 :                         if (tommy_hashlin_remove(&amp;hashlin, search_callback, &amp;HASH[n-i-1], HASH[n-i-1].value) != 0)</span>
-<span class="lineNum">    1480 </span>            :                                 /* LCOV_EXCL_START */
-<span class="lineNum">    1481 </span>            :                                 abort();
-<span class="lineNum">    1482 </span>            :                                 /* LCOV_EXCL_STOP */
-<span class="lineNum">    1483 </span>            : 
-<span class="lineNum">    1484 </span>            :                 /* remove search */
-<span class="lineNum">    1485 </span><span class="lineCov">    6752501 :                 for(i=0;i&lt;n/2;++i)</span>
-<span class="lineNum">    1486 </span><span class="lineCov">    6747500 :                         if (tommy_hashlin_remove(&amp;hashlin, search_callback, &amp;HASH[n/2-i-1], HASH[n/2-i-1].value) == 0)</span>
-<span class="lineNum">    1487 </span>            :                                 /* LCOV_EXCL_START */
-<span class="lineNum">    1488 </span>            :                                 abort();
-<span class="lineNum">    1489 </span>            :                                 /* LCOV_EXCL_STOP */
-<span class="lineNum">    1490 </span>            : 
-<span class="lineNum">    1491 </span><span class="lineCov">       5001 :                 tommy_hashlin_done(&amp;hashlin);</span>
-<span class="lineNum">    1492 </span>            :         }
-<span class="lineNum">    1493 </span><span class="lineCov">          1 :         STOP();</span>
-<span class="lineNum">    1494 </span>            : 
-<span class="lineNum">    1495 </span><span class="lineCov">          1 :         START(&quot;hashlin queue&quot;);</span>
-<span class="lineNum">    1496 </span><span class="lineCov">          1 :         limit = isqrt(size) / 16;</span>
-<span class="lineNum">    1497 </span><span class="lineCov">         64 :         for(n=0;n&lt;=limit;++n) {</span>
-<span class="lineNum">    1498 </span>            :                 /* last iteration is full size */
-<span class="lineNum">    1499 </span><span class="lineCov">         63 :                 if (n == limit)</span>
-<span class="lineNum">    1500 </span><span class="lineCov">          1 :                         n = limit = size;</span>
-<span class="lineNum">    1501 </span>            : 
-<span class="lineNum">    1502 </span><span class="lineCov">         63 :                 tommy_hashlin_init(&amp;hashlin);</span>
-<span class="lineNum">    1503 </span>            : 
-<span class="lineNum">    1504 </span>            :                 /* insert first run */
-<span class="lineNum">    1505 </span><span class="lineCov">    1001954 :                 for(j=0,i=0;i&lt;n;++i)</span>
-<span class="lineNum">    1506 </span><span class="lineCov">    1001891 :                         tommy_hashlin_insert(&amp;hashlin, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
-<span class="lineNum">    1507 </span>            : 
-<span class="lineNum">    1508 </span><span class="lineCov">         63 :                 the_count = 0;</span>
-<span class="lineNum">    1509 </span><span class="lineCov">         63 :                 tommy_hashlin_foreach_arg(&amp;hashlin, count_arg_callback, &amp;the_count);</span>
-<span class="lineNum">    1510 </span><span class="lineCov">         63 :                 if (the_count != n)</span>
-<span class="lineNum">    1511 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">    1512 </span>            :                         abort();
-<span class="lineNum">    1513 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">    1514 </span>            : 
-<span class="lineNum">    1515 </span>            :                 /* insert all the others */
-<span class="lineNum">    1516 </span><span class="lineCov">   61998172 :                 for(;i&lt;size;++i,++j) {</span>
-<span class="lineNum">    1517 </span>            :                         /* insert one */
-<span class="lineNum">    1518 </span><span class="lineCov">   61998109 :                         tommy_hashlin_insert(&amp;hashlin, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
-<span class="lineNum">    1519 </span>            : 
-<span class="lineNum">    1520 </span>            :                         /* remove one */
-<span class="lineNum">    1521 </span><span class="lineCov">   61998109 :                         tommy_hashlin_remove_existing(&amp;hashlin, &amp;HASH[j].node);</span>
-<span class="lineNum">    1522 </span>            :                 }
-<span class="lineNum">    1523 </span>            : 
-<span class="lineNum">    1524 </span><span class="lineCov">    1001954 :                 for(;j&lt;size;++j)</span>
-<span class="lineNum">    1525 </span><span class="lineCov">    1001891 :                         if (tommy_hashlin_remove(&amp;hashlin, search_callback, &amp;HASH[j], HASH[j].value) == 0)</span>
-<span class="lineNum">    1526 </span>            :                                 /* LCOV_EXCL_START */
-<span class="lineNum">    1527 </span>            :                                 abort();
-<span class="lineNum">    1528 </span>            :                                 /* LCOV_EXCL_STOP */
-<span class="lineNum">    1529 </span>            : 
-<span class="lineNum">    1530 </span><span class="lineCov">         63 :                 tommy_hashlin_done(&amp;hashlin);</span>
-<span class="lineNum">    1531 </span>            :         }
-<span class="lineNum">    1532 </span><span class="lineCov">          1 :         STOP();</span>
-<a name="1533"><span class="lineNum">    1533 </span><span class="lineCov">          1 : }</span></a>
-<span class="lineNum">    1534 </span>            : 
-<span class="lineNum">    1535 </span><span class="lineCov">          1 : void test_trie(void)</span>
-<span class="lineNum">    1536 </span>            : {
-<span class="lineNum">    1537 </span>            :         tommy_trie trie;
-<span class="lineNum">    1538 </span>            :         tommy_allocator alloc;
-<span class="lineNum">    1539 </span>            :         struct object_trie* OBJ;
-<span class="lineNum">    1540 </span>            :         struct object_trie DUP[2];
-<span class="lineNum">    1541 </span>            :         unsigned i;
-<span class="lineNum">    1542 </span><span class="lineCov">          1 :         const unsigned size = TOMMY_SIZE * 4;</span>
-<span class="lineNum">    1543 </span>            : 
-<span class="lineNum">    1544 </span><span class="lineCov">          1 :         OBJ = malloc(size * sizeof(struct object_trie));</span>
-<span class="lineNum">    1545 </span>            : 
-<span class="lineNum">    1546 </span><span class="lineCov">    4000001 :         for(i=0;i&lt;size;++i)</span>
-<span class="lineNum">    1547 </span><span class="lineCov">    4000000 :                 OBJ[i].value = i;</span>
+<span class="lineNum">    1443 </span>            :         /* deinitialize without removing elements to force deallocation */
+<span class="lineNum">    1444 </span><span class="lineCov">          1 :         tommy_hashlin_done(&amp;hashlin);</span>
+<span class="lineNum">    1445 </span>            : 
+<span class="lineNum">    1446 </span><span class="lineCov">          1 :         START(&quot;hashlin stack&quot;);</span>
+<span class="lineNum">    1447 </span><span class="lineCov">          1 :         limit = 5 * isqrt(size);</span>
+<span class="lineNum">    1448 </span><span class="lineCov">       5002 :         for(n=0;n&lt;=limit;++n) {</span>
+<span class="lineNum">    1449 </span>            :                 /* last iteration is full size */
+<span class="lineNum">    1450 </span><span class="lineCov">       5001 :                 if (n == limit)</span>
+<span class="lineNum">    1451 </span><span class="lineCov">          1 :                         n = limit = size;</span>
+<span class="lineNum">    1452 </span>            : 
+<span class="lineNum">    1453 </span><span class="lineCov">       5001 :                 tommy_hashlin_init(&amp;hashlin);</span>
+<span class="lineNum">    1454 </span>            : 
+<span class="lineNum">    1455 </span>            :                 /* insert */
+<span class="lineNum">    1456 </span><span class="lineCov">   13502501 :                 for(i=0;i&lt;n;++i)</span>
+<span class="lineNum">    1457 </span><span class="lineCov">   13497500 :                         tommy_hashlin_insert(&amp;hashlin, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
+<span class="lineNum">    1458 </span>            : 
+<span class="lineNum">    1459 </span><span class="lineCov">       5001 :                 if (tommy_hashlin_memory_usage(&amp;hashlin) &lt; n * sizeof(void*))</span>
+<span class="lineNum">    1460 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">    1461 </span>            :                         abort();
+<span class="lineNum">    1462 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">    1463 </span>            : 
+<span class="lineNum">    1464 </span><span class="lineCov">       5001 :                 if (tommy_hashlin_count(&amp;hashlin) != n)</span>
+<span class="lineNum">    1465 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">    1466 </span>            :                         abort();
+<span class="lineNum">    1467 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">    1468 </span>            : 
+<span class="lineNum">    1469 </span><span class="lineCov">       5001 :                 the_count = 0;</span>
+<span class="lineNum">    1470 </span><span class="lineCov">       5001 :                 tommy_hashlin_foreach(&amp;hashlin, count_callback);</span>
+<span class="lineNum">    1471 </span><span class="lineCov">       5001 :                 if (the_count != n)</span>
+<span class="lineNum">    1472 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">    1473 </span>            :                         abort();
+<span class="lineNum">    1474 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">    1475 </span>            : 
+<span class="lineNum">    1476 </span>            :                 /* remove in backward order */
+<span class="lineNum">    1477 </span><span class="lineCov">    6752501 :                 for(i=0;i&lt;n/2;++i)</span>
+<span class="lineNum">    1478 </span><span class="lineCov">    6747500 :                         tommy_hashlin_remove_existing(&amp;hashlin, &amp;HASH[n-i-1].node);</span>
+<span class="lineNum">    1479 </span>            : 
+<span class="lineNum">    1480 </span>            :                 /* remove missing */
+<span class="lineNum">    1481 </span><span class="lineCov">    6752501 :                 for(i=0;i&lt;n/2;++i)</span>
+<span class="lineNum">    1482 </span><span class="lineCov">    6747500 :                         if (tommy_hashlin_remove(&amp;hashlin, search_callback, &amp;HASH[n-i-1], HASH[n-i-1].value) != 0)</span>
+<span class="lineNum">    1483 </span>            :                                 /* LCOV_EXCL_START */
+<span class="lineNum">    1484 </span>            :                                 abort();
+<span class="lineNum">    1485 </span>            :                                 /* LCOV_EXCL_STOP */
+<span class="lineNum">    1486 </span>            : 
+<span class="lineNum">    1487 </span>            :                 /* remove search */
+<span class="lineNum">    1488 </span><span class="lineCov">    6752501 :                 for(i=0;i&lt;n/2;++i)</span>
+<span class="lineNum">    1489 </span><span class="lineCov">    6747500 :                         if (tommy_hashlin_remove(&amp;hashlin, search_callback, &amp;HASH[n/2-i-1], HASH[n/2-i-1].value) == 0)</span>
+<span class="lineNum">    1490 </span>            :                                 /* LCOV_EXCL_START */
+<span class="lineNum">    1491 </span>            :                                 abort();
+<span class="lineNum">    1492 </span>            :                                 /* LCOV_EXCL_STOP */
+<span class="lineNum">    1493 </span>            : 
+<span class="lineNum">    1494 </span><span class="lineCov">       5001 :                 tommy_hashlin_done(&amp;hashlin);</span>
+<span class="lineNum">    1495 </span>            :         }
+<span class="lineNum">    1496 </span><span class="lineCov">          1 :         STOP();</span>
+<span class="lineNum">    1497 </span>            : 
+<span class="lineNum">    1498 </span><span class="lineCov">          1 :         START(&quot;hashlin queue&quot;);</span>
+<span class="lineNum">    1499 </span><span class="lineCov">          1 :         limit = isqrt(size) / 16;</span>
+<span class="lineNum">    1500 </span><span class="lineCov">         64 :         for(n=0;n&lt;=limit;++n) {</span>
+<span class="lineNum">    1501 </span>            :                 /* last iteration is full size */
+<span class="lineNum">    1502 </span><span class="lineCov">         63 :                 if (n == limit)</span>
+<span class="lineNum">    1503 </span><span class="lineCov">          1 :                         n = limit = size;</span>
+<span class="lineNum">    1504 </span>            : 
+<span class="lineNum">    1505 </span><span class="lineCov">         63 :                 tommy_hashlin_init(&amp;hashlin);</span>
+<span class="lineNum">    1506 </span>            : 
+<span class="lineNum">    1507 </span>            :                 /* insert first run */
+<span class="lineNum">    1508 </span><span class="lineCov">    1001954 :                 for(j=0,i=0;i&lt;n;++i)</span>
+<span class="lineNum">    1509 </span><span class="lineCov">    1001891 :                         tommy_hashlin_insert(&amp;hashlin, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
+<span class="lineNum">    1510 </span>            : 
+<span class="lineNum">    1511 </span><span class="lineCov">         63 :                 the_count = 0;</span>
+<span class="lineNum">    1512 </span><span class="lineCov">         63 :                 tommy_hashlin_foreach_arg(&amp;hashlin, count_arg_callback, &amp;the_count);</span>
+<span class="lineNum">    1513 </span><span class="lineCov">         63 :                 if (the_count != n)</span>
+<span class="lineNum">    1514 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">    1515 </span>            :                         abort();
+<span class="lineNum">    1516 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">    1517 </span>            : 
+<span class="lineNum">    1518 </span>            :                 /* insert all the others */
+<span class="lineNum">    1519 </span><span class="lineCov">   61998172 :                 for(;i&lt;size;++i,++j) {</span>
+<span class="lineNum">    1520 </span>            :                         /* insert one */
+<span class="lineNum">    1521 </span><span class="lineCov">   61998109 :                         tommy_hashlin_insert(&amp;hashlin, &amp;HASH[i].node, &amp;HASH[i], HASH[i].value);</span>
+<span class="lineNum">    1522 </span>            : 
+<span class="lineNum">    1523 </span>            :                         /* remove one */
+<span class="lineNum">    1524 </span><span class="lineCov">   61998109 :                         tommy_hashlin_remove_existing(&amp;hashlin, &amp;HASH[j].node);</span>
+<span class="lineNum">    1525 </span>            :                 }
+<span class="lineNum">    1526 </span>            : 
+<span class="lineNum">    1527 </span><span class="lineCov">    1001954 :                 for(;j&lt;size;++j)</span>
+<span class="lineNum">    1528 </span><span class="lineCov">    1001891 :                         if (tommy_hashlin_remove(&amp;hashlin, search_callback, &amp;HASH[j], HASH[j].value) == 0)</span>
+<span class="lineNum">    1529 </span>            :                                 /* LCOV_EXCL_START */
+<span class="lineNum">    1530 </span>            :                                 abort();
+<span class="lineNum">    1531 </span>            :                                 /* LCOV_EXCL_STOP */
+<span class="lineNum">    1532 </span>            : 
+<span class="lineNum">    1533 </span><span class="lineCov">         63 :                 tommy_hashlin_done(&amp;hashlin);</span>
+<span class="lineNum">    1534 </span>            :         }
+<span class="lineNum">    1535 </span><span class="lineCov">          1 :         STOP();</span>
+<a name="1536"><span class="lineNum">    1536 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">    1537 </span>            : 
+<span class="lineNum">    1538 </span><span class="lineCov">          1 : void test_trie(void)</span>
+<span class="lineNum">    1539 </span>            : {
+<span class="lineNum">    1540 </span>            :         tommy_trie trie;
+<span class="lineNum">    1541 </span>            :         tommy_allocator alloc;
+<span class="lineNum">    1542 </span>            :         struct object_trie* OBJ;
+<span class="lineNum">    1543 </span>            :         struct object_trie DUP[2];
+<span class="lineNum">    1544 </span>            :         unsigned i;
+<span class="lineNum">    1545 </span><span class="lineCov">          1 :         const unsigned size = TOMMY_SIZE * 4;</span>
+<span class="lineNum">    1546 </span>            : 
+<span class="lineNum">    1547 </span><span class="lineCov">          1 :         OBJ = malloc(size * sizeof(struct object_trie));</span>
 <span class="lineNum">    1548 </span>            : 
-<span class="lineNum">    1549 </span><span class="lineCov">          1 :         START(&quot;trie&quot;);</span>
-<span class="lineNum">    1550 </span><span class="lineCov">          1 :         tommy_allocator_init(&amp;alloc, TOMMY_TRIE_BLOCK_SIZE, TOMMY_TRIE_BLOCK_SIZE);</span>
-<span class="lineNum">    1551 </span><span class="lineCov">          1 :         tommy_trie_init(&amp;trie, &amp;alloc);</span>
-<span class="lineNum">    1552 </span>            : 
-<span class="lineNum">    1553 </span>            :         /* insert */
-<span class="lineNum">    1554 </span><span class="lineCov">    4000001 :         for(i=0;i&lt;size;++i)</span>
-<span class="lineNum">    1555 </span><span class="lineCov">    4000000 :                 tommy_trie_insert(&amp;trie, &amp;OBJ[i].node, &amp;OBJ[i], OBJ[i].value);</span>
-<span class="lineNum">    1556 </span>            : 
-<span class="lineNum">    1557 </span><span class="lineCov">          1 :         if (tommy_trie_memory_usage(&amp;trie) &lt; size * sizeof(tommy_trie_node))</span>
-<span class="lineNum">    1558 </span>            :                 /* LCOV_EXCL_START */
-<span class="lineNum">    1559 </span>            :                 abort();
-<span class="lineNum">    1560 </span>            :                 /* LCOV_EXCL_STOP */
-<span class="lineNum">    1561 </span>            : 
-<span class="lineNum">    1562 </span><span class="lineCov">          1 :         if (tommy_allocator_memory_usage(&amp;alloc) &lt; trie.node_count * TOMMY_TRIE_BLOCK_SIZE)</span>
-<span class="lineNum">    1563 </span>            :                 /* LCOV_EXCL_START */
-<span class="lineNum">    1564 </span>            :                 abort();
-<span class="lineNum">    1565 </span>            :                 /* LCOV_EXCL_STOP */
-<span class="lineNum">    1566 </span>            : 
-<span class="lineNum">    1567 </span><span class="lineCov">          1 :         if (tommy_trie_count(&amp;trie) != size)</span>
-<span class="lineNum">    1568 </span>            :                 /* LCOV_EXCL_START */
-<span class="lineNum">    1569 </span>            :                 abort();
-<span class="lineNum">    1570 </span>            :                 /* LCOV_EXCL_STOP */
-<span class="lineNum">    1571 </span>            : 
-<span class="lineNum">    1572 </span>            :         /* insert duplicate */
-<span class="lineNum">    1573 </span><span class="lineCov">          3 :         for(i=0;i&lt;2;++i) {</span>
-<span class="lineNum">    1574 </span><span class="lineCov">          2 :                 DUP[i].value = 0;</span>
-<span class="lineNum">    1575 </span><span class="lineCov">          2 :                 tommy_trie_insert(&amp;trie, &amp;DUP[i].node, &amp;DUP[i], DUP[i].value);</span>
-<span class="lineNum">    1576 </span>            :         }
-<span class="lineNum">    1577 </span>            : 
-<span class="lineNum">    1578 </span>            :         /* search present */
-<span class="lineNum">    1579 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
-<span class="lineNum">    1580 </span><span class="lineCov">    2000000 :                 if (tommy_trie_search(&amp;trie, OBJ[i].value) == 0)</span>
-<span class="lineNum">    1581 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">    1582 </span>            :                         abort();
-<span class="lineNum">    1583 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">    1584 </span>            : 
-<span class="lineNum">    1585 </span>            :         /* remove first duplicate */
-<span class="lineNum">    1586 </span><span class="lineCov">          1 :         tommy_trie_remove_existing(&amp;trie, &amp;DUP[0].node);</span>
+<span class="lineNum">    1549 </span><span class="lineCov">    4000001 :         for(i=0;i&lt;size;++i)</span>
+<span class="lineNum">    1550 </span><span class="lineCov">    4000000 :                 OBJ[i].value = i;</span>
+<span class="lineNum">    1551 </span>            : 
+<span class="lineNum">    1552 </span><span class="lineCov">          1 :         START(&quot;trie&quot;);</span>
+<span class="lineNum">    1553 </span><span class="lineCov">          1 :         tommy_allocator_init(&amp;alloc, TOMMY_TRIE_BLOCK_SIZE, TOMMY_TRIE_BLOCK_SIZE);</span>
+<span class="lineNum">    1554 </span><span class="lineCov">          1 :         tommy_trie_init(&amp;trie, &amp;alloc);</span>
+<span class="lineNum">    1555 </span>            : 
+<span class="lineNum">    1556 </span>            :         /* insert */
+<span class="lineNum">    1557 </span><span class="lineCov">    4000001 :         for(i=0;i&lt;size;++i)</span>
+<span class="lineNum">    1558 </span><span class="lineCov">    4000000 :                 tommy_trie_insert(&amp;trie, &amp;OBJ[i].node, &amp;OBJ[i], OBJ[i].value);</span>
+<span class="lineNum">    1559 </span>            : 
+<span class="lineNum">    1560 </span><span class="lineCov">          1 :         if (tommy_trie_memory_usage(&amp;trie) &lt; size * sizeof(tommy_trie_node))</span>
+<span class="lineNum">    1561 </span>            :                 /* LCOV_EXCL_START */
+<span class="lineNum">    1562 </span>            :                 abort();
+<span class="lineNum">    1563 </span>            :                 /* LCOV_EXCL_STOP */
+<span class="lineNum">    1564 </span>            : 
+<span class="lineNum">    1565 </span><span class="lineCov">          1 :         if (tommy_allocator_memory_usage(&amp;alloc) &lt; trie.node_count * TOMMY_TRIE_BLOCK_SIZE)</span>
+<span class="lineNum">    1566 </span>            :                 /* LCOV_EXCL_START */
+<span class="lineNum">    1567 </span>            :                 abort();
+<span class="lineNum">    1568 </span>            :                 /* LCOV_EXCL_STOP */
+<span class="lineNum">    1569 </span>            : 
+<span class="lineNum">    1570 </span><span class="lineCov">          1 :         if (tommy_trie_count(&amp;trie) != size)</span>
+<span class="lineNum">    1571 </span>            :                 /* LCOV_EXCL_START */
+<span class="lineNum">    1572 </span>            :                 abort();
+<span class="lineNum">    1573 </span>            :                 /* LCOV_EXCL_STOP */
+<span class="lineNum">    1574 </span>            : 
+<span class="lineNum">    1575 </span>            :         /* insert duplicate */
+<span class="lineNum">    1576 </span><span class="lineCov">          3 :         for(i=0;i&lt;2;++i) {</span>
+<span class="lineNum">    1577 </span><span class="lineCov">          2 :                 DUP[i].value = 0;</span>
+<span class="lineNum">    1578 </span><span class="lineCov">          2 :                 tommy_trie_insert(&amp;trie, &amp;DUP[i].node, &amp;DUP[i], DUP[i].value);</span>
+<span class="lineNum">    1579 </span>            :         }
+<span class="lineNum">    1580 </span>            : 
+<span class="lineNum">    1581 </span>            :         /* search present */
+<span class="lineNum">    1582 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
+<span class="lineNum">    1583 </span><span class="lineCov">    2000000 :                 if (tommy_trie_search(&amp;trie, OBJ[i].value) == 0)</span>
+<span class="lineNum">    1584 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">    1585 </span>            :                         abort();
+<span class="lineNum">    1586 </span>            :                         /* LCOV_EXCL_STOP */
 <span class="lineNum">    1587 </span>            : 
-<span class="lineNum">    1588 </span>            :         /* remove existing */
-<span class="lineNum">    1589 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
-<span class="lineNum">    1590 </span><span class="lineCov">    2000000 :                 tommy_trie_remove_existing(&amp;trie, &amp;OBJ[i].node);</span>
-<span class="lineNum">    1591 </span>            : 
-<span class="lineNum">    1592 </span>            :         /* remove missing using the same bucket of the duplicate */
-<span class="lineNum">    1593 </span><span class="lineCov">          1 :         if (tommy_trie_remove(&amp;trie, 1) != 0)</span>
-<span class="lineNum">    1594 </span>            :                 /* LCOV_EXCL_START */
-<span class="lineNum">    1595 </span>            :                 abort();
-<span class="lineNum">    1596 </span>            :                 /* LCOV_EXCL_STOP */
-<span class="lineNum">    1597 </span>            : 
-<span class="lineNum">    1598 </span>            :         /* search missing using the same bucket of the duplicate */
-<span class="lineNum">    1599 </span><span class="lineCov">          1 :         if (tommy_trie_search(&amp;trie, 1) != 0)</span>
-<span class="lineNum">    1600 </span>            :                 /* LCOV_EXCL_START */
-<span class="lineNum">    1601 </span>            :                 abort();
-<span class="lineNum">    1602 </span>            :                 /* LCOV_EXCL_STOP */
-<span class="lineNum">    1603 </span>            : 
-<span class="lineNum">    1604 </span>            :         /* remove second duplicate */
-<span class="lineNum">    1605 </span><span class="lineCov">          1 :         tommy_trie_remove_existing(&amp;trie, &amp;DUP[1].node);</span>
+<span class="lineNum">    1588 </span>            :         /* remove first duplicate */
+<span class="lineNum">    1589 </span><span class="lineCov">          1 :         tommy_trie_remove_existing(&amp;trie, &amp;DUP[0].node);</span>
+<span class="lineNum">    1590 </span>            : 
+<span class="lineNum">    1591 </span>            :         /* remove existing */
+<span class="lineNum">    1592 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
+<span class="lineNum">    1593 </span><span class="lineCov">    2000000 :                 tommy_trie_remove_existing(&amp;trie, &amp;OBJ[i].node);</span>
+<span class="lineNum">    1594 </span>            : 
+<span class="lineNum">    1595 </span>            :         /* remove missing using the same bucket of the duplicate */
+<span class="lineNum">    1596 </span><span class="lineCov">          1 :         if (tommy_trie_remove(&amp;trie, 1) != 0)</span>
+<span class="lineNum">    1597 </span>            :                 /* LCOV_EXCL_START */
+<span class="lineNum">    1598 </span>            :                 abort();
+<span class="lineNum">    1599 </span>            :                 /* LCOV_EXCL_STOP */
+<span class="lineNum">    1600 </span>            : 
+<span class="lineNum">    1601 </span>            :         /* search missing using the same bucket of the duplicate */
+<span class="lineNum">    1602 </span><span class="lineCov">          1 :         if (tommy_trie_search(&amp;trie, 1) != 0)</span>
+<span class="lineNum">    1603 </span>            :                 /* LCOV_EXCL_START */
+<span class="lineNum">    1604 </span>            :                 abort();
+<span class="lineNum">    1605 </span>            :                 /* LCOV_EXCL_STOP */
 <span class="lineNum">    1606 </span>            : 
-<span class="lineNum">    1607 </span>            :         /* remove missing */
-<span class="lineNum">    1608 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
-<span class="lineNum">    1609 </span><span class="lineCov">    2000000 :                 if (tommy_trie_remove(&amp;trie, OBJ[i].value) != 0)</span>
-<span class="lineNum">    1610 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">    1611 </span>            :                         abort();
-<span class="lineNum">    1612 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">    1613 </span>            : 
-<span class="lineNum">    1614 </span>            :         /* search missing */
-<span class="lineNum">    1615 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
-<span class="lineNum">    1616 </span><span class="lineCov">    2000000 :                 if (tommy_trie_search(&amp;trie, OBJ[i].value) != 0)</span>
-<span class="lineNum">    1617 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">    1618 </span>            :                         abort();
-<span class="lineNum">    1619 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">    1620 </span>            : 
-<span class="lineNum">    1621 </span>            :         /* remove present */
-<span class="lineNum">    1622 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
-<span class="lineNum">    1623 </span><span class="lineCov">    2000000 :                 if (tommy_trie_remove(&amp;trie, OBJ[size/2+i].value) == 0)</span>
-<span class="lineNum">    1624 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">    1625 </span>            :                         abort();
-<span class="lineNum">    1626 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">    1627 </span>            : 
-<span class="lineNum">    1628 </span><span class="lineCov">          1 :         tommy_allocator_done(&amp;alloc);</span>
-<span class="lineNum">    1629 </span><span class="lineCov">          1 :         STOP();</span>
-<a name="1630"><span class="lineNum">    1630 </span><span class="lineCov">          1 : }</span></a>
-<span class="lineNum">    1631 </span>            : 
-<span class="lineNum">    1632 </span><span class="lineCov">          1 : void test_trie_inplace(void)</span>
-<span class="lineNum">    1633 </span>            : {
-<span class="lineNum">    1634 </span>            :         tommy_trie_inplace trie_inplace;
-<span class="lineNum">    1635 </span>            :         struct object_trie_inplace* OBJ;
-<span class="lineNum">    1636 </span>            :         struct object_trie_inplace DUP[2];
-<span class="lineNum">    1637 </span>            :         unsigned i;
-<span class="lineNum">    1638 </span><span class="lineCov">          1 :         const unsigned size = TOMMY_SIZE * 4;</span>
-<span class="lineNum">    1639 </span>            : 
-<span class="lineNum">    1640 </span><span class="lineCov">          1 :         OBJ = malloc(size * sizeof(struct object_trie_inplace));</span>
-<span class="lineNum">    1641 </span>            : 
-<span class="lineNum">    1642 </span><span class="lineCov">    4000001 :         for(i=0;i&lt;size;++i)</span>
-<span class="lineNum">    1643 </span><span class="lineCov">    4000000 :                 OBJ[i].value = i;</span>
+<span class="lineNum">    1607 </span>            :         /* remove second duplicate */
+<span class="lineNum">    1608 </span><span class="lineCov">          1 :         tommy_trie_remove_existing(&amp;trie, &amp;DUP[1].node);</span>
+<span class="lineNum">    1609 </span>            : 
+<span class="lineNum">    1610 </span>            :         /* remove missing */
+<span class="lineNum">    1611 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
+<span class="lineNum">    1612 </span><span class="lineCov">    2000000 :                 if (tommy_trie_remove(&amp;trie, OBJ[i].value) != 0)</span>
+<span class="lineNum">    1613 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">    1614 </span>            :                         abort();
+<span class="lineNum">    1615 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">    1616 </span>            : 
+<span class="lineNum">    1617 </span>            :         /* search missing */
+<span class="lineNum">    1618 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
+<span class="lineNum">    1619 </span><span class="lineCov">    2000000 :                 if (tommy_trie_search(&amp;trie, OBJ[i].value) != 0)</span>
+<span class="lineNum">    1620 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">    1621 </span>            :                         abort();
+<span class="lineNum">    1622 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">    1623 </span>            : 
+<span class="lineNum">    1624 </span>            :         /* remove present */
+<span class="lineNum">    1625 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
+<span class="lineNum">    1626 </span><span class="lineCov">    2000000 :                 if (tommy_trie_remove(&amp;trie, OBJ[size/2+i].value) == 0)</span>
+<span class="lineNum">    1627 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">    1628 </span>            :                         abort();
+<span class="lineNum">    1629 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">    1630 </span>            : 
+<span class="lineNum">    1631 </span><span class="lineCov">          1 :         tommy_allocator_done(&amp;alloc);</span>
+<span class="lineNum">    1632 </span><span class="lineCov">          1 :         STOP();</span>
+<a name="1633"><span class="lineNum">    1633 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">    1634 </span>            : 
+<span class="lineNum">    1635 </span><span class="lineCov">          1 : void test_trie_inplace(void)</span>
+<span class="lineNum">    1636 </span>            : {
+<span class="lineNum">    1637 </span>            :         tommy_trie_inplace trie_inplace;
+<span class="lineNum">    1638 </span>            :         struct object_trie_inplace* OBJ;
+<span class="lineNum">    1639 </span>            :         struct object_trie_inplace DUP[2];
+<span class="lineNum">    1640 </span>            :         unsigned i;
+<span class="lineNum">    1641 </span><span class="lineCov">          1 :         const unsigned size = TOMMY_SIZE * 4;</span>
+<span class="lineNum">    1642 </span>            : 
+<span class="lineNum">    1643 </span><span class="lineCov">          1 :         OBJ = malloc(size * sizeof(struct object_trie_inplace));</span>
 <span class="lineNum">    1644 </span>            : 
-<span class="lineNum">    1645 </span><span class="lineCov">          1 :         START(&quot;trie_inplace&quot;);</span>
-<span class="lineNum">    1646 </span><span class="lineCov">          1 :         tommy_trie_inplace_init(&amp;trie_inplace);</span>
+<span class="lineNum">    1645 </span><span class="lineCov">    4000001 :         for(i=0;i&lt;size;++i)</span>
+<span class="lineNum">    1646 </span><span class="lineCov">    4000000 :                 OBJ[i].value = i;</span>
 <span class="lineNum">    1647 </span>            : 
-<span class="lineNum">    1648 </span>            :         /* insert */
-<span class="lineNum">    1649 </span><span class="lineCov">    4000001 :         for(i=0;i&lt;size;++i)</span>
-<span class="lineNum">    1650 </span><span class="lineCov">    4000000 :                 tommy_trie_inplace_insert(&amp;trie_inplace, &amp;OBJ[i].node, &amp;OBJ[i], OBJ[i].value);</span>
-<span class="lineNum">    1651 </span>            : 
-<span class="lineNum">    1652 </span><span class="lineCov">          1 :         if (tommy_trie_inplace_memory_usage(&amp;trie_inplace) &lt; size * sizeof(tommy_trie_inplace_node))</span>
-<span class="lineNum">    1653 </span>            :                 /* LCOV_EXCL_START */
-<span class="lineNum">    1654 </span>            :                 abort();
-<span class="lineNum">    1655 </span>            :                 /* LCOV_EXCL_STOP */
-<span class="lineNum">    1656 </span>            : 
-<span class="lineNum">    1657 </span><span class="lineCov">          1 :         if (tommy_trie_inplace_count(&amp;trie_inplace) != size)</span>
-<span class="lineNum">    1658 </span>            :                 /* LCOV_EXCL_START */
-<span class="lineNum">    1659 </span>            :                 abort();
-<span class="lineNum">    1660 </span>            :                 /* LCOV_EXCL_STOP */
-<span class="lineNum">    1661 </span>            : 
-<span class="lineNum">    1662 </span>            :         /* insert duplicates */
-<span class="lineNum">    1663 </span><span class="lineCov">          3 :         for(i=0;i&lt;2;++i) {</span>
-<span class="lineNum">    1664 </span><span class="lineCov">          2 :                 DUP[i].value = 0;</span>
-<span class="lineNum">    1665 </span><span class="lineCov">          2 :                 tommy_trie_inplace_insert(&amp;trie_inplace, &amp;DUP[i].node, &amp;DUP[i], DUP[i].value);</span>
-<span class="lineNum">    1666 </span>            :         }
-<span class="lineNum">    1667 </span>            : 
-<span class="lineNum">    1668 </span>            :         /* search present */
-<span class="lineNum">    1669 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
-<span class="lineNum">    1670 </span><span class="lineCov">    2000000 :                 if (tommy_trie_inplace_search(&amp;trie_inplace, OBJ[i].value) == 0)</span>
-<span class="lineNum">    1671 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">    1672 </span>            :                         abort();
-<span class="lineNum">    1673 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">    1674 </span>            : 
-<span class="lineNum">    1675 </span>            :         /* remove first duplicate */
-<span class="lineNum">    1676 </span><span class="lineCov">          1 :         tommy_trie_inplace_remove_existing(&amp;trie_inplace, &amp;DUP[0].node);</span>
+<span class="lineNum">    1648 </span><span class="lineCov">          1 :         START(&quot;trie_inplace&quot;);</span>
+<span class="lineNum">    1649 </span><span class="lineCov">          1 :         tommy_trie_inplace_init(&amp;trie_inplace);</span>
+<span class="lineNum">    1650 </span>            : 
+<span class="lineNum">    1651 </span>            :         /* insert */
+<span class="lineNum">    1652 </span><span class="lineCov">    4000001 :         for(i=0;i&lt;size;++i)</span>
+<span class="lineNum">    1653 </span><span class="lineCov">    4000000 :                 tommy_trie_inplace_insert(&amp;trie_inplace, &amp;OBJ[i].node, &amp;OBJ[i], OBJ[i].value);</span>
+<span class="lineNum">    1654 </span>            : 
+<span class="lineNum">    1655 </span><span class="lineCov">          1 :         if (tommy_trie_inplace_memory_usage(&amp;trie_inplace) &lt; size * sizeof(tommy_trie_inplace_node))</span>
+<span class="lineNum">    1656 </span>            :                 /* LCOV_EXCL_START */
+<span class="lineNum">    1657 </span>            :                 abort();
+<span class="lineNum">    1658 </span>            :                 /* LCOV_EXCL_STOP */
+<span class="lineNum">    1659 </span>            : 
+<span class="lineNum">    1660 </span><span class="lineCov">          1 :         if (tommy_trie_inplace_count(&amp;trie_inplace) != size)</span>
+<span class="lineNum">    1661 </span>            :                 /* LCOV_EXCL_START */
+<span class="lineNum">    1662 </span>            :                 abort();
+<span class="lineNum">    1663 </span>            :                 /* LCOV_EXCL_STOP */
+<span class="lineNum">    1664 </span>            : 
+<span class="lineNum">    1665 </span>            :         /* insert duplicates */
+<span class="lineNum">    1666 </span><span class="lineCov">          3 :         for(i=0;i&lt;2;++i) {</span>
+<span class="lineNum">    1667 </span><span class="lineCov">          2 :                 DUP[i].value = 0;</span>
+<span class="lineNum">    1668 </span><span class="lineCov">          2 :                 tommy_trie_inplace_insert(&amp;trie_inplace, &amp;DUP[i].node, &amp;DUP[i], DUP[i].value);</span>
+<span class="lineNum">    1669 </span>            :         }
+<span class="lineNum">    1670 </span>            : 
+<span class="lineNum">    1671 </span>            :         /* search present */
+<span class="lineNum">    1672 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
+<span class="lineNum">    1673 </span><span class="lineCov">    2000000 :                 if (tommy_trie_inplace_search(&amp;trie_inplace, OBJ[i].value) == 0)</span>
+<span class="lineNum">    1674 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">    1675 </span>            :                         abort();
+<span class="lineNum">    1676 </span>            :                         /* LCOV_EXCL_STOP */
 <span class="lineNum">    1677 </span>            : 
-<span class="lineNum">    1678 </span>            :         /* remove existing */
-<span class="lineNum">    1679 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
-<span class="lineNum">    1680 </span><span class="lineCov">    2000000 :                 tommy_trie_inplace_remove_existing(&amp;trie_inplace, &amp;OBJ[i].node);</span>
-<span class="lineNum">    1681 </span>            : 
-<span class="lineNum">    1682 </span>            :         /* remove second duplicate */
-<span class="lineNum">    1683 </span><span class="lineCov">          1 :         tommy_trie_inplace_remove_existing(&amp;trie_inplace, &amp;DUP[1].node);</span>
+<span class="lineNum">    1678 </span>            :         /* remove first duplicate */
+<span class="lineNum">    1679 </span><span class="lineCov">          1 :         tommy_trie_inplace_remove_existing(&amp;trie_inplace, &amp;DUP[0].node);</span>
+<span class="lineNum">    1680 </span>            : 
+<span class="lineNum">    1681 </span>            :         /* remove existing */
+<span class="lineNum">    1682 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
+<span class="lineNum">    1683 </span><span class="lineCov">    2000000 :                 tommy_trie_inplace_remove_existing(&amp;trie_inplace, &amp;OBJ[i].node);</span>
 <span class="lineNum">    1684 </span>            : 
-<span class="lineNum">    1685 </span>            :         /* remove missing */
-<span class="lineNum">    1686 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
-<span class="lineNum">    1687 </span><span class="lineCov">    2000000 :                 if (tommy_trie_inplace_remove(&amp;trie_inplace, OBJ[i].value) != 0)</span>
-<span class="lineNum">    1688 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">    1689 </span>            :                         abort();
-<span class="lineNum">    1690 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">    1691 </span>            : 
-<span class="lineNum">    1692 </span>            :         /* search missing */
-<span class="lineNum">    1693 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
-<span class="lineNum">    1694 </span><span class="lineCov">    2000000 :                 if (tommy_trie_inplace_search(&amp;trie_inplace, OBJ[i].value) != 0)</span>
-<span class="lineNum">    1695 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">    1696 </span>            :                         abort();
-<span class="lineNum">    1697 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">    1698 </span>            : 
-<span class="lineNum">    1699 </span>            :         /* remove present */
-<span class="lineNum">    1700 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
-<span class="lineNum">    1701 </span><span class="lineCov">    2000000 :                 if (tommy_trie_inplace_remove(&amp;trie_inplace, OBJ[size/2+i].value) == 0)</span>
-<span class="lineNum">    1702 </span>            :                         /* LCOV_EXCL_START */
-<span class="lineNum">    1703 </span>            :                         abort();
-<span class="lineNum">    1704 </span>            :                         /* LCOV_EXCL_STOP */
-<span class="lineNum">    1705 </span>            : 
-<span class="lineNum">    1706 </span><span class="lineCov">          1 :         STOP();</span>
-<a name="1707"><span class="lineNum">    1707 </span><span class="lineCov">          1 : }</span></a>
+<span class="lineNum">    1685 </span>            :         /* remove second duplicate */
+<span class="lineNum">    1686 </span><span class="lineCov">          1 :         tommy_trie_inplace_remove_existing(&amp;trie_inplace, &amp;DUP[1].node);</span>
+<span class="lineNum">    1687 </span>            : 
+<span class="lineNum">    1688 </span>            :         /* remove missing */
+<span class="lineNum">    1689 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
+<span class="lineNum">    1690 </span><span class="lineCov">    2000000 :                 if (tommy_trie_inplace_remove(&amp;trie_inplace, OBJ[i].value) != 0)</span>
+<span class="lineNum">    1691 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">    1692 </span>            :                         abort();
+<span class="lineNum">    1693 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">    1694 </span>            : 
+<span class="lineNum">    1695 </span>            :         /* search missing */
+<span class="lineNum">    1696 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
+<span class="lineNum">    1697 </span><span class="lineCov">    2000000 :                 if (tommy_trie_inplace_search(&amp;trie_inplace, OBJ[i].value) != 0)</span>
+<span class="lineNum">    1698 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">    1699 </span>            :                         abort();
+<span class="lineNum">    1700 </span>            :                         /* LCOV_EXCL_STOP */
+<span class="lineNum">    1701 </span>            : 
+<span class="lineNum">    1702 </span>            :         /* remove present */
+<span class="lineNum">    1703 </span><span class="lineCov">    2000001 :         for(i=0;i&lt;size/2;++i)</span>
+<span class="lineNum">    1704 </span><span class="lineCov">    2000000 :                 if (tommy_trie_inplace_remove(&amp;trie_inplace, OBJ[size/2+i].value) == 0)</span>
+<span class="lineNum">    1705 </span>            :                         /* LCOV_EXCL_START */
+<span class="lineNum">    1706 </span>            :                         abort();
+<span class="lineNum">    1707 </span>            :                         /* LCOV_EXCL_STOP */
 <span class="lineNum">    1708 </span>            : 
-<span class="lineNum">    1709 </span><span class="lineCov">          1 : int main() {</span>
-<span class="lineNum">    1710 </span><span class="lineCov">          1 :         nano_init();</span>
+<span class="lineNum">    1709 </span><span class="lineCov">          1 :         STOP();</span>
+<a name="1710"><span class="lineNum">    1710 </span><span class="lineCov">          1 : }</span></a>
 <span class="lineNum">    1711 </span>            : 
-<span class="lineNum">    1712 </span><span class="lineCov">          1 :         printf(&quot;Tommy check program.\n&quot;);</span>
-<span class="lineNum">    1713 </span>            : 
-<span class="lineNum">    1714 </span><span class="lineCov">          1 :         test_hash();</span>
-<span class="lineNum">    1715 </span><span class="lineCov">          1 :         test_alloc();</span>
-<span class="lineNum">    1716 </span><span class="lineCov">          1 :         test_list();</span>
-<span class="lineNum">    1717 </span><span class="lineCov">          1 :         test_tree();</span>
-<span class="lineNum">    1718 </span><span class="lineCov">          1 :         test_array();</span>
-<span class="lineNum">    1719 </span><span class="lineCov">          1 :         test_arrayof();</span>
-<span class="lineNum">    1720 </span><span class="lineCov">          1 :         test_arrayblk();</span>
-<span class="lineNum">    1721 </span><span class="lineCov">          1 :         test_arrayblkof();</span>
-<span class="lineNum">    1722 </span><span class="lineCov">          1 :         test_hashtable();</span>
-<span class="lineNum">    1723 </span><span class="lineCov">          1 :         test_hashdyn();</span>
-<span class="lineNum">    1724 </span><span class="lineCov">          1 :         test_hashlin();</span>
-<span class="lineNum">    1725 </span><span class="lineCov">          1 :         test_trie();</span>
-<span class="lineNum">    1726 </span><span class="lineCov">          1 :         test_trie_inplace();</span>
-<span class="lineNum">    1727 </span>            : 
-<span class="lineNum">    1728 </span><span class="lineCov">          1 :         printf(&quot;OK\n&quot;);</span>
-<span class="lineNum">    1729 </span>            : 
-<span class="lineNum">    1730 </span><span class="lineCov">          1 :         return EXIT_SUCCESS;</span>
-<span class="lineNum">    1731 </span>            : }
+<span class="lineNum">    1712 </span><span class="lineCov">          1 : int main() {</span>
+<span class="lineNum">    1713 </span><span class="lineCov">          1 :         nano_init();</span>
+<span class="lineNum">    1714 </span>            : 
+<span class="lineNum">    1715 </span><span class="lineCov">          1 :         printf(&quot;Tommy check program.\n&quot;);</span>
+<span class="lineNum">    1716 </span>            : 
+<span class="lineNum">    1717 </span><span class="lineCov">          1 :         test_hash();</span>
+<span class="lineNum">    1718 </span><span class="lineCov">          1 :         test_alloc();</span>
+<span class="lineNum">    1719 </span><span class="lineCov">          1 :         test_list();</span>
+<span class="lineNum">    1720 </span><span class="lineCov">          1 :         test_tree();</span>
+<span class="lineNum">    1721 </span><span class="lineCov">          1 :         test_array();</span>
+<span class="lineNum">    1722 </span><span class="lineCov">          1 :         test_arrayof();</span>
+<span class="lineNum">    1723 </span><span class="lineCov">          1 :         test_arrayblk();</span>
+<span class="lineNum">    1724 </span><span class="lineCov">          1 :         test_arrayblkof();</span>
+<span class="lineNum">    1725 </span><span class="lineCov">          1 :         test_hashtable();</span>
+<span class="lineNum">    1726 </span><span class="lineCov">          1 :         test_hashdyn();</span>
+<span class="lineNum">    1727 </span><span class="lineCov">          1 :         test_hashlin();</span>
+<span class="lineNum">    1728 </span><span class="lineCov">          1 :         test_trie();</span>
+<span class="lineNum">    1729 </span><span class="lineCov">          1 :         test_trie_inplace();</span>
+<span class="lineNum">    1730 </span>            : 
+<span class="lineNum">    1731 </span><span class="lineCov">          1 :         printf(&quot;OK\n&quot;);</span>
 <span class="lineNum">    1732 </span>            : 
+<span class="lineNum">    1733 </span><span class="lineCov">          1 :         return EXIT_SUCCESS;</span>
+<span class="lineNum">    1734 </span>            : }
+<span class="lineNum">    1735 </span>            : 
 </pre>
       </td>
     </tr>
@@ -1800,7 +1803,7 @@
 
   <table width="100%" border=0 cellspacing=0 cellpadding=0>
     <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
-    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.10</a></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
   </table>
   <br>
 
