@@ -6,7 +6,7 @@ rm tommyds.tgz
 
 make distclean
 
-export PATH=$PATH:../snapraid/contrib/cov-analysis-linux-8.5.0.1/bin
+export PATH=$PATH:../snapraid/contrib/cov-analysis-linux64-2017.07/bin
 
 if ! cov-build --dir cov-int make; then
 	exit 1
