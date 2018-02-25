@@ -40,7 +40,7 @@
  * <a href="http://www.nedprod.com/programs/portable/nedtries/">nedtrie</a>,
  * <a href="http://code.google.com/p/judyarray/">judyarray</a>,
  * <a href="http://concurrencykit.org/">concurrencykit</a> and others.
- * Only <a href="http://code.google.com/p/google-sparsehash/">googledensehash</a> is a real competitor for Tommy.
+ * Only <a href="https://github.com/sparsehash/sparsehash">googledensehash</a> is a real competitor for Tommy.
  *
  * The data structures provided are:
  *
@@ -180,13 +180,13 @@
  *  - <a href="http://uthash.sourceforge.net/">uthash</a> - Dynamic chaining hashtable by Troy D. Hanson.
  *  - <a href="http://judy.sourceforge.net/">judy</a> - Burst trie (JudyL) by Doug Baskins.
  *  - <a href="http://code.google.com/p/judyarray/">judyarray</a> - Burst trie by Karl Malbrain.
- *  - <a href="http://code.google.com/p/google-sparsehash/">googledensehash</a> - Dynamic open addressing hashtable by Craig Silverstein at Google.
+ *  - <a href="https://github.com/sparsehash/sparsehash">googledensehash</a> - Dynamic open addressing hashtable by Craig Silverstein at Google.
  *  - <a href="http://code.google.com/p/cpp-btree/">googlebtree</a> - Btree by Google.
  *  - <a href="http://panthema.net/2007/stx-btree/">stxbtree</a> - STX Btree by Timo Bingmann.
  *  - <a href="http://www.cplusplus.com/reference/unordered_map/unordered_map/">c++unordered_map</a> - C++ STL unordered_map<> template.
  *  - <a href="http://www.cplusplus.com/reference/map/map/">c++map</a> - C++ STL map<> template.
  *  - <a href="https://sites.google.com/site/binarysearchcube/">tesseract</a> - Binary Search Tesseract by Gregorius van den Hoven.
- *  - <a href="https://code.google.com/p/sparsehash/source/browse/trunk/experimental/libchash.c">googlelibchash</a> - LibCHash by Craig Silverstein at Google.
+ *  - <a href="https://github.com/sparsehash/sparsehash/tree/master/experimental">googlelibchash</a> - LibCHash by Craig Silverstein at Google.
  *  - <a href="https://github.com/fredrikwidlund/libdynamic">libdynamic</a> - Hash set by Fredrik Widlund.
  *  - <a href="http://concurrencykit.org/">concurrencykit</a> - Non-blocking hash set by Samy Al Bahra.
  *
