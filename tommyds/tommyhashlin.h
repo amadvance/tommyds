@@ -157,24 +157,19 @@
  */
 typedef tommy_node tommy_hashlin_node;
 
-/** \internal
- * Max number of elements as a power of 2.
- */
-#define TOMMY_HASHLIN_BIT_MAX 32
-
 /**
  * Hashtable container type.
  * \note Don't use internal fields directly, but access the container only using functions.
  */
 typedef struct tommy_hashlin_struct {
-	tommy_hashlin_node** bucket[TOMMY_HASHLIN_BIT_MAX]; /**< Dynamic array of hash buckets. One list for each hash modulus. */
-	tommy_uint_t bucket_bit; /**< Bits used in the bit mask. */
+	tommy_hashlin_node** bucket[TOMMY_BIT_MAX]; /**< Dynamic array of hash buckets. One list for each hash modulus. */
 	tommy_count_t bucket_max; /**< Number of buckets. */
 	tommy_count_t bucket_mask; /**< Bit mask to access the buckets. */
 	tommy_count_t low_max; /**< Low order max value. */
 	tommy_count_t low_mask; /**< Low order mask value. */
 	tommy_count_t split; /**< Split position. */
 	tommy_count_t count; /**< Number of elements. */
+	tommy_uint_t bucket_bit; /**< Bits used in the bit mask. */
 	tommy_uint_t state; /**< Reallocation state. */
 } tommy_hashlin;
 
@@ -217,7 +212,7 @@ tommy_inline tommy_hashlin_node** tommy_hashlin_pos(tommy_hashlin* hashlin, tomm
 	tommy_uint_t bsr;
 
 	/* get the highest bit set, in case of all 0, return 0 */
-	bsr = tommy_ilog2_u32(pos | 1);
+	bsr = tommy_ilog2(pos | 1);
 
 	return &hashlin->bucket[bsr][pos];
 }

@@ -54,21 +54,16 @@
  */
 #define TOMMY_ARRAYOF_BIT 6
 
-/** \internal
- * Max number of elements as a power of 2.
- */
-#define TOMMY_ARRAYOF_BIT_MAX 32
-
 /**
  * Array container type.
  * \note Don't use internal fields directly, but access the container only using functions.
  */
 typedef struct tommy_arrayof_struct {
-	void* bucket[TOMMY_ARRAYOF_BIT_MAX]; /**< Dynamic array of buckets. */
+	void* bucket[TOMMY_BIT_MAX]; /**< Dynamic array of buckets. */
 	tommy_size_t element_size; /**< Size of the stored element in bytes. */
-	tommy_uint_t bucket_bit; /**< Bits used in the bit mask. */
 	tommy_count_t bucket_max; /**< Number of buckets. */
 	tommy_count_t count; /**< Number of initialized elements in the array. */
+	tommy_uint_t bucket_bit; /**< Bits used in the bit mask. */
 } tommy_arrayof;
 
 /**
@@ -101,7 +96,7 @@ tommy_inline void* tommy_arrayof_ref(tommy_arrayof* array, tommy_count_t pos)
 	assert(pos < array->count);
 
 	/* get the highest bit set, in case of all 0, return 0 */
-	bsr = tommy_ilog2_u32(pos | 1);
+	bsr = tommy_ilog2(pos | 1);
 
 	ptr = tommy_cast(unsigned char*, array->bucket[bsr]);
 

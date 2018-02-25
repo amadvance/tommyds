@@ -123,6 +123,16 @@
 /* trie_inplace */
 
 /**
+ * Number of bits of the elements to store in the trie.
+ *
+ * If you need to store integers bigger than 32 bits you can
+ * increse this value.
+ *
+ * Keeping this value small improves the performance of the trie.
+ */
+#define TOMMY_TRIE_INPLACE_BIT 32
+
+/**
  * Number of branches on each node. It must be a power of 2.
  * Suggested values are 2, 4 and 8.
  * Any node, including leafs, contains a pointer to each branch.
@@ -137,7 +147,7 @@
 /** \internal
  * Number of bits of the first level.
  */
-#define TOMMY_TRIE_INPLACE_BUCKET_BIT ((TOMMY_KEY_BIT % TOMMY_TRIE_INPLACE_TREE_BIT) + 3 * TOMMY_TRIE_INPLACE_TREE_BIT)
+#define TOMMY_TRIE_INPLACE_BUCKET_BIT ((TOMMY_TRIE_INPLACE_BIT % TOMMY_TRIE_INPLACE_TREE_BIT) + 3 * TOMMY_TRIE_INPLACE_TREE_BIT)
 
 /** \internal
  * Number of branches of the first level.

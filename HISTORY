@@ -1,6 +1,15 @@
 TommyDS HISTORY
 ===============
 
+2.3 2018/03
+===========
+ * Added support for 64 bit counters. When building on a 64 bit platforms
+   the basic tommy_count_t, tommy_key_t and tommy_hash_t are 64 bit integers.
+   This means that you can store more than 2^32 objects in the containers.
+   This doesn't applies to tries that are able to store only 32 bit integers,
+   but you can change this with the TOMMY_TRIE_BIT and TOMMY_TRIE_INPLACE_BIT
+   definitions.
+
 2.2 2018/02
 ===========
  * Removed tommy_list_remove_head_not_empty() as not used and wrongly

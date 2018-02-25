@@ -40,7 +40,7 @@
 /**
  * Shift for the first level of branches.
  */
-#define TOMMY_TRIE_INPLACE_BUCKET_SHIFT (TOMMY_KEY_BIT - TOMMY_TRIE_INPLACE_BUCKET_BIT)
+#define TOMMY_TRIE_INPLACE_BUCKET_SHIFT (TOMMY_TRIE_INPLACE_BIT - TOMMY_TRIE_INPLACE_BUCKET_BIT)
 
 /**
  * Create a new list with a single element.
@@ -128,6 +128,9 @@ void tommy_trie_inplace_insert(tommy_trie_inplace* trie_inplace, tommy_trie_inpl
 {
 	tommy_trie_inplace_node** let_ptr;
 	tommy_uint_t i;
+
+	/* ensure that the element is not too big */
+	assert(key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT < TOMMY_TRIE_INPLACE_BUCKET_MAX);
 
 	node->data = data;
 	node->key = key;
@@ -217,6 +220,9 @@ void* tommy_trie_inplace_remove(tommy_trie_inplace* trie_inplace, tommy_key_t ke
 	tommy_trie_inplace_node* ret;
 	tommy_trie_inplace_node** let_ptr;
 
+	/* ensure that the element is not too big */
+	assert(key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT < TOMMY_TRIE_INPLACE_BUCKET_MAX);
+
 	let_ptr = &trie_inplace->bucket[key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT];
 
 	ret = trie_inplace_bucket_remove(TOMMY_TRIE_INPLACE_BUCKET_SHIFT, let_ptr, 0, key);
@@ -235,6 +241,9 @@ void* tommy_trie_inplace_remove_existing(tommy_trie_inplace* trie_inplace, tommy
 	tommy_key_t key = node->key;
 	tommy_trie_inplace_node** let_ptr;
 
+	/* ensure that the element is not too big */
+	assert(key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT < TOMMY_TRIE_INPLACE_BUCKET_MAX);
+
 	let_ptr = &trie_inplace->bucket[key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT];
 
 	ret = trie_inplace_bucket_remove(TOMMY_TRIE_INPLACE_BUCKET_SHIFT, let_ptr, node, key);
@@ -251,6 +260,9 @@ tommy_trie_inplace_node* tommy_trie_inplace_bucket(tommy_trie_inplace* trie_inpl
 {
 	tommy_trie_inplace_node* node;
 	tommy_uint_t shift;
+
+	/* ensure that the element is not too big */
+	assert(key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT < TOMMY_TRIE_INPLACE_BUCKET_MAX);
 
 	node = trie_inplace->bucket[key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT];
 	shift = TOMMY_TRIE_INPLACE_BUCKET_SHIFT;

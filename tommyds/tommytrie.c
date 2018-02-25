@@ -41,12 +41,12 @@
 /**
  * Shift for the first level of branches.
  */
-#define TOMMY_TRIE_BUCKET_SHIFT (TOMMY_KEY_BIT - TOMMY_TRIE_BUCKET_BIT)
+#define TOMMY_TRIE_BUCKET_SHIFT (TOMMY_TRIE_BIT - TOMMY_TRIE_BUCKET_BIT)
 
 /**
  * Max number of levels.
  */
-#define TOMMY_TRIE_LEVEL_MAX ((TOMMY_KEY_BIT - TOMMY_TRIE_BUCKET_BIT) / TOMMY_TRIE_TREE_BIT)
+#define TOMMY_TRIE_LEVEL_MAX ((TOMMY_TRIE_BIT - TOMMY_TRIE_BUCKET_BIT) / TOMMY_TRIE_TREE_BIT)
 
 /**
  * Hashtrie tree.
@@ -154,6 +154,9 @@ void tommy_trie_insert(tommy_trie* trie, tommy_trie_node* node, void* data, tomm
 {
 	tommy_trie_node** let_ptr;
 
+	/* ensure that the element is not too big */
+	assert(key >> TOMMY_TRIE_BUCKET_SHIFT < TOMMY_TRIE_BUCKET_MAX);
+
 	node->data = data;
 	node->key = key;
 
@@ -254,6 +257,9 @@ void* tommy_trie_remove(tommy_trie* trie, tommy_key_t key)
 	tommy_trie_node* ret;
 	tommy_trie_node** let_ptr;
 
+	/* ensure that the element is not too big */
+	assert(key >> TOMMY_TRIE_BUCKET_SHIFT < TOMMY_TRIE_BUCKET_MAX);
+
 	let_ptr = &trie->bucket[key >> TOMMY_TRIE_BUCKET_SHIFT];
 
 	ret = trie_bucket_remove_existing(trie, TOMMY_TRIE_BUCKET_SHIFT, let_ptr, 0, key);
@@ -271,6 +277,9 @@ void* tommy_trie_remove_existing(tommy_trie* trie, tommy_trie_node* node)
 	tommy_trie_node* ret;
 	tommy_key_t key = node->key;
 	tommy_trie_node** let_ptr;
+
+	/* ensure that the element is not too big */
+	assert(key >> TOMMY_TRIE_BUCKET_SHIFT < TOMMY_TRIE_BUCKET_MAX);
 
 	let_ptr = &trie->bucket[key >> TOMMY_TRIE_BUCKET_SHIFT];
 
@@ -290,6 +299,9 @@ tommy_trie_node* tommy_trie_bucket(tommy_trie* trie, tommy_key_t key)
 	void* ptr;
 	tommy_uint_t type;
 	tommy_uint_t shift;
+
+	/* ensure that the element is not too big */
+	assert(key >> TOMMY_TRIE_BUCKET_SHIFT < TOMMY_TRIE_BUCKET_MAX);
 
 	ptr = trie->bucket[key >> TOMMY_TRIE_BUCKET_SHIFT];
 

@@ -160,10 +160,10 @@ typedef tommy_node tommy_hashdyn_node;
  */
 typedef struct tommy_hashdyn_struct {
 	tommy_hashdyn_node** bucket; /**< Hash buckets. One list for each hash modulus. */
-	tommy_uint_t bucket_bit; /**< Bits used in the bit mask. */
 	tommy_count_t bucket_max; /**< Number of buckets. */
 	tommy_count_t bucket_mask; /**< Bit mask to access the buckets. */
 	tommy_count_t count; /**< Number of elements. */
+	tommy_uint_t bucket_bit; /**< Bits used in the bit mask. */
 } tommy_hashdyn;
 
 /**

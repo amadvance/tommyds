@@ -645,16 +645,12 @@
  * Tommy is not thread safe. You have always to provide thread safety using
  * locks before calling any Tommy functions.
  *
- * Tommy doesn't provide iterators over the implicit order defined by the data
- * structures. To iterate on elements you must insert them also into a ::tommy_list,
+ * Tommy doesn't provide iterators for elements stored in a container.
+ * To iterate on elements you must insert them also into a ::tommy_list,
  * and use the list as iterator. See the \ref multiindex example for more details.
- * Note that this is a real limitation only for ::tommy_trie, as it's the only
- * data structure defining an useable order.
  *
  * Tommy doesn't provide an error reporting mechanism for a malloc() failure.
  * You have to provide it redefining malloc() if you expect it to fail.
- *
- * Tommy assumes to never have more than 2^32-1 elements in a container.
  *
  * \section compromise Compromises
  *
