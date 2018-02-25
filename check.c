@@ -757,6 +757,9 @@ void test_list(void)
 
 	tommy_list_init(&list);
 
+	/* sort an empty list */
+	tommy_list_sort(&list, compare);
+
 	if (!tommy_list_empty(&list))
 		/* LCOV_EXCL_START */
 		abort();
