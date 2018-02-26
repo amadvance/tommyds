@@ -115,7 +115,7 @@ recurse:
 	node = tommy_cast(tommy_trie_node*, ptr);
 
 	/* if it's the same key, insert in the list */
-	if (node->key == key) {
+	if (node->index == key) {
 		tommy_list_insert_tail_not_empty(node, insert);
 		return;
 	}
@@ -131,7 +131,7 @@ expand:
 		tree->map[i] = 0;
 
 	/* get the position of the two elements */
-	i = (node->key >> shift) & TOMMY_TRIE_TREE_MASK;
+	i = (node->index >> shift) & TOMMY_TRIE_TREE_MASK;
 	j = (key >> shift) & TOMMY_TRIE_TREE_MASK;
 
 	/* if they don't collide */
@@ -158,7 +158,7 @@ void tommy_trie_insert(tommy_trie* trie, tommy_trie_node* node, void* data, tomm
 	assert(key >> TOMMY_TRIE_BUCKET_SHIFT < TOMMY_TRIE_BUCKET_MAX);
 
 	node->data = data;
-	node->key = key;
+	node->index = key;
 
 	let_ptr = &trie->bucket[key >> TOMMY_TRIE_BUCKET_SHIFT];
 
@@ -206,7 +206,7 @@ recurse:
 		remove = node;
 
 		/* check if it's really the element to remove */
-		if (remove->key != key)
+		if (remove->index != key)
 			return 0;
 	}
 
@@ -275,7 +275,7 @@ void* tommy_trie_remove(tommy_trie* trie, tommy_key_t key)
 void* tommy_trie_remove_existing(tommy_trie* trie, tommy_trie_node* node)
 {
 	tommy_trie_node* ret;
-	tommy_key_t key = node->key;
+	tommy_key_t key = node->index;
 	tommy_trie_node** let_ptr;
 
 	/* ensure that the element is not too big */
@@ -316,7 +316,7 @@ recurse:
 	switch (type) {
 	case TOMMY_TRIE_TYPE_NODE :
 		node = tommy_cast(tommy_trie_node*, ptr);
-		if (node->key != key)
+		if (node->index != key)
 			return 0;
 		return node;
 	default :

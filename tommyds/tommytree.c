@@ -41,8 +41,8 @@ void tommy_tree_init(tommy_tree* tree, tommy_compare_func* cmp)
 
 static tommy_ssize_t tommy_tree_delta(tommy_tree_node* root)
 {
-	tommy_ssize_t left_height = root->prev ? root->prev->key : 0;
-	tommy_ssize_t right_height = root->next ? root->next->key : 0;
+	tommy_ssize_t left_height = root->prev ? root->prev->index : 0;
+	tommy_ssize_t right_height = root->next ? root->next->index : 0;
 
 	return left_height - right_height;
 }
@@ -99,16 +99,16 @@ static tommy_tree_node* tommy_tree_balance(tommy_tree_node* root)
 	}
 
 	/* recompute key */
-	root->key = 0;
+	root->index = 0;
 
-	if (root->prev && root->prev->key > root->key)
-		root->key = root->prev->key;
+	if (root->prev && root->prev->index > root->index)
+		root->index = root->prev->index;
 
-	if (root->next && root->next->key > root->key)
-		root->key = root->next->key;
+	if (root->next && root->next->index > root->index)
+		root->index = root->next->index;
 
 	/* count itself */
-	root->key += 1;
+	root->index += 1;
 
 	return root;
 }
@@ -145,7 +145,7 @@ void* tommy_tree_insert(tommy_tree* tree, tommy_tree_node* node, void* data)
 	insert->data = data;
 	insert->prev = 0;
 	insert->next = 0;
-	insert->key = 0;
+	insert->index = 0;
 
 	tree->root = tommy_tree_insert_node(tree->cmp, tree->root, &insert);
 

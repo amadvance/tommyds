@@ -164,12 +164,17 @@ typedef tommy_uint32_t tommy_uint_t;
 #endif
 
 /******************************************************************************/
-/* key */
+/* key/hash */
 
 /**
- * Key type used in indexed data structures to store the key or the hash value.
+ * Type used in indexed data structures to store the key of a object.
  */
 typedef tommy_size_t tommy_key_t;
+
+/**
+ * Type used in hashtables to store the hash of a object.
+ */
+typedef tommy_size_t tommy_hash_t;
 
 /******************************************************************************/
 /* node */
@@ -207,11 +212,12 @@ typedef struct tommy_node_struct {
 	void* data;
 
 	/**
-	 * Key used to store the node.
+	 * Index of the node.
+	 * With tries this field is used to store the key.
 	 * With hashtables this field is used to store the hash value.
 	 * With lists this field is not used.
 	 */
-	tommy_key_t key;
+	tommy_size_t index;
 } tommy_node;
 
 /******************************************************************************/

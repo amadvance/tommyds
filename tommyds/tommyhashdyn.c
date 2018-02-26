@@ -84,7 +84,7 @@ static void tommy_hashdyn_resize(tommy_hashdyn* hashdyn, tommy_size_t new_bucket
 			j = hashdyn->bucket[i];
 			while (j) {
 				tommy_hashdyn_node* j_next = j->next;
-				tommy_size_t pos = j->key & new_bucket_mask;
+				tommy_size_t pos = j->index & new_bucket_mask;
 				if (new_bucket[pos])
 					tommy_list_insert_tail_not_empty(new_bucket[pos], j);
 				else
@@ -140,7 +140,7 @@ void tommy_hashdyn_insert(tommy_hashdyn* hashdyn, tommy_hashdyn_node* node, void
 
 	tommy_list_insert_tail(&hashdyn->bucket[pos], node, data);
 
-	node->key = hash;
+	node->index = hash;
 
 	++hashdyn->count;
 
@@ -149,7 +149,7 @@ void tommy_hashdyn_insert(tommy_hashdyn* hashdyn, tommy_hashdyn_node* node, void
 
 void* tommy_hashdyn_remove_existing(tommy_hashdyn* hashdyn, tommy_hashdyn_node* node)
 {
-	tommy_size_t pos = node->key & hashdyn->bucket_mask;
+	tommy_size_t pos = node->index & hashdyn->bucket_mask;
 
 	tommy_list_remove_existing(&hashdyn->bucket[pos], node);
 
@@ -167,7 +167,7 @@ void* tommy_hashdyn_remove(tommy_hashdyn* hashdyn, tommy_search_func* cmp, const
 
 	while (node) {
 		/* we first check if the hash matches, as in the same bucket we may have multiples hash values */
-		if (node->key == hash && cmp(cmp_arg, node->data) == 0) {
+		if (node->index == hash && cmp(cmp_arg, node->data) == 0) {
 			tommy_list_remove_existing(&hashdyn->bucket[pos], node);
 
 			--hashdyn->count;

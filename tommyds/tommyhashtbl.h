@@ -210,7 +210,7 @@ tommy_inline void* tommy_hashtable_search(tommy_hashtable* hashtable, tommy_sear
 
 	while (i) {
 		/* we first check if the hash matches, as in the same bucket we may have multiples hash values */
-		if (i->key == hash && cmp(cmp_arg, i->data) == 0)
+		if (i->index == hash && cmp(cmp_arg, i->data) == 0)
 			return i->data;
 		i = i->next;
 	}

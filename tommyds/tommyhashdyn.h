@@ -226,7 +226,7 @@ tommy_inline void* tommy_hashdyn_search(tommy_hashdyn* hashdyn, tommy_search_fun
 
 	while (i) {
 		/* we first check if the hash matches, as in the same bucket we may have multiples hash values */
-		if (i->key == hash && cmp(cmp_arg, i->data) == 0)
+		if (i->index == hash && cmp(cmp_arg, i->data) == 0)
 			return i->data;
 		i = i->next;
 	}

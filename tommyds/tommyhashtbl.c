@@ -64,14 +64,14 @@ void tommy_hashtable_insert(tommy_hashtable* hashtable, tommy_hashtable_node* no
 
 	tommy_list_insert_tail(&hashtable->bucket[pos], node, data);
 
-	node->key = hash;
+	node->index = hash;
 
 	++hashtable->count;
 }
 
 void* tommy_hashtable_remove_existing(tommy_hashtable* hashtable, tommy_hashtable_node* node)
 {
-	tommy_size_t pos = node->key & hashtable->bucket_mask;
+	tommy_size_t pos = node->index & hashtable->bucket_mask;
 
 	tommy_list_remove_existing(&hashtable->bucket[pos], node);
 
@@ -87,7 +87,7 @@ void* tommy_hashtable_remove(tommy_hashtable* hashtable, tommy_search_func* cmp,
 
 	while (node) {
 		/* we first check if the hash matches, as in the same bucket we may have multiples hash values */
-		if (node->key == hash && cmp(cmp_arg, node->data) == 0) {
+		if (node->index == hash && cmp(cmp_arg, node->data) == 0) {
 			tommy_list_remove_existing(&hashtable->bucket[pos], node);
 
 			--hashtable->count;

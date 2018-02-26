@@ -153,7 +153,7 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 			/* flush the bucket */
 			while (j) {
 				tommy_hashlin_node* j_next = j->next;
-				tommy_size_t pos = (j->key & mask) != 0;
+				tommy_size_t pos = (j->index & mask) != 0;
 				if (*split[pos])
 					tommy_list_insert_tail_not_empty(*split[pos], j);
 				else
@@ -248,7 +248,7 @@ void tommy_hashlin_insert(tommy_hashlin* hashlin, tommy_hashlin_node* node, void
 {
 	tommy_list_insert_tail(tommy_hashlin_bucket_ref(hashlin, hash), node, data);
 
-	node->key = hash;
+	node->index = hash;
 
 	++hashlin->count;
 
@@ -257,7 +257,7 @@ void tommy_hashlin_insert(tommy_hashlin* hashlin, tommy_hashlin_node* node, void
 
 void* tommy_hashlin_remove_existing(tommy_hashlin* hashlin, tommy_hashlin_node* node)
 {
-	tommy_list_remove_existing(tommy_hashlin_bucket_ref(hashlin, node->key), node);
+	tommy_list_remove_existing(tommy_hashlin_bucket_ref(hashlin, node->index), node);
 
 	--hashlin->count;
 
@@ -273,7 +273,7 @@ void* tommy_hashlin_remove(tommy_hashlin* hashlin, tommy_search_func* cmp, const
 
 	while (node) {
 		/* we first check if the hash matches, as in the same bucket we may have multiples hash values */
-		if (node->key == hash && cmp(cmp_arg, node->data) == 0) {
+		if (node->index == hash && cmp(cmp_arg, node->data) == 0) {
 			tommy_list_remove_existing(let_ptr, node);
 
 			--hashlin->count;
