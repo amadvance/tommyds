@@ -41,9 +41,9 @@ typedef unsigned tommy_uint32_t; /**< Generic uint32_t type. */
 typedef unsigned _int64 tommy_uint64_t; /**< Generic uint64_t type. */
 typedef size_t tommy_uintptr_t; /**< Generic uintptr_t type. */
 #if defined(_WIN64)
-#define TOMMY_BIT 64
+#define TOMMY_SIZE_BIT 64
 #else
-#define TOMMY_BIT 32
+#define TOMMY_SIZE_BIT 32
 #endif
 #else
 #include <stdint.h>
@@ -51,9 +51,9 @@ typedef uint32_t tommy_uint32_t; /**< Generic uint32_t type. */
 typedef uint64_t tommy_uint64_t; /**< Generic uint64_t type. */
 typedef uintptr_t tommy_uintptr_t; /**< Generic uintptr_t type. */
 #if SIZE_MAX == UINT64_MAX
-#define TOMMY_BIT 64
+#define TOMMY_SIZE_BIT 64
 #else
-#define TOMMY_BIT 32
+#define TOMMY_SIZE_BIT 32
 #endif
 #endif
 
@@ -68,16 +68,6 @@ typedef int tommy_bool_t; /**< Generic boolean type. */
  * To make the code more efficient, a full 32 bit integer is used.
  */
 typedef tommy_uint32_t tommy_uint_t;
-
-/**
- * Generic unsigned integer for counting objects.
- */
-typedef tommy_size_t tommy_count_t;
-
-/**
- * Bits into the ::tommy_count_t type.
- */
-#define TOMMY_BIT_MAX (sizeof(tommy_count_t) * 8)
 
 /** \internal
  * Type cast required for the C++ compilation.
@@ -310,7 +300,7 @@ typedef void tommy_foreach_arg_func(void* arg, void* obj);
 #include <intrin.h>
 #pragma intrinsic(_BitScanReverse)
 #pragma intrinsic(_BitScanForward)
-#if TOMMY_BIT == 64
+#if TOMMY_SIZE_BIT == 64
 #pragma intrinsic(_BitScanReverse64)
 #pragma intrinsic(_BitScanForward64)
 #endif
@@ -375,7 +365,7 @@ tommy_inline tommy_uint_t tommy_ilog2_u32(tommy_uint32_t value)
 #endif
 }
 
-#if TOMMY_BIT == 64
+#if TOMMY_SIZE_BIT == 64
 /**
  * Bit scan reverse or integer log2 for 64 bits.
  */
@@ -426,7 +416,7 @@ tommy_inline tommy_uint_t tommy_ctz_u32(tommy_uint32_t value)
 #endif
 }
 
-#if TOMMY_BIT == 64
+#if TOMMY_SIZE_BIT == 64
 /**
  * Bit scan forward or trailing zero count for 64 bits.
  */
@@ -499,7 +489,7 @@ tommy_inline int tommy_haszero_u32(tommy_uint32_t value)
 /*
  * Bit depth mapping.
  */
-#if TOMMY_BIT == 64
+#if TOMMY_SIZE_BIT == 64
 #define tommy_ilog2 tommy_ilog2_u64
 #define tommy_ctz tommy_ctz_u64
 #define tommy_roundup_pow2 tommy_roundup_pow2_u64

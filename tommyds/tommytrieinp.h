@@ -173,7 +173,7 @@ typedef struct tommy_trie_inplace_node_struct {
  */
 typedef struct tommy_trie_inplace_struct {
 	tommy_trie_inplace_node* bucket[TOMMY_TRIE_INPLACE_BUCKET_MAX]; /**< First tree level. */
-	tommy_count_t count; /**< Number of elements. */
+	tommy_size_t count; /**< Number of elements. */
 } tommy_trie_inplace;
 
 /**
@@ -234,7 +234,7 @@ void* tommy_trie_inplace_remove_existing(tommy_trie_inplace* trie_inplace, tommy
 /**
  * Gets the number of elements.
  */
-tommy_inline tommy_count_t tommy_trie_inplace_count(tommy_trie_inplace* trie_inplace)
+tommy_inline tommy_size_t tommy_trie_inplace_count(tommy_trie_inplace* trie_inplace)
 {
 	return trie_inplace->count;
 }

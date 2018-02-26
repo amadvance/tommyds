@@ -126,13 +126,13 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 	/* if we are growing */
 	if (hashlin->state == TOMMY_HASHLIN_STATE_GROW) {
 		/* compute the split target required to finish the reallocation before the next resize */
-		tommy_count_t split_target = 2 * hashlin->count;
+		tommy_size_t split_target = 2 * hashlin->count;
 
 		/* reallocate buckets until the split target */
 		while (hashlin->split + hashlin->low_max < split_target) {
 			tommy_hashlin_node** split[2];
 			tommy_hashlin_node* j;
-			tommy_count_t mask;
+			tommy_size_t mask;
 
 			/* get the low bucket */
 			split[0] = tommy_hashlin_pos(hashlin, hashlin->split);
@@ -153,7 +153,7 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 			/* flush the bucket */
 			while (j) {
 				tommy_hashlin_node* j_next = j->next;
-				tommy_count_t pos = (j->key & mask) != 0;
+				tommy_size_t pos = (j->key & mask) != 0;
 				if (*split[pos])
 					tommy_list_insert_tail_not_empty(*split[pos], j);
 				else
@@ -205,7 +205,7 @@ tommy_inline void hashlin_shrink_step(tommy_hashlin* hashlin)
 	/* if we are shrinking */
 	if (hashlin->state == TOMMY_HASHLIN_STATE_SHRINK) {
 		/* compute the split target required to finish the reallocation before the next resize */
-		tommy_count_t split_target = 8 * hashlin->count;
+		tommy_size_t split_target = 8 * hashlin->count;
 
 		/* reallocate buckets until the split target */
 		while (hashlin->split + hashlin->low_max > split_target) {
@@ -290,8 +290,8 @@ void* tommy_hashlin_remove(tommy_hashlin* hashlin, tommy_search_func* cmp, const
 
 void tommy_hashlin_foreach(tommy_hashlin* hashlin, tommy_foreach_func* func)
 {
-	tommy_count_t bucket_max;
-	tommy_count_t pos;
+	tommy_size_t bucket_max;
+	tommy_size_t pos;
 
 	/* number of valid buckets */
 	bucket_max = hashlin->low_max + hashlin->split;
@@ -309,8 +309,8 @@ void tommy_hashlin_foreach(tommy_hashlin* hashlin, tommy_foreach_func* func)
 
 void tommy_hashlin_foreach_arg(tommy_hashlin* hashlin, tommy_foreach_arg_func* func, void* arg)
 {
-	tommy_count_t bucket_max;
-	tommy_count_t pos;
+	tommy_size_t bucket_max;
+	tommy_size_t pos;
 
 	/* number of valid buckets */
 	bucket_max = hashlin->low_max + hashlin->split;

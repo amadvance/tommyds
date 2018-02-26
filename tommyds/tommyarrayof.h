@@ -59,10 +59,10 @@
  * \note Don't use internal fields directly, but access the container only using functions.
  */
 typedef struct tommy_arrayof_struct {
-	void* bucket[TOMMY_BIT_MAX]; /**< Dynamic array of buckets. */
+	void* bucket[TOMMY_SIZE_BIT]; /**< Dynamic array of buckets. */
 	tommy_size_t element_size; /**< Size of the stored element in bytes. */
-	tommy_count_t bucket_max; /**< Number of buckets. */
-	tommy_count_t count; /**< Number of initialized elements in the array. */
+	tommy_size_t bucket_max; /**< Number of buckets. */
+	tommy_size_t count; /**< Number of initialized elements in the array. */
 	tommy_uint_t bucket_bit; /**< Bits used in the bit mask. */
 } tommy_arrayof;
 
@@ -81,14 +81,14 @@ void tommy_arrayof_done(tommy_arrayof* array);
  * Grows the size up to the specified value.
  * All the new elements in the array are initialized with the 0 value.
  */
-void tommy_arrayof_grow(tommy_arrayof* array, tommy_count_t size);
+void tommy_arrayof_grow(tommy_arrayof* array, tommy_size_t size);
 
 /**
  * Gets a reference of the element at the specified position.
  * You must be sure that space for this position is already
  * allocated calling tommy_arrayof_grow().
  */
-tommy_inline void* tommy_arrayof_ref(tommy_arrayof* array, tommy_count_t pos)
+tommy_inline void* tommy_arrayof_ref(tommy_arrayof* array, tommy_size_t pos)
 {
 	unsigned char* ptr;
 	tommy_uint_t bsr;
@@ -106,7 +106,7 @@ tommy_inline void* tommy_arrayof_ref(tommy_arrayof* array, tommy_count_t pos)
 /**
  * Gets the initialized size of the array.
  */
-tommy_inline tommy_count_t tommy_arrayof_size(tommy_arrayof* array)
+tommy_inline tommy_size_t tommy_arrayof_size(tommy_arrayof* array)
 {
 	return array->count;
 }

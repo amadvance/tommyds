@@ -39,7 +39,7 @@ void tommy_arrayblk_init(tommy_arrayblk* array)
 
 void tommy_arrayblk_done(tommy_arrayblk* array)
 {
-	tommy_count_t i;
+	tommy_size_t i;
 
 	for (i = 0; i < tommy_array_size(&array->block); ++i)
 		tommy_free(tommy_array_get(&array->block, i));
@@ -47,10 +47,10 @@ void tommy_arrayblk_done(tommy_arrayblk* array)
 	tommy_array_done(&array->block);
 }
 
-void tommy_arrayblk_grow(tommy_arrayblk* array, tommy_count_t count)
+void tommy_arrayblk_grow(tommy_arrayblk* array, tommy_size_t count)
 {
-	tommy_count_t block_max;
-	tommy_count_t block_mac;
+	tommy_size_t block_max;
+	tommy_size_t block_mac;
 
 	if (array->count >= count)
 		return;

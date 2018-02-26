@@ -184,8 +184,8 @@ typedef tommy_node tommy_trie_node;
  */
 typedef struct tommy_trie_struct {
 	tommy_trie_node* bucket[TOMMY_TRIE_BUCKET_MAX]; /**< First tree level. */
-	tommy_count_t count; /**< Number of elements. */
-	tommy_count_t node_count; /**< Number of nodes. */
+	tommy_size_t count; /**< Number of elements. */
+	tommy_size_t node_count; /**< Number of nodes. */
 	tommy_allocator* alloc; /**< Allocator for internal nodes. */
 } tommy_trie;
 
@@ -255,7 +255,7 @@ void* tommy_trie_remove_existing(tommy_trie* trie, tommy_trie_node* node);
 /**
  * Gets the number of elements.
  */
-tommy_inline tommy_count_t tommy_trie_count(tommy_trie* trie)
+tommy_inline tommy_size_t tommy_trie_count(tommy_trie* trie)
 {
 	return trie->count;
 }

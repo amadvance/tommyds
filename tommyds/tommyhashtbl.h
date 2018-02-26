@@ -144,16 +144,16 @@ typedef tommy_node tommy_hashtable_node;
  */
 typedef struct tommy_hashtable_struct {
 	tommy_hashtable_node** bucket; /**< Hash buckets. One list for each hash modulus. */
-	tommy_count_t bucket_max; /**< Number of buckets. */
-	tommy_count_t bucket_mask; /**< Bit mask to access the buckets. */
-	tommy_count_t count; /**< Number of elements. */
+	tommy_size_t bucket_max; /**< Number of buckets. */
+	tommy_size_t bucket_mask; /**< Bit mask to access the buckets. */
+	tommy_size_t count; /**< Number of elements. */
 } tommy_hashtable;
 
 /**
  * Initializes the hashtable.
  * \param buckets Minimum number of buckets to allocate. The effective number used is the next power of 2.
  */
-void tommy_hashtable_init(tommy_hashtable* hashtable, tommy_count_t bucket_max);
+void tommy_hashtable_init(tommy_hashtable* hashtable, tommy_size_t bucket_max);
 
 /**
  * Deinitializes the hashtable.
@@ -265,7 +265,7 @@ void tommy_hashtable_foreach_arg(tommy_hashtable* hashtable, tommy_foreach_arg_f
 /**
  * Gets the number of elements.
  */
-tommy_inline tommy_count_t tommy_hashtable_count(tommy_hashtable* hashtable)
+tommy_inline tommy_size_t tommy_hashtable_count(tommy_hashtable* hashtable)
 {
 	return hashtable->count;
 }

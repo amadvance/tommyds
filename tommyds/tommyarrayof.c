@@ -56,7 +56,7 @@ void tommy_arrayof_done(tommy_arrayof* array)
 	}
 }
 
-void tommy_arrayof_grow(tommy_arrayof* array, tommy_count_t count)
+void tommy_arrayof_grow(tommy_arrayof* array, tommy_size_t count)
 {
 	if (array->count >= count)
 		return;

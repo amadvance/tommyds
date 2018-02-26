@@ -33,7 +33,7 @@
 /******************************************************************************/
 /* hashtable */
 
-void tommy_hashtable_init(tommy_hashtable* hashtable, tommy_count_t bucket_max)
+void tommy_hashtable_init(tommy_hashtable* hashtable, tommy_size_t bucket_max)
 {
 	if (bucket_max < 16)
 		bucket_max = 16;
@@ -60,7 +60,7 @@ void tommy_hashtable_done(tommy_hashtable* hashtable)
 
 void tommy_hashtable_insert(tommy_hashtable* hashtable, tommy_hashtable_node* node, void* data, tommy_hash_t hash)
 {
-	tommy_count_t pos = hash & hashtable->bucket_mask;
+	tommy_size_t pos = hash & hashtable->bucket_mask;
 
 	tommy_list_insert_tail(&hashtable->bucket[pos], node, data);
 
@@ -71,7 +71,7 @@ void tommy_hashtable_insert(tommy_hashtable* hashtable, tommy_hashtable_node* no
 
 void* tommy_hashtable_remove_existing(tommy_hashtable* hashtable, tommy_hashtable_node* node)
 {
-	tommy_count_t pos = node->key & hashtable->bucket_mask;
+	tommy_size_t pos = node->key & hashtable->bucket_mask;
 
 	tommy_list_remove_existing(&hashtable->bucket[pos], node);
 
@@ -82,7 +82,7 @@ void* tommy_hashtable_remove_existing(tommy_hashtable* hashtable, tommy_hashtabl
 
 void* tommy_hashtable_remove(tommy_hashtable* hashtable, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)
 {
-	tommy_count_t pos = hash & hashtable->bucket_mask;
+	tommy_size_t pos = hash & hashtable->bucket_mask;
 	tommy_hashtable_node* node = hashtable->bucket[pos];
 
 	while (node) {
@@ -102,9 +102,9 @@ void* tommy_hashtable_remove(tommy_hashtable* hashtable, tommy_search_func* cmp,
 
 void tommy_hashtable_foreach(tommy_hashtable* hashtable, tommy_foreach_func* func)
 {
-	tommy_count_t bucket_max = hashtable->bucket_max;
+	tommy_size_t bucket_max = hashtable->bucket_max;
 	tommy_hashtable_node** bucket = hashtable->bucket;
-	tommy_count_t pos;
+	tommy_size_t pos;
 
 	for (pos = 0; pos < bucket_max; ++pos) {
 		tommy_hashtable_node* node = bucket[pos];
@@ -119,9 +119,9 @@ void tommy_hashtable_foreach(tommy_hashtable* hashtable, tommy_foreach_func* fun
 
 void tommy_hashtable_foreach_arg(tommy_hashtable* hashtable, tommy_foreach_arg_func* func, void* arg)
 {
-	tommy_count_t bucket_max = hashtable->bucket_max;
+	tommy_size_t bucket_max = hashtable->bucket_max;
 	tommy_hashtable_node** bucket = hashtable->bucket;
-	tommy_count_t pos;
+	tommy_size_t pos;
 
 	for (pos = 0; pos < bucket_max; ++pos) {
 		tommy_hashtable_node* node = bucket[pos];
