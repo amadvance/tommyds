@@ -1,7 +1,7 @@
 TommyDS HISTORY
 ===============
 
-2.3 2018/03
+3.0 2018/03
 ===========
  * Added support for 64 bit counters. When building on a 64 bit platforms
    the basic tommy_count_t, tommy_key_t and tommy_hash_t are 64 bit integers.
