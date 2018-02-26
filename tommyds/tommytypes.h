@@ -36,14 +36,18 @@
 
 #include <stddef.h>
 
-#if defined(_MSC_VER)
+#ifdef _MSC_VER
 typedef unsigned tommy_uint32_t; /**< Generic uint32_t type. */
 typedef unsigned _int64 tommy_uint64_t; /**< Generic uint64_t type. */
 typedef size_t tommy_uintptr_t; /**< Generic uintptr_t type. */
-#if defined(_WIN64)
+#ifdef _WIN64
 #define TOMMY_SIZE_BIT 64
+typedef unsigned _int64_t tommy_size_t; /**< Generic size_t type. */
+typedef _int64_t tommy_ssize_t; /**< Generic ssize_t type. */
 #else
 #define TOMMY_SIZE_BIT 32
+typedef unsigned tommy_size_t; /**< Generic size_t type. */
+typedef int tommy_ssize_t; /**< Generic ssize_t type. */
 #endif
 #else
 #include <stdint.h>
@@ -52,12 +56,17 @@ typedef uint64_t tommy_uint64_t; /**< Generic uint64_t type. */
 typedef uintptr_t tommy_uintptr_t; /**< Generic uintptr_t type. */
 #if SIZE_MAX == UINT64_MAX
 #define TOMMY_SIZE_BIT 64
-#else
+typedef uint64_t tommy_size_t; /**< Generic size_t type. */
+typedef int64_t tommy_ssize_t; /**< Generic ssize_t type. */
+#elif SIZE_MAX == UINT32_MAX
 #define TOMMY_SIZE_BIT 32
+typedef uint32_t tommy_size_t; /**< Generic size_t type. */
+typedef int32_t tommy_ssize_t; /**< Generic ssize_t type. */
+#else
+#error Unsupported SIZE_MAX
 #endif
 #endif
 
-typedef size_t tommy_size_t; /**< Generic size_t type. */
 typedef ptrdiff_t tommy_ptrdiff_t; /**< Generic ptrdiff_t type. */
 typedef int tommy_bool_t; /**< Generic boolean type. */
 

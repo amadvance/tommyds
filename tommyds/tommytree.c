@@ -39,10 +39,10 @@ void tommy_tree_init(tommy_tree* tree, tommy_compare_func* cmp)
 	tree->cmp = cmp;
 }
 
-static int tommy_tree_delta(tommy_tree_node* root)
+static tommy_ssize_t tommy_tree_delta(tommy_tree_node* root)
 {
-	int left_height = root->prev ? root->prev->key : 0;
-	int right_height = root->next ? root->next->key : 0;
+	tommy_ssize_t left_height = root->prev ? root->prev->key : 0;
+	tommy_ssize_t right_height = root->next ? root->next->key : 0;
 
 	return left_height - right_height;
 }
@@ -84,7 +84,7 @@ static tommy_tree_node* tommy_tree_move_right(tommy_tree_node* root, tommy_tree_
 
 static tommy_tree_node* tommy_tree_balance(tommy_tree_node* root)
 {
-	int delta = tommy_tree_delta(root);
+	tommy_ssize_t delta = tommy_tree_delta(root);
 
 	if (delta < -1) {
 		if (tommy_tree_delta(root->next) > 0)
