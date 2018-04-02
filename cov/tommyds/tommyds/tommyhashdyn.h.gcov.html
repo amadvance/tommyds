@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2018-02-25 09:37:06</td>
+            <td class="headerValue">2018-04-02 17:50:51</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">1</td>
@@ -222,10 +222,10 @@
 <span class="lineNum">     160 </span>            :  */
 <span class="lineNum">     161 </span>            : typedef struct tommy_hashdyn_struct {
 <span class="lineNum">     162 </span>            :         tommy_hashdyn_node** bucket; /**&lt; Hash buckets. One list for each hash modulus. */
-<span class="lineNum">     163 </span>            :         tommy_uint_t bucket_bit; /**&lt; Bits used in the bit mask. */
-<span class="lineNum">     164 </span>            :         tommy_count_t bucket_max; /**&lt; Number of buckets. */
-<span class="lineNum">     165 </span>            :         tommy_count_t bucket_mask; /**&lt; Bit mask to access the buckets. */
-<span class="lineNum">     166 </span>            :         tommy_count_t count; /**&lt; Number of elements. */
+<span class="lineNum">     163 </span>            :         tommy_size_t bucket_max; /**&lt; Number of buckets. */
+<span class="lineNum">     164 </span>            :         tommy_size_t bucket_mask; /**&lt; Bit mask to access the buckets. */
+<span class="lineNum">     165 </span>            :         tommy_size_t count; /**&lt; Number of elements. */
+<span class="lineNum">     166 </span>            :         tommy_uint_t bucket_bit; /**&lt; Bits used in the bit mask. */
 <span class="lineNum">     167 </span>            : } tommy_hashdyn;
 <span class="lineNum">     168 </span>            : 
 <span class="lineNum">     169 </span>            : /**
@@ -288,7 +288,7 @@
 <span class="lineNum">     226 </span>            : 
 <span class="lineNum">     227 </span>            :         while (i) {
 <span class="lineNum">     228 </span>            :                 /* we first check if the hash matches, as in the same bucket we may have multiples hash values */
-<span class="lineNum">     229 </span>            :                 if (i-&gt;key == hash &amp;&amp; cmp(cmp_arg, i-&gt;data) == 0)
+<span class="lineNum">     229 </span>            :                 if (i-&gt;index == hash &amp;&amp; cmp(cmp_arg, i-&gt;data) == 0)
 <span class="lineNum">     230 </span>            :                         return i-&gt;data;
 <span class="lineNum">     231 </span>            :                 i = i-&gt;next;
 <span class="lineNum">     232 </span>            :         }
@@ -343,7 +343,7 @@
 <span class="lineNum">     281 </span>            : /**
 <a name="282"><span class="lineNum">     282 </span>            :  * Gets the number of elements.</a>
 <span class="lineNum">     283 </span>            :  */
-<span class="lineNum">     284 </span><span class="lineCov">      10002 : tommy_inline tommy_count_t tommy_hashdyn_count(tommy_hashdyn* hashdyn)</span>
+<span class="lineNum">     284 </span><span class="lineCov">      10002 : tommy_inline tommy_size_t tommy_hashdyn_count(tommy_hashdyn* hashdyn)</span>
 <span class="lineNum">     285 </span>            : {
 <span class="lineNum">     286 </span><span class="lineCov">      10002 :         return hashdyn-&gt;count;</span>
 <span class="lineNum">     287 </span>            : }

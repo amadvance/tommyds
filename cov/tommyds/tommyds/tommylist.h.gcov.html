@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2018-02-25 09:37:06</td>
+            <td class="headerValue">2018-04-02 17:50:51</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">9</td>
@@ -373,9 +373,9 @@
 <span class="lineNum">     311 </span>            :  * Gets the number of elements.
 <span class="lineNum">     312 </span>            :  * \note This operation is O(n).
 <span class="lineNum">     313 </span>            :  */
-<span class="lineNum">     314 </span>            : tommy_inline tommy_count_t tommy_list_count(tommy_list* list)
+<span class="lineNum">     314 </span>            : tommy_inline tommy_size_t tommy_list_count(tommy_list* list)
 <span class="lineNum">     315 </span>            : {
-<span class="lineNum">     316 </span>            :         tommy_count_t count = 0;
+<span class="lineNum">     316 </span>            :         tommy_size_t count = 0;
 <span class="lineNum">     317 </span>            :         tommy_node* i = tommy_list_head(list);
 <span class="lineNum">     318 </span>            : 
 <span class="lineNum">     319 </span>            :         while (i) {
