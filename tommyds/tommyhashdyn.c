@@ -35,7 +35,7 @@ void tommy_hashdyn_init(tommy_hashdyn* hashdyn)
 {
 	/* fixed initial size */
 	hashdyn->bucket_bit = TOMMY_HASHDYN_BIT;
-	hashdyn->bucket_max = 1 << hashdyn->bucket_bit;
+	hashdyn->bucket_max = (tommy_size_t)1 << hashdyn->bucket_bit;
 	hashdyn->bucket_mask = hashdyn->bucket_max - 1;
 	hashdyn->bucket = tommy_cast(tommy_hashdyn_node**, tommy_calloc(hashdyn->bucket_max, sizeof(tommy_hashdyn_node*)));
 
@@ -61,7 +61,7 @@ static void tommy_hashdyn_resize(tommy_hashdyn* hashdyn, tommy_size_t new_bucket
 	bucket_bit = hashdyn->bucket_bit;
 	bucket_max = hashdyn->bucket_max;
 
-	new_bucket_max = 1 << new_bucket_bit;
+	new_bucket_max = (tommy_size_t)1 << new_bucket_bit;
 	new_bucket_mask = new_bucket_max - 1;
 
 	/* allocate the new vector using malloc() and not calloc() */
