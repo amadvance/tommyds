@@ -1,13 +1,12 @@
 TommyDS HISTORY
 ===============
 
-3.0 2018/03
+3.0 2018/04
 ===========
- * When building on a 64 bit platforms the basic types are 64 bit integers.
-   This means that you can store more than 2^32 objects in the containers.
-   This doesn't applies to tries that are able to store only 32 bit integers,
-   but you can change this with the TOMMY_TRIE_BIT and TOMMY_TRIE_INPLACE_BIT
-   definitions.
+ * Use 64 bits integers when building on a 64 bits platforms. You can store
+   more than 2^32 objects in the containers. This doesn't applies to tries
+   that are able to store only 32 bit integers, but you can change this with
+   the TOMMY_TRIE_BIT and TOMMY_TRIE_INPLACE_BIT definitions.
  * Removed the tommy_count_t type that is now always replaced by tommy_size_t.
  * Renamed the "key" field of the tommy_node_t to "index" to be more generic
    on the possible use.
