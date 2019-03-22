@@ -169,7 +169,7 @@ typedef struct tommy_hashdyn_struct {
 /**
  * Initializes the hashtable.
  */
-void tommy_hashdyn_init(tommy_hashdyn* hashdyn);
+TOMMY_API void tommy_hashdyn_init(tommy_hashdyn* hashdyn);
 
 /**
  * Deinitializes the hashtable.
@@ -177,12 +177,12 @@ void tommy_hashdyn_init(tommy_hashdyn* hashdyn);
  * You can call this function with elements still contained,
  * but such elements are not going to be freed by this call.
  */
-void tommy_hashdyn_done(tommy_hashdyn* hashdyn);
+TOMMY_API void tommy_hashdyn_done(tommy_hashdyn* hashdyn);
 
 /**
  * Inserts an element in the hashtable.
  */
-void tommy_hashdyn_insert(tommy_hashdyn* hashdyn, tommy_hashdyn_node* node, void* data, tommy_hash_t hash);
+TOMMY_API void tommy_hashdyn_insert(tommy_hashdyn* hashdyn, tommy_hashdyn_node* node, void* data, tommy_hash_t hash);
 
 /**
  * Searches and removes an element from the hashtable.
@@ -195,7 +195,7 @@ void tommy_hashdyn_insert(tommy_hashdyn* hashdyn, tommy_hashdyn_node* node, void
  * \param hash Hash of the element to find and remove.
  * \return The removed element, or 0 if not found.
  */
-void* tommy_hashdyn_remove(tommy_hashdyn* hashdyn, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash);
+TOMMY_API void* tommy_hashdyn_remove(tommy_hashdyn* hashdyn, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash);
 
 /**
  * Gets the bucket of the specified hash.
@@ -238,7 +238,7 @@ tommy_inline void* tommy_hashdyn_search(tommy_hashdyn* hashdyn, tommy_search_fun
  * You must already have the address of the element to remove.
  * \return The tommy_node::data field of the node removed.
  */
-void* tommy_hashdyn_remove_existing(tommy_hashdyn* hashdyn, tommy_hashdyn_node* node);
+TOMMY_API void* tommy_hashdyn_remove_existing(tommy_hashdyn* hashdyn, tommy_hashdyn_node* node);
 
 /**
  * Calls the specified function for each element in the hashtable.
@@ -271,12 +271,12 @@ void* tommy_hashdyn_remove_existing(tommy_hashdyn* hashdyn, tommy_hashdyn_node* 
  * tommy_hashdyn_done(&hashdyn);
  * \endcode
  */
-void tommy_hashdyn_foreach(tommy_hashdyn* hashdyn, tommy_foreach_func* func);
+TOMMY_API void tommy_hashdyn_foreach(tommy_hashdyn* hashdyn, tommy_foreach_func* func);
 
 /**
  * Calls the specified function with an argument for each element in the hashtable.
  */
-void tommy_hashdyn_foreach_arg(tommy_hashdyn* hashdyn, tommy_foreach_arg_func* func, void* arg);
+TOMMY_API void tommy_hashdyn_foreach_arg(tommy_hashdyn* hashdyn, tommy_foreach_arg_func* func, void* arg);
 
 /**
  * Gets the number of elements.
@@ -290,7 +290,7 @@ tommy_inline tommy_size_t tommy_hashdyn_count(tommy_hashdyn* hashdyn)
  * Gets the size of allocated memory.
  * It includes the size of the ::tommy_hashdyn_node of the stored elements.
  */
-tommy_size_t tommy_hashdyn_memory_usage(tommy_hashdyn* hashdyn);
+TOMMY_API tommy_size_t tommy_hashdyn_memory_usage(tommy_hashdyn* hashdyn);
 
 #endif
 

@@ -74,7 +74,7 @@ typedef struct tommy_trie_tree_struct tommy_trie_tree;
 #define trie_get_tree(ptr) ((tommy_trie_tree*)(((tommy_uintptr_t)(ptr)) - TOMMY_TRIE_TYPE_TREE))
 #define trie_set_tree(ptr) (void*)(((tommy_uintptr_t)(ptr)) + TOMMY_TRIE_TYPE_TREE)
 
-void tommy_trie_init(tommy_trie* trie, tommy_allocator* alloc)
+TOMMY_API void tommy_trie_init(tommy_trie* trie, tommy_allocator* alloc)
 {
 	tommy_uint_t i;
 
@@ -150,7 +150,7 @@ expand:
 	goto expand;
 }
 
-void tommy_trie_insert(tommy_trie* trie, tommy_trie_node* node, void* data, tommy_key_t key)
+TOMMY_API void tommy_trie_insert(tommy_trie* trie, tommy_trie_node* node, void* data, tommy_key_t key)
 {
 	tommy_trie_node** let_ptr;
 
@@ -252,7 +252,7 @@ reduce:
 	return remove;
 }
 
-void* tommy_trie_remove(tommy_trie* trie, tommy_key_t key)
+TOMMY_API void* tommy_trie_remove(tommy_trie* trie, tommy_key_t key)
 {
 	tommy_trie_node* ret;
 	tommy_trie_node** let_ptr;
@@ -272,7 +272,7 @@ void* tommy_trie_remove(tommy_trie* trie, tommy_key_t key)
 	return ret->data;
 }
 
-void* tommy_trie_remove_existing(tommy_trie* trie, tommy_trie_node* node)
+TOMMY_API void* tommy_trie_remove_existing(tommy_trie* trie, tommy_trie_node* node)
 {
 	tommy_trie_node* ret;
 	tommy_key_t key = node->index;
@@ -293,7 +293,7 @@ void* tommy_trie_remove_existing(tommy_trie* trie, tommy_trie_node* node)
 	return ret->data;
 }
 
-tommy_trie_node* tommy_trie_bucket(tommy_trie* trie, tommy_key_t key)
+TOMMY_API tommy_trie_node* tommy_trie_bucket(tommy_trie* trie, tommy_key_t key)
 {
 	tommy_trie_node* node;
 	void* ptr;
@@ -327,7 +327,7 @@ recurse:
 	}
 }
 
-tommy_size_t tommy_trie_memory_usage(tommy_trie* trie)
+TOMMY_API tommy_size_t tommy_trie_memory_usage(tommy_trie* trie)
 {
 	return tommy_trie_count(trie) * (tommy_size_t)sizeof(tommy_trie_node)
 	       + trie->node_count * (tommy_size_t)TOMMY_TRIE_BLOCK_SIZE;
