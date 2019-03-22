@@ -37,7 +37,7 @@ void tommy_arrayblk_init(tommy_arrayblk* array)
 	array->count = 0;
 }
 
-void tommy_arrayblk_done(tommy_arrayblk* array)
+TOMMY_API void tommy_arrayblk_done(tommy_arrayblk* array)
 {
 	tommy_size_t i;
 
@@ -47,7 +47,7 @@ void tommy_arrayblk_done(tommy_arrayblk* array)
 	tommy_array_done(&array->block);
 }
 
-void tommy_arrayblk_grow(tommy_arrayblk* array, tommy_size_t count)
+TOMMY_API void tommy_arrayblk_grow(tommy_arrayblk* array, tommy_size_t count)
 {
 	tommy_size_t block_max;
 	tommy_size_t block_mac;
@@ -75,7 +75,7 @@ void tommy_arrayblk_grow(tommy_arrayblk* array, tommy_size_t count)
 	}
 }
 
-tommy_size_t tommy_arrayblk_memory_usage(tommy_arrayblk* array)
+TOMMY_API tommy_size_t tommy_arrayblk_memory_usage(tommy_arrayblk* array)
 {
 	return tommy_array_memory_usage(&array->block) + tommy_array_size(&array->block) * TOMMY_ARRAYBLK_SIZE * sizeof(void*);
 }

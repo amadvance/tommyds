@@ -33,7 +33,7 @@
 /******************************************************************************/
 /* hashtable */
 
-void tommy_hashtable_init(tommy_hashtable* hashtable, tommy_size_t bucket_max)
+TOMMY_API void tommy_hashtable_init(tommy_hashtable* hashtable, tommy_size_t bucket_max)
 {
 	if (bucket_max < 16)
 		bucket_max = 16;
@@ -53,12 +53,12 @@ void tommy_hashtable_init(tommy_hashtable* hashtable, tommy_size_t bucket_max)
 	hashtable->count = 0;
 }
 
-void tommy_hashtable_done(tommy_hashtable* hashtable)
+TOMMY_API void tommy_hashtable_done(tommy_hashtable* hashtable)
 {
 	tommy_free(hashtable->bucket);
 }
 
-void tommy_hashtable_insert(tommy_hashtable* hashtable, tommy_hashtable_node* node, void* data, tommy_hash_t hash)
+TOMMY_API void tommy_hashtable_insert(tommy_hashtable* hashtable, tommy_hashtable_node* node, void* data, tommy_hash_t hash)
 {
 	tommy_size_t pos = hash & hashtable->bucket_mask;
 
@@ -69,7 +69,7 @@ void tommy_hashtable_insert(tommy_hashtable* hashtable, tommy_hashtable_node* no
 	++hashtable->count;
 }
 
-void* tommy_hashtable_remove_existing(tommy_hashtable* hashtable, tommy_hashtable_node* node)
+TOMMY_API void* tommy_hashtable_remove_existing(tommy_hashtable* hashtable, tommy_hashtable_node* node)
 {
 	tommy_size_t pos = node->index & hashtable->bucket_mask;
 
@@ -80,7 +80,7 @@ void* tommy_hashtable_remove_existing(tommy_hashtable* hashtable, tommy_hashtabl
 	return node->data;
 }
 
-void* tommy_hashtable_remove(tommy_hashtable* hashtable, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)
+TOMMY_API void* tommy_hashtable_remove(tommy_hashtable* hashtable, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)
 {
 	tommy_size_t pos = hash & hashtable->bucket_mask;
 	tommy_hashtable_node* node = hashtable->bucket[pos];
@@ -100,7 +100,7 @@ void* tommy_hashtable_remove(tommy_hashtable* hashtable, tommy_search_func* cmp,
 	return 0;
 }
 
-void tommy_hashtable_foreach(tommy_hashtable* hashtable, tommy_foreach_func* func)
+TOMMY_API void tommy_hashtable_foreach(tommy_hashtable* hashtable, tommy_foreach_func* func)
 {
 	tommy_size_t bucket_max = hashtable->bucket_max;
 	tommy_hashtable_node** bucket = hashtable->bucket;
@@ -117,7 +117,7 @@ void tommy_hashtable_foreach(tommy_hashtable* hashtable, tommy_foreach_func* fun
 	}
 }
 
-void tommy_hashtable_foreach_arg(tommy_hashtable* hashtable, tommy_foreach_arg_func* func, void* arg)
+TOMMY_API void tommy_hashtable_foreach_arg(tommy_hashtable* hashtable, tommy_foreach_arg_func* func, void* arg)
 {
 	tommy_size_t bucket_max = hashtable->bucket_max;
 	tommy_hashtable_node** bucket = hashtable->bucket;
@@ -134,7 +134,7 @@ void tommy_hashtable_foreach_arg(tommy_hashtable* hashtable, tommy_foreach_arg_f
 	}
 }
 
-tommy_size_t tommy_hashtable_memory_usage(tommy_hashtable* hashtable)
+TOMMY_API tommy_size_t tommy_hashtable_memory_usage(tommy_hashtable* hashtable)
 {
 	return hashtable->bucket_max * (tommy_size_t)sizeof(hashtable->bucket[0])
 	       + tommy_hashtable_count(hashtable) * (tommy_size_t)sizeof(tommy_hashtable_node);

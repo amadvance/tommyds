@@ -66,7 +66,7 @@ tommy_inline tommy_uint32_t tommy_le_uint32_read(const void* ptr)
 		c ^= b; c -= tommy_rot(b, 24); \
 	} while (0)
 
-tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* void_key, tommy_size_t key_len)
+TOMMY_API tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* void_key, tommy_size_t key_len)
 {
 	const unsigned char* key = tommy_cast(const unsigned char*, void_key);
 	tommy_uint32_t a, b, c;
@@ -115,7 +115,7 @@ tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* void_key, tom
 	return c;
 }
 
-tommy_uint64_t tommy_hash_u64(tommy_uint64_t init_val, const void* void_key, tommy_size_t key_len)
+TOMMY_API tommy_uint64_t tommy_hash_u64(tommy_uint64_t init_val, const void* void_key, tommy_size_t key_len)
 {
 	const unsigned char* key = tommy_cast(const unsigned char*, void_key);
 	tommy_uint32_t a, b, c;
@@ -165,7 +165,7 @@ tommy_uint64_t tommy_hash_u64(tommy_uint64_t init_val, const void* void_key, tom
 	return c + ((tommy_uint64_t)b << 32);
 }
 
-tommy_uint32_t tommy_strhash_u32(tommy_uint64_t init_val, const void* void_key)
+TOMMY_API tommy_uint32_t tommy_strhash_u32(tommy_uint64_t init_val, const void* void_key)
 {
 	const unsigned char* key = tommy_cast(const unsigned char*, void_key);
 	tommy_uint32_t a, b, c;

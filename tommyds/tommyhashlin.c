@@ -54,7 +54,7 @@ tommy_inline void tommy_hashlin_stable(tommy_hashlin* hashlin)
 	hashlin->split = 0;
 }
 
-void tommy_hashlin_init(tommy_hashlin* hashlin)
+TOMMY_API void tommy_hashlin_init(tommy_hashlin* hashlin)
 {
 	tommy_uint_t i;
 
@@ -72,7 +72,7 @@ void tommy_hashlin_init(tommy_hashlin* hashlin)
 	hashlin->count = 0;
 }
 
-void tommy_hashlin_done(tommy_hashlin* hashlin)
+TOMMY_API void tommy_hashlin_done(tommy_hashlin* hashlin)
 {
 	tommy_uint_t i;
 
@@ -244,7 +244,7 @@ tommy_inline void hashlin_shrink_step(tommy_hashlin* hashlin)
 	}
 }
 
-void tommy_hashlin_insert(tommy_hashlin* hashlin, tommy_hashlin_node* node, void* data, tommy_hash_t hash)
+TOMMY_API void tommy_hashlin_insert(tommy_hashlin* hashlin, tommy_hashlin_node* node, void* data, tommy_hash_t hash)
 {
 	tommy_list_insert_tail(tommy_hashlin_bucket_ref(hashlin, hash), node, data);
 
@@ -255,7 +255,7 @@ void tommy_hashlin_insert(tommy_hashlin* hashlin, tommy_hashlin_node* node, void
 	hashlin_grow_step(hashlin);
 }
 
-void* tommy_hashlin_remove_existing(tommy_hashlin* hashlin, tommy_hashlin_node* node)
+TOMMY_API void* tommy_hashlin_remove_existing(tommy_hashlin* hashlin, tommy_hashlin_node* node)
 {
 	tommy_list_remove_existing(tommy_hashlin_bucket_ref(hashlin, node->index), node);
 
@@ -266,7 +266,7 @@ void* tommy_hashlin_remove_existing(tommy_hashlin* hashlin, tommy_hashlin_node* 
 	return node->data;
 }
 
-void* tommy_hashlin_remove(tommy_hashlin* hashlin, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)
+TOMMY_API void* tommy_hashlin_remove(tommy_hashlin* hashlin, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)
 {
 	tommy_hashlin_node** let_ptr = tommy_hashlin_bucket_ref(hashlin, hash);
 	tommy_hashlin_node* node = *let_ptr;
@@ -288,7 +288,7 @@ void* tommy_hashlin_remove(tommy_hashlin* hashlin, tommy_search_func* cmp, const
 	return 0;
 }
 
-void tommy_hashlin_foreach(tommy_hashlin* hashlin, tommy_foreach_func* func)
+TOMMY_API void tommy_hashlin_foreach(tommy_hashlin* hashlin, tommy_foreach_func* func)
 {
 	tommy_size_t bucket_max;
 	tommy_size_t pos;
@@ -307,7 +307,7 @@ void tommy_hashlin_foreach(tommy_hashlin* hashlin, tommy_foreach_func* func)
 	}
 }
 
-void tommy_hashlin_foreach_arg(tommy_hashlin* hashlin, tommy_foreach_arg_func* func, void* arg)
+TOMMY_API void tommy_hashlin_foreach_arg(tommy_hashlin* hashlin, tommy_foreach_arg_func* func, void* arg)
 {
 	tommy_size_t bucket_max;
 	tommy_size_t pos;
@@ -326,7 +326,7 @@ void tommy_hashlin_foreach_arg(tommy_hashlin* hashlin, tommy_foreach_arg_func* f
 	}
 }
 
-tommy_size_t tommy_hashlin_memory_usage(tommy_hashlin* hashlin)
+TOMMY_API tommy_size_t tommy_hashlin_memory_usage(tommy_hashlin* hashlin)
 {
 	return hashlin->bucket_max * (tommy_size_t)sizeof(hashlin->bucket[0][0])
 	       + hashlin->count * (tommy_size_t)sizeof(tommy_hashlin_node);

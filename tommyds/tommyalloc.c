@@ -37,7 +37,7 @@
  */
 #define TOMMY_ALLOCATOR_BLOCK_SIZE (4096 - 64)
 
-void tommy_allocator_init(tommy_allocator* alloc, tommy_size_t block_size, tommy_size_t align_size)
+TOMMY_API void tommy_allocator_init(tommy_allocator* alloc, tommy_size_t block_size, tommy_size_t align_size)
 {
 	/* setup the minimal alignment */
 	if (align_size < sizeof(void*))
@@ -73,12 +73,12 @@ static void allocator_reset(tommy_allocator* alloc)
 	alloc->used_segment = 0;
 }
 
-void tommy_allocator_done(tommy_allocator* alloc)
+TOMMY_API void tommy_allocator_done(tommy_allocator* alloc)
 {
 	allocator_reset(alloc);
 }
 
-void* tommy_allocator_alloc(tommy_allocator* alloc)
+TOMMY_API void* tommy_allocator_alloc(tommy_allocator* alloc)
 {
 	void* ptr;
 
@@ -132,7 +132,7 @@ void* tommy_allocator_alloc(tommy_allocator* alloc)
 	return ptr;
 }
 
-void tommy_allocator_free(tommy_allocator* alloc, void* ptr)
+TOMMY_API void tommy_allocator_free(tommy_allocator* alloc, void* ptr)
 {
 	tommy_allocator_entry* free_block = tommy_cast(tommy_allocator_entry*, ptr);
 
@@ -143,7 +143,7 @@ void tommy_allocator_free(tommy_allocator* alloc, void* ptr)
 	--alloc->count;
 }
 
-tommy_size_t tommy_allocator_memory_usage(tommy_allocator* alloc)
+TOMMY_API tommy_size_t tommy_allocator_memory_usage(tommy_allocator* alloc)
 {
 	return alloc->count * (tommy_size_t)alloc->block_size;
 }
