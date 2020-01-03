@@ -272,7 +272,7 @@ void* tommy_trie_remove(tommy_trie* trie, tommy_key_t key)
 	return ret->data;
 }
 
-void* tommy_trie_remove_existing(tommy_trie* trie, tommy_trie_node* node)
+void tommy_trie_remove_existing(tommy_trie* trie, tommy_trie_node* node)
 {
 	tommy_trie_node* ret;
 	tommy_key_t key = node->index;
@@ -289,8 +289,6 @@ void* tommy_trie_remove_existing(tommy_trie* trie, tommy_trie_node* node)
 	assert(ret == node);
 
 	--trie->count;
-
-	return ret->data;
 }
 
 tommy_trie_node* tommy_trie_bucket(tommy_trie* trie, tommy_key_t key)

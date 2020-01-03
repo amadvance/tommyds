@@ -69,15 +69,13 @@ void tommy_hashtable_insert(tommy_hashtable* hashtable, tommy_hashtable_node* no
 	++hashtable->count;
 }
 
-void* tommy_hashtable_remove_existing(tommy_hashtable* hashtable, tommy_hashtable_node* node)
+void tommy_hashtable_remove_existing(tommy_hashtable* hashtable, tommy_hashtable_node* node)
 {
 	tommy_size_t pos = node->index & hashtable->bucket_mask;
 
 	tommy_list_remove_existing(&hashtable->bucket[pos], node);
 
 	--hashtable->count;
-
-	return node->data;
 }
 
 void* tommy_hashtable_remove(tommy_hashtable* hashtable, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)

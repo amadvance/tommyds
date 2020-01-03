@@ -232,13 +232,11 @@ void* tommy_tree_search_compare(tommy_tree* tree, tommy_compare_func* cmp, void*
 	return node->data;
 }
 
-void* tommy_tree_remove_existing(tommy_tree* tree, tommy_tree_node* node)
+void tommy_tree_remove_existing(tommy_tree* tree, tommy_tree_node* node)
 {
 	void* data = tommy_tree_remove(tree, node->data);
 
 	assert(data != 0);
-
-	return data;
 }
 
 static void tommy_tree_foreach_node(tommy_tree_node* root, tommy_foreach_func* func)
