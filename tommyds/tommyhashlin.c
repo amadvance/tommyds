@@ -255,15 +255,13 @@ void tommy_hashlin_insert(tommy_hashlin* hashlin, tommy_hashlin_node* node, void
 	hashlin_grow_step(hashlin);
 }
 
-void* tommy_hashlin_remove_existing(tommy_hashlin* hashlin, tommy_hashlin_node* node)
+void tommy_hashlin_remove_existing(tommy_hashlin* hashlin, tommy_hashlin_node* node)
 {
 	tommy_list_remove_existing(tommy_hashlin_bucket_ref(hashlin, node->index), node);
 
 	--hashlin->count;
 
 	hashlin_shrink_step(hashlin);
-
-	return node->data;
 }
 
 void* tommy_hashlin_remove(tommy_hashlin* hashlin, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)

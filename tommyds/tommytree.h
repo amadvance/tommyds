@@ -169,9 +169,8 @@ void* tommy_tree_search_compare(tommy_tree* tree, tommy_compare_func* cmp, void*
 /**
  * Removes an element from the tree.
  * You must already have the address of the element to remove.
- * \return The tommy_node::data field of the node removed.
  */
-void* tommy_tree_remove_existing(tommy_tree* tree, tommy_tree_node* node);
+void tommy_tree_remove_existing(tommy_tree* tree, tommy_tree_node* node);
 
 /**
  * Calls the specified function for each element in the tree.
