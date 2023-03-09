@@ -93,7 +93,7 @@ tommy_inline void tommy_trie_inplace_list_remove(tommy_trie_inplace_node** let_p
 		node->prev->next = node->next;
 }
 
-void tommy_trie_inplace_init(tommy_trie_inplace* trie_inplace)
+TOMMY_API void tommy_trie_inplace_init(tommy_trie_inplace* trie_inplace)
 {
 	tommy_uint_t i;
 
@@ -124,7 +124,7 @@ static void trie_inplace_bucket_insert(tommy_uint_t shift, tommy_trie_inplace_no
 	}
 }
 
-void tommy_trie_inplace_insert(tommy_trie_inplace* trie_inplace, tommy_trie_inplace_node* node, void* data, tommy_key_t key)
+TOMMY_API void tommy_trie_inplace_insert(tommy_trie_inplace* trie_inplace, tommy_trie_inplace_node* node, void* data, tommy_key_t key)
 {
 	tommy_trie_inplace_node** let_ptr;
 	tommy_uint_t i;
@@ -215,7 +215,7 @@ static tommy_trie_inplace_node* trie_inplace_bucket_remove(tommy_uint_t shift, t
 	return remove;
 }
 
-void* tommy_trie_inplace_remove(tommy_trie_inplace* trie_inplace, tommy_key_t key)
+TOMMY_API void* tommy_trie_inplace_remove(tommy_trie_inplace* trie_inplace, tommy_key_t key)
 {
 	tommy_trie_inplace_node* ret;
 	tommy_trie_inplace_node** let_ptr;
@@ -235,7 +235,7 @@ void* tommy_trie_inplace_remove(tommy_trie_inplace* trie_inplace, tommy_key_t ke
 	return ret->data;
 }
 
-void* tommy_trie_inplace_remove_existing(tommy_trie_inplace* trie_inplace, tommy_trie_inplace_node* node)
+TOMMY_API void* tommy_trie_inplace_remove_existing(tommy_trie_inplace* trie_inplace, tommy_trie_inplace_node* node)
 {
 	tommy_trie_inplace_node* ret;
 	tommy_key_t key = node->key;
@@ -256,7 +256,7 @@ void* tommy_trie_inplace_remove_existing(tommy_trie_inplace* trie_inplace, tommy
 	return ret->data;
 }
 
-tommy_trie_inplace_node* tommy_trie_inplace_bucket(tommy_trie_inplace* trie_inplace, tommy_key_t key)
+TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_bucket(tommy_trie_inplace* trie_inplace, tommy_key_t key)
 {
 	tommy_trie_inplace_node* node;
 	tommy_uint_t shift;
@@ -275,7 +275,7 @@ tommy_trie_inplace_node* tommy_trie_inplace_bucket(tommy_trie_inplace* trie_inpl
 	return node;
 }
 
-tommy_size_t tommy_trie_inplace_memory_usage(tommy_trie_inplace* trie_inplace)
+TOMMY_API tommy_size_t tommy_trie_inplace_memory_usage(tommy_trie_inplace* trie_inplace)
 {
 	return tommy_trie_inplace_count(trie_inplace) * (tommy_size_t)sizeof(tommy_trie_inplace_node);
 }

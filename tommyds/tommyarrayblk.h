@@ -66,18 +66,18 @@ typedef struct tommy_arrayblk_struct {
 /**
  * Initializes the array.
  */
-void tommy_arrayblk_init(tommy_arrayblk* array);
+TOMMY_API void tommy_arrayblk_init(tommy_arrayblk* array);
 
 /**
  * Deinitializes the array.
  */
-void tommy_arrayblk_done(tommy_arrayblk* array);
+TOMMY_API void tommy_arrayblk_done(tommy_arrayblk* array);
 
 /**
  * Grows the size up to the specified value.
  * All the new elements in the array are initialized with the 0 value.
  */
-void tommy_arrayblk_grow(tommy_arrayblk* array, tommy_size_t size);
+TOMMY_API void tommy_arrayblk_grow(tommy_arrayblk* array, tommy_size_t size);
 
 /**
  * Gets a reference of the element at the specified position.
@@ -138,7 +138,7 @@ tommy_inline tommy_size_t tommy_arrayblk_size(tommy_arrayblk* array)
 /**
  * Gets the size of allocated memory.
  */
-tommy_size_t tommy_arrayblk_memory_usage(tommy_arrayblk* array);
+TOMMY_API tommy_size_t tommy_arrayblk_memory_usage(tommy_arrayblk* array);
 
 #endif
 
