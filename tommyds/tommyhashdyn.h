@@ -46,7 +46,7 @@
  * To initialize the hashtable you have to call tommy_hashdyn_init().
  *
  * \code
- * tommy_hashslin hashdyn;
+ * tommy_hashdyn hashdyn;
  *
  * tommy_hashdyn_init(&hashdyn);
  * \endcode
