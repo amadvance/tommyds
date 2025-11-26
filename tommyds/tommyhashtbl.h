@@ -220,9 +220,8 @@ tommy_inline void* tommy_hashtable_search(tommy_hashtable* hashtable, tommy_sear
 /**
  * Removes an element from the hashtable.
  * You must already have the address of the element to remove.
- * \return The tommy_node::data field of the node removed.
  */
-void* tommy_hashtable_remove_existing(tommy_hashtable* hashtable, tommy_hashtable_node* node);
+void tommy_hashtable_remove_existing(tommy_hashtable* hashtable, tommy_hashtable_node* node);
 
 /**
  * Calls the specified function for each element in the hashtable.

@@ -227,9 +227,8 @@ tommy_inline void* tommy_trie_inplace_search(tommy_trie_inplace* trie_inplace, t
 /**
  * Removes an element from the trie.
  * You must already have the address of the element to remove.
- * \return The tommy_node::data field of the node removed.
  */
-void* tommy_trie_inplace_remove_existing(tommy_trie_inplace* trie_inplace, tommy_trie_inplace_node* node);
+void tommy_trie_inplace_remove_existing(tommy_trie_inplace* trie_inplace, tommy_trie_inplace_node* node);
 
 /**
  * Gets the number of elements.
