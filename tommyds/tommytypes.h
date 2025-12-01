@@ -79,9 +79,16 @@ typedef int tommy_bool_t; /**< Generic boolean type. */
 typedef tommy_uint32_t tommy_uint_t;
 
 /** \internal
- * Type cast required for the C++ compilation.
- * When compiling in C++ we cannot convert a void* pointer to another pointer.
- * In such case we need an explicit cast.
+ * Explicit cast helper used to smooth out the difference between C and C++.
+ *
+ * In C, a void* can be assigned to any pointer type without an explicit cast.
+ * This is not allowed in C++, where converting a void* to another pointer type
+ * always requires an explicit cast.
+ *
+ * tommy_cast should be used only for this specific purpose, so it should be
+ * applied when converting a void* to a more specific pointer type in code that
+ * must compile as both C and C++. It is not intended for arbitrary pointer
+ * conversions or for casts that are unrelated to the C to C++ difference.
  */
 #ifdef __cplusplus
 #define tommy_cast(type, value) static_cast<type>(value)
