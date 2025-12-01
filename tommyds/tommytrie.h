@@ -197,7 +197,7 @@ typedef struct tommy_trie_struct {
  * The tries is completely allocated through the allocator, and it doesn't need to be deinitialized.
  * \param alloc Allocator initialized with *both* the size and align with TOMMY_TRIE_BLOCK_SIZE.
  */
-void tommy_trie_init(tommy_trie* trie, tommy_allocator* alloc);
+TOMMY_API void tommy_trie_init(tommy_trie* trie, tommy_allocator* alloc);
 
 /**
  * Inserts an element in the trie.
@@ -207,7 +207,7 @@ void tommy_trie_init(tommy_trie* trie, tommy_allocator* alloc);
  * \param data Pointer to the object to insert.
  * \param key Key to use to insert the object.
  */
-void tommy_trie_insert(tommy_trie* trie, tommy_trie_node* node, void* data, tommy_key_t key);
+TOMMY_API void tommy_trie_insert(tommy_trie* trie, tommy_trie_node* node, void* data, tommy_key_t key);
 
 /**
  * Searches and removes the first element with the specified key.
@@ -217,7 +217,7 @@ void tommy_trie_insert(tommy_trie* trie, tommy_trie_node* node, void* data, tomm
  * \param key Key of the element to find and remove.
  * \return The removed element, or 0 if not found.
  */
-void* tommy_trie_remove(tommy_trie* trie, tommy_key_t key);
+TOMMY_API void* tommy_trie_remove(tommy_trie* trie, tommy_key_t key);
 
 /**
  * Gets the bucket of the specified key.
@@ -226,7 +226,7 @@ void* tommy_trie_remove(tommy_trie* trie, tommy_key_t key);
  * \param key Key of the element to find.
  * \return The head of the bucket, or 0 if empty.
  */
-tommy_trie_node* tommy_trie_bucket(tommy_trie* trie, tommy_key_t key);
+TOMMY_API tommy_trie_node* tommy_trie_bucket(tommy_trie* trie, tommy_key_t key);
 
 /**
  * Searches an element in the trie.
@@ -250,7 +250,7 @@ tommy_inline void* tommy_trie_search(tommy_trie* trie, tommy_key_t key)
  * You must already have the address of the element to remove.
  * \return The tommy_node::data field of the node removed.
  */
-void* tommy_trie_remove_existing(tommy_trie* trie, tommy_trie_node* node);
+TOMMY_API void* tommy_trie_remove_existing(tommy_trie* trie, tommy_trie_node* node);
 
 /**
  * Gets the number of elements.
@@ -264,7 +264,7 @@ tommy_inline tommy_size_t tommy_trie_count(tommy_trie* trie)
  * Gets the size of allocated memory.
  * It includes the size of the ::tommy_trie_node of the stored elements.
  */
-tommy_size_t tommy_trie_memory_usage(tommy_trie* trie);
+TOMMY_API tommy_size_t tommy_trie_memory_usage(tommy_trie* trie);
 
 #endif
 

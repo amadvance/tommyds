@@ -67,18 +67,18 @@ typedef struct tommy_array_struct {
 /**
  * Initializes the array.
  */
-void tommy_array_init(tommy_array* array);
+TOMMY_API void tommy_array_init(tommy_array* array);
 
 /**
  * Deinitializes the array.
  */
-void tommy_array_done(tommy_array* array);
+TOMMY_API void tommy_array_done(tommy_array* array);
 
 /**
  * Grows the size up to the specified value.
  * All the new elements in the array are initialized with the 0 value.
  */
-void tommy_array_grow(tommy_array* array, tommy_size_t size);
+TOMMY_API void tommy_array_grow(tommy_array* array, tommy_size_t size);
 
 /**
  * Gets a reference of the element at the specified position.
@@ -140,7 +140,7 @@ tommy_inline tommy_size_t tommy_array_size(tommy_array* array)
 /**
  * Gets the size of allocated memory.
  */
-tommy_size_t tommy_array_memory_usage(tommy_array* array);
+TOMMY_API tommy_size_t tommy_array_memory_usage(tommy_array* array);
 
 #endif
 

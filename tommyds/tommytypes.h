@@ -118,6 +118,14 @@ typedef tommy_uint32_t tommy_uint_t;
 /* modificators */
 
 /** \internal
+ * Definition of the TOMMY_API.
+ * Provide the ability to override linkage features of the interface.
+ */
+#if !defined(TOMMY_API)
+#define TOMMY_API
+#endif
+
+/** \internal
  * Definition of the inline keyword if available.
  */
 #if !defined(tommy_inline)

@@ -68,18 +68,18 @@ typedef struct tommy_arrayblkof_struct {
  * Initializes the array.
  * \param element_size Size in byte of the element to store in the array.
  */
-void tommy_arrayblkof_init(tommy_arrayblkof* array, tommy_size_t element_size);
+TOMMY_API void tommy_arrayblkof_init(tommy_arrayblkof* array, tommy_size_t element_size);
 
 /**
  * Deinitializes the array.
  */
-void tommy_arrayblkof_done(tommy_arrayblkof* array);
+TOMMY_API void tommy_arrayblkof_done(tommy_arrayblkof* array);
 
 /**
  * Grows the size up to the specified value.
  * All the new elements in the array are initialized with the 0 value.
  */
-void tommy_arrayblkof_grow(tommy_arrayblkof* array, tommy_size_t size);
+TOMMY_API void tommy_arrayblkof_grow(tommy_arrayblkof* array, tommy_size_t size);
 
 /**
  * Gets a reference of the element at the specified position.
@@ -108,7 +108,7 @@ tommy_inline tommy_size_t tommy_arrayblkof_size(tommy_arrayblkof* array)
 /**
  * Gets the size of allocated memory.
  */
-tommy_size_t tommy_arrayblkof_memory_usage(tommy_arrayblkof* array);
+TOMMY_API tommy_size_t tommy_arrayblkof_memory_usage(tommy_arrayblkof* array);
 
 #endif
 

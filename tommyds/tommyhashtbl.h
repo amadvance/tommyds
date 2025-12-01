@@ -153,7 +153,7 @@ typedef struct tommy_hashtable_struct {
  * Initializes the hashtable.
  * \param buckets Minimum number of buckets to allocate. The effective number used is the next power of 2.
  */
-void tommy_hashtable_init(tommy_hashtable* hashtable, tommy_size_t bucket_max);
+TOMMY_API void tommy_hashtable_init(tommy_hashtable* hashtable, tommy_size_t bucket_max);
 
 /**
  * Deinitializes the hashtable.
@@ -161,12 +161,12 @@ void tommy_hashtable_init(tommy_hashtable* hashtable, tommy_size_t bucket_max);
  * You can call this function with elements still contained,
  * but such elements are not going to be freed by this call.
  */
-void tommy_hashtable_done(tommy_hashtable* hashtable);
+TOMMY_API void tommy_hashtable_done(tommy_hashtable* hashtable);
 
 /**
  * Inserts an element in the hashtable.
  */
-void tommy_hashtable_insert(tommy_hashtable* hashtable, tommy_hashtable_node* node, void* data, tommy_hash_t hash);
+TOMMY_API void tommy_hashtable_insert(tommy_hashtable* hashtable, tommy_hashtable_node* node, void* data, tommy_hash_t hash);
 
 /**
  * Searches and removes an element from the hashtable.
@@ -179,7 +179,7 @@ void tommy_hashtable_insert(tommy_hashtable* hashtable, tommy_hashtable_node* no
  * \param hash Hash of the element to find and remove.
  * \return The removed element, or 0 if not found.
  */
-void* tommy_hashtable_remove(tommy_hashtable* hashtable, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash);
+TOMMY_API void* tommy_hashtable_remove(tommy_hashtable* hashtable, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash);
 
 /**
  * Gets the bucket of the specified hash.
@@ -222,7 +222,7 @@ tommy_inline void* tommy_hashtable_search(tommy_hashtable* hashtable, tommy_sear
  * You must already have the address of the element to remove.
  * \return The tommy_node::data field of the node removed.
  */
-void* tommy_hashtable_remove_existing(tommy_hashtable* hashtable, tommy_hashtable_node* node);
+TOMMY_API void* tommy_hashtable_remove_existing(tommy_hashtable* hashtable, tommy_hashtable_node* node);
 
 /**
  * Calls the specified function for each element in the hashtable.
@@ -255,12 +255,12 @@ void* tommy_hashtable_remove_existing(tommy_hashtable* hashtable, tommy_hashtabl
  * tommy_hashdyn_done(&hashtable);
  * \endcode
  */
-void tommy_hashtable_foreach(tommy_hashtable* hashtable, tommy_foreach_func* func);
+TOMMY_API void tommy_hashtable_foreach(tommy_hashtable* hashtable, tommy_foreach_func* func);
 
 /**
  * Calls the specified function with an argument for each element in the hashtable.
  */
-void tommy_hashtable_foreach_arg(tommy_hashtable* hashtable, tommy_foreach_arg_func* func, void* arg);
+TOMMY_API void tommy_hashtable_foreach_arg(tommy_hashtable* hashtable, tommy_foreach_arg_func* func, void* arg);
 
 /**
  * Gets the number of elements.
@@ -274,7 +274,7 @@ tommy_inline tommy_size_t tommy_hashtable_count(tommy_hashtable* hashtable)
  * Gets the size of allocated memory.
  * It includes the size of the ::tommy_hashtable_node of the stored elements.
  */
-tommy_size_t tommy_hashtable_memory_usage(tommy_hashtable* hashtable);
+TOMMY_API tommy_size_t tommy_hashtable_memory_usage(tommy_hashtable* hashtable);
 
 #endif
 
