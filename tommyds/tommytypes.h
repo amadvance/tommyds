@@ -408,8 +408,8 @@ tommy_inline tommy_uint_t tommy_ilog2_u64(tommy_uint64_t value)
 #elif defined(__GNUC__)
 	return __builtin_clzll(value) ^ 63;
 #else
-	uint32_t l = value & 0xFFFFFFFFU;
-	uint32_t h = value >> 32;
+	tommy_uint32_t l = value & 0xFFFFFFFFU;
+	tommy_uint32_t h = value >> 32;
 	if (h)
 		return tommy_ilog2_u32(h) + 32;
 	else
@@ -459,8 +459,8 @@ tommy_inline tommy_uint_t tommy_ctz_u64(tommy_uint64_t value)
 #elif defined(__GNUC__)
 	return __builtin_ctzll(value);
 #else
-	uint32_t l = value & 0xFFFFFFFFU;
-	uint32_t h = value >> 32;
+	tommy_uint32_t l = value & 0xFFFFFFFFU;
+	tommy_uint32_t h = value >> 32;
 	if (l)
 		return tommy_ctz_u32(l);
 	else
