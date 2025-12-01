@@ -31,7 +31,7 @@
  * This tree is a standard AVL tree implementation that stores elements in the
  * order defined by the comparison function.
  *
- * As difference than other tommy containers, duplicate elements cannot be inserted.
+ * As a difference from other tommy containers, duplicate elements cannot be inserted.
  *
  * To initialize a tree you have to call tommy_tree_init() specifying a comparison
  * function that will define the order in the tree.
@@ -63,7 +63,7 @@
  * tommy_tree_insert(&tree, &obj->node, obj); // inserts the object
  * \endcode
  *
- * To find and element in the tree you have to call tommy_tree_search() providing
+ * To find an element in the tree you have to call tommy_tree_search() providing
  * the key to search.
  *
  * \code
@@ -94,7 +94,7 @@
  * tommy_tree_foreach() or tommy_tree_foreach_arg().
  * If you need a more precise control with a real iteration, you have to insert
  * all the elements also in a ::tommy_list, and use the list to iterate.
- * See the \ref multiindex example for more detail. 
+ * See the \ref multiindex example for more detail.
  */
 
 #ifndef __TOMMYTREE_H
@@ -149,7 +149,7 @@ TOMMY_API void* tommy_tree_remove(tommy_tree* tree, void* data);
 
 /**
  * Searches an element in the tree.
- * If the element is not found, 0 is returned. 
+ * If the element is not found, 0 is returned.
  * \param data Element used for comparison.
  * \return The first element found, or 0 if none.
  */
@@ -162,7 +162,7 @@ TOMMY_API void* tommy_tree_search(tommy_tree* tree, void* data);
  * Note that this function must define a suborder of the original one.
  *
  * The ::data argument will be the first argument of the comparison function,
- * and it can be of a different type of the objects in the tree.
+ * and it can be of a different type than the objects in the tree.
  */
 TOMMY_API void* tommy_tree_search_compare(tommy_tree* tree, tommy_compare_func* cmp, void* cmp_arg);
 
@@ -225,4 +225,3 @@ tommy_inline tommy_size_t tommy_tree_count(tommy_tree* tree)
 TOMMY_API tommy_size_t tommy_tree_memory_usage(tommy_tree* tree);
 
 #endif
-

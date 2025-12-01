@@ -37,7 +37,7 @@
  * define. More branches imply more speed, but a bigger memory occupation.
  *
  * Compared to ::tommy_trie_inplace you have to provide a ::tommy_allocator allocator.
- * Note that the C malloc() is too slow to futfill this role.
+ * Note that the C malloc() is too slow to fulfill this role.
  *
  * To initialize the trie you have to call tommy_allocator_init() to initialize
  * the allocator, and tommy_trie_init() for the trie.
@@ -72,7 +72,7 @@
  * tommy_trie_insert(&trie, &obj->node, obj, obj->value); // inserts the object
  * \endcode
  *
- * To find and element in the trie you have to call tommy_trie_search() providing
+ * To find an element in the trie you have to call tommy_trie_search() providing
  * the key to search.
  *
  * \code
@@ -135,7 +135,7 @@
  * Number of bits of the elements to store in the trie.
  *
  * If you need to store integers bigger than 32 bits you can
- * increse this value.
+ * increase this value.
  *
  * Keeping this value small improves the performance of the trie.
  */
@@ -146,7 +146,7 @@
  * Suggested values are 8, 16 and 32.
  * Any inner node, excluding leafs, contains a pointer to each branch.
  *
- * The default size is choosen to exactly fit a typical cache line of 64 bytes.
+ * The default size is chosen to exactly fit a typical cache line of 64 bytes.
  */
 #define TOMMY_TRIE_TREE_MAX (64 / sizeof(void*))
 
@@ -168,7 +168,7 @@
 
 /** \internal
  * Number of branches of the first level.
- * It's like a inner branch, but bigger to get any remainder bits.
+ * It's like an inner branch, but bigger to get any remainder bits.
  */
 #define TOMMY_TRIE_BUCKET_MAX (1 << TOMMY_TRIE_BUCKET_BIT)
 
@@ -194,7 +194,7 @@ typedef struct tommy_trie_struct {
  * You have to provide an allocator initialized with *both* the size and align with TOMMY_TRIE_BLOCK_SIZE.
  * You can share this allocator with other tries.
  *
- * The tries is completely allocated through the allocator, and it doesn't need to be deinitialized.
+ * The trie is completely allocated through the allocator, and it doesn't need to be deinitialized.
  * \param alloc Allocator initialized with *both* the size and align with TOMMY_TRIE_BLOCK_SIZE.
  */
 TOMMY_API void tommy_trie_init(tommy_trie* trie, tommy_allocator* alloc);
@@ -267,4 +267,3 @@ tommy_inline tommy_size_t tommy_trie_count(tommy_trie* trie)
 TOMMY_API tommy_size_t tommy_trie_memory_usage(tommy_trie* trie);
 
 #endif
-

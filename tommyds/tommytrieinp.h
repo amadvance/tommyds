@@ -28,7 +28,7 @@
 /** \file
  * Inplace trie.
  *
- * This trie is a inplace implementation not needing any external allocation.
+ * This trie is an inplace implementation not needing any external allocation.
  *
  * Elements are not stored in order, like ::tommy_trie, because some elements
  * should be used to represent the inner nodes in the trie.
@@ -37,7 +37,7 @@
  * More branches imply more speed, but a bigger memory occupation.
  *
  * Compared to ::tommy_trie you should use a lower number of branches to limit the unused memory
- * occupation of the leaf nodes. This imply a lower speed, but without the need of an external allocator.
+ * occupation of the leaf nodes. This implies a lower speed, but without the need of an external allocator.
  *
  * To initialize the trie you have to call tommy_trie_inplace_init().
  *
@@ -68,7 +68,7 @@
  * tommy_trie_inplace_insert(&trie_inplace, &obj->node, obj, obj->value); // inserts the object
  * \endcode
  *
- * To find and element in the trie you have to call tommy_trie_inplace_search() providing
+ * To find an element in the trie you have to call tommy_trie_inplace_search() providing
  * the key to search.
  *
  * \code
@@ -126,7 +126,7 @@
  * Number of bits of the elements to store in the trie.
  *
  * If you need to store integers bigger than 32 bits you can
- * increse this value.
+ * increase this value.
  *
  * Keeping this value small improves the performance of the trie.
  */
@@ -151,7 +151,7 @@
 
 /** \internal
  * Number of branches of the first level.
- * It's like a inner branch, but bigger to get any remainder bits.
+ * It's like an inner branch, but bigger to get any remainder bits.
  */
 #define TOMMY_TRIE_INPLACE_BUCKET_MAX (1 << TOMMY_TRIE_INPLACE_BUCKET_BIT)
 
@@ -163,7 +163,7 @@ typedef struct tommy_trie_inplace_node_struct {
 	struct tommy_trie_inplace_node_struct* next; /**< Next element. 0 if it's the last. */
 	struct tommy_trie_inplace_node_struct* prev; /**< Circular previous element. */
 	void* data; /**< Pointer to the data. */
-	struct tommy_trie_inplace_node_struct* map[TOMMY_TRIE_INPLACE_TREE_MAX]; /** Branches of the node. */
+	struct tommy_trie_inplace_node_struct* map[TOMMY_TRIE_INPLACE_TREE_MAX]; /**< Branches of the node. */
 	tommy_key_t key; /**< Used to store the key or the hash. */
 } tommy_trie_inplace_node;
 
@@ -179,7 +179,7 @@ typedef struct tommy_trie_inplace_struct {
 /**
  * Initializes the trie.
  *
- * The tries is completely inplace, and it doesn't need to be deinitialized.
+ * The trie is completely inplace, and it doesn't need to be deinitialized.
  */
 TOMMY_API void tommy_trie_inplace_init(tommy_trie_inplace* trie_inplace);
 
@@ -241,9 +241,8 @@ tommy_inline tommy_size_t tommy_trie_inplace_count(tommy_trie_inplace* trie_inpl
 
 /**
  * Gets the size of allocated memory.
- * It includes the size of the ::tommy_inplace_node of the stored elements.
+ * It includes the size of the ::tommy_trie_inplace_node of the stored elements.
  */
 TOMMY_API tommy_size_t tommy_trie_inplace_memory_usage(tommy_trie_inplace* trie_inplace);
 
 #endif
-

@@ -26,12 +26,12 @@
  */
 
 /** \file
- * Dynamic array based on segments of exponential growing size.
+ * Dynamic array based on segments of exponentially growing size.
  *
  * This array is able to grow dynamically upon request, without any reallocation.
  *
  * The grow operation involves an allocation of a new array segment, without reallocating
- * the already used memory, and then not increasing the heap fragmentation.
+ * the already used memory, and thus **not increasing** the heap fragmentation.
  * This also implies that the address of the stored elements never change.
  *
  * Allocated segments grow in size exponentially.
@@ -143,4 +143,3 @@ tommy_inline tommy_size_t tommy_array_size(tommy_array* array)
 TOMMY_API tommy_size_t tommy_array_memory_usage(tommy_array* array);
 
 #endif
-

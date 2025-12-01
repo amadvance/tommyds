@@ -65,7 +65,7 @@ typedef struct tommy_allocator_struct {
 TOMMY_API void tommy_allocator_init(tommy_allocator* alloc, tommy_size_t block_size, tommy_size_t align_size);
 
 /**
- * Deinitialize the allocator.
+ * Deinitializes the allocator.
  * It also releases all the allocated memory to the heap.
  * \param alloc Allocator to deinitialize.
  */
@@ -92,4 +92,3 @@ TOMMY_API void tommy_allocator_free(tommy_allocator* alloc, void* ptr);
 TOMMY_API tommy_size_t tommy_allocator_memory_usage(tommy_allocator* alloc);
 
 #endif
-

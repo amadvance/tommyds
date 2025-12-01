@@ -31,17 +31,17 @@
  * This hashtable resizes dynamically and progressively using a variation of the
  * linear hashing algorithm described in http://en.wikipedia.org/wiki/Linear_hashing
  *
- * It starts with the minimal size of 16 buckets, it doubles the size then it
- * reaches a load factor greater than 0.5 and it halves the size with a load
- * factor lower than 0.125.
+ * It starts with the minimal size of 16 buckets, it doubles the size when it
+ * reaches a load factor greater than 0.5, and it halves the size when the load
+ * factor is lower than 0.125.
  *
  * The progressive resize is good for real-time and interactive applications
  * as it makes insert and delete operations taking always the same time.
  *
- * For resizing it's used a dynamic array that supports access to not contigous
- * segments.
- * In this way we only allocate additional table segments on the heap, without
- * freeing the previous table, and then not increasing the heap fragmentation.
+ * For resizing, a dynamic array that supports access to non-contiguous
+ * segments is used.
+ * In this way, we only allocate additional table segments on the heap, without
+ * freeing the previous table, and thus not increasing the heap fragmentation.
  *
  * The resize takes place inside tommy_hashlin_insert() and tommy_hashlin_remove().
  * No resize is done in the tommy_hashlin_search() operation.
@@ -75,7 +75,7 @@
  * tommy_hashlin_insert(&hashlin, &obj->node, obj, tommy_inthash_u32(obj->value)); // inserts the object
  * \endcode
  *
- * To find and element in the hashtable you have to call tommy_hashtable_search()
+ * To find an element in the hashtable you have to call tommy_hashtable_search()
  * providing a comparison function, its argument, and the hash of the key to search.
  *
  * \code
@@ -95,7 +95,7 @@
  *
  * To iterate over all the elements in the hashtable with the same key, you have to
  * use tommy_hashlin_bucket() and follow the tommy_node::next pointer until NULL.
- * You have also to check explicitely for the key, as the bucket may contains
+ * You have also to check explicitly for the key, as the bucket may contain
  * different keys.
  *
  * \code
@@ -230,14 +230,14 @@ tommy_inline tommy_hashlin_node** tommy_hashlin_bucket_ref(tommy_hashlin* hashli
 
 	/* if this position is already allocated in the high half */
 	if (pos < hashlin->split) {
-		/* The following assigment is expected to be implemented */
+		/* The following assignment is expected to be implemented */
 		/* with a conditional move instruction */
 		/* that results in a little better and constant performance */
 		/* regardless of the split position. */
 		/* This affects mostly the worst case, when the split value */
 		/* is near at its half, resulting in a totally unpredictable */
 		/* condition by the CPU. */
-		/* In such case the use of the conditional move is generally faster. */
+		/* In such case, the use of the conditional move is generally faster. */
 
 		/* use also the high bit */
 		pos = high_pos;
@@ -274,7 +274,7 @@ tommy_inline void* tommy_hashlin_search(tommy_hashlin* hashlin, tommy_search_fun
 	tommy_hashlin_node* i = tommy_hashlin_bucket(hashlin, hash);
 
 	while (i) {
-		/* we first check if the hash matches, as in the same bucket we may have multiples hash values */
+		/* we first check if the hash matches, as in the same bucket we may have multiple hash values */
 		if (i->index == hash && cmp(cmp_arg, i->data) == 0)
 			return i->data;
 		i = i->next;
@@ -342,4 +342,3 @@ tommy_inline tommy_size_t tommy_hashlin_count(tommy_hashlin* hashlin)
 TOMMY_API tommy_size_t tommy_hashlin_memory_usage(tommy_hashlin* hashlin);
 
 #endif
-

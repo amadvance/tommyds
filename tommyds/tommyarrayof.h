@@ -26,11 +26,11 @@
  */
 
 /** \file
- * Dynamic array based on segments of exponential growing size.
+ * Dynamic array based on segments of exponentially growing size.
  *
  * This array is able to grow dynamically upon request, without any reallocation.
  *
- * This is very similar at ::tommy_array, but it allows to store elements of any
+ * This is very similar to ::tommy_array, but it allows to store elements of any
  * size and not just pointers.
  *
  * Note that in this case tommy_arrayof_ref() returns a pointer to the element,
@@ -68,7 +68,8 @@ typedef struct tommy_arrayof_struct {
 
 /**
  * Initializes the array.
- * \param element_size Size in byte of the element to store in the array.
+ * \param array Array to initialize.
+ * \param element_size Size in bytes of the element to store in the array.
  */
 TOMMY_API void tommy_arrayof_init(tommy_arrayof* array, tommy_size_t element_size);
 
@@ -80,6 +81,8 @@ TOMMY_API void tommy_arrayof_done(tommy_arrayof* array);
 /**
  * Grows the size up to the specified value.
  * All the new elements in the array are initialized with the 0 value.
+ * \param array Array to grow.
+ * \param size New size of the array.
  */
 TOMMY_API void tommy_arrayof_grow(tommy_arrayof* array, tommy_size_t size);
 
@@ -87,6 +90,8 @@ TOMMY_API void tommy_arrayof_grow(tommy_arrayof* array, tommy_size_t size);
  * Gets a reference of the element at the specified position.
  * You must be sure that space for this position is already
  * allocated calling tommy_arrayof_grow().
+ * \param array Array to reference.
+ * \param pos Position of the element.
  */
 tommy_inline void* tommy_arrayof_ref(tommy_arrayof* array, tommy_size_t pos)
 {
@@ -105,6 +110,7 @@ tommy_inline void* tommy_arrayof_ref(tommy_arrayof* array, tommy_size_t pos)
 
 /**
  * Gets the initialized size of the array.
+ * \param array Array to query.
  */
 tommy_inline tommy_size_t tommy_arrayof_size(tommy_arrayof* array)
 {
@@ -113,8 +119,8 @@ tommy_inline tommy_size_t tommy_arrayof_size(tommy_arrayof* array)
 
 /**
  * Gets the size of allocated memory.
+ * \param array Array to query.
  */
 TOMMY_API tommy_size_t tommy_arrayof_memory_usage(tommy_arrayof* array);
 
 #endif
-

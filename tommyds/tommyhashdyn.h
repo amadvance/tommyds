@@ -29,8 +29,8 @@
  * Dynamic chained hashtable.
  *
  * This hashtable resizes dynamically. It starts with the minimal size of 16 buckets, it doubles
- * the size then it reaches a load factor greater than 0.5 and it halves the size with a load
- * factor lower than 0.125.
+ * the size when it reaches a load factor greater than 0.5 and it halves the size when the load
+ * factor is lower than 0.125.
  *
  * All the elements are reallocated in a single resize operation done inside
  * tommy_hashdyn_insert() or tommy_hashdyn_remove().
@@ -38,8 +38,8 @@
  * Note that the resize operation takes approximately 100 [ms] with 1 million of elements,
  * and 1 [second] with 10 millions. This could be a problem in real-time applications.
  *
- * The resize also fragment the heap, as it involves allocating a double-sized table, copy elements,
- * and deallocating the older table. Leaving a big hole in the heap.
+ * The resize also **fragments** the heap, as it involves allocating a double-sized table, **copying** elements,
+ * and deallocating the older table, **leaving** a big hole in the heap.
  *
  * The ::tommy_hashlin hashtable fixes both problems.
  *
@@ -72,7 +72,7 @@
  * tommy_hashdyn_insert(&hashdyn, &obj->node, obj, tommy_inthash_u32(obj->value)); // inserts the object
  * \endcode
  *
- * To find and element in the hashtable you have to call tommy_hashtable_search()
+ * To find an element in the hashtable you have to call tommy_hashtable_search()
  * providing a comparison function, its argument, and the hash of the key to search.
  *
  * \code
@@ -92,7 +92,7 @@
  *
  * To iterate over all the elements in the hashtable with the same key, you have to
  * use tommy_hashdyn_bucket() and follow the tommy_node::next pointer until NULL.
- * You have also to check explicitly for the key, as the bucket may contains
+ * You have also to check explicitly for the key, as the bucket may contain
  * different keys.
  *
  * \code
@@ -225,7 +225,7 @@ tommy_inline void* tommy_hashdyn_search(tommy_hashdyn* hashdyn, tommy_search_fun
 	tommy_hashdyn_node* i = tommy_hashdyn_bucket(hashdyn, hash);
 
 	while (i) {
-		/* we first check if the hash matches, as in the same bucket we may have multiples hash values */
+		/* we first check if the hash matches, as in the same bucket we may have multiple hash values */
 		if (i->index == hash && cmp(cmp_arg, i->data) == 0)
 			return i->data;
 		i = i->next;
@@ -293,4 +293,3 @@ tommy_inline tommy_size_t tommy_hashdyn_count(tommy_hashdyn* hashdyn)
 TOMMY_API tommy_size_t tommy_hashdyn_memory_usage(tommy_hashdyn* hashdyn);
 
 #endif
-

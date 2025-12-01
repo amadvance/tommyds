@@ -30,10 +30,10 @@
  *
  * This hashtable is a standard implementation of a chained hashtable with a fixed size.
  *
- * Note that performances starts to degenerate after reaching a load factor greater than 0.75.
+ * Note that performance starts to degenerate after reaching a load factor greater than 0.75.
  * The ::tommy_hashdyn and ::tommy_hashlin hashtables fix this problem growing dynamically.
  *
- * To initialize the hashtable you have to call tommy_hashtable_init() specifing
+ * To initialize the hashtable you have to call tommy_hashtable_init() specifying
  * the fixed bucket size.
  *
  * \code
@@ -63,7 +63,7 @@
  * tommy_hashtable_insert(&hashtable, &obj->node, obj, tommy_inthash_u32(obj->value)); // inserts the object
  * \endcode
  *
- * To find and element in the hashtable you have to call tommy_hashtable_search()
+ * To find an element in the hashtable you have to call tommy_hashtable_search()
  * providing a comparison function, its argument, and the hash of the key to search.
  *
  * \code
@@ -83,7 +83,7 @@
  *
  * To iterate over all the elements in the hashtable with the same key, you have to
  * use tommy_hashtable_bucket() and follow the tommy_node::next pointer until NULL.
- * You have also to check explicitely for the key, as the bucket may contains
+ * You have also to check explicitly for the key, as the bucket may contain
  * different keys.
  *
  * \code
@@ -209,7 +209,7 @@ tommy_inline void* tommy_hashtable_search(tommy_hashtable* hashtable, tommy_sear
 	tommy_hashtable_node* i = tommy_hashtable_bucket(hashtable, hash);
 
 	while (i) {
-		/* we first check if the hash matches, as in the same bucket we may have multiples hash values */
+		/* we first check if the hash matches, as in the same bucket we may have multiple hash values */
 		if (i->index == hash && cmp(cmp_arg, i->data) == 0)
 			return i->data;
 		i = i->next;
@@ -244,7 +244,7 @@ TOMMY_API void* tommy_hashtable_remove_existing(tommy_hashtable* hashtable, tomm
  * ...
  *
  * // insert it in the hashtable
- * tommy_hashdyn_insert(&hashtable, &obj->node, obj, tommy_inthash_u32(obj->value));
+ * tommy_hashtable_insert(&hashtable, &obj->node, obj, tommy_inthash_u32(obj->value));
  *
  * ...
  *
@@ -252,7 +252,7 @@ TOMMY_API void* tommy_hashtable_remove_existing(tommy_hashtable* hashtable, tomm
  * tommy_hashtable_foreach(&hashtable, free);
  *
  * // deallocates the hashtable
- * tommy_hashdyn_done(&hashtable);
+ * tommy_hashtable_done(&hashtable);
  * \endcode
  */
 TOMMY_API void tommy_hashtable_foreach(tommy_hashtable* hashtable, tommy_foreach_func* func);
@@ -277,4 +277,3 @@ tommy_inline tommy_size_t tommy_hashtable_count(tommy_hashtable* hashtable)
 TOMMY_API tommy_size_t tommy_hashtable_memory_usage(tommy_hashtable* hashtable);
 
 #endif
-

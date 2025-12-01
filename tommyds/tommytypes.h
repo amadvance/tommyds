@@ -24,6 +24,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 /** \file
  * Generic types.
  */
@@ -73,7 +74,7 @@ typedef int tommy_bool_t; /**< Generic boolean type. */
 /**
  * Generic unsigned integer type.
  *
- * It has no specific size, as is used to store only small values.
+ * It has no specific size, as it is used to store only small values.
  * To make the code more efficient, a full 32 bit integer is used.
  */
 typedef tommy_uint32_t tommy_uint_t;
@@ -125,7 +126,7 @@ typedef tommy_uint32_t tommy_uint_t;
 /* modificators */
 
 /** \internal
- * Definition of the TOMMY_API.
+ * Definition of TOMMY_API.
  * Provide the ability to override linkage features of the interface.
  */
 #if !defined(TOMMY_API)
@@ -182,12 +183,12 @@ typedef tommy_uint32_t tommy_uint_t;
 /* key/hash */
 
 /**
- * Type used in indexed data structures to store the key of a object.
+ * Type used in indexed data structures to store the key of an object.
  */
 typedef tommy_size_t tommy_key_t;
 
 /**
- * Type used in hashtables to store the hash of a object.
+ * Type used in hashtables to store the hash of an object.
  */
 typedef tommy_size_t tommy_hash_t;
 
@@ -242,7 +243,7 @@ typedef struct tommy_node_struct {
  * Compare function for elements.
  * \param obj_a Pointer to the first object to compare.
  * \param obj_b Pointer to the second object to compare.
- * \return <0 if the first element is less than the second, ==0 equal, >0 if greater.
+ * \return <0 if the first element is less than the second, ==0 if equal, >0 if greater.
  *
  * This function is like the C strcmp().
  *
@@ -530,4 +531,3 @@ tommy_inline int tommy_haszero_u32(tommy_uint32_t value)
 #endif
 
 #endif
-

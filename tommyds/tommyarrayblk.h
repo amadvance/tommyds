@@ -31,8 +31,8 @@
  * This array is able to grow dynamically upon request, without any reallocation.
  *
  * The grow operation involves an allocation of a new array block, without reallocating
- * the already used memory, and then not increasing the heap fragmentation,
- * and minimize the space occupation.
+ * the already used memory, and thus **not increasing** the heap fragmentation,
+ * and **minimizing** the space occupation.
  * This also implies that the address of the stored elements never change.
  *
  * Allocated blocks are always of the same fixed size of 4 Ki pointers.
@@ -141,4 +141,3 @@ tommy_inline tommy_size_t tommy_arrayblk_size(tommy_arrayblk* array)
 TOMMY_API tommy_size_t tommy_arrayblk_memory_usage(tommy_arrayblk* array);
 
 #endif
-

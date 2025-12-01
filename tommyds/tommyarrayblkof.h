@@ -30,7 +30,7 @@
  *
  * This array is able to grow dynamically upon request, without any reallocation.
  *
- * This is very similar at ::tommy_arrayblk, but it allows to store elements of any
+ * This is very similar to ::tommy_arrayblk, but it allows to store elements of any
  * size and not just pointers.
  *
  * Note that in this case tommy_arrayblkof_ref() returns a pointer to the element,
@@ -111,4 +111,3 @@ tommy_inline tommy_size_t tommy_arrayblkof_size(tommy_arrayblkof* array)
 TOMMY_API tommy_size_t tommy_arrayblkof_memory_usage(tommy_arrayblkof* array);
 
 #endif
-
