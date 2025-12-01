@@ -49,7 +49,7 @@
  * To initialize the hashtable you have to call tommy_hashlin_init().
  *
  * \code
- * tommy_hashslin hashlin;
+ * tommy_hashlin hashlin;
  *
  * tommy_hashlin_init(&hashlin);
  * \endcode

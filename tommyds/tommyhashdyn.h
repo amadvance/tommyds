@@ -35,7 +35,7 @@
  * All the elements are reallocated in a single resize operation done inside
  * tommy_hashdyn_insert() or tommy_hashdyn_remove().
  *
- * Note that the resize operation takes approximatively 100 [ms] with 1 million of elements,
+ * Note that the resize operation takes approximately 100 [ms] with 1 million of elements,
  * and 1 [second] with 10 millions. This could be a problem in real-time applications.
  *
  * The resize also fragment the heap, as it involves allocating a double-sized table, copy elements,
@@ -46,7 +46,7 @@
  * To initialize the hashtable you have to call tommy_hashdyn_init().
  *
  * \code
- * tommy_hashslin hashdyn;
+ * tommy_hashdyn hashdyn;
  *
  * tommy_hashdyn_init(&hashdyn);
  * \endcode
@@ -92,7 +92,7 @@
  *
  * To iterate over all the elements in the hashtable with the same key, you have to
  * use tommy_hashdyn_bucket() and follow the tommy_node::next pointer until NULL.
- * You have also to check explicitely for the key, as the bucket may contains
+ * You have also to check explicitly for the key, as the bucket may contains
  * different keys.
  *
  * \code

@@ -50,7 +50,7 @@ TOMMY_API void tommy_hashdyn_done(tommy_hashdyn* hashdyn)
 /**
  * Resize the bucket vector.
  */
-static void tommy_hashdyn_resize(tommy_hashdyn* hashdyn, tommy_size_t new_bucket_bit)
+static void tommy_hashdyn_resize(tommy_hashdyn* hashdyn, tommy_uint_t new_bucket_bit)
 {
 	tommy_size_t bucket_bit;
 	tommy_size_t bucket_max;

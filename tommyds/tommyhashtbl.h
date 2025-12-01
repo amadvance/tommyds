@@ -37,7 +37,7 @@
  * the fixed bucket size.
  *
  * \code
- * tommy_hashslin hashtable;
+ * tommy_hashtable hashtable;
  *
  * tommy_hashtable_init(&hashtable, 1024);
  * \endcode

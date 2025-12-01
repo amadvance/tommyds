@@ -69,6 +69,8 @@ DEP = \
 	tommyds/tommyhashtbl.h \
 	tommyds/tommylist.c \
 	tommyds/tommylist.h \
+	tommyds/tommytree.c \
+	tommyds/tommytree.h \
 	tommyds/tommytrie.c \
 	tommyds/tommytrie.h \
 	tommyds/tommytrieinp.c \

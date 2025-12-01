@@ -42,8 +42,8 @@ typedef unsigned _int64 tommy_uint64_t; /**< Generic uint64_t type. */
 typedef size_t tommy_uintptr_t; /**< Generic uintptr_t type. */
 #ifdef _WIN64
 #define TOMMY_SIZE_BIT 64
-typedef unsigned _int64_t tommy_size_t; /**< Generic size_t type. */
-typedef _int64_t tommy_ssize_t; /**< Generic ssize_t type. */
+typedef unsigned _int64 tommy_size_t; /**< Generic size_t type. */
+typedef _int64 tommy_ssize_t; /**< Generic ssize_t type. */
 #else
 #define TOMMY_SIZE_BIT 32
 typedef unsigned tommy_size_t; /**< Generic size_t type. */
@@ -235,7 +235,7 @@ typedef struct tommy_node_struct {
  * Compare function for elements.
  * \param obj_a Pointer to the first object to compare.
  * \param obj_b Pointer to the second object to compare.
- * \return <0 if the first element is less than the second, ==0 equal, >0 if greather.
+ * \return <0 if the first element is less than the second, ==0 equal, >0 if greater.
  *
  * This function is like the C strcmp().
  *

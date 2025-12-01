@@ -165,7 +165,7 @@ TOMMY_API tommy_uint64_t tommy_hash_u64(tommy_uint64_t init_val, const void* voi
 	return c + ((tommy_uint64_t)b << 32);
 }
 
-TOMMY_API tommy_uint32_t tommy_strhash_u32(tommy_uint64_t init_val, const void* void_key)
+TOMMY_API tommy_uint32_t tommy_strhash_u32(tommy_uint32_t init_val, const void* void_key)
 {
 	const unsigned char* key = tommy_cast(const unsigned char*, void_key);
 	tommy_uint32_t a, b, c;
@@ -231,7 +231,7 @@ TOMMY_API tommy_uint32_t tommy_strhash_u32(tommy_uint64_t init_val, const void* 
 		key += 12;
 	}
 
-	/* for lengths that are multiplers of 12 we already have called mix */
+	/* for lengths that are multipliers of 12 we already have called mix */
 	/* this is different than the original lookup3 and the result won't match */
 
 	tommy_final(a, b, c);
