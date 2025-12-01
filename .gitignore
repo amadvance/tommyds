@@ -44,8 +44,7 @@ contrib/
 archive/
 *.ttf
 doc/
-benchmark/data/
 benchmark/exec/
+benchmark/data/test_*
+web/
 www/
-
-

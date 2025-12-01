@@ -1,20 +1,59 @@
-;set term svg enhanced font 'arial,10' size 800,800
-;bext = ".svg"
-set terminal png nocrop enhanced font arial 10 size 800,800
-bext = ".png"
-set xtics nomirror rotate by -45 font "arial,8"
-set key below
-set style data linespoints
-set datafile missing "0"
-set xlabel "Number of elements in logarithmic scale"
-set ylabel "Time for element in nanosecond in logarithmic scale\nLower is better"
-set xrange [1000:10000000]
-set yrange [6:1000]
-set logscale y
-set logscale x
-set format y "%.0fns"
-set format x "%.0s%c"
+# Set data dir and output extension
 bdir = "data/"
+bext = ".png"
+
+# Set the output terminal to PNG, disable cropping, enable enhanced text mode (for subscripts/superscripts), 
+# specify font family and base size (12pt), and set the output image size to 800x800 pixels.
+set terminal png nocrop enhanced font arial 12 size 800,800
+
+# Configure the Y-axis tics (tick marks and labels): hide the mirror tics on the opposite side 
+# and set the font for the tic labels to Arial, 8pt.
+set ytics nomirror font "arial,8"
+
+# Configure the X-axis tics: hide the mirror tics, rotate the tic labels by -45 degrees 
+# to prevent overlap, and set the font for the tic labels to Arial, 8pt.
+set xtics nomirror rotate by -45 font "arial,8"
+
+# Position the key (legend) below the plot area.
+set key below
+
+# Set the default drawing style for data points to lines connecting the points.
+set style data linespoints
+
+# Instruct gnuplot to treat the string "0" in the data file as missing data, 
+# preventing lines from being drawn across these points.
+set datafile missing "0"
+
+# Set the label for the X-axis.
+set xlabel "Number of elements in logarithmic scale"
+
+# Set the label for the Y-axis.
+set ylabel "Time for element in nanosecond in logarithmic scale\nLower is better"
+
+# Set the visible range for the X-axis, from 1000 to 10,000,000.
+set xrange [1000:10000000]
+
+# Set the visible range for the Y-axis, from 6 to 1000.
+set yrange [6:1000]
+
+# Apply a logarithmic scale to the Y-axis (base 10 by default).
+set logscale y
+
+# Apply a logarithmic scale to the X-axis (base 10 by default).
+set logscale x
+
+# Define the format for the Y-axis tic labels: display as a whole number (%.0f) 
+# followed by the unit "ns" (nanoseconds).
+set format y "%.0fns"
+
+# Define the format for the X-axis tic labels using engineering notation/SI prefixes: 
+# display as a whole number (%.0s) followed by the appropriate SI prefix (%c). 
+# E.g., 1000 is shown as "1k", 1000000 as "1M".
+set format x "%.0s%c"
+
+# Increase the bottom margin to create space for the long xlabel and the key below it.
+# The default margin is often around 5. Try increasing it to 8 or more.
+set bmargin 13
 
 # for some colors see: http://www.uni-hamburg.de/Wiss/FB/15/Sustainability/schneider/gnuplot/colors.htm
 set style line 1 lc 1 lt 1 # hashtable
