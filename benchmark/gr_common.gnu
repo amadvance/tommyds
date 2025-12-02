@@ -3,8 +3,8 @@ bdir = "data/"
 bext = ".png"
 
 # Set the output terminal to PNG, disable cropping, enable enhanced text mode (for subscripts/superscripts), 
-# specify font family and base size (12pt), and set the output image size to 800x800 pixels.
-set terminal png nocrop enhanced font arial 12 size 800,800
+# specify font family and base size (12pt), and set the output image size to 1280x900 pixels.
+set terminal png nocrop enhanced font arial 12 size 1280,900
 
 # Configure the Y-axis tics (tick marks and labels): hide the mirror tics on the opposite side 
 # and set the font for the tic labels to Arial, 8pt.
@@ -53,7 +53,7 @@ set format x "%.0s%c"
 
 # Increase the bottom margin to create space for the long xlabel and the key below it.
 # The default margin is often around 5. Try increasing it to 8 or more.
-set bmargin 13
+set bmargin 10
 
 # for some colors see: http://www.uni-hamburg.de/Wiss/FB/15/Sustainability/schneider/gnuplot/colors.htm
 set style line 1 lc 1 lt 1 # hashtable

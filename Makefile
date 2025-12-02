@@ -13,7 +13,7 @@ endif
 
 # Build options for the benchmark
 # -std=gnu++0x required by Google btree
-BENCHCXXFLAGS = -m32 -O3 -march=native -flto -fpermissive -std=gnu++0x -Wall -g
+BENCHCXXFLAGS = -O3 -march=native -flto -fpermissive -std=gnu++0x -Wall -g
 
 # Programs
 CC ?= gcc
@@ -43,7 +43,6 @@ EXE=.exe
 O=.obj
 endif
 
-#CHECK = ./tommybench -n 1000000 -d tommy-hashlin
 CHECK = ./tommycheck
 
 DEP = \
@@ -152,9 +151,8 @@ graph: phony
 doc: phony tommy.doxygen tommy.css $(DEP)
 	rm -rf doc
 	mkdir doc
-	cp -a benchmark/data/def doc/def
 	cp -a benchmark/data/other doc/other
-	cp -a benchmark/data/core_i5_650_3G2_linux doc/core_i5_650_3G2_linux
+	cp -a benchmark/data/core_i7_10700_2G9_linux doc/core_i7_10700_2G9_linux
 	rm -f doc/*/*.lst
 	rm -f doc/*/*.gnu
 	doxygen tommy.doxygen
@@ -164,9 +162,8 @@ doc: phony tommy.doxygen tommy.css $(DEP)
 web: phony tommyweb.doxygen tommy.css $(DEP)
 	rm -rf web
 	mkdir web
-	cp -a benchmark/data/def web/def
 	cp -a benchmark/data/other web/other
-	cp -a benchmark/data/core_i5_650_3G2_linux web/core_i5_650_3G2_linux
+	cp -a benchmark/data/core_i7_10700_2G9_linux web/core_i7_10700_2G9_linux
 	rm -f web/*/*.lst
 	rm -f web/*/*.gnu
 	doxygen tommyweb.doxygen

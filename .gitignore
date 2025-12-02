@@ -45,6 +45,6 @@ archive/
 *.ttf
 doc/
 benchmark/exec/
-benchmark/data/test_*
+benchmark/data/test*
 web/
 www/

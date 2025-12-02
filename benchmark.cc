@@ -71,7 +71,6 @@
 
 /* Available only in C++ */
 #ifdef __cplusplus
-#define USE_GOOGLEDENSEHASH
 #define USE_GOOGLEBTREE
 #define USE_STXBTREE
 #define USE_CPPMAP
@@ -112,9 +111,50 @@
 
 /* Google C++ dense hash table. */
 /* http://code.google.com/p/google-sparsehash/ */
+/* Note that it has a VERY BAD performance on the "Change" test, */
+/* so we disable it in the graphs becasue makes it unreadable */
+/*
+$ ./tommybench -n 63095  -d googledensehash
+Tommy benchmark program.
+       63095    googledensehash    forward
+   forward,     insert, googledensehash,   46 [ns]
+   forward,     change, googledensehash,  367 [ns] <<<<< HERE IS SLOW
+   forward,        hit, googledensehash,   10 [ns]
+   forward,       miss, googledensehash,   14 [ns]
+   forward,       size, googledensehash,   33 [byte]
+   forward,     remove, googledensehash,   32 [ns]
+       63095    googledensehash     random
+    random,     insert, googledensehash,   44 [ns]
+    random,     change, googledensehash,  362 [ns] <<<<< HERE IS SLOW
+    random,        hit, googledensehash,   11 [ns]
+    random,       miss, googledensehash,   14 [ns]
+    random,       size, googledensehash,   33 [byte]
+    random,     remove, googledensehash,   35 [ns]
+OK
+am@whitestar:/mnt/am/data/src/tommyds (master)$ ./tommybench -n 79432  -d googledensehash
+Tommy benchmark program.
+       79432    googledensehash    forward
+   forward,     insert, googledensehash,   58 [ns]
+   forward,     change, googledensehash,   57 [ns] <<<<< HERE IS FAST
+   forward,        hit, googledensehash,    8 [ns]
+   forward,       miss, googledensehash,   12 [ns]
+   forward,       size, googledensehash,   52 [byte]
+   forward,     remove, googledensehash,   53 [ns]
+       79432    googledensehash     random
+    random,     insert, googledensehash,   53 [ns]
+    random,     change, googledensehash,   60 [ns] <<<<< HERE IS FAST
+    random,        hit, googledensehash,   10 [ns]
+    random,       miss, googledensehash,   12 [ns]
+    random,       size, googledensehash,   52 [byte]
+    random,     remove, googledensehash,   52 [ns]
+OK
+
+*/
+
 /* Note that after erasing we always call resize(0) to possibly trigger a table resize to free some space */
 /* Otherwise, it would be an unfair advantage never shrinking on deletion. */
 /* The shrink is triggered only sometimes, so the performance doesn't suffer to much */
+#define USE_GOOGLEDENSEHASH
 #ifdef USE_GOOGLEDENSEHASH
 #include <google/dense_hash_map>
 #endif
@@ -201,15 +241,15 @@ $ ./tommybench -n 63095 -d ck
 Tommy benchmark program.
 63095 ck forward
    forward,     insert,           ck,  193 [ns]
-   forward,     change,           ck, 3102 [ns] <<<<<
+   forward,     change,           ck, 3102 [ns] <<<<< VERY SLOW
    forward,        hit,           ck,  344 [ns]
-   forward,       miss,           ck, 3330 [ns] <<<<<
+   forward,       miss,           ck, 3330 [ns] <<<<< VERY SLOW
    forward,     remove,           ck,  327 [ns]
 63095 ck random
     random,     insert,           ck,  193 [ns]
-    random,     change,           ck, 2984 [ns] <<<<<
+    random,     change,           ck, 2984 [ns] <<<<< VERY SLOW
     random,        hit,           ck,  340 [ns]
-    random,       miss,           ck, 3261 [ns] <<<<<
+    random,       miss,           ck, 3261 [ns] <<<<< VERY SLOW
     random,     remove,           ck,  341 [ns]
 OK
 */
@@ -615,7 +655,7 @@ loop:
 #define MAX 100000
 #else
 #if defined(__x86_64__) || defined(_M_X64)
-#define MAX 100000000
+#define MAX 10000000
 #else
 #define MAX 10000000
 #endif

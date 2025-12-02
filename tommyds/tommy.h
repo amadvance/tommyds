@@ -40,7 +40,6 @@
  * <a href="http://www.nedprod.com/programs/portable/nedtries/">nedtrie</a>,
  * <a href="http://code.google.com/p/judyarray/">judyarray</a>,
  * <a href="http://concurrencykit.org/">concurrencykit</a> and others.
- * Only <a href="https://github.com/sparsehash/sparsehash">googledensehash</a> is a real competitor for Tommy.
  *
  * The data structures provided are:
  *
@@ -60,7 +59,7 @@
  *
  * The most interesting are ::tommy_array, ::tommy_hashdyn, ::tommy_hashlin, ::tommy_trie and ::tommy_trie_inplace.
  *
- * The official site of TommyDS is <a href="http://www.tommyds.it/">http://www.tommyds.it/</a>.
+ * The official site of TommyDS is <a href="https://www.tommyds.it/">https://www.tommyds.it/</a>.
  *
  * \section Use
  *
@@ -180,7 +179,7 @@
  *  - <a href="http://uthash.sourceforge.net/">uthash</a> - Dynamic chaining hashtable by Troy D. Hanson.
  *  - <a href="http://judy.sourceforge.net/">judy</a> - Burst trie (JudyL) by Doug Baskins.
  *  - <a href="http://code.google.com/p/judyarray/">judyarray</a> - Burst trie by Karl Malbrain.
- *  - <a href="https://github.com/sparsehash/sparsehash">googledensehash</a> - Dynamic open addressing hashtable by Craig Silverstein at Google.
+ *  - <a href="https://github.com/sparsehash/sparsehash">googledensehash</a> - Dynamic open addressing hashtable by Craig Silverstein at Google (2.0.4).
  *  - <a href="http://code.google.com/p/cpp-btree/">googlebtree</a> - B-tree by Google.
  *  - <a href="http://panthema.net/2007/stx-btree/">stxbtree</a> - STX B-tree by Timo Bingmann.
  *  - <a href="http://www.cplusplus.com/reference/unordered_map/unordered_map/">c++unordered_map</a> - C++ STL unordered_map<> template.
@@ -190,8 +189,9 @@
  *  - <a href="https://github.com/fredrikwidlund/libdynamic">libdynamic</a> - Hash set by Fredrik Widlund.
  *  - <a href="http://concurrencykit.org/">concurrencykit</a> - Non-blocking hash set by Samy Al Bahra.
  *
- * Note that *googlelibchash* and *concurrencykit* are not shown in the graphs
- * because they present a lot of spikes. See the \ref notes at the end.
+ * Note that *googlelibchash*, *googledensehash* and *concurrencykit* are not
+ * shown in the graphs because they present a lot of spikes.
+ * See the \ref notes at the end.
  *
  * \section thebenchmark The Benchmark
  *
@@ -266,7 +266,7 @@
  * you can look at *Random Hit* and *Random Change*.
  * They represent the real-world worst condition.
  *
- * <img src="def/img_random_hit.png"/>
+ * <img src="core_i7_10700_2G9_linux/img_random_hit.png"/>
  *
  * In the *Random Hit* graph you can see a vertical split at the 100,000
  * elements limit. Before this limit the cache of modern processors is able to
@@ -281,37 +281,37 @@
  * For ::tommy_trie_inplace and ::tommy_trie you can change the growth curve
  * by configuring a different number of branches per node.
  *
- * <img src="def/img_random_change.png"/>
+ * <img src="core_i7_10700_2G9_linux/img_random_change.png"/>
  *
  * The *Random Change* graph confirms the vertical split at the 100,000
  * elements limit. It also shows that hashtables are almost unbeatable with a
  * random access.
  *
  * \section random Random order
- * Here you can see the whole *Random* test results on different platforms.
+ * Here you can see the whole *Random* test results.
  *
  * In the *Random* test, hashtables are almost always winning, second are
  * tries, and last are trees.
  *
- * The best choices are ::tommy_hashdyn, ::tommy_hashlin, and googledensehash,
- * with ::tommy_hashlin having the advantage to be real-time friendly and not
- * increasing heap fragmentation.
+ * The best choices are ::tommy_hashdyn, ::tommy_hashlin, with ::tommy_hashlin
+ * having the advantage to be real-time friendly and not increasing heap
+ * fragmentation.
  * <table border="0">
  * <tr><td>
- * <img src="core_i5_650_3G2_linux/img_random_insert.png"/>
+ * <img src="core_i7_10700_2G9_linux/img_random_insert.png"/>
  * </td></tr><tr><td>
- * <img src="core_i5_650_3G2_linux/img_random_hit.png"/>
+ * <img src="core_i7_10700_2G9_linux/img_random_hit.png"/>
  * </td></tr><tr><td>
- * <img src="core_i5_650_3G2_linux/img_random_miss.png"/>
+ * <img src="core_i7_10700_2G9_linux/img_random_miss.png"/>
  * </td></tr><tr><td>
- * <img src="core_i5_650_3G2_linux/img_random_change.png"/>
+ * <img src="core_i7_10700_2G9_linux/img_random_change.png"/>
  * </td></tr><tr><td>
- * <img src="core_i5_650_3G2_linux/img_random_remove.png"/>
+ * <img src="core_i7_10700_2G9_linux/img_random_remove.png"/>
  * </td></tr>
  * </table>
  *
  * \section forward Forward order
- * Here you can see the whole *Forward* test results on different platforms.
+ * Here you can see the whole *Forward* test results.
  *
  * In the *Forward* test, tries are the winners. Hashtables are competitive
  * until the cache limit, then they lose against tries. Trees are the slowest.
@@ -337,15 +337,15 @@
  *
  * <table border="0">
  * <tr><td>
- * <img src="core_i5_650_3G2_linux/img_forward_insert.png"/>
+ * <img src="core_i7_10700_2G9_linux/img_forward_insert.png"/>
  * </td></tr><tr><td>
- * <img src="core_i5_650_3G2_linux/img_forward_hit.png"/>
+ * <img src="core_i7_10700_2G9_linux/img_forward_hit.png"/>
  * </td></tr><tr><td>
- * <img src="core_i5_650_3G2_linux/img_forward_miss.png"/>
+ * <img src="core_i7_10700_2G9_linux/img_forward_miss.png"/>
  * </td></tr><tr><td>
- * <img src="core_i5_650_3G2_linux/img_forward_change.png"/>
+ * <img src="core_i7_10700_2G9_linux/img_forward_change.png"/>
  * </td></tr><tr><td>
- * <img src="core_i5_650_3G2_linux/img_forward_remove.png"/>
+ * <img src="core_i7_10700_2G9_linux/img_forward_remove.png"/>
  * </td></tr>
  * </table>
  *
@@ -353,14 +353,14 @@
  * Here you can see the memory usage of the different data structures.
  * <table border="0">
  * <tr><td>
- * <img src="core_i5_650_3G2_linux/img_random_size.png"/>
+ * <img src="core_i7_10700_2G9_linux/img_random_size.png"/>
  * </td></tr>
  * </table>
  *
  * \section code Code
  *
- * The compiler used in the benchmark is gcc 6.2.0 with options "-O3 -march=native -flto -fpermissive"
- * on a Core i5 650 3.2 GHz.
+ * The compiler used in the benchmark is gcc 15.2.0 with options "-O3 -march=native -flto -fpermissive"
+ * on a Core i7 10700 2.9 GHz.
  *
  * The following is pseudo-code of the benchmark used. In this case it's written
  * for the C++ unordered_map.
@@ -492,25 +492,19 @@
  * }
  * \endcode
  *
- * \section others Other benchmarks
- * Here are some links to other performance comparisons:
- *
- * <a href="http://attractivechaos.wordpress.com/2008/08/28/comparison-of-hash-table-libraries/">Comparison of Hash Table Libraries</a>
- *
- * <a href="http://incise.org/hash-table-benchmarks.html">Hash Table Benchmarks</a>
- *
  * \section notes Notes
  *
  * Here are some notes about the data structure tested not part of Tommy.
  *
  * \subsection googlelibchash Google C libchash
  * It's the C implementation located in the *experimental* directory of the googlesparsehash archive.
- * It has very bad performance in the *Change* test for some N values.
+ * It has bad performance in the *Change* test for some N values.
  * See this <a href="other/googlelibchash_problem.png">graph</a> with a lot of spikes.
- * The C++ version doesn't suffer from this problem.
  *
  * \subsection googledensehash Google C++ densehash
- * It doesn't release memory on deletion.
+ * It has bad performance in the *Change* test for some N values.
+ * See this <a href="other/googledensehash_problem.png">graph</a> with a lot of spikes.
+ * It also doesn't release memory on deletion.
  * To avoid an unfair advantage in the *Remove* test, we force a periodic
  * resize calling resize(0) after any deallocation.
  * The resize is executed when the load factor is lower than 20%.
@@ -637,7 +631,7 @@
  * and the static analyzer <a href="http://clang-analyzer.llvm.org/">clang</a>
  * are done to ensure the correctness of the library.
  *
- * The test has a <a href="http://www.tommyds.it/cov/tommyds/tommyds">code coverage of 100%</a>,
+ * The test has a <a href="https://www.tommyds.it/cov/tommyds/tommyds">code coverage of 100%</a>,
  * measured with <a href="http://ltp.sourceforge.net/coverage/lcov.php">lcov</a>.
  *
  * \section Limitations

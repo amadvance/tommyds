@@ -1,10 +1,10 @@
-
 [indentation]
 indent_width=4
 indent_type=1
 indent_hard_tab_width=8
 detect_indent=false
 indent_mode=2
+detect_indent_width=false
 
 [project]
 name=benchmark
@@ -12,8 +12,43 @@ base_path=/home/am/Desktop/tommy/
 make_in_base_path=true
 description=
 run_cmd=./tommy
+file_patterns=
 
 [files]
-current_page=1
-FILE_NAME_0=940;Make;0;16;1;1;0;/home/am/Desktop/tommy/Makefile;0
-FILE_NAME_1=4126;C;0;16;1;1;0;/home/am/Desktop/tommy//tommyhash.c;0
+current_page=9
+FILE_NAME_0=5726;C++;0;EUTF-8;1;1;0;%2Fmnt%2Fam%2Fdata%2Fsrc%2Ftommyds%2Fbenchmark.cc;0;4
+FILE_NAME_1=99;C++;0;EUTF-8;1;1;0;%2Fmnt%2Fam%2Fdata%2Fsrc%2Ftommyds%2Fbenchmark%2Flib%2Flibdynamic%2Fvector.h;0;4
+FILE_NAME_2=33035;C;0;EUTF-8;1;1;0;%2Fmnt%2Fam%2Fdata%2Fsrc%2Ftommyds%2Fbenchmark%2Flib%2Fjudyarray%2Fjudy64na.c;0;4
+FILE_NAME_3=3176;Make;0;EUTF-8;1;1;0;%2Fmnt%2Fam%2Fdata%2Fsrc%2Ftommyds%2FMakefile;0;4
+FILE_NAME_4=2149;None;0;EUTF-8;1;1;0;%2Fmnt%2Fam%2Fdata%2Fsrc%2Ftommyds%2Fbenchmark%2Fgr_common.gnu;0;4
+FILE_NAME_5=3702;Sh;0;EUTF-8;1;1;0;%2Fhome%2Fam%2FDownloads%2Fperf%2Fperf.SlackBuild;0;4
+FILE_NAME_6=89;Sh;0;EUTF-8;1;1;0;%2Fmnt%2Fam%2Fdata%2Fsrc%2Ftommyds%2Fbenchmark%2Fgr_all.sh;0;4
+FILE_NAME_7=136;None;0;EUTF-8;1;1;0;%2Fmnt%2Fam%2Fdata%2Fsrc%2Ftommyds%2Fbenchmark%2Fgr_other_googledensehash_problem.gnu;0;4
+FILE_NAME_8=34;None;0;EUTF-8;1;1;0;%2Fmnt%2Fam%2Fdata%2Fsrc%2Ftommyds%2Fbenchmark%2Fdata%2Fcore_i7_10700_2G9_linux%2Fgr_def.gnu;0;4
+FILE_NAME_9=20573;C++;0;EUTF-8;1;1;0;%2Fmnt%2Fam%2Fdata%2Fsrc%2Ftommyds%2Ftommyds%2Ftommy.h;0;4
+
+[editor]
+line_wrapping=false
+line_break_column=72
+auto_continue_multiline=true
+
+[file_prefs]
+final_new_line=true
+ensure_convert_new_lines=false
+strip_trailing_spaces=false
+replace_tabs=false
+
+[long line marker]
+long_line_behaviour=1
+long_line_column=72
+
+[VTE]
+last_dir=/home/am
+
+[build-menu]
+NF_00_LB=_Make
+NF_00_CM=make bench
+NF_00_WD=
+EX_00_LB=_Execute
+EX_00_CM=./tommybench
+EX_00_WD=
