@@ -30,16 +30,33 @@
 /******************************************************************************/
 /* hash */
 
+#include <string.h> /* for memcpy */
+
+/**
+ * Swap endianness.
+ * They are needed only if BigEndian.
+ */
+#if defined(__GNUC__)
+#define tommy_swap32(x) __builtin_bswap32(x)
+#else
+tommy_inline tommy_uint32_t tommy_swap32(tommy_uint32_t v)
+{
+	return ((v & 0xFF000000) >> 24) |
+		((v & 0x00FF0000) >> 8)  |
+		((v & 0x0000FF00) << 8)  |
+		((v & 0x000000FF) << 24);
+}
+#endif
+
 tommy_inline tommy_uint32_t tommy_le_uint32_read(const void* ptr)
 {
-	/* allow unaligned read on Intel x86 and x86_64 platforms */
-#if defined(__i386__) || defined(_M_IX86) || defined(_X86_) || defined(__x86_64__) || defined(_M_X64)
-	/* defines from http://predef.sourceforge.net/ */
-	return *(const tommy_uint32_t*)ptr;
-#else
-	const unsigned char* ptr8 = tommy_cast(const unsigned char*, ptr);
-	return ptr8[0] + ((tommy_uint32_t)ptr8[1] << 8) + ((tommy_uint32_t)ptr8[2] << 16) + ((tommy_uint32_t)ptr8[3] << 24);
+	tommy_uint32_t v;
+	memcpy(&v, ptr, sizeof(v));
+#if defined(WORDS_BIGENDIAN) || defined(__BIG_ENDIAN__) || \
+	(defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+	v = tommy_swap32(v);
 #endif
+	return v;
 }
 
 #define tommy_rot(x, k) \
