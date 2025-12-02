@@ -88,84 +88,87 @@ $(function() {
 <div class="line">    <span class="keywordflow">return</span> <a class="code hl_function" href="tommyhash_8h.html#a003904c1ed15d2d7c830441c8d4fac95">tommy_strhash_u32</a>(<a class="code hl_function" href="tommyhash_8h.html#a003904c1ed15d2d7c830441c8d4fac95">tommy_strhash_u32</a>(0, dir), name);</div>
 <div class="line">}</div>
 <div class="line"> </div>
-<div class="line"><a class="code hl_struct" href="structtommy__node__struct.html">tommy_list</a> list;</div>
-<div class="line"><a class="code hl_struct" href="structtommy__hashdyn__struct.html">tommy_hashdyn</a> hashtable_by_dir;</div>
-<div class="line"><a class="code hl_struct" href="structtommy__hashdyn__struct.html">tommy_hashdyn</a> hashtable_by_name;</div>
-<div class="line"><a class="code hl_struct" href="structtommy__hashdyn__struct.html">tommy_hashdyn</a> hashtable_by_path;</div>
-<div class="line"><a class="code hl_struct" href="structtommy__hashdyn__struct.html">tommy_hashdyn</a> hashtable_by_inode;</div>
+<div class="line"><span class="keywordtype">int</span> example(<span class="keywordtype">void</span>)</div>
+<div class="line">{</div>
+<div class="line">    <a class="code hl_struct" href="structtommy__node__struct.html">tommy_list</a> list;</div>
+<div class="line">    <a class="code hl_struct" href="structtommy__hashdyn__struct.html">tommy_hashdyn</a> hashtable_by_dir;</div>
+<div class="line">    <a class="code hl_struct" href="structtommy__hashdyn__struct.html">tommy_hashdyn</a> hashtable_by_name;</div>
+<div class="line">    <a class="code hl_struct" href="structtommy__hashdyn__struct.html">tommy_hashdyn</a> hashtable_by_path;</div>
+<div class="line">    <a class="code hl_struct" href="structtommy__hashdyn__struct.html">tommy_hashdyn</a> hashtable_by_inode;</div>
 <div class="line"> </div>
-<div class="line"><span class="comment">// initializes the list and the hash tables</span></div>
-<div class="line"><a class="code hl_function" href="tommylist_8h.html#a2fc05289c0e8797ffe45e28b9d3671ff">tommy_list_init</a>(&amp;list);</div>
-<div class="line"><a class="code hl_function" href="tommyhashdyn_8h.html#ae910c44f13b64e8a669fc63e02c2e882">tommy_hashdyn_init</a>(&amp;hashtable_by_dir);</div>
-<div class="line"><a class="code hl_function" href="tommyhashdyn_8h.html#ae910c44f13b64e8a669fc63e02c2e882">tommy_hashdyn_init</a>(&amp;hashtable_by_name);</div>
-<div class="line"><a class="code hl_function" href="tommyhashdyn_8h.html#ae910c44f13b64e8a669fc63e02c2e882">tommy_hashdyn_init</a>(&amp;hashtable_by_path);</div>
-<div class="line"><a class="code hl_function" href="tommyhashdyn_8h.html#ae910c44f13b64e8a669fc63e02c2e882">tommy_hashdyn_init</a>(&amp;hashtable_by_inode);</div>
+<div class="line">    <span class="comment">// initializes the list and the hash tables</span></div>
+<div class="line">    <a class="code hl_function" href="tommylist_8h.html#a2fc05289c0e8797ffe45e28b9d3671ff">tommy_list_init</a>(&amp;list);</div>
+<div class="line">    <a class="code hl_function" href="tommyhashdyn_8h.html#ae910c44f13b64e8a669fc63e02c2e882">tommy_hashdyn_init</a>(&amp;hashtable_by_dir);</div>
+<div class="line">    <a class="code hl_function" href="tommyhashdyn_8h.html#ae910c44f13b64e8a669fc63e02c2e882">tommy_hashdyn_init</a>(&amp;hashtable_by_name);</div>
+<div class="line">    <a class="code hl_function" href="tommyhashdyn_8h.html#ae910c44f13b64e8a669fc63e02c2e882">tommy_hashdyn_init</a>(&amp;hashtable_by_path);</div>
+<div class="line">    <a class="code hl_function" href="tommyhashdyn_8h.html#ae910c44f13b64e8a669fc63e02c2e882">tommy_hashdyn_init</a>(&amp;hashtable_by_inode);</div>
 <div class="line"> </div>
-<div class="line"><span class="comment">// creates an object</span></div>
-<div class="line"><span class="keyword">struct </span>file* f = malloc(<span class="keyword">sizeof</span>(<span class="keyword">struct</span> file));</div>
-<div class="line">strcpy(f-&gt;dir, ...);</div>
-<div class="line">strcpt(f-&gt;name, ...);</div>
-<div class="line">f-&gt;inode = ...;</div>
+<div class="line">    <span class="comment">// creates an object</span></div>
+<div class="line">    <span class="keyword">struct </span>file* f = malloc(<span class="keyword">sizeof</span>(<span class="keyword">struct</span> file));</div>
+<div class="line">    strcpy(f-&gt;dir, ...);</div>
+<div class="line">    strcpt(f-&gt;name, ...);</div>
+<div class="line">    f-&gt;inode = ...;</div>
 <div class="line"> </div>
-<div class="line"><span class="comment">// inserts into the list and hash tables</span></div>
-<div class="line"><a class="code hl_function" href="tommylist_8h.html#a98e34efdc68731f3e6da976e4d54ef63">tommy_list_insert_tail</a>(&amp;list, &amp;f-&gt;node, f);</div>
-<div class="line"><a class="code hl_function" href="tommyhashdyn_8h.html#af4efc9c169c49713ee520f2a865db220">tommy_hashdyn_insert</a>(&amp;hashtable_by_dir, &amp;f-&gt;node_by_dir, f, <a class="code hl_function" href="tommyhash_8h.html#a003904c1ed15d2d7c830441c8d4fac95">tommy_strhash_u32</a>(0, f-&gt;dir));</div>
-<div class="line"><a class="code hl_function" href="tommyhashdyn_8h.html#af4efc9c169c49713ee520f2a865db220">tommy_hashdyn_insert</a>(&amp;hashtable_by_name, &amp;f-&gt;node_by_name, f, <a class="code hl_function" href="tommyhash_8h.html#a003904c1ed15d2d7c830441c8d4fac95">tommy_strhash_u32</a>(0, f-&gt;name));</div>
-<div class="line"><a class="code hl_function" href="tommyhashdyn_8h.html#af4efc9c169c49713ee520f2a865db220">tommy_hashdyn_insert</a>(&amp;hashtable_by_path, &amp;f-&gt;node_by_path, f, hash_by_path(f-&gt;dir, f&gt;name));</div>
-<div class="line"><a class="code hl_function" href="tommyhashdyn_8h.html#af4efc9c169c49713ee520f2a865db220">tommy_hashdyn_insert</a>(&amp;hashtable_by_inode, &amp;f-&gt;node_by_inode, f, <a class="code hl_function" href="tommyhash_8h.html#a5260825416b2b49d08761f10a5ef981b">tommy_inthash_u64</a>(f-&gt;inode));</div>
+<div class="line">    <span class="comment">// inserts into the list and hash tables</span></div>
+<div class="line">    <a class="code hl_function" href="tommylist_8h.html#a98e34efdc68731f3e6da976e4d54ef63">tommy_list_insert_tail</a>(&amp;list, &amp;f-&gt;node, f);</div>
+<div class="line">    <a class="code hl_function" href="tommyhashdyn_8h.html#af4efc9c169c49713ee520f2a865db220">tommy_hashdyn_insert</a>(&amp;hashtable_by_dir, &amp;f-&gt;node_by_dir, f, <a class="code hl_function" href="tommyhash_8h.html#a003904c1ed15d2d7c830441c8d4fac95">tommy_strhash_u32</a>(0, f-&gt;dir));</div>
+<div class="line">    <a class="code hl_function" href="tommyhashdyn_8h.html#af4efc9c169c49713ee520f2a865db220">tommy_hashdyn_insert</a>(&amp;hashtable_by_name, &amp;f-&gt;node_by_name, f, <a class="code hl_function" href="tommyhash_8h.html#a003904c1ed15d2d7c830441c8d4fac95">tommy_strhash_u32</a>(0, f-&gt;name));</div>
+<div class="line">    <a class="code hl_function" href="tommyhashdyn_8h.html#af4efc9c169c49713ee520f2a865db220">tommy_hashdyn_insert</a>(&amp;hashtable_by_path, &amp;f-&gt;node_by_path, f, hash_by_path(f-&gt;dir, f&gt;name));</div>
+<div class="line">    <a class="code hl_function" href="tommyhashdyn_8h.html#af4efc9c169c49713ee520f2a865db220">tommy_hashdyn_insert</a>(&amp;hashtable_by_inode, &amp;f-&gt;node_by_inode, f, <a class="code hl_function" href="tommyhash_8h.html#a5260825416b2b49d08761f10a5ef981b">tommy_inthash_u64</a>(f-&gt;inode));</div>
 <div class="line"> </div>
-<div class="line"><span class="comment">// searches a file by inode</span></div>
-<div class="line">inode_t inode_to_find = ...;</div>
-<div class="line"><span class="keyword">struct </span>file* found = <a class="code hl_function" href="tommyhashdyn_8h.html#a026626d9771af5f112c4a58f7a362dbf">tommy_hashdyn_search</a>(&amp;hashtable_by_inode, search_by_inode, &amp;inode_to_find, <a class="code hl_function" href="tommyhash_8h.html#a5260825416b2b49d08761f10a5ef981b">tommy_inthash_u64</a>(inode_to_find));</div>
-<div class="line"><span class="keywordflow">if</span> (found) {</div>
-<div class="line">    printf(<span class="stringliteral">&quot;%s/%s\n&quot;</span>, f-&gt;dir, f-&gt;name);</div>
-<div class="line">}</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// searches a file by full path and deletes it</span></div>
-<div class="line"><span class="keyword">struct </span>path path_to_find;</div>
-<div class="line">path_to_find.dir = ...</div>
-<div class="line">path_to_find.name = ...</div>
-<div class="line">struct file* found = <a class="code hl_function" href="tommyhashdyn_8h.html#a026626d9771af5f112c4a58f7a362dbf">tommy_hashdyn_search</a>(&amp;hashtable_by_path, search_by_path, &amp;path_to_find, hash_by_path(path_to_find.dir, path_to_find.name));* </div>
-<div class="line"><span class="keywordflow">if</span> (found) {</div>
-<div class="line">    <span class="comment">// if found removes all the references</span></div>
-<div class="line">    <a class="code hl_function" href="tommylist_8h.html#a6da3cd9ad74b99199ebbcacb22bff18d">tommy_list_remove_existing</a>(&amp;list, &amp;obj-&gt;node);</div>
-<div class="line">    <a class="code hl_function" href="tommyhashdyn_8h.html#aa1beeab03e0afe343a75149fb1672d17">tommy_hashdyn_remove_existing</a>(&amp;hashtable_by_dir, &amp;obj-&gt;node_by_dir);</div>
-<div class="line">    <a class="code hl_function" href="tommyhashdyn_8h.html#aa1beeab03e0afe343a75149fb1672d17">tommy_hashdyn_remove_existing</a>(&amp;hashtable_by_name, &amp;obj-&gt;node_by_name);</div>
-<div class="line">    <a class="code hl_function" href="tommyhashdyn_8h.html#aa1beeab03e0afe343a75149fb1672d17">tommy_hashdyn_remove_existing</a>(&amp;hashtable_by_path, &amp;obj-&gt;node_by_path);</div>
-<div class="line">    <a class="code hl_function" href="tommyhashdyn_8h.html#aa1beeab03e0afe343a75149fb1672d17">tommy_hashdyn_remove_existing</a>(&amp;hashtable_by_inode, &amp;obj-&gt;node_by_inode);</div>
-<div class="line">}</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// iterates over all files with a specific name, even in different directories</span></div>
-<div class="line">cont <span class="keywordtype">char</span>* name_to_find = ...;</div>
-<div class="line"><a class="code hl_struct" href="structtommy__node__struct.html">tommy_node</a>* i = <a class="code hl_function" href="tommyhashdyn_8h.html#a63f44bedd21ffe61182221c18d1096bc">tommy_hashdyn_bucket</a>(&amp;hashtable_by_name, <a class="code hl_function" href="tommyhash_8h.html#a003904c1ed15d2d7c830441c8d4fac95">tommy_strhash_u32</a>(0, name_to_find));</div>
-<div class="line"><span class="keywordflow">while</span> (i) {</div>
-<div class="line">    <span class="keyword">struct </span>file* f = i-&gt;<a class="code hl_variable" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f">data</a>; <span class="comment">// gets the file pointer</span></div>
-<div class="line"> </div>
-<div class="line">    <span class="keywordflow">if</span> (strcmp(f-&gt;name, name_to_find) == 0) { <span class="comment">// the bucket may contain also other names</span></div>
+<div class="line">    <span class="comment">// searches a file by inode</span></div>
+<div class="line">    inode_t inode_to_find = ...;</div>
+<div class="line">    <span class="keyword">struct </span>file* found = <a class="code hl_function" href="tommyhashdyn_8h.html#a026626d9771af5f112c4a58f7a362dbf">tommy_hashdyn_search</a>(&amp;hashtable_by_inode, search_by_inode, &amp;inode_to_find, <a class="code hl_function" href="tommyhash_8h.html#a5260825416b2b49d08761f10a5ef981b">tommy_inthash_u64</a>(inode_to_find));</div>
+<div class="line">    <span class="keywordflow">if</span> (found) {</div>
 <div class="line">        printf(<span class="stringliteral">&quot;%s/%s\n&quot;</span>, f-&gt;dir, f-&gt;name);</div>
 <div class="line">    }</div>
 <div class="line"> </div>
-<div class="line">    i = i-&gt;<a class="code hl_variable" href="structtommy__node__struct.html#a53338f3f5366866598ed9ac7e46e64a2">next</a>; <span class="comment">// goes to the next file</span></div>
+<div class="line">    <span class="comment">// searches a file by full path and deletes it</span></div>
+<div class="line">    <span class="keyword">struct </span>path path_to_find;</div>
+<div class="line">    path_to_find.dir = ...</div>
+<div class="line">    path_to_find.name = ...</div>
+<div class="line">    <span class="keyword">struct </span>file* found = <a class="code hl_function" href="tommyhashdyn_8h.html#a026626d9771af5f112c4a58f7a362dbf">tommy_hashdyn_search</a>(&amp;hashtable_by_path, search_by_path, &amp;path_to_find, hash_by_path(path_to_find.dir, path_to_find.name));* </div>
+<div class="line">    <span class="keywordflow">if</span> (found) {</div>
+<div class="line">        <span class="comment">// if found removes all the references</span></div>
+<div class="line">        <a class="code hl_function" href="tommylist_8h.html#a6da3cd9ad74b99199ebbcacb22bff18d">tommy_list_remove_existing</a>(&amp;list, &amp;obj-&gt;node);</div>
+<div class="line">        <a class="code hl_function" href="tommyhashdyn_8h.html#aa1beeab03e0afe343a75149fb1672d17">tommy_hashdyn_remove_existing</a>(&amp;hashtable_by_dir, &amp;obj-&gt;node_by_dir);</div>
+<div class="line">        <a class="code hl_function" href="tommyhashdyn_8h.html#aa1beeab03e0afe343a75149fb1672d17">tommy_hashdyn_remove_existing</a>(&amp;hashtable_by_name, &amp;obj-&gt;node_by_name);</div>
+<div class="line">        <a class="code hl_function" href="tommyhashdyn_8h.html#aa1beeab03e0afe343a75149fb1672d17">tommy_hashdyn_remove_existing</a>(&amp;hashtable_by_path, &amp;obj-&gt;node_by_path);</div>
+<div class="line">        <a class="code hl_function" href="tommyhashdyn_8h.html#aa1beeab03e0afe343a75149fb1672d17">tommy_hashdyn_remove_existing</a>(&amp;hashtable_by_inode, &amp;obj-&gt;node_by_inode);</div>
+<div class="line">    }</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// iterates over all files with a specific name, even in different directories</span></div>
+<div class="line">    cont <span class="keywordtype">char</span>* name_to_find = ...;</div>
+<div class="line">    <a class="code hl_struct" href="structtommy__node__struct.html">tommy_node</a>* i = <a class="code hl_function" href="tommyhashdyn_8h.html#a63f44bedd21ffe61182221c18d1096bc">tommy_hashdyn_bucket</a>(&amp;hashtable_by_name, <a class="code hl_function" href="tommyhash_8h.html#a003904c1ed15d2d7c830441c8d4fac95">tommy_strhash_u32</a>(0, name_to_find));</div>
+<div class="line">    <span class="keywordflow">while</span> (i) {</div>
+<div class="line">        <span class="keyword">struct </span>file* f = i-&gt;<a class="code hl_variable" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f">data</a>; <span class="comment">// gets the file pointer</span></div>
+<div class="line"> </div>
+<div class="line">        <span class="keywordflow">if</span> (strcmp(f-&gt;name, name_to_find) == 0) { <span class="comment">// the bucket may contain also other names</span></div>
+<div class="line">            printf(<span class="stringliteral">&quot;%s/%s\n&quot;</span>, f-&gt;dir, f-&gt;name);</div>
+<div class="line">        }</div>
+<div class="line"> </div>
+<div class="line">        i = i-&gt;<a class="code hl_variable" href="structtommy__node__struct.html#a53338f3f5366866598ed9ac7e46e64a2">next</a>; <span class="comment">// goes to the next file</span></div>
+<div class="line">    }</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// iterates over all files</span></div>
+<div class="line">    i = <a class="code hl_function" href="tommylist_8h.html#adbf4e5317cbebb3dea8c766e367c232c">tommy_list_head</a>(&amp;list);</div>
+<div class="line">    <span class="keywordflow">while</span> (i != 0) {</div>
+<div class="line">        <span class="keyword">struct </span>file* found = i-&gt;<a class="code hl_variable" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f">data</a>; <span class="comment">// gets the file pointer</span></div>
+<div class="line"> </div>
+<div class="line">        printf(<span class="stringliteral">&quot;%s/%s %lu\n&quot;</span>, f-&gt;dir, f-&gt;name, f-&gt;inode);</div>
+<div class="line"> </div>
+<div class="line">        i = i-&gt;<a class="code hl_variable" href="structtommy__node__struct.html#a53338f3f5366866598ed9ac7e46e64a2">next</a>; <span class="comment">// goes to the next file</span></div>
+<div class="line">    }</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// deallocates the files</span></div>
+<div class="line">    <a class="code hl_function" href="tommylist_8h.html#aff0d5bf37382622516d889faac501b61">tommy_list_foreach</a>(&amp;list, free);</div>
+<div class="line"> </div>
+<div class="line">    <span class="comment">// deallocates the hash tables</span></div>
+<div class="line">    <a class="code hl_function" href="tommyhashdyn_8h.html#a81db708abb4f0e271304427684df91f5">tommy_hashdyn_done</a>(&amp;hashtable_by_dir);</div>
+<div class="line">    <a class="code hl_function" href="tommyhashdyn_8h.html#a81db708abb4f0e271304427684df91f5">tommy_hashdyn_done</a>(&amp;hashtable_by_name);</div>
+<div class="line">    <a class="code hl_function" href="tommyhashdyn_8h.html#a81db708abb4f0e271304427684df91f5">tommy_hashdyn_done</a>(&amp;hashtable_by_path);</div>
+<div class="line">    <a class="code hl_function" href="tommyhashdyn_8h.html#a81db708abb4f0e271304427684df91f5">tommy_hashdyn_done</a>(&amp;hashtable_by_inode);</div>
 <div class="line">}</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// iterates over all files</span></div>
-<div class="line">i = <a class="code hl_function" href="tommylist_8h.html#adbf4e5317cbebb3dea8c766e367c232c">tommy_list_head</a>(&amp;list);</div>
-<div class="line"><span class="keywordflow">while</span> (i != 0) {</div>
-<div class="line">    <span class="keyword">struct </span>file* found = i-&gt;<a class="code hl_variable" href="structtommy__node__struct.html#a6210792ec52fa1efbfb44cf4557d9b6f">data</a>; <span class="comment">// gets the file pointer</span></div>
-<div class="line"> </div>
-<div class="line">    printf(<span class="stringliteral">&quot;%s/%s %lu\n&quot;</span>, f-&gt;dir, f-&gt;name, f-&gt;inode);</div>
-<div class="line"> </div>
-<div class="line">    i = i-&gt;<a class="code hl_variable" href="structtommy__node__struct.html#a53338f3f5366866598ed9ac7e46e64a2">next</a>; <span class="comment">// goes to the next file</span></div>
-<div class="line">}</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// deallocates the files</span></div>
-<div class="line"><a class="code hl_function" href="tommylist_8h.html#aff0d5bf37382622516d889faac501b61">tommy_list_foreach</a>(&amp;list, free);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// deallocates the hash tables</span></div>
-<div class="line"><a class="code hl_function" href="tommyhashdyn_8h.html#a81db708abb4f0e271304427684df91f5">tommy_hashdyn_done</a>(&amp;hashtable_by_dir);</div>
-<div class="line"><a class="code hl_function" href="tommyhashdyn_8h.html#a81db708abb4f0e271304427684df91f5">tommy_hashdyn_done</a>(&amp;hashtable_by_name);</div>
-<div class="line"><a class="code hl_function" href="tommyhashdyn_8h.html#a81db708abb4f0e271304427684df91f5">tommy_hashdyn_done</a>(&amp;hashtable_by_path);</div>
-<div class="line"><a class="code hl_function" href="tommyhashdyn_8h.html#a81db708abb4f0e271304427684df91f5">tommy_hashdyn_done</a>(&amp;hashtable_by_inode);</div>
 <div class="ttc" id="astructtommy__hashdyn__struct_html"><div class="ttname"><a href="structtommy__hashdyn__struct.html">tommy_hashdyn_struct</a></div><div class="ttdoc">Hashtable container type.</div><div class="ttdef"><b>Definition:</b> tommyhashdyn.h:161</div></div>
 <div class="ttc" id="astructtommy__node__struct_html"><div class="ttname"><a href="structtommy__node__struct.html">tommy_node_struct</a></div><div class="ttdoc">Data structure node.</div><div class="ttdef"><b>Definition:</b> tommytypes.h:211</div></div>
 <div class="ttc" id="astructtommy__node__struct_html_a53338f3f5366866598ed9ac7e46e64a2"><div class="ttname"><a href="structtommy__node__struct.html#a53338f3f5366866598ed9ac7e46e64a2">tommy_node_struct::next</a></div><div class="ttdeci">struct tommy_node_struct * next</div><div class="ttdoc">Next node.</div><div class="ttdef"><b>Definition:</b> tommytypes.h:216</div></div>
