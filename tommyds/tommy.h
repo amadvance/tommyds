@@ -35,10 +35,10 @@
  * <a href="http://judy.sourceforge.net/">judy</a>,
  * <a href="http://code.google.com/p/cpp-btree/">googlebtree</a>,
  * <a href="http://panthema.net/2007/stx-btree/">stxbtree</a>,
- * <a href="http://attractivechaos.awardspace.com/">khash</a>,
+ * <a href="https://github.com/attractivechaos/klib/blob/master/khash.h">khash</a>,
  * <a href="http://uthash.sourceforge.net/">uthash</a>,
  * <a href="http://www.nedprod.com/programs/portable/nedtries/">nedtrie</a>,
- * <a href="http://code.google.com/p/judyarray/">judyarray</a>,
+ * <a href="https://code.google.com/archive/p/judyarray/">judyarray</a>,
  * <a href="http://concurrencykit.org/">concurrencykit</a> and others.
  *
  * The data structures provided are:
@@ -164,138 +164,148 @@
  *
  * \page benchmark Tommy Benchmarks
  *
- * To evaluate Tommy performance, an extensive benchmark was done,
- * comparing it to the best libraries of data structures available:
+ * To help you understand TommyDS's performance, we conducted a thorough
+ * benchmark, comparing it against some of the best and most popular existing C
+ * and C++ data structure libraries. The goal is to give you a clear, real-world
+ * comparison.
  *
- * Specifically we test:
- *  - ::tommy_hashtable - Fixed-size chained hashtable.
- *  - ::tommy_hashdyn - Dynamic chained hashtable.
- *  - ::tommy_hashlin - Linear chained hashtable.
- *  - ::tommy_trie - Trie optimized for cache usage.
- *  - ::tommy_trie_inplace - Trie completely inplace.
- *  - <a href="http://www.canonware.com/rb/">rbtree</a> - Red-black tree by Jason Evans.
- *  - <a href="http://www.nedprod.com/programs/portable/nedtries/">nedtrie</a> - Binary trie inplace by Niall Douglas.
- *  - <a href="http://attractivechaos.awardspace.com/">khash</a> - Dynamic open addressing hashtable by Attractive Chaos.
- *  - <a href="http://uthash.sourceforge.net/">uthash</a> - Dynamic chaining hashtable by Troy D. Hanson.
- *  - <a href="http://judy.sourceforge.net/">judy</a> - Burst trie (JudyL) by Doug Baskins.
- *  - <a href="http://code.google.com/p/judyarray/">judyarray</a> - Burst trie by Karl Malbrain.
- *  - <a href="https://github.com/sparsehash/sparsehash">googledensehash</a> - Dynamic open addressing hashtable by Craig Silverstein at Google (2.0.4).
- *  - <a href="http://code.google.com/p/cpp-btree/">googlebtree</a> - B-tree by Google.
- *  - <a href="http://panthema.net/2007/stx-btree/">stxbtree</a> - STX B-tree by Timo Bingmann.
- *  - <a href="http://www.cplusplus.com/reference/unordered_map/unordered_map/">c++unordered_map</a> - C++ STL unordered_map<> template.
- *  - <a href="http://www.cplusplus.com/reference/map/map/">c++map</a> - C++ STL map<> template.
- *  - <a href="https://sites.google.com/site/binarysearchcube/">tesseract</a> - Binary Search Tesseract by Gregorius van den Hoven.
- *  - <a href="https://github.com/sparsehash/sparsehash/tree/master/experimental">googlelibchash</a> - LibCHash by Craig Silverstein at Google.
- *  - <a href="https://github.com/fredrikwidlund/libdynamic">libdynamic</a> - Hash set by Fredrik Widlund.
- *  - <a href="http://concurrencykit.org/">concurrencykit</a> - Non-blocking hash set by Samy Al Bahra.
+ * Here are the data structures included in the comparison:
+ * - ::tommy_hashtable - Fixed-size chained hashtable.
+ * - ::tommy_hashdyn - Dynamic chained hashtable.
+ * - ::tommy_hashlin - Linear chained hashtable.
+ * - ::tommy_trie - Trie optimized for cache usage.
+ * - ::tommy_trie_inplace - Trie completely inplace.
+ * - <a href="http://www.canonware.com/rb/">rbtree</a> - Red-black tree by Jason Evans.
+ * - <a href="http://www.nedprod.com/programs/portable/nedtries/">nedtrie</a> - Binary trie inplace by Niall Douglas.
+ * - <a href="https://github.com/attractivechaos/klib/blob/master/khash.h">khash</a> - Dynamic open addressing hashtable by Attractive Chaos.
+ * - <a href="http://uthash.sourceforge.net/">uthash</a> - Dynamic chaining hashtable by Troy D. Hanson.
+ * - <a href="http://judy.sourceforge.net/">judy</a> - Burst trie (JudyL) by Doug Baskins.
+ * - <a href="https://code.google.com/archive/p/judyarray/">judyarray</a> - Burst trie by Karl Malbrain.
+ * - <a href="https://github.com/sparsehash/sparsehash">googledensehash</a> - Dynamic open addressing hashtable by Craig Silverstein at Google (2.0.4).
+ * - <a href="http://code.google.com/p/cpp-btree/">googlebtree</a> - B-tree by Google.
+ * - <a href="http://panthema.net/2007/stx-btree/">stxbtree</a> - STX B-tree by Timo Bingmann.
+ * - <a href="http://www.cplusplus.com/reference/unordered_map/unordered_map/">c++unordered_map</a> - C++ STL unordered_map<> template.
+ * - <a href="http://www.cplusplus.com/reference/map/map/">c++map</a> - C++ STL map<> template.
+ * - <a href="https://sites.google.com/site/binarysearchcube/">tesseract</a> - Binary Search Tesseract by Gregorius van den Hoven.
+ * - <a href="https://github.com/sparsehash/sparsehash/tree/master/experimental">googlelibchash</a> - LibCHash by Craig Silverstein at Google.
+ * - <a href="https://github.com/fredrikwidlund/libdynamic">libdynamic</a> - Hash set by Fredrik Widlund.
+ * - <a href="http://concurrencykit.org/">concurrencykit</a> - Non-blocking hash set by Samy Al Bahra.
  *
- * Note that *googlelibchash*, *googledensehash* and *concurrencykit* are not
- * shown in the graphs because they present a lot of spikes.
- * See the \ref notes at the end.
+ * Note that *googlelibchash*, *googledensehash* and *concurrencykit* are generally
+ * **not shown in the primary performance graphs** because they exhibit numerous
+ * performance spikes across different data sizes. You can find specific details
+ * and relevant graphs about these in the \ref notes section.
  *
- * \section thebenchmark The Benchmark
+ * \section thebenchmark Understanding the Benchmark Methodology
  *
- * The benchmark consists of storing a set of N pointers to objects and
- * searching them using integer keys.
+ * The primary purpose of this benchmark is to measure the performance of
+ * storing and searching a collection of N pointers to distinct objects,
+ * indexed by an associated integer key.
  *
- * Compared to the case of mapping integers to integers, mapping pointers to
- * objects means that the pointers are also dereferenced, to simulate the
- * object access, resulting in additional cache misses.
- * This gives an advantage to implementations that store information in the
- * objects itself, as the additional cache misses are already implicit.
+ * This test methodology deliberately deviates from typical hash table
+ * comparisons where the entire object's data is copied and stored
+ * directly within the container.
  *
- * The tests done are:
- * - **Insert** Insert all the objects starting with an empty container.
- * - **Change** Find and remove one object and reinsert it with a different key, repeated for all the objects.
- * - **Hit** Find with success all the objects and dereference them.
- * - **Miss** Find with failure all the objects.
- * - **Remove** Remove all the objects and dereference them.
+ * Storing pointers is a **more common requirement** in real-world
+ * applications where the same object must be referenced by or included in
+ * multiple data structures (see \ref multiindex).
+ * Duplicating the object in such cases would be inefficient or incorrect.
+ * This difference is critical and explains why these performance metrics may
+ * differ from other general-purpose hash table comparisons.
  *
- * The *Change*, *Hit*, and *Miss* tests operate always with N
- * objects in the containers.
- * The *Insert* test starts with an empty container, and the *Remove*
- * test ends with an empty container.
- * The objects are always dereferenced, as we are supposing to use them. This
- * happens even in the remove case, as we are supposing to deallocate them.
+ * To accurately simulate real-world usage where the application must retrieve
+ * and access the object's data, the search operation in this benchmark
+ * dereferences the stored pointers. This step typically necessitates
+ * an additional memory load, often resulting in a cache miss.
  *
- * All the objects are preallocated in the heap, and the allocation and deallocation
- * time is not included in the test.
+ * This overhead provides a relative performance advantage to **intrusive containers**
+ * (like the Tommy structures) where the required indexing metadata is stored
+ * directly within the user's object structure. For these designs, the cache
+ * miss incurred to access the object's data is the same one that retrieves the
+ * necessary indexing information, minimizing the "additional" cost. 
  *
- * The objects contain an integer *value* field used for consistency checks,
- * an unused *payload* field of 16 bytes, and any other data required by the
- * data structure.
+ * The tests performed are:
+ * * **Insert:** Measures the time taken to add all N objects, starting from an
+ * empty container.
+ * * **Change:** Measures the time taken to **Find**, **Remove**, and immediately
+ * **Reinsert** an object with a *new* key, repeated for all N objects.
+ * * **Hit:** Measures the time taken to successfully **Find** all N objects
+ * and then **Dereference** (access) them.
+ * * **Miss:** Measures the time taken to attempt to find N objects that are
+ * **not present** in the container.
+ * * **Remove:** Measures the time taken to **Find** and **Remove** all N
+ * objects.
  *
- * The objects are identified and stored using integer and unique *keys*.
- * The key domain used is **dense**, and it's defined by the set
- * of N even numbers starting from 0x80000000 to 0x80000000+2*N.
+ * Note that *Change*, *Hit*, and *Miss* tests are always performed with N
+ * objects already in the container, while *Insert* builds the container up, and
+ * *Remove* empties it. The objects are always dereferenced upon successful search
+ * and removal.
  *
- * The use of even numbers allows to have missing keys inside the domain for
- * the *Miss* and *Change* test.
- * In such tests it's used the key domain defined by the set of N odd numbers
- * starting from 0x80000000+1 to 0x80000000+2*N+1.
- * Note that using additional keys at the corners of the domain would have given
- * an unfair advantage to tries and trees as they implicitly keep track of the
- * maximum and minimum key value inserted.
+ * All objects are preallocated on the heap, and the time for memory
+ * allocation/deallocation itself is not included in the performance results.
  *
- * The use of the 0x80000000 base allows to test a key domain not necessarily
- * starting at 0. Using a 0 base would have given an unfair advantage to some
- * implementation handling it as a special case.
+ * Each object contains a unique integer key, a value field for consistency checks,
+ * and a 16-byte unused *payload* field, plus any required internal data structure
+ * links.
  *
- * For all the hashtables the keys are hashed using the tommy_inthash_u32()
- * function that ensures a uniform distribution. This hash function is also
- * reversible, meaning that no collision is going to be caused by hashing the
- * keys. For tries and trees the keys are not hashed, and used directly.
+ * The keys used are unique and form a dense domain starting at
+ * 0x80000000 and consisting of N even numbers (e.g., 0x80000000,
+ * 0x80000002, ...).
+ * * Using even numbers ensures there are missing keys (the odd numbers)
+ * *within* the domain range, which is crucial for realistic *Miss* and *Change*
+ * tests.
+ * * Starting the key domain at 0x80000000 (instead of 0) prevents unfair
+ * advantages for data structures that might have special optimizations for
+ * keys near zero.
+ * * For hashtables, keys are processed using the ::tommy_inthash_u32()
+ * function, which is designed to guarantee a uniform distribution and no
+ * hash collisions, providing an optimal scenario.
+ * * For tries and trees, the keys are used directly (not hashed).
  *
- * The tests are repeated using keys in *Random* mode and in *Forward*
- * mode. In the forward mode the key values are used in order from the lowest
- * to the highest.
- * In the random mode the key values are used in a completely random order.
- * In the *Change* test in forward mode, each object is reinserted using
- * the previous key incremented by 1. In random mode each object is reinserted
- * using a completely different and uncorrelated key.
+ * Tests are repeated using two key access modes:
  *
- * The forward order advantages tries and trees as they use the key directly
- * and they have a cache advantage on using consecutive keys.
- * The random order advantages hashtables, as the hash function already
- * randomizes the key. Usually real use cases are in between, and the random
- * one is the worst case.
+ * * **Random Mode:** Keys are accessed in a completely random order. This 
+ * represents the real-world worst case and generally favors hashtables
+ * because the key-hashing process already randomizes the access pattern.
+ * * **Forward Mode:** Keys are accessed in order from the lowest to the
+ * highest. This naturally advantages tries and trees as they exploit the
+ * consecutive nature of the keys for cache locality.
  *
- * \section result Results
+ * \section result Results Summary
  *
  * The most significant tests depend on your data usage model, but if in doubt,
- * you can look at *Random Hit* and *Random Change*.
- * They represent the real-world worst condition.
+ * focus on **Random Hit** and **Random Change**, as they represent the real-world
+ * worst-case random access scenario.
  *
+ * ### Random Hit Analysis
  * <img src="core_i7_10700_2G9_linux/img_random_hit.png"/>
  *
- * In the *Random Hit* graph you can see a vertical split at the 100,000
- * elements limit. Before this limit the cache of modern processors is able to
- * contain most of the data, and it allows a very fast access with almost all
- * data structures.
- * After this limit, the number of cache misses is the dominant factor, and
- * the curve depends mainly on the number of cache misses required.
+ * Observe the vertical split around the 100,000 element limit.
+ * * **Below 100k:** The modern processor's cache can contain most of the data,
+ * resulting in extremely fast access for almost all structures.
+ * * **Above 100k:** The number of **cache misses** becomes the dominant factor.
+ * * **Hashtables** are nearly constant-time, showing almost no growth (O(1)).
+ * * **Trees (rbtree, nedtrie)** grow logarithmically as log_2(N).
+ * * **Tommy Tries** show better logarithmic growth: ::tommy_trie_inplace
+ * grows as log_4(N), and ::tommy_trie as log_8(N). The growth curve for Tommy
+ * Tries can be adjusted by configuring the number of branches per node.
  *
- * rbtree and nedtrie grow as log_2(N) as they have two branches on each node,
- * ::tommy_trie_inplace grows as log_4(N), ::tommy_trie as log_8(N) and hashtables
- * are almost constant and don't grow.
- * For ::tommy_trie_inplace and ::tommy_trie you can change the growth curve
- * by configuring a different number of branches per node.
- *
+ * ### Random Change Analysis
  * <img src="core_i7_10700_2G9_linux/img_random_change.png"/>
  *
- * The *Random Change* graph confirms the vertical split at the 100,000
- * elements limit. It also shows that hashtables are almost unbeatable with a
- * random access.
+ * The *Random Change* graph confirms the 100,000 element cache limit split. It also
+ * highlights that **hashtables are almost unbeatable** for random-access combined
+ * remove and insert operations.
  *
- * \section random Random order
- * Here you can see the whole *Random* test results.
+ * \section random Full Random Order Results
  *
- * In the *Random* test, hashtables are almost always winning, second are
- * tries, and last are trees.
+ * In the **Random** access tests, **hashtables are the clear winners**, followed
+ * by tries, with traditional trees generally being the slowest.
  *
- * The best choices are ::tommy_hashdyn, ::tommy_hashlin, with ::tommy_hashlin
- * having the advantage to be real-time friendly and not increasing heap
- * fragmentation.
+ * The best choices in TommyDS for this access pattern are ::tommy_hashdyn and
+ * ::tommy_hashlin. ::tommy_hashlin is often preferred for being
+ * **real-time friendly** as it minimizes heap fragmentation.
+ *
  * <table border="0">
  * <tr><td>
  * <img src="core_i7_10700_2G9_linux/img_random_insert.png"/>
@@ -310,30 +320,18 @@
  * </td></tr>
  * </table>
  *
- * \section forward Forward order
- * Here you can see the whole *Forward* test results.
+ * \section forward Full Forward Order Access
  *
- * In the *Forward* test, tries are the winners. Hashtables are competitive
- * until the cache limit, then they lose against tries. Trees are the slowest.
+ * In the **Forward** (sequential) access tests, **tries are the fastest**,
+ * followed by hashtables. Trees remain the slowest option.
  *
- * The best choices are ::tommy_trie and ::tommy_trie_inplace, where ::tommy_trie is
- * a bit faster, and ::tommy_trie_inplace doesn't require a custom allocator.
+ * The best choices in TommyDS here are ::tommy_trie and ::tommy_trie_inplace.
+ * ::tommy_trie_inplace is often preferred as it **does not require a
+ * custom allocator**.
  *
- * Note that hashtables are also faster in forward order than random. This may
- * seem a bit surprising as the hash function randomizes the access even with
- * consecutive keys. This happens because the objects are allocated in consecutive
- * memory, and accessing them in order improves cache utilization, even if
- * the hashed key is random.
- *
- * Note that you can make hashtables reach trie performance by tweaking the hash
- * function to put keys allocated nearby near each other.
- * This is possible if you know in advance the distribution of keys.
- * For example, in the benchmark you could use something like:
- * \code
- * #define hash(v) tommy_inthash_u32(v & ~0xF) + (v & 0xF)
- * \endcode
- * and make keys that differ only by the lowest bits to have hashes with the same
- * property, resulting in objects stored nearby, and improving cache utilization.
+ * Note that hashtables are also faster in Forward mode than in Random mode. This
+ * happens because the objects are **allocated sequentially in memory**, and
+ * accessing them in key order still results in better cache utilization overall.
  *
  * <table border="0">
  * <tr><td>
@@ -349,25 +347,27 @@
  * </td></tr>
  * </table>
  *
- * \section size Size
- * Here you can see the memory usage of the different data structures.
+ * \section size Memory Usage
+ *
+ * Here you can see how memory usage scales for the different data structures.
+ *
  * <table border="0">
- * <tr><td>
- * <img src="core_i7_10700_2G9_linux/img_random_size.png"/>
- * </td></tr>
+ * <table border="0">
+ * <tr><td><img src="core_i7_10700_2G9_linux/img_random_size.png"/></td></tr>
  * </table>
+ * 
+ * \section code Technical Details and Code Snippets
  *
- * \section code Code
+ * The benchmark was performed on a Core i7 10700 2.9 GHz running Linux. The
+ * compiler used was gcc 15.2.0 with the aggressive optimization flags
+ * `"-O3 -march=native -flto -fpermissive"`.
  *
- * The compiler used in the benchmark is gcc 15.2.0 with options "-O3 -march=native -flto -fpermissive"
- * on a Core i7 10700 2.9 GHz.
- *
- * The following is pseudo-code of the benchmark used. In this case it's written
- * for the C++ unordered_map.
+ * Below is the pseudo-code for the benchmark setup, written here using the C++
+ * `unordered_map` as an example implementation:
  *
  * \code
  * #define N 10000000 // Number of elements
- * #define PAYLOAD 16 // Size of the object
+ * #define PAYLOAD 16 // Size of the object's payload data
  *
  * // Basic object inserted in the collection
  * struct obj {
@@ -492,131 +492,213 @@
  * }
  * \endcode
  *
- * \section notes Notes
+ * ---
  *
- * Here are some notes about the data structure tested not part of Tommy.
+ * \section notes Notes on Other Libraries
+ *
+ * This section provides additional context on the tested libraries that are not
+ * part of TommyDS.
  *
  * \subsection googlelibchash Google C libchash
- * It's the C implementation located in the *experimental* directory of the googlesparsehash archive.
- * It has bad performance in the *Change* test for some N values.
- * See this <a href="other/googlelibchash_problem.png">graph</a> with a lot of spikes.
+ * This C implementation was excluded from the main graphs because it exhibits
+ * poor performance and significant spikes in the *Change* test for certain N
+ * values.
+ * See this <a href="other/googlelibchash_problem.png">graph</a>.
  *
  * \subsection googledensehash Google C++ densehash
- * It has bad performance in the *Change* test for some N values.
- * See this <a href="other/googledensehash_problem.png">graph</a> with a lot of spikes.
- * It also doesn't release memory on deletion.
- * To avoid an unfair advantage in the *Remove* test, we force a periodic
- * resize calling resize(0) after any deallocation.
- * The resize is executed when the load factor is lower than 20%.
+ * This C++ implementation also displays erratic performance and spikes in the
+ * *Change* test.
+ * See this <a href="other/googledensehash_problem.png">graph</a>.
+ * 
+ * Additionally, it does not automatically release memory upon deletion. To
+ * prevent an unfair advantage in the *Remove* test, we manually forced a periodic
+ * memory release by calling `resize(0)`.
  *
  * \subsection khash khash
- * It doesn't release memory on deletion. This gives an unfair advantage in the *Remove* test.
+ * This library also suffers from the issue of not releasing memory on
+ * deletion, which can lead to unrealistic performance gains in the *Remove*
+ * test.
  *
  * \subsection nedtrie nedtrie
- * I've found a crash bug when inserting keys with the 0 value.
- * The <a href="https://github.com/ned14/nedtries/commit/21039696f27db4ffac70a82f89dc5d00ae74b332">fix</a> of this issue is now in the nedtries github.
- * We do not use the C++ implementation as it doesn't compile with gcc 4.4.3.
+ * A crash bug was found when inserting a key with the value 0. The necessary
+ * <a href="https://github.com/ned14/nedtries/commit/21039696f27db4ffac70a82f89dc5d00ae74b332">
+ * fix</a> has been implemented in the `nedtries` GitHub repository.
  *
  * \subsection judy Judy
- * Sometimes it has bad performance in some specific platform
- * and for some specific input data size.
- * This makes it difficult to predict the performance, as it is usually good until
- * you get one of these cases.
- * See for example this <a href="other/judy_problem.png">graph</a> with a big replicable spike at 50,000 elements.
+ * The Judy library (specifically JudyL) can sometimes exhibit unpredictable
+ * performance depending on the specific platform and input data size.
+ * See for instance this <a href="other/judy_problem.png">graph</a> showing a big,
+ * reproducible performance spike at 50,000 elements.
  *
  * \subsection ck Concurrency Kit
- * It has very bad performance in the *Change* test for some N values.
- * See this <a href="other/ck_problem.png">graph</a> with a lot of spikes.
+ * The non-blocking hash set displays severe performance degradation and numerous
+ * spikes in the *Change* test for some data sizes.
+ * See this <a href="other/ck_problem.png">graph</a>.
  *
- * \page multiindex Tommy Multi Indexing
+ * \page multiindex Multi-Indexing: Searching Objects in Multiple Ways
  *
- * Tommy provides only partial iterator support with the "foreach" functions.
- * If you need real iterators you have to insert all the objects also into a ::tommy_list,
- * and use the list as an iterator.
+ * In any real-world application where you use objects to represent information, 
+ * you'll often need to search for those objects using **different keys** or
+ * criteria. This is where the concept of **multi-indexing** becomes essential.
  *
- * This technique allows to keep track of the insertion order with the list,
- * and provides more search possibilities using different data structures for
- * different search keys.
+ * Consider a common example: files in a file system. A single file object
+ * might need to be found in several distinct ways:
+ * * By its **name** (e.g., 'document.pdf').
+ * * By its **residing directory** (e.g., '/home/user/documents/').
+ * * By its **full path** (e.g., '/home/user/documents/document.pdf').
+ * * By its unique **inode** number.
  *
- * See the next example, for objects inserted in a ::tommy_list, and in
- * two ::tommy_hashdyn using different keys.
+ * With multi-indexing, each search key require the file object to be
+ * inserted into a separate, dedicated data structure (like a hash table or
+ * a tree) to allow for a fast search based on that specific key. This is 
+ * exactly what TommyDS is designed to **facilitate**.
+ *
+ * You can compare this concept to a SQL database. In a database, a single
+ * table can have multiple indexes. Each index allows for a fast lookup
+ * of rows based on the value in a specific column (the search key), without
+ * having to scan the entire table. TommyDS helps you achieve this same
+ * performance benefit in your C application for in-memory data structures.
+ *
+ * TommyDS simplifies the management of these multiple indexes, allowing you to
+ * have a single object, but link it into several different data structures
+ * simultaneously, each using a different field of the object as the search key.
+ *
+ * Note that TommyDS provides only partial iterator support through its
+ * simple `"foreach"` functions. If your application needs full, flexible
+ * iterators (meaning the ability to walk through all objects in the collection
+ * easily) or if you need to preserve the original insertion order of the
+ * objects, you must also insert all the objects into a separate ::tommy_list.
+ *
+ * You can then use the ::tommy_list structure as your primary iterator. This
+ * gives you the best of both worlds: fast search via the indexed structures,
+ * and ordered traversal via the list.
+ *
+ * See the next example in the documentation for a complete implementation that
+ * uses a ::tommy_list alongside multiple ::tommy_hashdyn structures.
  *
  * \code
- * struct object {
+ * struct file {
  *     // data fields
- *     int value_0;
- *     int value_1;
+ *     char dir[MAXDIR];
+ *     char name[MAXNAME];
+ *     inode_t inode;
  *
  *     // for containers
- *     tommy_node list_node; // node for the list
- *     tommy_node hash_node_0; // node for the first hash
- *     tommy_node hash_node_1; // node for the second hash
+ *     tommy_node node; // node for the file list
+ *     tommy_node node_by_dir; // node for the file dir
+ *     tommy_node node_by_name; // node for the file name
+ *     tommy_node node_by_path; // node for the file path
+ *     tommy_node node_by_inode; // node for the file inode
  * };
  *
- * // search function for value_1
- * int search_1(const void* arg, const void* obj)
+ * // search function by inode
+ * int search_by_inode(const void* arg, const void* obj)
  * {
- *     return *(const int*)arg != ((const struct object*)obj)->value_1;
+ *     const inode_t* inode = arg;
+ *     const struct file* f = obj;
+ *     return *inode != f->inode;
+ * }
+ * 
+ * // search function by path
+ * struct path {
+ *     char* dir;
+ *     char* name;
+ * };
+ *
+ * int search_by_path(const void* arg, const void* obj)
+ * {
+ *     const struct path* p = arg;
+ *     const struct file* f = obj;
+ *     return strcmp(p->dir, f->dir) != 0 || strcmp(p->name, f->name) != 0;
  * }
  *
- * tommy_hashdyn hash_0;
- * tommy_hashdyn hash_1;
- * tommy_list list;
- *
- * // initializes the hash tables and the list
- * tommy_hashdyn_init(&hash_0);
- * tommy_hashdyn_init(&hash_1);
- * tommy_list_init(&list);
- *
- * ...
- *
- * // creates an object and inserts it
- * struct object* obj = malloc(sizeof(struct object));
- * obj->value_0 = ...;
- * obj->value_1 = ...;
- * // inserts into the first hash table
- * tommy_hashdyn_insert(&hash_0, &obj->hash_node_0, obj, tommy_inthash_u32(obj->value_0));
- * // inserts into the second hash table
- * tommy_hashdyn_insert(&hash_1, &obj->hash_node_1, obj, tommy_inthash_u32(obj->value_1));
- * // inserts into the list
- * tommy_list_insert_tail(&list, &obj->list_node, obj);
- *
- * ...
- *
- * // searches an object by value_1 and deletes it
- * int value_to_find = ...;
- * struct object* obj = tommy_hashdyn_search(&hash_1, search_1, &value_to_find, tommy_inthash_u32(value_to_find));
- * if (obj) {
- *     // if found removes all the references
- *     tommy_hashdyn_remove_existing(&hash_0, &obj->hash_node_0);
- *     tommy_hashdyn_remove_existing(&hash_1, &obj->hash_node_1);
- *     tommy_list_remove_existing(&list, &obj->list_node);
+ * // compute the hash of a path as combination of a dir and a name
+ * tommy_uint32 hash_by_path(const char* dir, const char* name)
+ * {
+ *     return tommy_strhash_u32(tommy_strhash_u32(0, dir), name);
  * }
  *
- * ...
+ * int example(void)
+ * {
+ *     tommy_list list;
+ *     tommy_hashdyn hashtable_by_dir;
+ *     tommy_hashdyn hashtable_by_name;
+ *     tommy_hashdyn hashtable_by_path;
+ *     tommy_hashdyn hashtable_by_inode;
  *
- * // complex iterator logic
- * tommy_node* i = tommy_list_head(&list);
- * while (i != 0) {
- *     // get the object
- *     struct object* obj = i->data;
- *     ...
- *     // go to the next element
- *     i = i->next;
- *     ...
- *     // go to the prev element
- *     i = i->prev;
- *     ...
+ *     // initializes the list and the hash tables
+ *     tommy_list_init(&list);
+ *     tommy_hashdyn_init(&hashtable_by_dir);
+ *     tommy_hashdyn_init(&hashtable_by_name);
+ *     tommy_hashdyn_init(&hashtable_by_path);
+ *     tommy_hashdyn_init(&hashtable_by_inode);
+ *
+ *     // creates an object
+ *     struct file* f = malloc(sizeof(struct file));
+ *     strcpy(f->dir, ...);
+ *     strcpt(f->name, ...);
+ *     f->inode = ...;
+ *
+ *     // inserts into the list and hash tables
+ *     tommy_list_insert_tail(&list, &f->node, f);
+ *     tommy_hashdyn_insert(&hashtable_by_dir, &f->node_by_dir, f, tommy_strhash_u32(0, f->dir));
+ *     tommy_hashdyn_insert(&hashtable_by_name, &f->node_by_name, f, tommy_strhash_u32(0, f->name));
+ *     tommy_hashdyn_insert(&hashtable_by_path, &f->node_by_path, f, hash_by_path(f->dir, f>name));
+ *     tommy_hashdyn_insert(&hashtable_by_inode, &f->node_by_inode, f, tommy_inthash_u64(f->inode));
+ *
+ *     // searches a file by inode
+ *     inode_t inode_to_find = ...;
+ *     struct file* found = tommy_hashdyn_search(&hashtable_by_inode, search_by_inode, &inode_to_find, tommy_inthash_u64(inode_to_find));
+ *     if (found) {
+ *         printf("%s/%s\n", f->dir, f->name);
+ *     }
+ *
+ *     // searches a file by full path and deletes it
+ *     struct path path_to_find;
+ *     path_to_find.dir = ...
+ *     path_to_find.name = ...
+ *     struct file* found = tommy_hashdyn_search(&hashtable_by_path, search_by_path, &path_to_find, hash_by_path(path_to_find.dir, path_to_find.name));* 
+ *     if (found) {
+ *         // if found removes all the references
+ *         tommy_list_remove_existing(&list, &obj->node);
+ *         tommy_hashdyn_remove_existing(&hashtable_by_dir, &obj->node_by_dir);
+ *         tommy_hashdyn_remove_existing(&hashtable_by_name, &obj->node_by_name);
+ *         tommy_hashdyn_remove_existing(&hashtable_by_path, &obj->node_by_path);
+ *         tommy_hashdyn_remove_existing(&hashtable_by_inode, &obj->node_by_inode);
+ *     }
+ *
+ *     // iterates over all files with a specific name, even in different directories
+ *     cont char* name_to_find = ...;
+ *     tommy_node* i = tommy_hashdyn_bucket(&hashtable_by_name, tommy_strhash_u32(0, name_to_find));
+ *     while (i) {
+ *         struct file* f = i->data; // gets the file pointer
+ *
+ *         if (strcmp(f->name, name_to_find) == 0) { // the bucket may contain also other names
+ *             printf("%s/%s\n", f->dir, f->name);
+ *         }
+ *
+ *         i = i->next; // goes to the next file
+ *     }
+ *
+ *     // iterates over all files
+ *     i = tommy_list_head(&list);
+ *     while (i != 0) {
+ *         struct file* found = i->data; // gets the file pointer
+ * 
+ *         printf("%s/%s %lu\n", f->dir, f->name, f->inode);
+ * 
+ *         i = i->next; // goes to the next file
+ *     }
+ *
+ *     // deallocates the files
+ *     tommy_list_foreach(&list, free);
+ *
+ *     // deallocates the hash tables
+ *     tommy_hashdyn_done(&hashtable_by_dir);
+ *     tommy_hashdyn_done(&hashtable_by_name);
+ *     tommy_hashdyn_done(&hashtable_by_path);
+ *     tommy_hashdyn_done(&hashtable_by_inode);
  * }
- *
- * ...
- *
- * // deallocates the objects iterating the list
- * tommy_list_foreach(&list, free);
- *
- * // deallocates the hash tables
- * tommy_hashdyn_done(&hash_0);
- * tommy_hashdyn_done(&hash_1);
  * \endcode
  *
  * \page design Tommy Design
