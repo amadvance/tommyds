@@ -33,8 +33,7 @@ $(function() {
   <div class="headertitle"><div class="title">Tommy Benchmarks </div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p >To help you understand TommyDS's performance, we conducted a thorough benchmark, comparing it against some of the best and most popular existing C and C++ data structure libraries.</p>
-<p >The goal is to give you a clear, real-world comparison.</p>
+<div class="textblock"><p >To help you understand TommyDS's performance, we conducted a thorough benchmark, comparing it against some of the best and most popular existing C and C++ data structure libraries in the conditions of a <b>real-world</b> application.</p>
 <p >Here are the data structures included in the comparison:</p><ul>
 <li><a class="el" href="tommyhashtbl_8h.html#aa4d9626d450b1a0da8a5838a7177c4b1" title="Hashtable container type.">tommy_hashtable</a> - Fixed-size chained hashtable.</li>
 <li><a class="el" href="tommyhashdyn_8h.html#ae3b3e52313d2da8e872e890e8185205b" title="Hashtable container type.">tommy_hashdyn</a> - Dynamic chained hashtable.</li>
@@ -61,7 +60,7 @@ $(function() {
 <h1><a class="anchor" id="thebenchmark"></a>
 Understanding the Benchmark Methodology</h1>
 <p >The primary purpose of this benchmark is to measure the performance of storing and searching a collection of N pointers to distinct objects, indexed by an associated integer key.</p>
-<p >This test methodology deliberately deviates from typical hash table comparisons where the entire object's data is copied and stored directly within the container.</p>
+<p >This test methodology deliberately <b>deviates from typical hash table comparisons</b> where the entire object's data is copied and stored directly within the container.</p>
 <p >Storing pointers is a <b>more common requirement</b> in real-world applications where the same object must be referenced by or included in multiple data structures (see <a class="el" href="multiindex.html">Multi-Indexing: Searching Objects in Multiple Ways</a>). Duplicating the object in such cases would be inefficient or incorrect. This difference is critical and explains why these performance metrics may differ from other general-purpose hash table comparisons.</p>
 <p >To accurately simulate real-world usage where the application must retrieve and access the object's data, the search operation in this benchmark dereferences the stored pointers. This step typically necessitates an additional memory load, often resulting in a cache miss.</p>
 <p >This overhead provides a relative performance advantage to <b>intrusive containers</b> (like the Tommy structures) where the required indexing metadata is stored directly within the user's object structure. For these designs, the cache miss incurred to access the object's data is the same one that retrieves the necessary indexing information, minimizing the "additional" cost.</p>
