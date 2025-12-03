@@ -87,10 +87,10 @@ Understanding the Benchmark Methodology</h1>
 </ul>
 <h1><a class="anchor" id="result"></a>
 Results Summary</h1>
-<p >The most significant tests depend on your data usage model, but if in doubt, focus on <b>Random Hit</b> and <b>Random Change</b>, as they represent the real-world worst-case random access scenario.</p>
+<p >The most relevant tests depend on the intended data usage model. If you are unsure which ones to consider, focus on <b>Random Change</b>, since it covers searches, insertions, and removals and gives a representative view of a real-world access pattern.</p>
 <h3><a class="anchor" id="autotoc_md0"></a>
-Random Hit Analysis</h3>
-<p ><img src="core_i7_10700_2G9_linux/img_random_hit.png" alt="" class="inline"/></p>
+Random Change Analysis</h3>
+<p ><img src="core_i7_10700_2G9_linux/img_random_change.png" alt="" class="inline"/></p>
 <p >Observe the vertical split around the 100,000 element limit.</p><ul>
 <li><b>Below 100k:</b> The modern processor's cache can contain most of the data, resulting in extremely fast access for almost all structures.</li>
 <li><b>Above 100k:</b> The number of <b>cache misses</b> becomes the dominant factor.</li>
@@ -98,10 +98,6 @@ Random Hit Analysis</h3>
 <li><b>Trees (rbtree, nedtrie)</b> grow logarithmically as log_2(N).</li>
 <li><b>Tommy Tries</b> show better logarithmic growth: <a class="el" href="tommytrieinp_8h.html#aa2db3b1aa9bfc7cfc87c19aa9777634e" title="Trie container type.">tommy_trie_inplace</a> grows as log_4(N), and <a class="el" href="tommytrie_8h.html#a3a77169f497c9ab7b03d80cf456a08e4" title="Trie container type.">tommy_trie</a> as log_8(N). The growth curve for Tommy Tries can be adjusted by configuring the number of branches per node.</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md1"></a>
-Random Change Analysis</h3>
-<p ><img src="core_i7_10700_2G9_linux/img_random_change.png" alt="" class="inline"/></p>
-<p >The <em>Random Change</em> graph confirms the 100,000 element cache limit split. It also highlights that <b>hashtables are almost unbeatable</b> for random-access combined remove and insert operations.</p>
 <h1><a class="anchor" id="random"></a>
 Full Random Order Results</h1>
 <p >In the <b>Random</b> access tests, <b>hashtables are the clear winners</b>, followed by tries, with traditional trees generally being the slowest.</p>
