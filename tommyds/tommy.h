@@ -588,8 +588,12 @@
  * gives you the best of both worlds: fast search via the indexed structures,
  * and ordered traversal via the list.
  *
- * See the next example in the documentation for a complete implementation that
- * uses a ::tommy_list alongside multiple ::tommy_hashdyn structures.
+ * The next example demonstrates using multiple data structures (a list and several
+ * hash tables) to store a 'file' object, allowing access and searching based
+ * on different fields.
+ * 
+ * First, we declare the file object structure, including the required intrusive
+ * nodes for the various data structures that will store it.
  *
  * \code
  * struct file {
@@ -605,13 +609,37 @@
  *     tommy_node node_by_path; // node for the file path
  *     tommy_node node_by_inode; // node for the file inode
  * };
- *
+ * \endcode
+ * 
+ * Next, we define helper functions to compute the hash for each field used
+ * as a key and comparison functions to search for an object based on a
+ * specified key.
+ * 
+ * \code
  * // search function by inode
  * int search_by_inode(const void* arg, const void* obj)
  * {
  *     const inode_t* inode = arg;
  *     const struct file* f = obj;
  *     return *inode != f->inode;
+ * }
+ *
+ * // compute the hash of a inode
+ * tommy_uint32 hash_by_inode(const char* dir, inode_t inode)
+ * {
+ *     return tommy_inthash_u64(inode); // truncate to 32 bits
+ * }
+ * 
+ * // compute the hash of a name
+ * tommy_uint32 hash_by_name(const char* name)
+ * {
+ *     return tommy_strhash_u32(0, name);
+ * }
+ * 
+ * // compute the hash of a dir
+ * tommy_uint32 hash_by_name(const char* dir)
+ * {
+ *     return tommy_strhash_u32(0, dir);
  * }
  * 
  * // search function by path
@@ -632,9 +660,11 @@
  * {
  *     return tommy_strhash_u32(tommy_strhash_u32(0, dir), name);
  * }
- *
- * int example(void)
- * {
+ * \endcode
+ * 
+ * Now we declare and initialize the data structures.
+ * 
+ * \code
  *     tommy_list list;
  *     tommy_hashdyn hashtable_by_dir;
  *     tommy_hashdyn hashtable_by_name;
@@ -647,7 +677,11 @@
  *     tommy_hashdyn_init(&hashtable_by_name);
  *     tommy_hashdyn_init(&hashtable_by_path);
  *     tommy_hashdyn_init(&hashtable_by_inode);
+ * \endcode
  *
+ * We create a file object and insert it into all the data structures.
+ * 
+ * \code
  *     // creates an object
  *     struct file* f = malloc(sizeof(struct file));
  *     strcpy(f->dir, ...);
@@ -656,24 +690,32 @@
  *
  *     // inserts into the list and hash tables
  *     tommy_list_insert_tail(&list, &f->node, f);
- *     tommy_hashdyn_insert(&hashtable_by_dir, &f->node_by_dir, f, tommy_strhash_u32(0, f->dir));
- *     tommy_hashdyn_insert(&hashtable_by_name, &f->node_by_name, f, tommy_strhash_u32(0, f->name));
+ *     tommy_hashdyn_insert(&hashtable_by_dir, &f->node_by_dir, f, hash_by_dir(f->dir);
+ *     tommy_hashdyn_insert(&hashtable_by_name, &f->node_by_name, f, hash_by_name(f->name));
  *     tommy_hashdyn_insert(&hashtable_by_path, &f->node_by_path, f, hash_by_path(f->dir, f>name));
- *     tommy_hashdyn_insert(&hashtable_by_inode, &f->node_by_inode, f, tommy_inthash_u64(f->inode));
- *
+ *     tommy_hashdyn_insert(&hashtable_by_inode, &f->node_by_inode, f, hash_by_inode(f->inode));
+ * \endcode
+ * 
+ * After all files are inserted, we can now search them by inode, remove a
+ * file with a specific path, and list all the files with a specific name,
+ * regardless of the directory they reside in.
+ * 
+ * \code
  *     // searches a file by inode
  *     inode_t inode_to_find = ...;
- *     struct file* found = tommy_hashdyn_search(&hashtable_by_inode, search_by_inode, &inode_to_find, tommy_inthash_u64(inode_to_find));
+ *     struct file* found = tommy_hashdyn_search(&hashtable_by_inode, search_by_inode, &inode_to_find, hash_by_inode(inode_to_find));
  *     if (found) {
  *         printf("%s/%s\n", f->dir, f->name);
  *     }
  *
  *     // searches a file by full path and deletes it
  *     struct path path_to_find;
- *     path_to_find.dir = ...
- *     path_to_find.name = ...
+ *     path_to_find.dir = ...;
+ *     path_to_find.name = ...;
  *     struct file* found = tommy_hashdyn_search(&hashtable_by_path, search_by_path, &path_to_find, hash_by_path(path_to_find.dir, path_to_find.name));* 
  *     if (found) {
+ *         printf("%s/%s\n", f->dir, f->name);
+ *
  *         // if found removes all the references
  *         tommy_list_remove_existing(&list, &obj->node);
  *         tommy_hashdyn_remove_existing(&hashtable_by_dir, &obj->node_by_dir);
@@ -684,7 +726,7 @@
  *
  *     // iterates over all files with a specific name, even in different directories
  *     cont char* name_to_find = ...;
- *     tommy_node* i = tommy_hashdyn_bucket(&hashtable_by_name, tommy_strhash_u32(0, name_to_find));
+ *     tommy_node* i = tommy_hashdyn_bucket(&hashtable_by_name, hash_by_name(name_to_find));
  *     while (i) {
  *         struct file* f = i->data; // gets the file pointer
  *
@@ -699,12 +741,17 @@
  *     i = tommy_list_head(&list);
  *     while (i != 0) {
  *         struct file* found = i->data; // gets the file pointer
- * 
+ *
  *         printf("%s/%s %lu\n", f->dir, f->name, f->inode);
- * 
+ *
  *         i = i->next; // goes to the next file
  *     }
+ * \endcode
  *
+ * Finally, we deallocate all the file objects and deinitialize the data
+ * structures.
+ *
+ * \code
  *     // deallocates the files
  *     tommy_list_foreach(&list, free);
  *
@@ -713,7 +760,6 @@
  *     tommy_hashdyn_done(&hashtable_by_name);
  *     tommy_hashdyn_done(&hashtable_by_path);
  *     tommy_hashdyn_done(&hashtable_by_inode);
- * }
  * \endcode
  *
  * \page design Tommy Design
