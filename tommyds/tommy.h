@@ -275,12 +275,13 @@
  *
  * \section result Results Summary
  *
- * The most significant tests depend on your data usage model, but if in doubt,
- * focus on **Random Hit** and **Random Change**, as they represent the real-world
- * worst-case random access scenario.
+ * The most relevant tests depend on the intended data usage model. If you are
+ * unsure which ones to consider, focus on **Random Change**, since it covers
+ * searches, insertions, and removals and gives a representative view of a
+ * real-world access pattern.
  *
- * ### Random Hit Analysis
- * <img src="core_i7_10700_2G9_linux/img_random_hit.png"/>
+ * ### Random Change Analysis
+ * <img src="core_i7_10700_2G9_linux/img_random_change.png"/>
  *
  * Observe the vertical split around the 100,000 element limit.
  * * **Below 100k:** The modern processor's cache can contain most of the data,
@@ -291,13 +292,6 @@
  * * **Tommy Tries** show better logarithmic growth: ::tommy_trie_inplace
  * grows as log_4(N), and ::tommy_trie as log_8(N). The growth curve for Tommy
  * Tries can be adjusted by configuring the number of branches per node.
- *
- * ### Random Change Analysis
- * <img src="core_i7_10700_2G9_linux/img_random_change.png"/>
- *
- * The *Random Change* graph confirms the 100,000 element cache limit split. It also
- * highlights that **hashtables are almost unbeatable** for random-access combined
- * remove and insert operations.
  *
  * \section random Full Random Order Results
  *
@@ -647,7 +641,7 @@
  * }
  * 
  * // compute the hash of a dir
- * tommy_uint32 hash_by_name(const char* dir)
+ * tommy_uint32 hash_by_dir(const char* dir)
  * {
  *     return tommy_strhash_u32(0, dir);
  * }
@@ -722,7 +716,7 @@
  *     struct path path_to_find;
  *     path_to_find.dir = ...;
  *     path_to_find.name = ...;
- *     struct file* found = tommy_hashdyn_search(&hashtable_by_path, search_by_path, &path_to_find, hash_by_path(path_to_find.dir, path_to_find.name));* 
+ *     struct file* found = tommy_hashdyn_search(&hashtable_by_path, search_by_path, &path_to_find, hash_by_path(path_to_find.dir, path_to_find.name));
  *     if (found) {
  *         printf("%s/%s\n", f->dir, f->name);
  *
