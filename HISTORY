@@ -1,15 +1,21 @@
 TommyDS HISTORY
 ===============
 
-3.0 2018/04
+3.0 2025/11
 ===========
- * Use 64 bits integers when building on a 64 bits platforms. You can store
-   more than 2^32 objects in the containers. This doesn't applies to tries
-   that are able to store only 32 bit integers, but you can change this with
-   the TOMMY_TRIE_BIT and TOMMY_TRIE_INPLACE_BIT definitions.
+ * Added support for 64-bit platforms and 64-bit integers. When building on
+   a 64-bit platform you can store more than $2^{32}$ objects in the containers.
+   This doesn't apply to tries that are able to store only 32-bit integers,
+   but you can change this with the TOMMY_TRIE_BIT and TOMMY_TRIE_INPLACE_BIT
+   definitions.
+ * Fixed undefined behavior in hashing functions. It could cause issues
+   with vector instructions.
+ * Reorganized some structures to avoid padding.
  * Removed the tommy_count_t type that is now always replaced by tommy_size_t.
  * Renamed the "key" field of the tommy_node_t to "index" to be more generic
    on the possible use.
+ * Added TOMMY_API to override linkage features of the interface. Useful for
+   amalgamations.
 
 2.2 2018/02
 ===========
@@ -28,11 +34,11 @@ TommyDS HISTORY
 ===========
  * Fixed a Segmentation Fault bug in the trie_inplace container when inserting
    duplicate elements.
- * Faster array and hashlin implementation when accessing elements.
+ * Faster array and hashlin implementations when accessing elements.
  * Added new hashtable functions to iterate over all the elements.
  * Added a new tommy_calloc() function used for allocating initialized memory.
    If you redefined tommy_malloc(), likely you have to redefine also tommy_calloc().
- * Reached 100% code coverage in the regression test.      
+ * Reached 100% code coverage in the regression test.
  * Different source code organization.
  * Added benchmark comparison with Binary Search Tesseract by Gregorius van
    den Hoven.
@@ -45,8 +51,8 @@ TommyDS HISTORY
 
 1.7 2013/12
 ===========
- * Extends tommy_hashlin_done() to work also if the hashtable is not empty.
- * Removes the empty tommy_trie_done() because the real deallocation is done
+ * Extended tommy_hashlin_done() to work also if the hashtable is not empty.
+ * Removed the empty tommy_trie_done() because the real deallocation is done
    by the allocator.
 
 1.6 2013/11
@@ -92,9 +98,8 @@ TommyDS HISTORY
 
 0.2 2011/03
 ===========
- * Added tommy_array. A dynamic vector.
+ * Added tommy_array, a dynamic vector.
 
 0.1 2011/01
 ===========
  * First release of Tommy.
-
