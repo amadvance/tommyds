@@ -267,10 +267,13 @@ Notes on Other Libraries</h1>
 <p >This section provides additional context on the tested libraries that are not part of TommyDS.</p>
 <h2><a class="anchor" id="googlelibchash"></a>
 Google C libchash</h2>
-<p >This C implementation was excluded from the main graphs because it exhibits poor performance and significant spikes in the <em>Change</em> test for certain N values. See this <a href="other/googlelibchash_problem.png">graph</a>.</p>
+<p >This C implementation was excluded from the main graphs because it exhibits poor performance and significant spikes in the <em>Change</em> test for certain N values. See this <a href="other/googlelibchash_problem.png">performance graph</a> for a visual illustration of the issue.</p>
 <h2><a class="anchor" id="googledensehash"></a>
 Google C++ densehash</h2>
-<p >This C++ implementation also displays erratic performance and spikes in the <em>Change</em> test. See this <a href="other/googledensehash_problem.png">graph</a>.</p>
+<p >This C++ implementation exhibits erratic performance with significant spikes during the <em>Change</em> benchmark test, particularly in version 2.0.4. The older version 2.0.3 does not exhibit this behavior.</p>
+<p >The performance degradation is likely caused by the revised reallocation strategy in 2.0.4, which enters a pathological case under the specific access patterns of this test. This type of degeneration is characteristic of hash tables that use tombstone entries for deletion handling, where the accumulation of tombstones can lead to increased probe lengths and degraded performance.</p>
+<p >Note that downgrading to version 2.0.3 avoids this specific issue but does not guarantee immunity from similar pathological cases under different workloads or access patterns.</p>
+<p >See this <a href="other/googledensehash_problem.png">performance graph</a> for a visual illustration of the issue.</p>
 <p >Additionally, it does not automatically release memory upon deletion. To prevent an unfair advantage in the <em>Remove</em> test, we manually forced a periodic memory release by calling <code>resize(0)</code>.</p>
 <h2><a class="anchor" id="khash"></a>
 khash</h2>
@@ -283,7 +286,7 @@ Judy</h2>
 <p >The Judy library (specifically JudyL) can sometimes exhibit unpredictable performance depending on the specific platform and input data size. See for instance this <a href="other/judy_problem.png">graph</a> showing a big, reproducible performance spike at 50,000 elements.</p>
 <h2><a class="anchor" id="ck"></a>
 Concurrency Kit</h2>
-<p >The non-blocking hash set displays severe performance degradation and numerous spikes in the <em>Change</em> test for some data sizes. See this <a href="other/ck_problem.png">graph</a>. </p>
+<p >The non-blocking hash set displays severe performance degradation and numerous spikes in the <em>Change</em> test for some data sizes. See this <a href="other/ck_problem.png">performance graph</a> for a visual illustration of the issue. </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </body>
