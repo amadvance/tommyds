@@ -15,7 +15,7 @@ TommyDS HISTORY
  * Renamed the "key" field of the tommy_node_t to "index" to be more generic
    on the possible use.
  * Added TOMMY_API to override linkage features of the interface. Useful for
-   amalgamations.
+   amalgamations [Nodir Temirkhodjaev].
 
 2.2 2018/02
 ===========
