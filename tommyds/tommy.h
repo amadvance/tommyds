@@ -32,13 +32,16 @@
  *
  * It's **faster** than all the similar libraries like
  * <a href="http://www.canonware.com/rb/">rbtree</a>,
- * <a href="http://judy.sourceforge.net/">judy</a>,
- * <a href="http://code.google.com/p/cpp-btree/">googlebtree</a>,
- * <a href="http://panthema.net/2007/stx-btree/">stxbtree</a>,
+ * <a href="http://www.nedprod.com/programs/portable/nedtries/">nedtrie</a>,
  * <a href="https://github.com/attractivechaos/klib/blob/master/khash.h">khash</a>,
  * <a href="http://uthash.sourceforge.net/">uthash</a>,
- * <a href="http://www.nedprod.com/programs/portable/nedtries/">nedtrie</a>,
+ * <a href="http://judy.sourceforge.net/">judy</a>,
  * <a href="https://code.google.com/archive/p/judyarray/">judyarray</a>,
+ * <a href="https://github.com/sparsehash/sparsehash">googledensehash</a>,
+ * <a href="http://code.google.com/p/cpp-btree/">googlebtree</a>,
+ * <a href="http://panthema.net/2007/stx-btree/">stxbtree</a>,
+ * <a href="https://sites.google.com/site/binarysearchcube/">tesseract</a>,
+ * <a href="https://github.com/fredrikwidlund/libdynamic">libdynamic</a>,
  * <a href="http://concurrencykit.org/">concurrencykit</a> and others.
  *
  * The data structures provided are:
@@ -166,8 +169,7 @@
  *
  * To help you understand TommyDS's performance, we conducted a thorough
  * benchmark, comparing it against some of the best and most popular existing C
- * and C++ data structure libraries. The goal is to give you a clear, real-world
- * comparison.
+ * and C++ data structure libraries in the conditions of a **real-world** application.
  *
  * Here are the data structures included in the comparison:
  * - ::tommy_hashtable - Fixed-size chained hashtable.
@@ -202,8 +204,8 @@
  * storing and searching a collection of N pointers to distinct objects,
  * indexed by an associated integer key.
  *
- * This test methodology deliberately deviates from typical hash table
- * comparisons where the entire object's data is copied and stored
+ * This test methodology deliberately **deviates from typical hash table
+ * comparisons** where the entire object's data is copied and stored
  * directly within the container.
  *
  * Storing pointers is a **more common requirement** in real-world
@@ -351,7 +353,6 @@
  *
  * Here you can see how memory usage scales for the different data structures.
  *
- * <table border="0">
  * <table border="0">
  * <tr><td><img src="core_i7_10700_2G9_linux/img_random_size.png"/></td></tr>
  * </table>
@@ -510,33 +511,37 @@
  * This C++ implementation exhibits erratic performance with significant spikes
  * during the *Change* benchmark test, particularly in version 2.0.4. The older
  * version 2.0.3 does not exhibit this behavior.
- * 
+ *
  * The performance degradation is likely caused by the revised reallocation
  * strategy in 2.0.4, which enters a pathological case under the specific access
- * patterns of this test. This type of degeneration is characteristic of hash
- * tables that use tombstone entries for deletion handling, where the accumulation
- * of tombstones can lead to increased probe lengths and degraded performance.
- * 
+ * patterns of this test.
+ *
+ * This type of degeneration is characteristic of hash tables that use
+ * tombstone entries for deletion handling, where the accumulation of
+ * tombstones can lead to increased probe lengths and degraded performance.
+ *
  * Note that downgrading to version 2.0.3 avoids this specific issue but does not
  * guarantee immunity from similar pathological cases under different workloads or
  * access patterns.
- * 
+ *
  * See this <a href="other/googledensehash_problem.png">performance graph</a>
  * for a visual illustration of the issue.
- * 
+ *
  * Additionally, it does not automatically release memory upon deletion. To
- * prevent an unfair advantage in the *Remove* test, we manually forced a periodic
+ * prevent an unfair advantage in the *Remove* test, we forced a periodic
  * memory release by calling `resize(0)`.
  *
  * \subsection khash khash
- * This library also suffers from the issue of not releasing memory on
- * deletion, which can lead to unrealistic performance gains in the *Remove*
- * test.
+ * This library does not release memory when elements are deleted, which can lead
+ * to an unfair performance advantage in the *Remove* test. It also does not
+ * provide a way to shrink its internal storage, so this advantage remains in
+ * the benchmark.
  *
  * \subsection nedtrie nedtrie
- * A crash bug was found when inserting a key with the value 0. The necessary
- * <a href="https://github.com/ned14/nedtries/commit/21039696f27db4ffac70a82f89dc5d00ae74b332">
- * fix</a> has been implemented in the `nedtries` GitHub repository.
+ * A crash bug was found when inserting a key with the value 0. The issue was
+ * reported to the author and the necessary
+ * <a href="https://github.com/ned14/nedtries/commit/21039696f27db4ffac70a82f89dc5d00ae74b332">fix</a>
+ * has been implemented.
  *
  * \subsection judy Judy
  * The Judy library (specifically JudyL) can sometimes exhibit unpredictable
@@ -547,6 +552,11 @@
  * \subsection ck Concurrency Kit
  * The non-blocking hash set displays severe performance degradation and numerous
  * spikes in the *Change* test for some data sizes.
+ *
+ * This type of degeneration is characteristic of hash tables that use
+ * tombstone entries for deletion handling, where the accumulation of
+ * tombstones can lead to increased probe lengths and degraded performance.
+ * 
  * See this <a href="other/ck_problem.png">performance graph</a>
  * for a visual illustration of the issue.
  *
@@ -563,7 +573,7 @@
  * * By its **full path** (e.g., '/home/user/documents/document.pdf').
  * * By its unique **inode** number.
  *
- * With multi-indexing, each search key require the file object to be
+ * With multi-indexing, each search key requires the file object to be
  * inserted into a separate, dedicated data structure (like a hash table or
  * a tree) to allow for a fast search based on that specific key. This is 
  * exactly what TommyDS is designed to **facilitate**.
