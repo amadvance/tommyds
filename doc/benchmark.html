@@ -140,8 +140,9 @@ Full Forward Order Access</h1>
 Memory Usage</h1>
 <p >Here you can see how memory usage scales for the different data structures.</p>
 <table border="0">
+<tr>
+<td><img src="core_i7_10700_2G9_linux/img_random_size.png" alt="" class="inline"/> </td></tr>
 </table>
-<p ><img src="core_i7_10700_2G9_linux/img_random_size.png" alt="" class="inline"/> </p>
 <h1><a class="anchor" id="code"></a>
 Technical Details and Code Snippets</h1>
 <p >The benchmark was performed on a Core i7 10700 2.9 GHz running Linux. The compiler used was gcc 15.2.0 with the aggressive optimization flags <code>"-O3 -march=native -flto -fpermissive"</code>.</p>
@@ -271,22 +272,25 @@ Google C libchash</h2>
 <h2><a class="anchor" id="googledensehash"></a>
 Google C++ densehash</h2>
 <p >This C++ implementation exhibits erratic performance with significant spikes during the <em>Change</em> benchmark test, particularly in version 2.0.4. The older version 2.0.3 does not exhibit this behavior.</p>
-<p >The performance degradation is likely caused by the revised reallocation strategy in 2.0.4, which enters a pathological case under the specific access patterns of this test. This type of degeneration is characteristic of hash tables that use tombstone entries for deletion handling, where the accumulation of tombstones can lead to increased probe lengths and degraded performance.</p>
+<p >The performance degradation is likely caused by the revised reallocation strategy in 2.0.4, which enters a pathological case under the specific access patterns of this test.</p>
+<p >This type of degeneration is characteristic of hash tables that use tombstone entries for deletion handling, where the accumulation of tombstones can lead to increased probe lengths and degraded performance.</p>
 <p >Note that downgrading to version 2.0.3 avoids this specific issue but does not guarantee immunity from similar pathological cases under different workloads or access patterns.</p>
 <p >See this <a href="other/googledensehash_problem.png">performance graph</a> for a visual illustration of the issue.</p>
-<p >Additionally, it does not automatically release memory upon deletion. To prevent an unfair advantage in the <em>Remove</em> test, we manually forced a periodic memory release by calling <code>resize(0)</code>.</p>
+<p >Additionally, it does not automatically release memory upon deletion. To prevent an unfair advantage in the <em>Remove</em> test, we forced a periodic memory release by calling <code>resize(0)</code>.</p>
 <h2><a class="anchor" id="khash"></a>
 khash</h2>
-<p >This library also suffers from the issue of not releasing memory on deletion, which can lead to unrealistic performance gains in the <em>Remove</em> test.</p>
+<p >This library does not release memory when elements are deleted, which can lead to an unfair performance advantage in the <em>Remove</em> test. It also does not provide a way to shrink its internal storage, so this advantage remains in the benchmark.</p>
 <h2><a class="anchor" id="nedtrie"></a>
 nedtrie</h2>
-<p >A crash bug was found when inserting a key with the value 0. The necessary <a href="https://github.com/ned14/nedtries/commit/21039696f27db4ffac70a82f89dc5d00ae74b332">fix</a> has been implemented in the <code>nedtries</code> GitHub repository.</p>
+<p >A crash bug was found when inserting a key with the value 0. The issue was reported to the author and the necessary <a href="https://github.com/ned14/nedtries/commit/21039696f27db4ffac70a82f89dc5d00ae74b332">fix</a> has been implemented.</p>
 <h2><a class="anchor" id="judy"></a>
 Judy</h2>
 <p >The Judy library (specifically JudyL) can sometimes exhibit unpredictable performance depending on the specific platform and input data size. See for instance this <a href="other/judy_problem.png">graph</a> showing a big, reproducible performance spike at 50,000 elements.</p>
 <h2><a class="anchor" id="ck"></a>
 Concurrency Kit</h2>
-<p >The non-blocking hash set displays severe performance degradation and numerous spikes in the <em>Change</em> test for some data sizes. See this <a href="other/ck_problem.png">performance graph</a> for a visual illustration of the issue. </p>
+<p >The non-blocking hash set displays severe performance degradation and numerous spikes in the <em>Change</em> test for some data sizes.</p>
+<p >This type of degeneration is characteristic of hash tables that use tombstone entries for deletion handling, where the accumulation of tombstones can lead to increased probe lengths and degraded performance.</p>
+<p >See this <a href="other/ck_problem.png">performance graph</a> for a visual illustration of the issue. </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </body>
