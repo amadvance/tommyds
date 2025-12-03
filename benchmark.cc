@@ -114,47 +114,46 @@
 /* Note that it has a VERY BAD performance on the "Change" test, */
 /* so we disable it in the graphs becasue makes it unreadable */
 /*
-$ ./tommybench -n 63095  -d googledensehash
+$ ./tommybench -d googledensehash -n 65529
 Tommy benchmark program.
-       63095    googledensehash    forward
-   forward,     insert, googledensehash,   46 [ns]
-   forward,     change, googledensehash,  367 [ns] <<<<< HERE IS SLOW
-   forward,        hit, googledensehash,   10 [ns]
+       65529    googledensehash    forward
+   forward,     insert, googledensehash,   44 [ns]
+   forward,     change, googledensehash, 96439 [ns] <<<<< HERE IS VERY SLOW
+   forward,        hit, googledensehash,    9 [ns]
    forward,       miss, googledensehash,   14 [ns]
-   forward,       size, googledensehash,   33 [byte]
-   forward,     remove, googledensehash,   32 [ns]
-       63095    googledensehash     random
-    random,     insert, googledensehash,   44 [ns]
-    random,     change, googledensehash,  362 [ns] <<<<< HERE IS SLOW
-    random,        hit, googledensehash,   11 [ns]
-    random,       miss, googledensehash,   14 [ns]
-    random,       size, googledensehash,   33 [byte]
-    random,     remove, googledensehash,   35 [ns]
-OK
-am@whitestar:/mnt/am/data/src/tommyds (master)$ ./tommybench -n 79432  -d googledensehash
-Tommy benchmark program.
-       79432    googledensehash    forward
-   forward,     insert, googledensehash,   58 [ns]
-   forward,     change, googledensehash,   57 [ns] <<<<< HERE IS FAST
-   forward,        hit, googledensehash,    8 [ns]
-   forward,       miss, googledensehash,   12 [ns]
-   forward,       size, googledensehash,   52 [byte]
-   forward,     remove, googledensehash,   53 [ns]
-       79432    googledensehash     random
-    random,     insert, googledensehash,   53 [ns]
-    random,     change, googledensehash,   60 [ns] <<<<< HERE IS FAST
+   forward,       size, googledensehash,   32 [byte]
+   forward,     remove, googledensehash,   35 [ns]
+       65529    googledensehash     random
+    random,     insert, googledensehash,   42 [ns]
+    random,     change, googledensehash, 96848 [ns] <<<<< HERE IS VERY SLOW
     random,        hit, googledensehash,   10 [ns]
-    random,       miss, googledensehash,   12 [ns]
-    random,       size, googledensehash,   52 [byte]
-    random,     remove, googledensehash,   52 [ns]
+    random,       miss, googledensehash,   14 [ns]
+    random,       size, googledensehash,   32 [byte]
+    random,     remove, googledensehash,   44 [ns]
 OK
-
+$ ./tommybench -d googledensehash -n 65530 <<<<< ONE MORE
+Tommy benchmark program.
+       65530    googledensehash    forward
+   forward,     insert, googledensehash,   45 [ns]
+   forward,     change, googledensehash,   52 [ns]] <<<<< HERE IS FAST
+   forward,        hit, googledensehash,    9 [ns]
+   forward,       miss, googledensehash,   20 [ns]
+   forward,       size, googledensehash,   64 [byte]
+   forward,     remove, googledensehash,   59 [ns]
+       65530    googledensehash     random
+    random,     insert, googledensehash,   38 [ns]
+    random,     change, googledensehash,   55 [ns]] <<<<< HERE IS FAST
+    random,        hit, googledensehash,   10 [ns]
+    random,       miss, googledensehash,   20 [ns]
+    random,       size, googledensehash,   64 [byte]
+    random,     remove, googledensehash,   57 [ns]
+OK
 */
 
 /* Note that after erasing we always call resize(0) to possibly trigger a table resize to free some space */
 /* Otherwise, it would be an unfair advantage never shrinking on deletion. */
 /* The shrink is triggered only sometimes, so the performance doesn't suffer to much */
-#define USE_GOOGLEDENSEHASH
+/* #define USE_GOOGLEDENSEHASH */
 #ifdef USE_GOOGLEDENSEHASH
 #include <google/dense_hash_map>
 #endif
@@ -357,7 +356,9 @@ struct hashtable_object* HASHLIN;
 struct trie_object* TRIE;
 struct trie_inplace_object* TRIE_INPLACE;
 struct khash_object* KHASH;
-struct google_object* GOOGLE;
+struct google_object* GOOGLELIBCHASH;
+struct google_object* GOOGLEDENSEHASH;
+struct google_object* GOOGLEBTREE;
 struct stx_object* STX;
 struct uthash_object* UTHASH;
 struct nedtrie_object* NEDTRIE;
@@ -717,7 +718,9 @@ const char* ORDER_NAME[ORDER_MAX] = {
 #define DATA_UTHASH 8
 #define DATA_JUDY 9
 #define DATA_JUDYARRAY 10
+#ifdef USE_GOOGLEDENSEHASH
 #define DATA_GOOGLEDENSEHASH 11
+#endif
 #define DATA_GOOGLEBTREE 12
 #define DATA_STXBTREE 13
 #define DATA_CPPUNORDEREDMAP 14
@@ -974,14 +977,14 @@ void test_alloc(void)
 
 #ifdef USE_GOOGLELIBCHASH
 	COND(DATA_GOOGLELIBCHASH) {
-		GOOGLE = (struct google_object*)malloc(sizeof(struct google_object) * the_max);
+		GOOGLELIBCHASH = (struct google_object*)malloc(sizeof(struct google_object) * the_max);
 		googlelibhash = AllocateHashTable(sizeof(void*), 0);
 	}
 #endif
 
 #ifdef USE_GOOGLEDENSEHASH
 	COND(DATA_GOOGLEDENSEHASH) {
-		GOOGLE = (struct google_object*)malloc(sizeof(struct google_object) * the_max);
+		GOOGLEDENSEHASH = (struct google_object*)malloc(sizeof(struct google_object) * the_max);
 		googledensehash = new googledensehash_t;
 		googledensehash->set_empty_key(-1);
 		googledensehash->set_deleted_key(-2);
@@ -990,7 +993,7 @@ void test_alloc(void)
 
 #ifdef USE_GOOGLEBTREE
 	COND(DATA_GOOGLEBTREE) {
-		GOOGLE = (struct google_object*)malloc(sizeof(struct google_object) * the_max);
+		GOOGLEBTREE = (struct google_object*)malloc(sizeof(struct google_object) * the_max);
 		googlebtree = new googlebtree_t;
 	}
 #endif
@@ -1141,20 +1144,20 @@ void test_free(void)
 #ifdef USE_GOOGLELIBCHASH
 	COND(DATA_GOOGLELIBCHASH) {
 		FreeHashTable(googlelibhash);
-		free(GOOGLE);
+		free(GOOGLELIBCHASH);
 	}
 #endif
 
 #ifdef USE_GOOGLEDENSEHASH
 	COND(DATA_GOOGLEDENSEHASH) {
-		free(GOOGLE);
+		free(GOOGLEDENSEHASH);
 		delete googledensehash;
 	}
 #endif
 
 #ifdef USE_GOOGLEBTREE
 	COND(DATA_GOOGLEBTREE) {
-		free(GOOGLE);
+		free(GOOGLEBTREE);
 		delete googlebtree;
 	}
 #endif
@@ -1283,8 +1286,8 @@ void test_insert(unsigned* INSERT)
 	START(DATA_GOOGLELIBCHASH) {
 		unsigned key = INSERT[i];
 		HTItem* r;
-		u_long ptr_value = (u_long)&GOOGLE[i];
-		GOOGLE[i].value = key;
+		u_long ptr_value = (u_long)&GOOGLELIBCHASH[i];
+		GOOGLELIBCHASH[i].value = key;
 		r = HashInsert(googlelibhash, key, ptr_value);
 		if (!r)
 			abort();
@@ -1294,8 +1297,8 @@ void test_insert(unsigned* INSERT)
 #ifdef USE_GOOGLEDENSEHASH
 	START(DATA_GOOGLEDENSEHASH) {
 		unsigned key = INSERT[i];
-		struct google_object* obj = &GOOGLE[i];
-		GOOGLE[i].value = key;
+		struct google_object* obj = &GOOGLEDENSEHASH[i];
+		GOOGLEDENSEHASH[i].value = key;
 		(*googledensehash)[key] = obj;
 	} STOP();
 #endif
@@ -1303,8 +1306,8 @@ void test_insert(unsigned* INSERT)
 #ifdef USE_GOOGLEBTREE
 	START(DATA_GOOGLEBTREE) {
 		unsigned key = INSERT[i];
-		struct google_object* obj = &GOOGLE[i];
-		GOOGLE[i].value = key;
+		struct google_object* obj = &GOOGLEBTREE[i];
+		GOOGLEBTREE[i].value = key;
 		(*googlebtree)[key] = obj;
 	} STOP();
 #endif

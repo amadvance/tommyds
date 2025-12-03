@@ -503,12 +503,26 @@
  * This C implementation was excluded from the main graphs because it exhibits
  * poor performance and significant spikes in the *Change* test for certain N
  * values.
- * See this <a href="other/googlelibchash_problem.png">graph</a>.
+ * See this <a href="other/googlelibchash_problem.png">performance graph</a>
+ * for a visual illustration of the issue.
  *
  * \subsection googledensehash Google C++ densehash
- * This C++ implementation also displays erratic performance and spikes in the
- * *Change* test.
- * See this <a href="other/googledensehash_problem.png">graph</a>.
+ * This C++ implementation exhibits erratic performance with significant spikes
+ * during the *Change* benchmark test, particularly in version 2.0.4. The older
+ * version 2.0.3 does not exhibit this behavior.
+ * 
+ * The performance degradation is likely caused by the revised reallocation
+ * strategy in 2.0.4, which enters a pathological case under the specific access
+ * patterns of this test. This type of degeneration is characteristic of hash
+ * tables that use tombstone entries for deletion handling, where the accumulation
+ * of tombstones can lead to increased probe lengths and degraded performance.
+ * 
+ * Note that downgrading to version 2.0.3 avoids this specific issue but does not
+ * guarantee immunity from similar pathological cases under different workloads or
+ * access patterns.
+ * 
+ * See this <a href="other/googledensehash_problem.png">performance graph</a>
+ * for a visual illustration of the issue.
  * 
  * Additionally, it does not automatically release memory upon deletion. To
  * prevent an unfair advantage in the *Remove* test, we manually forced a periodic
@@ -533,7 +547,8 @@
  * \subsection ck Concurrency Kit
  * The non-blocking hash set displays severe performance degradation and numerous
  * spikes in the *Change* test for some data sizes.
- * See this <a href="other/ck_problem.png">graph</a>.
+ * See this <a href="other/ck_problem.png">performance graph</a>
+ * for a visual illustration of the issue.
  *
  * \page multiindex Multi-Indexing: Searching Objects in Multiple Ways
  *
