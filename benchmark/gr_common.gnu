@@ -33,8 +33,8 @@ set ylabel "Time for element in nanosecond in logarithmic scale\nLower is better
 # Set the visible range for the X-axis, from 1000 to 10,000,000.
 set xrange [1000:10000000]
 
-# Set the visible range for the Y-axis, from 6 to 1000.
-set yrange [6:1000]
+# Set the visible range for the Y-axis, from 3 to 1000.
+set yrange [3:1000]
 
 # Apply a logarithmic scale to the Y-axis (base 10 by default).
 set logscale y
@@ -65,15 +65,15 @@ set style line 6 lc 6 lt 6 # rbtre
 set style line 7 lc 7 lt 7 # nedtrie
 set style line 8 lc 8 lt 8 # khash
 set style line 9 lc 9 lt 8 # uthash
-set style line 10 lc 10 lt 10 # judy
-set style line 11 lc 11 lt 11 # judyarray
-set style line 12 lc 12 lt 12 # googledensehash
-set style line 13 lc rgb "#FF69B4" lt 13 # googlebtree
-set style line 14 lc 14 lt 14 # stxbtree
-set style line 15 lc 15 lt 15 # c++unorderedmap
-set style line 16 lc 16 lt 16 # c++map
-set style line 17 lc 17 lt 17 # tesseract
-set style line 18 lc 4 lt 18 pt 1 # libdynamic
-set style line 19 lc rgb "#FF69B4" lt 19 # googlelibchash
-set style line 20 lc rgb "#1E90FF" lt 20 # concurrencykit
+set style line 10 lc 10 lt 7 # judy
+set style line 11 lc 11 lt 7 # judyarray
+set style line 12 lc 12 lt 8 # googledensehash
+set style line 13 lc rgb "#FF69B4" lt 8 # googlebtree
+set style line 14 lc 14 lt 7 # stxbtree
+set style line 15 lc 15 lt 7 # c++unorderedmap
+set style line 16 lc 16 lt 8 # c++map
+set style line 17 lc 17 lt 8 # tesseract
+set style line 18 lc 4 lt 7 # libdynamic
+set style line 19 lc rgb "#FF69B4" lt 7 # googlelibchash
+set style line 20 lc rgb "#1E90FF" lt 7 # concurrencykit
 
