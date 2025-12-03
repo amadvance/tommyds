@@ -3,24 +3,22 @@ TommyDS
 
 TommyDS is a C library of array, hashtables and tries data structures,
 designed for high performance and providing an easy to use interface.
-
-It's faster than all the similar libraries like rbtree, judy, goodledensehash,
+It's faster than all the similar libraries like rbtree, judy, google-densehash,
 khash, uthash, nedtries and others.
 
 The data structures provided are:
 
 	tommy_list - A double linked list.
-	tommy_array - A linear array. It doesn't fragment
-		the heap.
+	tommy_array - A linear array. It doesn't fragment the heap.
 	tommy_arrayblk - A blocked linear array. It doesn't fragment
 		the heap and it minimizes the space occupation.
 	tommy_hashtable - A fixed size chained hashtable.
 	tommy_hashdyn - A dynamic chained hashtable.
 	tommy_hashlin - A linear chained hashtable. It doesn't have the
-		problem of the delay when resizing and it doesn't
-		fragment the heap.
+		problem of the delay when resizing and it doesn't fragment
+		the heap.
 	tommy_trie - A trie optimized for cache utilization.
-	tommy_trie_inplace - A trie completely inplace.
+	tommy_trie_inplace - A trie completely in-place.
 
 The documentation is available in HTML format in the doc/index.html file,
 and directly in the .h files.
@@ -28,4 +26,3 @@ and directly in the .h files.
 The official site of TommyDS is:
 
     https://www.tommyds.it
-

@@ -4,5 +4,4 @@ TommyDS INSTALL
 TommyDS doesn't need any installation.
 
 You have only to import the required .c and .h files into your program
-and use the them.
-
+and use them.
