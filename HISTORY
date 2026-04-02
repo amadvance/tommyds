@@ -4,6 +4,7 @@ TommyDS HISTORY
 3.1 2026/04
 ===========
  * New tommy_hashdyn_to_list() function.
+ * New tommy_list_insert_after() function.
 
 3.0 2025/11
 ===========

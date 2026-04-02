@@ -229,6 +229,60 @@ tommy_inline void tommy_list_insert_tail(tommy_list* list, tommy_node* node, voi
 }
 
 /**
+ * Inserts an element before the specified reference node.
+ * \param list The list.
+ * \param reference The reference node. The new node will be inserted before this node. The reference node must be in the list.
+ * \param node The node to insert.
+ * \param data The object containing the node. It's used to set the tommy_node::data field of the node.
+ */
+tommy_inline void tommy_list_insert_before(tommy_list* list, tommy_node* reference, tommy_node* node, void* data)
+{
+	tommy_node* head = tommy_list_head(list);
+
+	/* if inserting before the head, update the list pointer */
+	if (head == reference) {
+		tommy_list_insert_head_not_empty(list, node);
+	} else {
+		/* insert in the "circular" prev list */
+		node->prev = reference->prev;
+		reference->prev = node;
+
+		/* insert in the "0 terminated" next list */
+		node->next = reference;
+		node->prev->next = node;
+	}
+
+	node->data = data;
+}
+
+/**
+ * Inserts an element after the specified reference node.
+ * \param list The list.
+ * \param reference The reference node. The new node will be inserted after this node. The reference node must be in the list.
+ * \param node The node to insert.
+ * \param data The object containing the node. It's used to set the tommy_node::data field of the node.
+ */
+tommy_inline void tommy_list_insert_after(tommy_list* list, tommy_node* reference, tommy_node* node, void* data)
+{
+	tommy_node* head = tommy_list_head(list);
+
+	/* if inserting after the tail (reference->next == 0), handle specially */
+	if (reference->next == 0) {
+		tommy_list_insert_tail_not_empty(head, node);
+	} else {
+		/* insert in the "circular" prev list */
+		node->prev = reference;
+		reference->next->prev = node;
+
+		/* insert in the "0 terminated" next list */
+		node->next = reference->next;
+		reference->next = node;
+	}
+
+	node->data = data;
+}
+
+/**
  * Removes an element from the list.
  * You must already have the address of the element to remove.
  * \note The node content is left unchanged, including the tommy_node::next
