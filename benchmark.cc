@@ -153,7 +153,7 @@ OK
 /* Note that after erasing we always call resize(0) to possibly trigger a table resize to free some space */
 /* Otherwise, it would be an unfair advantage never shrinking on deletion. */
 /* The shrink is triggered only sometimes, so the performance doesn't suffer to much */
-/* #define USE_GOOGLEDENSEHASH */
+#define USE_GOOGLEDENSEHASH
 #ifdef USE_GOOGLEDENSEHASH
 #include <google/dense_hash_map>
 #endif
