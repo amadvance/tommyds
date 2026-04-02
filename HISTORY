@@ -1,6 +1,10 @@
 TommyDS HISTORY
 ===============
 
+3.1 2026/04
+===========
+ * New tommy_hashdyn_to_list() function.
+
 3.0 2025/11
 ===========
  * Added support for 64-bit platforms and 64-bit integers. When building on
