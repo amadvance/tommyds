@@ -188,7 +188,8 @@ DIST=tommyds-$(VERSION)
 
 DISTFILES=\
 	Makefile \
-	README LICENSE AUTHORS INSTALL HISTORY \
+	README AUTHORS INSTALL HISTORY \
+	COPYING \
 	tommy.doxygen tommy.css tommy-header.html tommy-footer.html \
 	benchmark.vcxproj benchmark.sln \
 	benchmark.geany \
@@ -198,7 +199,9 @@ DISTFILES=\
 dist:
 	mkdir $(DIST)
 	mkdir $(DIST)/tommyds
+	mkdir $(DIST)/LICENSES
 	cp $(DISTFILES) $(DIST)
+	cp LICENSES/BSD-2-Clause $(DIST)/LICENSES
 	cp $(DEP) $(DIST)/tommyds
 	cp $(DEPTEST) $(DIST)
 	cp -R doc $(DIST)
