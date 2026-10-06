@@ -68,3 +68,4 @@ TOMMY_API void tommy_allocator_free(tommy_allocator* alloc, void* ptr);
 TOMMY_API tommy_size_t tommy_allocator_memory_usage(tommy_allocator* alloc);
 
 #endif
+

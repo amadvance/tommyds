@@ -222,3 +222,4 @@ tommy_inline tommy_size_t tommy_trie_inplace_count(tommy_trie_inplace* trie_inpl
 TOMMY_API tommy_size_t tommy_trie_inplace_memory_usage(tommy_trie_inplace* trie_inplace);
 
 #endif
+

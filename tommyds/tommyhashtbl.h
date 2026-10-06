@@ -253,3 +253,4 @@ tommy_inline tommy_size_t tommy_hashtable_count(tommy_hashtable* hashtable)
 TOMMY_API tommy_size_t tommy_hashtable_memory_usage(tommy_hashtable* hashtable);
 
 #endif
+

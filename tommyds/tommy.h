@@ -63,6 +63,7 @@
  *
  * To insert an object into a container, you have to provide the address of the embedded node,
  * the address of the object and the value of the key.
+ * The object pointer must not be 0. It is stored in tommy_node::data.
  * \code
  * int key_to_insert = 1;
  * struct object* obj = malloc(sizeof(struct object));
@@ -200,7 +201,7 @@
  * (like the Tommy structures) where the required indexing metadata is stored
  * directly within the user's object structure. For these designs, the cache
  * miss incurred to access the object's data is the same one that retrieves the
- * necessary indexing information, minimizing the "additional" cost. 
+ * necessary indexing information, minimizing the "additional" cost.
  *
  * The tests performed are:
  * * **Insert:** Measures the time taken to add all N objects, starting from an
@@ -242,7 +243,7 @@
  *
  * Tests are repeated using two key access modes:
  *
- * * **Random Mode:** Keys are accessed in a completely random order. This 
+ * * **Random Mode:** Keys are accessed in a completely random order. This
  * represents the real-world worst case and generally favors hashtables
  * because the key-hashing process already randomizes the access pattern.
  * * **Forward Mode:** Keys are accessed in order from the lowest to the
@@ -326,7 +327,7 @@
  * <table border="0">
  * <tr><td><img src="core_i7_10700_2G9_linux/img_random_size.png"/></td></tr>
  * </table>
- * 
+ *
  * \section code Technical Details and Code Snippets
  *
  * The benchmark was performed on a Core i7 10700 2.9 GHz running Linux. The
@@ -526,13 +527,13 @@
  * This type of degeneration is characteristic of hash tables that use
  * tombstone entries for deletion handling, where the accumulation of
  * tombstones can lead to increased probe lengths and degraded performance.
- * 
+ *
  * See this <a href="other/ck_problem.png">performance graph</a>
  * for a visual illustration of the issue.
  *
  * \page multiindex Multi-Indexing: Searching Objects in Multiple Ways
  *
- * In any real-world application where you use objects to represent information, 
+ * In any real-world application where you use objects to represent information,
  * you'll often need to search for those objects using **different keys** or
  * criteria. This is where the concept of **multi-indexing** becomes essential.
  *
@@ -545,7 +546,7 @@
  *
  * With multi-indexing, each search key requires the file object to be
  * inserted into a separate, dedicated data structure (like a hash table or
- * a tree) to allow for a fast search based on that specific key. This is 
+ * a tree) to allow for a fast search based on that specific key. This is
  * exactly what TommyDS is designed to **facilitate**.
  *
  * You can compare this concept to a SQL database. In a database, a single
@@ -571,7 +572,7 @@
  * The next example demonstrates using multiple data structures (a list and several
  * hash tables) to store a 'file' object, allowing access and searching based
  * on different fields.
- * 
+ *
  * First, we declare the file object structure, including the required intrusive
  * nodes for the various data structures that will store it.
  *
@@ -590,11 +591,11 @@
  *     tommy_node node_by_inode; // node for the file inode
  * };
  * \endcode
- * 
+ *
  * Next, we define helper functions to compute the hash for each field used
  * as a key and comparison functions to search for an object based on a
  * specified key.
- * 
+ *
  * \code
  * // search function by inode
  * int search_by_inode(const void* arg, const void* obj)
@@ -609,19 +610,19 @@
  * {
  *     return tommy_inthash_u64(inode); // truncate to 32 bits
  * }
- * 
+ *
  * // compute the hash of a name
  * tommy_uint32 hash_by_name(const char* name)
  * {
  *     return tommy_strhash_u32(0, name);
  * }
- * 
+ *
  * // compute the hash of a dir
  * tommy_uint32 hash_by_dir(const char* dir)
  * {
  *     return tommy_strhash_u32(0, dir);
  * }
- * 
+ *
  * // search function by path
  * struct path {
  *     char* dir;
@@ -641,9 +642,9 @@
  *     return tommy_strhash_u32(tommy_strhash_u32(0, dir), name);
  * }
  * \endcode
- * 
+ *
  * Now we declare and initialize the data structures.
- * 
+ *
  * \code
  *     tommy_list list;
  *     tommy_hashdyn hashtable_by_dir;
@@ -660,7 +661,7 @@
  * \endcode
  *
  * We create a file object and insert it into all the data structures.
- * 
+ *
  * \code
  *     // creates an object
  *     struct file* f = malloc(sizeof(struct file));
@@ -675,11 +676,11 @@
  *     tommy_hashdyn_insert(&hashtable_by_path, &f->node_by_path, f, hash_by_path(f->dir, f>name));
  *     tommy_hashdyn_insert(&hashtable_by_inode, &f->node_by_inode, f, hash_by_inode(f->inode));
  * \endcode
- * 
+ *
  * After all files are inserted, we can now search them by inode, remove a
  * file with a specific path, and list all the files with a specific name,
  * regardless of the directory they reside in.
- * 
+ *
  * \code
  *     // searches a file by inode
  *     inode_t inode_to_find = ...;
@@ -872,3 +873,4 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+

@@ -18,9 +18,9 @@
 tommy_inline tommy_uint32_t tommy_swap32(tommy_uint32_t v)
 {
 	return ((v & 0xFF000000) >> 24) |
-		((v & 0x00FF0000) >> 8)  |
-		((v & 0x0000FF00) << 8)  |
-		((v & 0x000000FF) << 24);
+	       ((v & 0x00FF0000) >> 8) |
+	       ((v & 0x0000FF00) << 8) |
+	       ((v & 0x000000FF) << 24);
 }
 #endif
 

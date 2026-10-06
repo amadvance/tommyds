@@ -87,3 +87,4 @@ tommy_inline tommy_size_t tommy_arrayblkof_size(tommy_arrayblkof* array)
 TOMMY_API tommy_size_t tommy_arrayblkof_memory_usage(tommy_arrayblkof* array);
 
 #endif
+

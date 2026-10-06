@@ -149,7 +149,7 @@ tommy_inline void tommy_chain_mergesort(tommy_chain* chain, tommy_compare_func* 
 	 */
 	tommy_chain bit[TOMMY_SIZE_BIT + 1];
 
-	/**
+	/*
 	 * Value stored inside the bit bucket.
 	 * It's used to know which bucket is empty or full.
 	 */
@@ -207,3 +207,4 @@ tommy_inline void tommy_chain_mergesort(tommy_chain* chain, tommy_compare_func* 
 }
 
 #endif
+

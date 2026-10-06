@@ -318,3 +318,4 @@ tommy_inline tommy_size_t tommy_hashlin_count(tommy_hashlin* hashlin)
 TOMMY_API tommy_size_t tommy_hashlin_memory_usage(tommy_hashlin* hashlin);
 
 #endif
+

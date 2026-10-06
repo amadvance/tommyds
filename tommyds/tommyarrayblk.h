@@ -117,3 +117,4 @@ tommy_inline tommy_size_t tommy_arrayblk_size(tommy_arrayblk* array)
 TOMMY_API tommy_size_t tommy_arrayblk_memory_usage(tommy_arrayblk* array);
 
 #endif
+

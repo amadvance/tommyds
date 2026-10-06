@@ -163,7 +163,6 @@ TOMMY_API void* tommy_tree_insert(tommy_tree* tree, tommy_tree_node* node, void*
  */
 TOMMY_API void* tommy_tree_remove_existing(tommy_tree* tree, tommy_tree_node* node);
 
-
 /** \internal
  * Calls the specified function for each element in the tree.
  * \param root Root node of the tree.

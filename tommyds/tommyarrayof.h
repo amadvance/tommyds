@@ -100,3 +100,4 @@ tommy_inline tommy_size_t tommy_arrayof_size(tommy_arrayof* array)
 TOMMY_API tommy_size_t tommy_arrayof_memory_usage(tommy_arrayof* array);
 
 #endif
+

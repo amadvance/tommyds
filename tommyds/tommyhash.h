@@ -108,3 +108,4 @@ tommy_inline tommy_uint64_t tommy_inthash_u64(tommy_uint64_t key)
 }
 
 #endif
+
