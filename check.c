@@ -7,7 +7,7 @@
  * Simply run it without any options. If it terminates printing "OK" all the
  * checks are succesful.
  */
- 
+
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -102,7 +102,7 @@ struct object_trie_inplace {
 /* time */
 
 #if defined(_WIN32)
-static LARGE_INTEGER win_frequency; 
+static LARGE_INTEGER win_frequency;
 #endif
 
 static void nano_init(void)
@@ -117,7 +117,7 @@ static void nano_init(void)
 static tommy_uint64_t nano(void)
 {
 	tommy_uint64_t ret;
-#if defined(_WIN32)   
+#if defined(_WIN32)
 	LARGE_INTEGER t;
 
 	if (!QueryPerformanceCounter(&t))
@@ -137,10 +137,10 @@ static tommy_uint64_t nano(void)
 	if (r != 0)
 		/* LCOV_EXCL_START */
 		abort();
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	ret = (t / info.denom) * info.numer;
-	
+
 	ret += (t % info.denom) * info.numer / info.denom;
 #elif defined(__linux)
 	struct timespec ts;
@@ -150,7 +150,7 @@ static tommy_uint64_t nano(void)
 	if (r != 0)
 		/* LCOV_EXCL_START */
 		abort();
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	ret = ts.tv_sec * (tommy_uint64_t)1000000000 + ts.tv_nsec;
 #else
@@ -161,7 +161,7 @@ static tommy_uint64_t nano(void)
 	if (r != 0)
 		/* LCOV_EXCL_START */
 		abort();
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	ret = tv.tv_sec * (tommy_uint64_t)1000000000 + tv.tv_usec * 1000;
 #endif
@@ -173,18 +173,18 @@ static tommy_uint64_t nano(void)
 
 /**
  * Pseudo random number generator.
- * Note that using (rand() % max) in Visual C results in totally bogus values, 
+ * Note that using (rand() % max) in Visual C results in totally bogus values,
  * with *strong* cache effects when accessing elements in a not really random order.
  * This happen because Visual C uses a simple linear congruential generator with only 32 bits.
  */
 tommy_uint64_t SEED = 0;
 
-unsigned rnd(unsigned max) 
+unsigned rnd(unsigned max)
 {
 	unsigned r;
 	tommy_uint64_t divider;
-    
-loop:    
+
+loop:
 	/* linear congruential generator from MMIX by Donald Knuth, http://en.wikipedia.org/wiki/Linear_congruential_generator */
 #ifdef _MSC_VER
 	divider = 0xFFFFFFFFFFFFFFFF / max;
@@ -193,14 +193,14 @@ loop:
 	divider = 0xFFFFFFFFFFFFFFFFULL / max;
 	SEED = SEED * 6364136223846793005LL + 1442695040888963407LL;
 #endif
- 
+
 	r = (unsigned)(SEED / divider);
 
 	/* it may happen as the divider is approximated down */
 	if (r >= max)
 		/* LCOV_EXCL_START */
 		goto loop;
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	return r;
 }
@@ -237,7 +237,7 @@ unsigned isqrt(unsigned n)
 /**
  * Cache clearing buffer.
  */
-static unsigned char the_cache[16*1024*1024];
+static unsigned char the_cache[16 * 1024 * 1024];
 static const char* the_str;
 static tommy_uint64_t the_start;
 
@@ -246,7 +246,7 @@ void cache_clear(void)
 	unsigned i;
 
 	/* read & write */
-	for(i=0;i<sizeof(the_cache);i += 32)
+	for (i = 0; i < sizeof(the_cache); i += 32)
 		the_cache[i] += 1;
 
 #ifdef WIN32
@@ -566,45 +566,45 @@ void test_hash(void)
 {
 	unsigned i;
 	unsigned char buffer[16];
-	unsigned COUNT = 1024*1024*16;
+	unsigned COUNT = 1024 * 1024 * 16;
 	tommy_uint32_t hash32;
 	tommy_uint64_t hash64;
 
 	START("hash_test_vectors");
 
-	for(i=0;HASH32[i].data;++i) {
+	for (i = 0; HASH32[i].data; ++i) {
 		if (tommy_hash_u32(0xa766795d, HASH32[i].data, HASH32[i].len) != HASH32[i].hash)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 	}
 
-	for(i=0;STRHASH32[i].data;++i) {
+	for (i = 0; STRHASH32[i].data; ++i) {
 		if (tommy_strhash_u32(0xa766795d, STRHASH32[i].data) != STRHASH32[i].hash)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 	}
 
-	for(i=0;HASH64[i].data;++i) {
+	for (i = 0; HASH64[i].data; ++i) {
 		if (tommy_hash_u64(0x2f022773a766795dULL, HASH64[i].data, HASH64[i].len) != HASH64[i].hash)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 	}
 
-	for(i=0;INTHASH32[i].value || !i;++i) {
+	for (i = 0; INTHASH32[i].value || !i; ++i) {
 		if (tommy_inthash_u32(INTHASH32[i].value) != INTHASH32[i].hash)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 	}
 
-	for(i=0;INTHASH64[i].value || !i;++i) {
+	for (i = 0; INTHASH64[i].value || !i; ++i) {
 		if (tommy_inthash_u64(INTHASH64[i].value) != INTHASH64[i].hash)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 	}
 
 	STOP();
@@ -617,7 +617,7 @@ void test_hash(void)
 
 	START("hash_u32");
 
-	for(i=0;i<COUNT;++i) {
+	for (i = 0; i < COUNT; ++i) {
 		hash32 = tommy_hash_u32(hash32, buffer, sizeof(buffer));
 	}
 
@@ -625,7 +625,7 @@ void test_hash(void)
 
 	START("strhash_u32");
 
-	for(i=0;i<COUNT;++i) {
+	for (i = 0; i < COUNT; ++i) {
 		hash32 = tommy_strhash_u32(hash32, buffer);
 	}
 
@@ -633,7 +633,7 @@ void test_hash(void)
 
 	START("hash_u64");
 
-	for(i=0;i<COUNT;++i) {
+	for (i = 0; i < COUNT; ++i) {
 		hash64 = tommy_hash_u64(hash64, buffer, sizeof(buffer));
 	}
 
@@ -654,7 +654,7 @@ void test_alloc(void)
 	if (alloc.align_size < sizeof(void*))
 		/* LCOV_EXCL_START */
 		abort();
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 	tommy_allocator_done(&alloc);
 
 	/* ensure correct alignment */
@@ -662,7 +662,7 @@ void test_alloc(void)
 	if (alloc.block_size != sizeof(void*))
 		/* LCOV_EXCL_START */
 		abort();
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 	tommy_allocator_done(&alloc);
 
 	/* check big blocks */
@@ -670,19 +670,19 @@ void test_alloc(void)
 	if (tommy_allocator_alloc(&alloc) == 0)
 		/* LCOV_EXCL_START */
 		abort();
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 	tommy_allocator_done(&alloc);
 
 	tommy_allocator_init(&alloc, 64, 64);
 
 	START("alloc");
-	for(i=0;i<size;++i) {
+	for (i = 0; i < size; ++i) {
 		PTR[i] = tommy_allocator_alloc(&alloc);
 	}
 	STOP();
 
 	START("free");
-	for(i=0;i<size;++i) {
+	for (i = 0; i < size; ++i) {
 		tommy_allocator_free(&alloc, PTR[i]);
 	}
 	STOP();
@@ -705,14 +705,419 @@ void test_list_order(tommy_node* list)
 			if (a->value > b->value)
 				/* LCOV_EXCL_START */
 				abort();
-				/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
 			/* check order for stable sort */
 			if (a->value == b->value && a > b)
 				/* LCOV_EXCL_START */
 				abort();
-				/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
 		}
 		node = node->next;
+	}
+}
+
+/* check exact node identity, both traversal directions and list invariants. */
+void test_list_sequence(tommy_list* list, struct object* obj, const unsigned* order, unsigned size)
+{
+	tommy_node* node = tommy_list_head(list);
+	tommy_node* prev = tommy_list_tail(list);
+	unsigned i;
+
+	if (tommy_list_empty(list) != (size == 0)
+		|| tommy_list_tail(list) != (size ? &obj[order[size - 1]].node : 0))
+		/* LCOV_EXCL_START */
+		abort();
+	/* LCOV_EXCL_STOP */
+
+	for (i = 0; i < size; ++i) {
+		if (node != &obj[order[i]].node || node->prev != prev
+			|| node->data != &obj[order[i]] || node->index != order[i] + 1)
+			/* LCOV_EXCL_START */
+			abort();
+		/* LCOV_EXCL_STOP */
+		prev = node;
+		node = node->next;
+	}
+
+	if (node != 0 || tommy_list_count(list) != size)
+		/* LCOV_EXCL_START */
+		abort();
+	/* LCOV_EXCL_STOP */
+
+	node = tommy_list_tail(list);
+	for (i = size; i > 0; --i) {
+		if (node != &obj[order[i - 1]].node)
+			/* LCOV_EXCL_START */
+			abort();
+		/* LCOV_EXCL_STOP */
+		node = tommy_list_prev(list, node);
+	}
+
+	if (node != 0)
+		/* LCOV_EXCL_START */
+		abort();
+	/* LCOV_EXCL_STOP */
+}
+
+void test_list_build(tommy_list* list, struct object* obj, unsigned start, unsigned size)
+{
+	unsigned i;
+
+	tommy_list_init(list);
+	for (i = start; i < start + size; ++i) {
+		obj[i].node.index = i + 1;
+		tommy_list_insert_tail(list, &obj[i].node, &obj[i]);
+	}
+}
+
+void test_list_merge(void)
+{
+	struct object obj[8];
+	unsigned order[8];
+	const unsigned combinations[] = { 1, 3, 9, 27, 81 };
+	tommy_list first;
+	tommy_list second;
+	unsigned n;
+	unsigned m;
+	unsigned a;
+	unsigned b;
+	unsigned i;
+	unsigned key;
+	unsigned size;
+	unsigned code;
+	tommy_bool_t sorted;
+
+	/* All sorted sequences of up to four nodes with keys in [0, 2].
+	 * Object identity distinguishes duplicates, including duplicates across lists.
+	 * The oracle groups by key, retaining the original first-then-second order.
+	 */
+	for (n = 0; n <= 4; ++n) {
+		for (m = 0; m <= 4; ++m) {
+			for (a = 0; a < combinations[n]; ++a) {
+				for (b = 0; b < combinations[m]; ++b) {
+					sorted = 1;
+					code = a;
+					for (i = 0; i < n; ++i) {
+						obj[i].value = code % 3;
+						code /= 3;
+						if (i && obj[i - 1].value > obj[i].value)
+							sorted = 0;
+					}
+					code = b;
+					for (i = n; i < n + m; ++i) {
+						obj[i].value = code % 3;
+						code /= 3;
+						if (i != n && obj[i - 1].value > obj[i].value)
+							sorted = 0;
+					}
+					if (!sorted)
+						continue;
+
+					test_list_build(&first, obj, 0, n);
+					test_list_build(&second, obj, n, m);
+					size = 0;
+					for (key = 0; key < 3; ++key)
+						for (i = 0; i < n + m; ++i)
+							if (obj[i].value == (int)key)
+								order[size++] = i;
+
+					tommy_list_merge(&first, &second, compare);
+					test_list_sequence(&first, obj, order, size);
+				}
+			}
+		}
+	}
+}
+
+void test_list_split(void)
+{
+	struct object obj[6];
+	const unsigned order[] = { 0, 1, 2, 3, 4 };
+	const unsigned previous_order[] = { 5 };
+	tommy_list first;
+	tommy_list second;
+	tommy_list previous;
+	unsigned n;
+	unsigned pos;
+
+	/* split at every position, including the head, tail and null node. */
+	for (n = 0; n <= 5; ++n) {
+		for (pos = 0; pos <= n; ++pos) {
+			test_list_build(&first, obj, 0, n);
+			/* the previous destination value is overwritten, but its nodes are untouched. */
+			test_list_build(&second, obj, 5, 1);
+			previous = second;
+			tommy_list_split(&first, pos == n ? 0 : &obj[pos].node, &second);
+			test_list_sequence(&first, obj, order, pos);
+			test_list_sequence(&second, obj, order + pos, n - pos);
+			test_list_sequence(&previous, obj, previous_order, 1);
+
+			/* rejoin the lists and check that no node was lost. */
+			tommy_list_concat(&first, &second);
+			test_list_sequence(&first, obj, order, n);
+		}
+
+		/* an uninitialized output is valid, including when the input node is 0. */
+		{
+			tommy_list output;
+			test_list_build(&first, obj, 0, n);
+			tommy_list_split(&first, tommy_list_head(&first), &output);
+			test_list_sequence(&first, obj, 0, 0);
+			test_list_sequence(&output, obj, order, n);
+		}
+	}
+}
+
+void test_list_splice(void)
+{
+	struct object obj[8];
+	unsigned order[8];
+	unsigned reuse[1];
+	tommy_list first;
+	tommy_list second;
+	unsigned n;
+	unsigned m;
+	unsigned pos;
+	unsigned operation;
+	unsigned insert;
+	unsigned i;
+	unsigned size;
+
+	/* both splice operations, every valid reference and empty/singleton cases. */
+	for (n = 1; n <= 4; ++n) {
+		for (m = 0; m <= 3; ++m) {
+			for (operation = 0; operation < 2; ++operation) {
+				for (pos = 0; pos < n; ++pos) {
+					test_list_build(&first, obj, 0, n);
+					test_list_build(&second, obj, n, m);
+					insert = operation == 0 ? pos : pos + 1;
+					size = 0;
+					for (i = 0; i < insert; ++i)
+						order[size++] = i;
+					for (i = n; i < n + m; ++i)
+						order[size++] = i;
+					for (i = insert; i < n; ++i)
+						order[size++] = i;
+
+					switch (operation) {
+					case 0 :
+						tommy_list_splice_before(&first, &obj[pos].node, &second);
+						break;
+					case 1 :
+						tommy_list_splice_after(&first, &obj[pos].node, &second);
+						break;
+					}
+					test_list_sequence(&first, obj, order, size);
+
+					/* the source can be reused after reinitialization without affecting the destination. */
+					reuse[0] = n + m;
+					test_list_build(&second, obj, reuse[0], 1);
+					test_list_sequence(&second, obj, reuse, 1);
+					test_list_sequence(&first, obj, order, size);
+				}
+			}
+		}
+	}
+}
+
+void test_list_concat(void)
+{
+	struct object obj[8];
+	unsigned order[8];
+	tommy_list first;
+	tommy_list second;
+	unsigned n;
+	unsigned m;
+	unsigned i;
+	unsigned size;
+
+	for (n = 0; n <= 4; ++n) {
+		for (m = 0; m <= 3; ++m) {
+			test_list_build(&first, obj, 0, n);
+			test_list_build(&second, obj, n, m);
+			size = 0;
+			for (i = 0; i < n + m; ++i)
+				order[size++] = i;
+			tommy_list_concat(&first, &second);
+			test_list_sequence(&first, obj, order, size);
+		}
+	}
+}
+
+void test_list_prepend(void)
+{
+	struct object obj[8];
+	unsigned order[8];
+	tommy_list first;
+	tommy_list second;
+	unsigned n;
+	unsigned m;
+	unsigned i;
+	unsigned size;
+
+	for (n = 0; n <= 4; ++n) {
+		for (m = 0; m <= 3; ++m) {
+			test_list_build(&first, obj, 0, n);
+			test_list_build(&second, obj, n, m);
+			size = 0;
+			for (i = n; i < n + m; ++i)
+				order[size++] = i;
+			for (i = 0; i < n; ++i)
+				order[size++] = i;
+			tommy_list_prepend(&first, &second);
+			test_list_sequence(&first, obj, order, size);
+		}
+	}
+}
+
+void test_list_reverse_move(void)
+{
+	struct object obj[6];
+	const unsigned forward[] = { 0, 1, 2, 3, 4, 5 };
+	unsigned order[6];
+	tommy_list list;
+	unsigned n;
+	unsigned pos;
+	unsigned tail;
+	unsigned i;
+	unsigned size;
+
+	for (n = 0; n <= 6; ++n) {
+		test_list_build(&list, obj, 0, n);
+		for (i = 0; i < n; ++i)
+			order[i] = n - 1 - i;
+		tommy_list_reverse(&list);
+		test_list_sequence(&list, obj, order, n);
+		tommy_list_reverse(&list);
+		test_list_sequence(&list, obj, forward, n);
+
+		/* move every node to either end, including nodes already at that end. */
+		for (pos = 0; pos < n; ++pos) {
+			for (tail = 0; tail < 2; ++tail) {
+				test_list_build(&list, obj, 0, n);
+				size = 0;
+				if (!tail)
+					order[size++] = pos;
+				for (i = 0; i < n; ++i)
+					if (i != pos)
+						order[size++] = i;
+				if (tail)
+					order[size++] = pos;
+
+				if (tail)
+					tommy_list_move_tail(&list, &obj[pos].node);
+				else
+					tommy_list_move_head(&list, &obj[pos].node);
+				test_list_sequence(&list, obj, order, n);
+			}
+		}
+	}
+
+	/* moving a node with null data preserves it. */
+	test_list_build(&list, obj, 0, 3);
+	obj[1].node.data = 0;
+	tommy_list_move_head(&list, &obj[1].node);
+	tommy_list_move_tail(&list, &obj[1].node);
+	if (tommy_list_tail(&list) != &obj[1].node || obj[1].node.data != 0 || obj[1].node.index != 2)
+		/* LCOV_EXCL_START */
+		abort();
+	/* LCOV_EXCL_STOP */
+}
+
+void test_list_removed(tommy_node* node, tommy_node* saved)
+{
+	if (node->next != saved->next || node->prev != saved->prev
+		|| node->data != saved->data || node->index != saved->index)
+		/* LCOV_EXCL_START */
+		abort();
+	/* LCOV_EXCL_STOP */
+}
+
+void test_list_remove_ends(void)
+{
+	struct object obj[6];
+	const unsigned order[] = { 0, 1, 2, 3, 4, 5 };
+	tommy_list list;
+	tommy_node* node;
+	tommy_node saved;
+	void* data;
+	unsigned n;
+	unsigned mode;
+	unsigned head;
+	unsigned tail;
+	tommy_bool_t remove_tail;
+
+	/* drain from the head, from the tail, and alternating between both. */
+	for (n = 0; n <= 6; ++n) {
+		for (mode = 0; mode < 3; ++mode) {
+			test_list_build(&list, obj, 0, n);
+			head = 0;
+			tail = n;
+			while (head != tail) {
+				remove_tail = mode == 1 || (mode == 2 && (tail - head) % 2 == 0);
+				node = &obj[remove_tail ? tail - 1 : head].node;
+				saved = *node;
+				if (remove_tail) {
+					data = tommy_list_remove_tail(&list);
+					--tail;
+				} else {
+					data = tommy_list_remove_head(&list);
+					++head;
+				}
+				if (data != saved.data)
+					/* LCOV_EXCL_START */
+					abort();
+				/* LCOV_EXCL_STOP */
+				test_list_removed(node, &saved);
+				test_list_sequence(&list, obj, order + head, tail - head);
+			}
+			if (tommy_list_remove_head(&list) != 0 || tommy_list_remove_tail(&list) != 0)
+				/* LCOV_EXCL_START */
+				abort();
+			/* LCOV_EXCL_STOP */
+			test_list_sequence(&list, obj, 0, 0);
+		}
+	}
+
+	/* null data still removes the node, despite returning 0. */
+	for (mode = 0; mode < 2; ++mode) {
+		test_list_build(&list, obj, 0, 1);
+		obj[0].node.data = 0;
+		saved = obj[0].node;
+		data = mode ? tommy_list_remove_tail(&list) : tommy_list_remove_head(&list);
+		if (data != 0)
+			/* LCOV_EXCL_START */
+			abort();
+		/* LCOV_EXCL_STOP */
+		test_list_removed(&obj[0].node, &saved);
+		test_list_sequence(&list, obj, 0, 0);
+	}
+}
+
+void test_list_swap(void)
+{
+	struct object obj[8];
+	const unsigned order[] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+	tommy_list first;
+	tommy_list second;
+	unsigned n;
+	unsigned m;
+
+	for (n = 0; n <= 4; ++n) {
+		for (m = 0; m <= 4; ++m) {
+			test_list_build(&first, obj, 0, n);
+			test_list_build(&second, obj, n, m);
+			tommy_list_swap(&first, &second);
+			test_list_sequence(&first, obj, order + n, m);
+			test_list_sequence(&second, obj, order, n);
+			tommy_list_swap(&first, &first);
+			tommy_list_swap(&second, &second);
+			test_list_sequence(&first, obj, order + n, m);
+			test_list_sequence(&second, obj, order, n);
+			tommy_list_swap(&first, &second);
+			test_list_sequence(&first, obj, order, n);
+			test_list_sequence(&second, obj, order + n, m);
+		}
 	}
 }
 
@@ -724,10 +1129,19 @@ void test_list(void)
 	unsigned i;
 	const unsigned size = TOMMY_SIZE;
 
+	test_list_merge();
+	test_list_split();
+	test_list_splice();
+	test_list_concat();
+	test_list_prepend();
+	test_list_reverse_move();
+	test_list_remove_ends();
+	test_list_swap();
+
 	LIST = malloc(size * sizeof(struct object));
 	VECTOR = malloc(size * sizeof(struct object_vector));
 
-	for(i=0;i<size;++i) {
+	for (i = 0; i < size; ++i) {
 		VECTOR[i].value = LIST[i].value = 0;
 	}
 
@@ -739,19 +1153,19 @@ void test_list(void)
 	if (!tommy_list_empty(&list))
 		/* LCOV_EXCL_START */
 		abort();
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	if (tommy_list_tail(&list) != 0)
 		/* LCOV_EXCL_START */
 		abort();
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	if (tommy_list_head(&list) != 0)
 		/* LCOV_EXCL_START */
 		abort();
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
-	for(i=0;i<size;++i) {
+	for (i = 0; i < size; ++i) {
 		VECTOR[i].value = LIST[i].value = rnd(size);
 		tommy_list_insert_tail(&list, &LIST[i].node, &LIST[i]);
 	}
@@ -759,12 +1173,12 @@ void test_list(void)
 	if (tommy_list_tail(&list) == 0)
 		/* LCOV_EXCL_START */
 		abort();
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	if (tommy_list_head(&list) == 0)
 		/* LCOV_EXCL_START */
 		abort();
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	START("sort random");
 	tommy_list_sort(&list, compare);
@@ -778,7 +1192,7 @@ void test_list(void)
 
 	/* forward order with some (1%) random values */
 	list = 0;
-	for(i=0;i<size;++i) {
+	for (i = 0; i < size; ++i) {
 		VECTOR[i].value = LIST[i].value = i;
 		if (rnd(100) == 0)
 			VECTOR[i].value = LIST[i].value = rnd(size);
@@ -797,7 +1211,7 @@ void test_list(void)
 
 	/* forward order */
 	list = 0;
-	for(i=0;i<size;++i) {
+	for (i = 0; i < size; ++i) {
 		VECTOR[i].value = LIST[i].value = i;
 		tommy_list_insert_tail(&list, &LIST[i].node, &LIST[i]);
 	}
@@ -814,7 +1228,7 @@ void test_list(void)
 
 	/* backward order */
 	list = 0;
-	for(i=0;i<size;++i) {
+	for (i = 0; i < size; ++i) {
 		VECTOR[i].value = LIST[i].value = size - 1 - i;
 		tommy_list_insert_tail(&list, &LIST[i].node, &LIST[i]);
 	}
@@ -831,7 +1245,7 @@ void test_list(void)
 
 	/* use a small range of random value to insert a lot of duplicates */
 	list = 0;
-	for(i=0;i<size;++i) {
+	for (i = 0; i < size; ++i) {
 		VECTOR[i].value = LIST[i].value = rnd(size / 1000 + 2);
 		tommy_list_insert_tail(&list, &LIST[i].node, &LIST[i]);
 	}
@@ -863,120 +1277,120 @@ void test_tree(void)
 	tommy_tree_init(&tree, &compare);
 
 	/* forward order */
-	for(i=0;i<size;++i)
+	for (i = 0; i < size; ++i)
 		OBJ[i].value = i;
 
 	/* insert */
-	for(i=0;i<size;++i)
+	for (i = 0; i < size; ++i)
 		if (tommy_tree_insert(&tree, &OBJ[i].node, &OBJ[i]) != &OBJ[i])
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	if (tommy_tree_memory_usage(&tree) < size * sizeof(tommy_tree_node))
 		/* LCOV_EXCL_START */
 		abort();
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	if (tommy_tree_count(&tree) != size)
 		/* LCOV_EXCL_START */
 		abort();
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	the_count = 0;
 	tommy_tree_foreach(&tree, count_callback);
 	if (the_count != size)
 		/* LCOV_EXCL_START */
 		abort();
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	the_count = 0;
 	tommy_tree_foreach_arg(&tree, count_arg_callback, &the_count);
 	if (the_count != size)
 		/* LCOV_EXCL_START */
 		abort();
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	/* search present */
-	for(i=0;i<size/2;++i) {
+	for (i = 0; i < size / 2; ++i) {
 		if (tommy_tree_search(&tree, &OBJ[i]) == 0)
-				/* LCOV_EXCL_START */
+			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 		if (tommy_tree_search_compare(&tree, &compare, &OBJ[i]) == 0)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 	}
 
 	/* insert existing */
-	for(i=0;i<size;++i) {
+	for (i = 0; i < size; ++i) {
 		struct object_tree EXTRA;
 		EXTRA.value = i;
 		if (tommy_tree_insert(&tree, &EXTRA.node, &EXTRA) == &EXTRA)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 	}
 
 	/* remove existing */
-	for(i=0;i<size/2;++i)
+	for (i = 0; i < size / 2; ++i)
 		tommy_tree_remove_existing(&tree, &OBJ[i].node);
 
 	/* remove missing */
-	for(i=0;i<size/2;++i)
+	for (i = 0; i < size / 2; ++i)
 		if (tommy_tree_remove(&tree, &OBJ[i]) != 0)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	/* search missing */
-	for(i=0;i<size/2;++i) {
+	for (i = 0; i < size / 2; ++i) {
 		if (tommy_tree_search(&tree, &OBJ[i]) != 0)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 		if (tommy_tree_search_compare(&tree, &compare, &OBJ[i]) != 0)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 	}
 
 	/* remove present */
-	for(i=0;i<size/2;++i)
-		if (tommy_tree_remove(&tree, &OBJ[size/2+i]) == 0)
+	for (i = 0; i < size / 2; ++i)
+		if (tommy_tree_remove(&tree, &OBJ[size / 2 + i]) == 0)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	/* reverse order */
-	for(i=0;i<size;++i)
+	for (i = 0; i < size; ++i)
 		OBJ[i].value = size - i;
 
 	/* insert */
-	for(i=0;i<size;++i)
+	for (i = 0; i < size; ++i)
 		if (tommy_tree_insert(&tree, &OBJ[i].node, &OBJ[i]) != &OBJ[i])
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	/* remove all */
-	for(i=0;i<size;++i)
+	for (i = 0; i < size; ++i)
 		tommy_tree_remove_existing(&tree, &OBJ[i].node);
 
 	/* random order */
-	for(i=0;i<size;++i)
+	for (i = 0; i < size; ++i)
 		OBJ[i].value = tommy_inthash_u32(i);
 
 	/* insert */
-	for(i=0;i<size;++i)
+	for (i = 0; i < size; ++i)
 		if (tommy_tree_insert(&tree, &OBJ[i].node, &OBJ[i]) != &OBJ[i])
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	/* remove all */
-	for(i=0;i<size;++i)
+	for (i = 0; i < size; ++i)
 		tommy_tree_remove_existing(&tree, &OBJ[i].node);
 
 	STOP();
@@ -994,34 +1408,34 @@ void test_array(void)
 	tommy_array_grow(&array, 0);
 
 	START("array init");
-	for(i=0;i<size;++i) {
+	for (i = 0; i < size; ++i) {
 		tommy_array_grow(&array, i + 1);
 		if (tommy_array_get(&array, i) != 0)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 	}
 	STOP();
 
 	START("array set");
-	for(i=0;i<size;++i) {
+	for (i = 0; i < size; ++i) {
 		tommy_array_set(&array, i, (void*)i);
 	}
 	STOP();
 
 	START("array get");
-	for(i=0;i<size;++i) {
+	for (i = 0; i < size; ++i) {
 		if (tommy_array_get(&array, i) != (void*)i)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 	}
 	STOP();
 
 	if (tommy_array_memory_usage(&array) < size * sizeof(void*))
 		/* LCOV_EXCL_START */
 		abort();
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	tommy_array_done(&array);
 }
@@ -1038,37 +1452,37 @@ void test_arrayof(void)
 	tommy_arrayof_grow(&arrayof, 0);
 
 	START("arrayof init");
-	for(i=0;i<size;++i) {
+	for (i = 0; i < size; ++i) {
 		tommy_arrayof_grow(&arrayof, i + 1);
 		unsigned* ref = tommy_arrayof_ref(&arrayof, i);
 		if (*ref != 0)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 	}
 	STOP();
 
 	START("arrayof set");
-	for(i=0;i<size;++i) {
+	for (i = 0; i < size; ++i) {
 		unsigned* ref = tommy_arrayof_ref(&arrayof, i);
 		*ref = i;
 	}
 	STOP();
 
 	START("arrayof get");
-	for(i=0;i<size;++i) {
+	for (i = 0; i < size; ++i) {
 		unsigned* ref = tommy_arrayof_ref(&arrayof, i);
 		if (*ref != i)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 	}
 	STOP();
 
 	if (tommy_arrayof_memory_usage(&arrayof) < size * sizeof(unsigned))
 		/* LCOV_EXCL_START */
 		abort();
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	tommy_arrayof_done(&arrayof);
 }
@@ -1085,34 +1499,34 @@ void test_arrayblk(void)
 	tommy_arrayblk_grow(&arrayblk, 0);
 
 	START("arrayblk init");
-	for(i=0;i<size;++i) {
+	for (i = 0; i < size; ++i) {
 		tommy_arrayblk_grow(&arrayblk, i + 1);
 		if (tommy_arrayblk_get(&arrayblk, i) != 0)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 	}
 	STOP();
 
 	START("arrayblk set");
-	for(i=0;i<size;++i) {
+	for (i = 0; i < size; ++i) {
 		tommy_arrayblk_set(&arrayblk, i, (void*)i);
 	}
 	STOP();
 
 	START("arrayblk get");
-	for(i=0;i<size;++i) {
+	for (i = 0; i < size; ++i) {
 		if (tommy_arrayblk_get(&arrayblk, i) != (void*)i)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 	}
 	STOP();
 
 	if (tommy_arrayblk_memory_usage(&arrayblk) < size * sizeof(void*))
 		/* LCOV_EXCL_START */
 		abort();
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	tommy_arrayblk_done(&arrayblk);
 }
@@ -1129,37 +1543,37 @@ void test_arrayblkof(void)
 	tommy_arrayblkof_grow(&arrayblkof, 0);
 
 	START("arrayblkof init");
-	for(i=0;i<size;++i) {
+	for (i = 0; i < size; ++i) {
 		tommy_arrayblkof_grow(&arrayblkof, i + 1);
 		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
 		if (*ref != 0)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 	}
 	STOP();
 
 	START("arrayblkof set");
-	for(i=0;i<size;++i) {
+	for (i = 0; i < size; ++i) {
 		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
 		*ref = i;
 	}
 	STOP();
 
 	START("arrayblkof get");
-	for(i=0;i<size;++i) {
+	for (i = 0; i < size; ++i) {
 		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
 		if (*ref != i)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 	}
 	STOP();
 
 	if (tommy_arrayblkof_memory_usage(&arrayblkof) < size * sizeof(unsigned))
 		/* LCOV_EXCL_START */
 		abort();
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	tommy_arrayblkof_done(&arrayblkof);
 }
@@ -1175,7 +1589,7 @@ void test_hashtable(void)
 
 	HASH = malloc(size * sizeof(struct object_hash));
 
-	for(i=0;i<size;++i)
+	for (i = 0; i < size; ++i)
 		HASH[i].value = i % module;
 
 	/* initialize a very small hashtable */
@@ -1185,14 +1599,14 @@ void test_hashtable(void)
 	if (hashtable.bucket_max == 1)
 		/* LCOV_EXCL_START */
 		abort();
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	/* destroy it as empty */
 	tommy_hashtable_done(&hashtable);
 
 	START("hashtable stack");
 	limit = 5 * isqrt(size);
-	for(n=0;n<=limit;++n) {
+	for (n = 0; n <= limit; ++n) {
 		/* last iteration is full size */
 		if (n == limit)
 			n = limit = size;
@@ -1200,43 +1614,43 @@ void test_hashtable(void)
 		tommy_hashtable_init(&hashtable, limit / 2);
 
 		/* insert */
-		for(i=0;i<n;++i)
+		for (i = 0; i < n; ++i)
 			tommy_hashtable_insert(&hashtable, &HASH[i].node, &HASH[i], HASH[i].value);
 
 		if (tommy_hashtable_memory_usage(&hashtable) < n * sizeof(void*))
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 
 		if (tommy_hashtable_count(&hashtable) != n)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 
 		the_count = 0;
 		tommy_hashtable_foreach(&hashtable, count_callback);
 		if (the_count != n)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 
 		/* remove in backward order */
-		for(i=0;i<n/2;++i)
-			tommy_hashtable_remove_existing(&hashtable, &HASH[n-i-1].node);
+		for (i = 0; i < n / 2; ++i)
+			tommy_hashtable_remove_existing(&hashtable, &HASH[n - i - 1].node);
 
 		/* remove missing */
-		for(i=0;i<n/2;++i)
-			if (tommy_hashtable_remove(&hashtable, search_callback, &HASH[n-i-1], HASH[n-i-1].value) != 0)
+		for (i = 0; i < n / 2; ++i)
+			if (tommy_hashtable_remove(&hashtable, search_callback, &HASH[n - i - 1], HASH[n - i - 1].value) != 0)
 				/* LCOV_EXCL_START */
 				abort();
-				/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 
 		/* remove search */
-		for(i=0;i<n/2;++i)
-			if (tommy_hashtable_remove(&hashtable, search_callback, &HASH[n/2-i-1], HASH[n/2-i-1].value) == 0)
+		for (i = 0; i < n / 2; ++i)
+			if (tommy_hashtable_remove(&hashtable, search_callback, &HASH[n / 2 - i - 1], HASH[n / 2 - i - 1].value) == 0)
 				/* LCOV_EXCL_START */
 				abort();
-				/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 
 		tommy_hashtable_done(&hashtable);
 	}
@@ -1244,7 +1658,7 @@ void test_hashtable(void)
 
 	START("hashtable queue");
 	limit = isqrt(size) / 16;
-	for(n=0;n<=limit;++n) {
+	for (n = 0; n <= limit; ++n) {
 		/* last iteration is full size */
 		if (n == limit)
 			n = limit = size;
@@ -1252,7 +1666,7 @@ void test_hashtable(void)
 		tommy_hashtable_init(&hashtable, limit / 2);
 
 		/* insert first run */
-		for(j=0,i=0;i<n;++i)
+		for (j = 0, i = 0; i < n; ++i)
 			tommy_hashtable_insert(&hashtable, &HASH[i].node, &HASH[i], HASH[i].value);
 
 		the_count = 0;
@@ -1260,10 +1674,10 @@ void test_hashtable(void)
 		if (the_count != n)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 
 		/* insert all the others */
-		for(;i<size;++i,++j) {
+		for (; i < size; ++i, ++j) {
 			/* insert one */
 			tommy_hashtable_insert(&hashtable, &HASH[i].node, &HASH[i], HASH[i].value);
 
@@ -1271,11 +1685,11 @@ void test_hashtable(void)
 			tommy_hashtable_remove_existing(&hashtable, &HASH[j].node);
 		}
 
-		for(;j<size;++j)
+		for (; j < size; ++j)
 			if (tommy_hashtable_remove(&hashtable, search_callback, &HASH[j], HASH[j].value) == 0)
 				/* LCOV_EXCL_START */
 				abort();
-				/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 
 		tommy_hashtable_done(&hashtable);
 	}
@@ -1293,12 +1707,12 @@ void test_hashdyn(void)
 
 	HASH = malloc(size * sizeof(struct object_hash));
 
-	for(i=0;i<size;++i)
+	for (i = 0; i < size; ++i)
 		HASH[i].value = i % module;
 
 	START("hashdyn stack");
 	limit = 5 * isqrt(size);
-	for(n=0;n<=limit;++n) {
+	for (n = 0; n <= limit; ++n) {
 		/* last iteration is full size */
 		if (n == limit)
 			n = limit = size;
@@ -1306,43 +1720,43 @@ void test_hashdyn(void)
 		tommy_hashdyn_init(&hashdyn);
 
 		/* insert */
-		for(i=0;i<n;++i)
+		for (i = 0; i < n; ++i)
 			tommy_hashdyn_insert(&hashdyn, &HASH[i].node, &HASH[i], HASH[i].value);
 
 		if (tommy_hashdyn_memory_usage(&hashdyn) < n * sizeof(void*))
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 
 		if (tommy_hashdyn_count(&hashdyn) != n)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 
 		the_count = 0;
 		tommy_hashdyn_foreach(&hashdyn, count_callback);
 		if (the_count != n)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 
 		/* remove in backward order */
-		for(i=0;i<n/2;++i)
-			tommy_hashdyn_remove_existing(&hashdyn, &HASH[n-i-1].node);
+		for (i = 0; i < n / 2; ++i)
+			tommy_hashdyn_remove_existing(&hashdyn, &HASH[n - i - 1].node);
 
 		/* remove missing */
-		for(i=0;i<n/2;++i)
-			if (tommy_hashdyn_remove(&hashdyn, search_callback, &HASH[n-i-1], HASH[n-i-1].value) != 0)
+		for (i = 0; i < n / 2; ++i)
+			if (tommy_hashdyn_remove(&hashdyn, search_callback, &HASH[n - i - 1], HASH[n - i - 1].value) != 0)
 				/* LCOV_EXCL_START */
 				abort();
-				/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 
 		/* remove search */
-		for(i=0;i<n/2;++i)
-			if (tommy_hashdyn_remove(&hashdyn, search_callback, &HASH[n/2-i-1], HASH[n/2-i-1].value) == 0)
+		for (i = 0; i < n / 2; ++i)
+			if (tommy_hashdyn_remove(&hashdyn, search_callback, &HASH[n / 2 - i - 1], HASH[n / 2 - i - 1].value) == 0)
 				/* LCOV_EXCL_START */
 				abort();
-				/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 
 		tommy_hashdyn_done(&hashdyn);
 	}
@@ -1350,7 +1764,7 @@ void test_hashdyn(void)
 
 	START("hashdyn queue");
 	limit = isqrt(size) / 16;
-	for(n=0;n<=limit;++n) {
+	for (n = 0; n <= limit; ++n) {
 		/* last iteration is full size */
 		if (n == limit)
 			n = limit = size;
@@ -1358,7 +1772,7 @@ void test_hashdyn(void)
 		tommy_hashdyn_init(&hashdyn);
 
 		/* insert first run */
-		for(j=0,i=0;i<n;++i)
+		for (j = 0, i = 0; i < n; ++i)
 			tommy_hashdyn_insert(&hashdyn, &HASH[i].node, &HASH[i], HASH[i].value);
 
 		the_count = 0;
@@ -1366,10 +1780,10 @@ void test_hashdyn(void)
 		if (the_count != n)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 
 		/* insert all the others */
-		for(;i<size;++i,++j) {
+		for (; i < size; ++i, ++j) {
 			/* insert one */
 			tommy_hashdyn_insert(&hashdyn, &HASH[i].node, &HASH[i], HASH[i].value);
 
@@ -1377,11 +1791,11 @@ void test_hashdyn(void)
 			tommy_hashdyn_remove_existing(&hashdyn, &HASH[j].node);
 		}
 
-		for(;j<size;++j)
+		for (; j < size; ++j)
 			if (tommy_hashdyn_remove(&hashdyn, search_callback, &HASH[j], HASH[j].value) == 0)
 				/* LCOV_EXCL_START */
 				abort();
-				/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 
 		tommy_hashdyn_done(&hashdyn);
 	}
@@ -1400,13 +1814,13 @@ void test_hashlin(void)
 
 	HASH = malloc(size * sizeof(struct object_hash));
 
-	for(i=0;i<size;++i)
+	for (i = 0; i < size; ++i)
 		HASH[i].value = i % module;
 
 	tommy_hashlin_init(&hashlin);
 
 	/* insert */
-	for(i=0;i<size;++i)
+	for (i = 0; i < size; ++i)
 		tommy_hashlin_insert(&hashlin, &HASH[i].node, &HASH[i], HASH[i].value);
 
 	/* get the bucket of the last element */
@@ -1414,14 +1828,14 @@ void test_hashlin(void)
 	if (bucket == 0)
 		/* LCOV_EXCL_START */
 		abort();
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	/* deinitialize without removing elements to force deallocation */
 	tommy_hashlin_done(&hashlin);
 
 	START("hashlin stack");
 	limit = 5 * isqrt(size);
-	for(n=0;n<=limit;++n) {
+	for (n = 0; n <= limit; ++n) {
 		/* last iteration is full size */
 		if (n == limit)
 			n = limit = size;
@@ -1429,43 +1843,43 @@ void test_hashlin(void)
 		tommy_hashlin_init(&hashlin);
 
 		/* insert */
-		for(i=0;i<n;++i)
+		for (i = 0; i < n; ++i)
 			tommy_hashlin_insert(&hashlin, &HASH[i].node, &HASH[i], HASH[i].value);
 
 		if (tommy_hashlin_memory_usage(&hashlin) < n * sizeof(void*))
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 
 		if (tommy_hashlin_count(&hashlin) != n)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 
 		the_count = 0;
 		tommy_hashlin_foreach(&hashlin, count_callback);
 		if (the_count != n)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 
 		/* remove in backward order */
-		for(i=0;i<n/2;++i)
-			tommy_hashlin_remove_existing(&hashlin, &HASH[n-i-1].node);
+		for (i = 0; i < n / 2; ++i)
+			tommy_hashlin_remove_existing(&hashlin, &HASH[n - i - 1].node);
 
 		/* remove missing */
-		for(i=0;i<n/2;++i)
-			if (tommy_hashlin_remove(&hashlin, search_callback, &HASH[n-i-1], HASH[n-i-1].value) != 0)
+		for (i = 0; i < n / 2; ++i)
+			if (tommy_hashlin_remove(&hashlin, search_callback, &HASH[n - i - 1], HASH[n - i - 1].value) != 0)
 				/* LCOV_EXCL_START */
 				abort();
-				/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 
 		/* remove search */
-		for(i=0;i<n/2;++i)
-			if (tommy_hashlin_remove(&hashlin, search_callback, &HASH[n/2-i-1], HASH[n/2-i-1].value) == 0)
+		for (i = 0; i < n / 2; ++i)
+			if (tommy_hashlin_remove(&hashlin, search_callback, &HASH[n / 2 - i - 1], HASH[n / 2 - i - 1].value) == 0)
 				/* LCOV_EXCL_START */
 				abort();
-				/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 
 		tommy_hashlin_done(&hashlin);
 	}
@@ -1473,7 +1887,7 @@ void test_hashlin(void)
 
 	START("hashlin queue");
 	limit = isqrt(size) / 16;
-	for(n=0;n<=limit;++n) {
+	for (n = 0; n <= limit; ++n) {
 		/* last iteration is full size */
 		if (n == limit)
 			n = limit = size;
@@ -1481,7 +1895,7 @@ void test_hashlin(void)
 		tommy_hashlin_init(&hashlin);
 
 		/* insert first run */
-		for(j=0,i=0;i<n;++i)
+		for (j = 0, i = 0; i < n; ++i)
 			tommy_hashlin_insert(&hashlin, &HASH[i].node, &HASH[i], HASH[i].value);
 
 		the_count = 0;
@@ -1489,10 +1903,10 @@ void test_hashlin(void)
 		if (the_count != n)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 
 		/* insert all the others */
-		for(;i<size;++i,++j) {
+		for (; i < size; ++i, ++j) {
 			/* insert one */
 			tommy_hashlin_insert(&hashlin, &HASH[i].node, &HASH[i], HASH[i].value);
 
@@ -1500,11 +1914,11 @@ void test_hashlin(void)
 			tommy_hashlin_remove_existing(&hashlin, &HASH[j].node);
 		}
 
-		for(;j<size;++j)
+		for (; j < size; ++j)
 			if (tommy_hashlin_remove(&hashlin, search_callback, &HASH[j], HASH[j].value) == 0)
 				/* LCOV_EXCL_START */
 				abort();
-				/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
 
 		tommy_hashlin_done(&hashlin);
 	}
@@ -1522,7 +1936,7 @@ void test_trie(void)
 
 	OBJ = malloc(size * sizeof(struct object_trie));
 
-	for(i=0;i<size;++i)
+	for (i = 0; i < size; ++i)
 		OBJ[i].value = i;
 
 	START("trie");
@@ -1530,79 +1944,79 @@ void test_trie(void)
 	tommy_trie_init(&trie, &alloc);
 
 	/* insert */
-	for(i=0;i<size;++i)
+	for (i = 0; i < size; ++i)
 		tommy_trie_insert(&trie, &OBJ[i].node, &OBJ[i], OBJ[i].value);
 
 	if (tommy_trie_memory_usage(&trie) < size * sizeof(tommy_trie_node))
 		/* LCOV_EXCL_START */
 		abort();
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	if (tommy_allocator_memory_usage(&alloc) < trie.node_count * TOMMY_TRIE_BLOCK_SIZE)
 		/* LCOV_EXCL_START */
 		abort();
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	if (tommy_trie_count(&trie) != size)
 		/* LCOV_EXCL_START */
 		abort();
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	/* insert duplicate */
-	for(i=0;i<2;++i) {
+	for (i = 0; i < 2; ++i) {
 		DUP[i].value = 0;
 		tommy_trie_insert(&trie, &DUP[i].node, &DUP[i], DUP[i].value);
 	}
 
 	/* search present */
-	for(i=0;i<size/2;++i)
+	for (i = 0; i < size / 2; ++i)
 		if (tommy_trie_search(&trie, OBJ[i].value) == 0)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	/* remove first duplicate */
 	tommy_trie_remove_existing(&trie, &DUP[0].node);
 
 	/* remove existing */
-	for(i=0;i<size/2;++i)
+	for (i = 0; i < size / 2; ++i)
 		tommy_trie_remove_existing(&trie, &OBJ[i].node);
 
 	/* remove missing using the same bucket of the duplicate */
 	if (tommy_trie_remove(&trie, 1) != 0)
 		/* LCOV_EXCL_START */
 		abort();
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	/* search missing using the same bucket of the duplicate */
 	if (tommy_trie_search(&trie, 1) != 0)
 		/* LCOV_EXCL_START */
 		abort();
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	/* remove second duplicate */
 	tommy_trie_remove_existing(&trie, &DUP[1].node);
 
 	/* remove missing */
-	for(i=0;i<size/2;++i)
+	for (i = 0; i < size / 2; ++i)
 		if (tommy_trie_remove(&trie, OBJ[i].value) != 0)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	/* search missing */
-	for(i=0;i<size/2;++i)
+	for (i = 0; i < size / 2; ++i)
 		if (tommy_trie_search(&trie, OBJ[i].value) != 0)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	/* remove present */
-	for(i=0;i<size/2;++i)
-		if (tommy_trie_remove(&trie, OBJ[size/2+i].value) == 0)
+	for (i = 0; i < size / 2; ++i)
+		if (tommy_trie_remove(&trie, OBJ[size / 2 + i].value) == 0)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	tommy_allocator_done(&alloc);
 	STOP();
@@ -1618,74 +2032,75 @@ void test_trie_inplace(void)
 
 	OBJ = malloc(size * sizeof(struct object_trie_inplace));
 
-	for(i=0;i<size;++i)
+	for (i = 0; i < size; ++i)
 		OBJ[i].value = i;
 
 	START("trie_inplace");
 	tommy_trie_inplace_init(&trie_inplace);
 
 	/* insert */
-	for(i=0;i<size;++i)
+	for (i = 0; i < size; ++i)
 		tommy_trie_inplace_insert(&trie_inplace, &OBJ[i].node, &OBJ[i], OBJ[i].value);
 
 	if (tommy_trie_inplace_memory_usage(&trie_inplace) < size * sizeof(tommy_trie_inplace_node))
 		/* LCOV_EXCL_START */
 		abort();
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	if (tommy_trie_inplace_count(&trie_inplace) != size)
 		/* LCOV_EXCL_START */
 		abort();
-		/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	/* insert duplicates */
-	for(i=0;i<2;++i) {
+	for (i = 0; i < 2; ++i) {
 		DUP[i].value = 0;
 		tommy_trie_inplace_insert(&trie_inplace, &DUP[i].node, &DUP[i], DUP[i].value);
 	}
 
 	/* search present */
-	for(i=0;i<size/2;++i)
+	for (i = 0; i < size / 2; ++i)
 		if (tommy_trie_inplace_search(&trie_inplace, OBJ[i].value) == 0)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	/* remove first duplicate */
 	tommy_trie_inplace_remove_existing(&trie_inplace, &DUP[0].node);
 
 	/* remove existing */
-	for(i=0;i<size/2;++i)
+	for (i = 0; i < size / 2; ++i)
 		tommy_trie_inplace_remove_existing(&trie_inplace, &OBJ[i].node);
 
 	/* remove second duplicate */
 	tommy_trie_inplace_remove_existing(&trie_inplace, &DUP[1].node);
 
 	/* remove missing */
-	for(i=0;i<size/2;++i)
+	for (i = 0; i < size / 2; ++i)
 		if (tommy_trie_inplace_remove(&trie_inplace, OBJ[i].value) != 0)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	/* search missing */
-	for(i=0;i<size/2;++i)
+	for (i = 0; i < size / 2; ++i)
 		if (tommy_trie_inplace_search(&trie_inplace, OBJ[i].value) != 0)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	/* remove present */
-	for(i=0;i<size/2;++i)
-		if (tommy_trie_inplace_remove(&trie_inplace, OBJ[size/2+i].value) == 0)
+	for (i = 0; i < size / 2; ++i)
+		if (tommy_trie_inplace_remove(&trie_inplace, OBJ[size / 2 + i].value) == 0)
 			/* LCOV_EXCL_START */
 			abort();
-			/* LCOV_EXCL_STOP */
+	/* LCOV_EXCL_STOP */
 
 	STOP();
 }
 
-int main() {
+int main()
+{
 	nano_init();
 
 	printf("Tommy check program.\n");

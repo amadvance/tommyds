@@ -65,7 +65,8 @@ tommy_inline void tommy_chain_concat(tommy_node* first_tail, tommy_node* second_
 /**
  * Merges two chains.
  * \param first First chain (will contain the result).
- * \param second Second chain (will be empty after the merge).
+ * \param second Second chain (consumed by the merge; its descriptor is not cleared
+ * and must not be used as an independent chain afterward).
  * \param cmp Comparison function.
  */
 tommy_inline void tommy_chain_merge(tommy_chain* first, tommy_chain* second, tommy_compare_func* cmp)
@@ -101,7 +102,8 @@ tommy_inline void tommy_chain_merge(tommy_chain* first, tommy_chain* second, tom
  * Merges two chains managing special degenerated cases.
  * It's functionally equivalent to tommy_chain_merge() but faster with already ordered chains.
  * \param first First chain (will contain the result).
- * \param second Second chain (will be empty after the merge).
+ * \param second Second chain (consumed by the merge; its descriptor is not cleared
+ * and must not be used as an independent chain afterward).
  * \param cmp Comparison function.
  */
 tommy_inline void tommy_chain_merge_degenerated(tommy_chain* first, tommy_chain* second, tommy_compare_func* cmp)
