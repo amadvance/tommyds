@@ -686,23 +686,23 @@
  *     inode_t inode_to_find = ...;
  *     struct file* found = tommy_hashdyn_search(&hashtable_by_inode, search_by_inode, &inode_to_find, hash_by_inode(inode_to_find));
  *     if (found) {
- *         printf("%s/%s\n", f->dir, f->name);
+ *         printf("%s/%s\n", found->dir, found->name);
  *     }
  *
  *     // searches a file by full path and deletes it
  *     struct path path_to_find;
  *     path_to_find.dir = ...;
  *     path_to_find.name = ...;
- *     struct file* found = tommy_hashdyn_search(&hashtable_by_path, search_by_path, &path_to_find, hash_by_path(path_to_find.dir, path_to_find.name));
+ *     found = tommy_hashdyn_search(&hashtable_by_path, search_by_path, &path_to_find, hash_by_path(path_to_find.dir, path_to_find.name));
  *     if (found) {
- *         printf("%s/%s\n", f->dir, f->name);
+ *         printf("%s/%s\n", found->dir, found->name);
  *
  *         // if found removes all the references
- *         tommy_list_remove_existing(&list, &obj->node);
- *         tommy_hashdyn_remove_existing(&hashtable_by_dir, &obj->node_by_dir);
- *         tommy_hashdyn_remove_existing(&hashtable_by_name, &obj->node_by_name);
- *         tommy_hashdyn_remove_existing(&hashtable_by_path, &obj->node_by_path);
- *         tommy_hashdyn_remove_existing(&hashtable_by_inode, &obj->node_by_inode);
+ *         tommy_list_remove_existing(&list, &found->node);
+ *         tommy_hashdyn_remove_existing(&hashtable_by_dir, &found->node_by_dir);
+ *         tommy_hashdyn_remove_existing(&hashtable_by_name, &found->node_by_name);
+ *         tommy_hashdyn_remove_existing(&hashtable_by_path, &found->node_by_path);
+ *         tommy_hashdyn_remove_existing(&hashtable_by_inode, &found->node_by_inode);
  *     }
  *
  *     // iterates over all files with a specific name, even in different directories
@@ -723,7 +723,7 @@
  *     while (i != 0) {
  *         struct file* found = i->data; // gets the file pointer
  *
- *         printf("%s/%s %lu\n", f->dir, f->name, f->inode);
+ *         printf("%s/%s %lu\n", found->dir, found->name, found->inode);
  *
  *         i = i->next; // goes to the next file
  *     }
