@@ -5,6 +5,7 @@
 #include "tommylist.h"
 
 #include <assert.h> /* for assert */
+#include <string.h> /* for memset */
 
 /******************************************************************************/
 /* hashlin */
@@ -57,6 +58,23 @@ TOMMY_API void tommy_hashlin_done(tommy_hashlin* hashlin)
 		tommy_hashlin_node** segment = hashlin->bucket[i];
 		tommy_free(&segment[(tommy_ptrdiff_t)1 << i]);
 	}
+}
+
+TOMMY_API void tommy_hashlin_clear(tommy_hashlin* hashlin)
+{
+	tommy_uint_t i;
+
+	/* clear the initial segment once, despite its multiple bucket aliases. */
+	memset(hashlin->bucket[0], 0, ((tommy_size_t)1 << TOMMY_HASHLIN_BIT) * sizeof(tommy_hashlin_node*));
+	for (i = TOMMY_HASHLIN_BIT; i < hashlin->bucket_bit; ++i) {
+		tommy_hashlin_node** segment = hashlin->bucket[i];
+
+		/* clear also the slots not yet initialized by a progressive grow. */
+		memset(&segment[(tommy_ptrdiff_t)1 << i], 0, ((tommy_size_t)1 << i) * sizeof(tommy_hashlin_node*));
+	}
+
+	hashlin->count = 0;
+	tommy_hashlin_stable(hashlin);
 }
 
 /**
@@ -231,6 +249,27 @@ TOMMY_API void tommy_hashlin_insert(tommy_hashlin* hashlin, tommy_hashlin_node* 
 	hashlin_grow_step(hashlin);
 }
 
+TOMMY_API void* tommy_hashlin_insert_unique(tommy_hashlin* hashlin, tommy_hashlin_node* node, void* data, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)
+{
+	void* existing = tommy_hashlin_search(hashlin, cmp, cmp_arg, hash);
+	if (existing)
+		return existing;
+
+	tommy_hashlin_insert(hashlin, node, data, hash);
+	return data;
+}
+
+TOMMY_API void tommy_hashlin_rehash_existing(tommy_hashlin* hashlin, tommy_hashlin_node* node, tommy_hash_t hash)
+{
+	if (node->index == hash)
+		return;
+
+	/* unlink using the stored hash, without invoking the resize policy. */
+	tommy_list_remove_existing(tommy_hashlin_bucket_ref(hashlin, node->index), node);
+	node->index = hash;
+	tommy_list_insert_tail(tommy_hashlin_bucket_ref(hashlin, hash), node, node->data);
+}
+
 TOMMY_API void* tommy_hashlin_remove_existing(tommy_hashlin* hashlin, tommy_hashlin_node* node)
 {
 	tommy_list_remove_existing(tommy_hashlin_bucket_ref(hashlin, node->index), node);
@@ -306,5 +345,18 @@ TOMMY_API tommy_size_t tommy_hashlin_memory_usage(tommy_hashlin* hashlin)
 {
 	return hashlin->bucket_max * (tommy_size_t)sizeof(hashlin->bucket[0][0])
 	       + hashlin->count * (tommy_size_t)sizeof(tommy_hashlin_node);
+}
+
+TOMMY_API void tommy_hashlin_to_list(tommy_hashlin* hashlin, tommy_list* list)
+{
+	tommy_size_t bucket_max = hashlin->low_max + hashlin->split;
+	tommy_size_t pos;
+
+	/* inactive slots may be uninitialized or refer to nodes already merged. */
+	for (pos = 0; pos < bucket_max; ++pos)
+		tommy_list_concat(list, tommy_hashlin_pos(hashlin, pos));
+
+	/* clear all allocated slots before making the table stable and reusable. */
+	tommy_hashlin_clear(hashlin);
 }
 

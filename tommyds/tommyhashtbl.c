@@ -34,6 +34,12 @@ TOMMY_API void tommy_hashtable_done(tommy_hashtable* hashtable)
 	tommy_free(hashtable->bucket);
 }
 
+TOMMY_API void tommy_hashtable_clear(tommy_hashtable* hashtable)
+{
+	memset(hashtable->bucket, 0, hashtable->bucket_max * sizeof(tommy_hashtable_node*));
+	hashtable->count = 0;
+}
+
 TOMMY_API void tommy_hashtable_insert(tommy_hashtable* hashtable, tommy_hashtable_node* node, void* data, tommy_hash_t hash)
 {
 	tommy_size_t pos = hash & hashtable->bucket_mask;
@@ -43,6 +49,27 @@ TOMMY_API void tommy_hashtable_insert(tommy_hashtable* hashtable, tommy_hashtabl
 	node->index = hash;
 
 	++hashtable->count;
+}
+
+TOMMY_API void* tommy_hashtable_insert_unique(tommy_hashtable* hashtable, tommy_hashtable_node* node, void* data, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)
+{
+	void* existing = tommy_hashtable_search(hashtable, cmp, cmp_arg, hash);
+	if (existing)
+		return existing;
+
+	tommy_hashtable_insert(hashtable, node, data, hash);
+	return data;
+}
+
+TOMMY_API void tommy_hashtable_rehash_existing(tommy_hashtable* hashtable, tommy_hashtable_node* node, tommy_hash_t hash)
+{
+	if (node->index == hash)
+		return;
+
+	/* unlink using the stored hash, without invoking the resize policy. */
+	tommy_list_remove_existing(&hashtable->bucket[node->index & hashtable->bucket_mask], node);
+	node->index = hash;
+	tommy_list_insert_tail(&hashtable->bucket[hash & hashtable->bucket_mask], node, node->data);
 }
 
 TOMMY_API void* tommy_hashtable_remove_existing(tommy_hashtable* hashtable, tommy_hashtable_node* node)
@@ -114,5 +141,15 @@ TOMMY_API tommy_size_t tommy_hashtable_memory_usage(tommy_hashtable* hashtable)
 {
 	return hashtable->bucket_max * (tommy_size_t)sizeof(hashtable->bucket[0])
 	       + tommy_hashtable_count(hashtable) * (tommy_size_t)sizeof(tommy_hashtable_node);
+}
+
+TOMMY_API void tommy_hashtable_to_list(tommy_hashtable* hashtable, tommy_list* list)
+{
+	tommy_size_t pos;
+
+	for (pos = 0; pos < hashtable->bucket_max; ++pos)
+		tommy_list_concat(list, &hashtable->bucket[pos]);
+
+	tommy_hashtable_clear(hashtable);
 }
 

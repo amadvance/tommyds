@@ -7,12 +7,14 @@
  * This hashtable resizes dynamically and progressively using a variation of the
  * linear hashing algorithm described in http://en.wikipedia.org/wiki/Linear_hashing
  *
- * It starts with the minimal size of 16 buckets, it doubles the size when it
+ * It starts with the minimal size of 64 buckets, it doubles the size when it
  * reaches a load factor greater than 0.5, and it halves the size when the load
  * factor is lower than 0.125.
  *
- * The progressive resize is good for real-time and interactive applications
- * as it makes insert and delete operations taking always the same time.
+ * The progressive resize spreads resizing work across insert and delete
+ * operations, reducing pauses caused by resizing the entire table at once.
+ * Resizing may traverse a whole bucket, so many collisions can still make
+ * an individual operation expensive.
  *
  * For resizing, a dynamic array that supports access to non-contiguous
  * segments is used.
@@ -35,7 +37,7 @@
  * In the insertion call you have to specify the address of the node, the
  * address of the object, and the hash value of the key to use.
  * The address of the object is used to initialize the tommy_node::data field
- * of the node, and the hash to initialize the tommy_node::key field.
+ * of the node, and the hash to initialize the tommy_node::index field.
  *
  * \code
  * struct object {
@@ -51,7 +53,7 @@
  * tommy_hashlin_insert(&hashlin, &obj->node, obj, tommy_inthash_u32(obj->value)); // inserts the object
  * \endcode
  *
- * To find an element in the hashtable you have to call tommy_hashtable_search()
+ * To find an element in the hashtable you have to call tommy_hashlin_search()
  * providing a comparison function, its argument, and the hash of the key to search.
  *
  * \code
@@ -117,6 +119,7 @@
 #define __TOMMYHASHLIN_H
 
 #include "tommyhash.h"
+#include "tommylist.h"
 
 /******************************************************************************/
 /* hashlin */
@@ -163,9 +166,38 @@ TOMMY_API void tommy_hashlin_init(tommy_hashlin* hashlin);
 TOMMY_API void tommy_hashlin_done(tommy_hashlin* hashlin);
 
 /**
+ * Removes all elements, preserving the allocated bucket segments.
+ * The hashtable remains initialized and can be reused immediately.
+ * Any pending resize is ended at the currently allocated size.
+ * Objects are not freed and nodes are not accessed or modified.
+ * Their links must not be used to traverse the previous contents.
+ * You can call this function after tommy_hashlin_foreach() has freed the objects.
+ * Subsequent insertions and removals retain the normal resizing policy.
+ * \note This operation is O(b), where b is the number of allocated buckets.
+ */
+TOMMY_API void tommy_hashlin_clear(tommy_hashlin* hashlin);
+
+/**
  * Inserts an element in the hashtable.
  */
 TOMMY_API void tommy_hashlin_insert(tommy_hashlin* hashlin, tommy_hashlin_node* node, void* data, tommy_hash_t hash);
+
+/**
+ * Inserts an element only if no equal element is already contained.
+ * If found, the first equal element's tommy_node::data field is returned,
+ * and the hashtable and candidate node are left unchanged.
+ * Otherwise, the candidate is inserted using the normal insertion policy,
+ * and its data field is returned.
+ * Objects are not freed by this call.
+ * \param node The candidate node. It must not belong to any container.
+ * \param data The object to insert.
+ * \param cmp Compare function called with cmp_arg as first argument and with the element to compare as a second one.
+ * The function should return 0 for equal elements, anything other for different elements.
+ * \param cmp_arg Compare argument describing the candidate key.
+ * \param hash Hash of the candidate key, consistent with the comparison function.
+ * \return The first equal element's data field, or data if the candidate was inserted.
+ */
+TOMMY_API void* tommy_hashlin_insert_unique(tommy_hashlin* hashlin, tommy_hashlin_node* node, void* data, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash);
 
 /**
  * Searches and removes an element from the hashtable.
@@ -206,14 +238,14 @@ tommy_inline tommy_hashlin_node** tommy_hashlin_bucket_ref(tommy_hashlin* hashli
 
 	/* if this position is already allocated in the high half */
 	if (pos < hashlin->split) {
-		/* The following assignment is expected to be implemented */
+		/* the following assignment is expected to be implemented */
 		/* with a conditional move instruction */
 		/* that results in a little better and constant performance */
 		/* regardless of the split position. */
-		/* This affects mostly the worst case, when the split value */
+		/* this affects mostly the worst case, when the split value */
 		/* is near at its half, resulting in a totally unpredictable */
 		/* condition by the CPU. */
-		/* In such case, the use of the conditional move is generally faster. */
+		/* in such case, the use of the conditional move is generally faster. */
 
 		/* use also the high bit */
 		pos = high_pos;
@@ -266,6 +298,23 @@ tommy_inline void* tommy_hashlin_search(tommy_hashlin* hashlin, tommy_search_fun
 TOMMY_API void* tommy_hashlin_remove_existing(tommy_hashlin* hashlin, tommy_hashlin_node* node);
 
 /**
+ * Updates the hash of an element already contained in the hashtable.
+ * The node must belong to this hashtable. The caller updates the object key
+ * and provides its new hash, without modifying tommy_node::index directly.
+ * If the hash is unchanged, the node and its position are left unchanged.
+ * Otherwise, the node is moved to the tail of the destination bucket,
+ * even if the old and new hashes identify the same bucket.
+ * The tommy_node::data field and the number of elements are left unchanged.
+ * No memory allocation, deallocation or resize is performed.
+ * The progressive resize state is left unchanged.
+ * Equal keys are allowed; no uniqueness check is performed.
+ * \param node The node whose hash is updated.
+ * \param hash The new hash of the element.
+ * \note This operation is O(1).
+ */
+TOMMY_API void tommy_hashlin_rehash_existing(tommy_hashlin* hashlin, tommy_hashlin_node* node, tommy_hash_t hash);
+
+/**
  * Calls the specified function for each element in the hashtable.
  *
  * You cannot add or remove elements from the inside of the callback,
@@ -300,6 +349,9 @@ TOMMY_API void tommy_hashlin_foreach(tommy_hashlin* hashlin, tommy_foreach_func*
 
 /**
  * Calls the specified function with an argument for each element in the hashtable.
+ * The iteration order and callback rules are the same as tommy_hashlin_foreach().
+ * The callback may deallocate the current element.
+ * Adding or removing elements from inside the callback is not allowed.
  */
 TOMMY_API void tommy_hashlin_foreach_arg(tommy_hashlin* hashlin, tommy_foreach_arg_func* func, void* arg);
 
@@ -312,10 +364,71 @@ tommy_inline tommy_size_t tommy_hashlin_count(tommy_hashlin* hashlin)
 }
 
 /**
+ * Checks if empty.
+ * \return If the hashtable is empty.
+ */
+tommy_inline tommy_bool_t tommy_hashlin_empty(tommy_hashlin* hashlin)
+{
+	return hashlin->count == 0;
+}
+
+/**
+ * Gets the number of active buckets.
+ * During a progressive resize, this can be less than the number of allocated buckets.
+ */
+tommy_inline tommy_size_t tommy_hashlin_bucket_count(tommy_hashlin* hashlin)
+{
+	return hashlin->low_max + hashlin->split;
+}
+
+/**
  * Gets the size of allocated memory.
  * It includes the size of the ::tommy_hashlin_node of the stored elements.
  */
 TOMMY_API tommy_size_t tommy_hashlin_memory_usage(tommy_hashlin* hashlin);
+
+/**
+ * \brief Transfers all elements from the hashtable into a tommy_list.
+ *
+ * Removes every element from the \p hashlin hashtable and inserts them
+ * into the provided \p list (at the tail), preserving the per-bucket order
+ * but not guaranteeing any particular global order.
+ *
+ * After the call:
+ * - the hashtable is left empty and initialized, preserving its allocated buckets
+ * - the target list contains all the elements that were previously in the hashtable
+ *
+ * The tommy_node::data and tommy_node::index fields are left unchanged.
+ *
+ * This function is useful when you need to:
+ * - extract all elements to process/sort them outside the hash table
+ * - convert the hashtable into a list for sequential iteration
+ * - prepare for a full clear + re-insertion with different hash/ordering
+ * - move ownership of the nodes to a list-based container
+ *
+ * \note The operation is O(b) where b is the number of allocated buckets.
+ * \note No memory allocation or deallocation is performed.
+ * \note Any pending resize is ended at the currently allocated size.
+ * \note The relative order of elements that were in the same bucket is preserved,
+ *       but the order among different buckets is bucket-order dependent.
+ *
+ * Typical usage pattern:
+ * \code
+ * tommy_list all_elements;
+ * tommy_list_init(&all_elements);
+ *
+ * // move everything out of the hashtable into the list
+ * tommy_hashlin_to_list(&hashlin, &all_elements);
+ *
+ * // now you can sort, filter, process sequentially, etc.
+ * tommy_list_sort(&all_elements, compare_by_value);
+ * \endcode
+ *
+ * \param hashlin The hashtable to drain
+ * \param list The destination list. It must be initialized and must not share
+ * nodes with the hashtable. Existing elements remain at the head of the list.
+ */
+TOMMY_API void tommy_hashlin_to_list(tommy_hashlin* hashlin, tommy_list* list);
 
 #endif
 

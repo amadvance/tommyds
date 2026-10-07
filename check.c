@@ -294,6 +294,13 @@ static int search_callback(const void* arg, const void* obj)
 	return arg != obj;
 }
 
+static int search_hash_value_callback(const void* arg, const void* obj)
+{
+	const struct object_hash* object = obj;
+	++compare_counter;
+	return *(const int*)arg != object->value;
+}
+
 struct hash32_test {
 	char* data;
 	tommy_uint32_t len;
@@ -1578,6 +1585,525 @@ void test_arrayblkof(void)
 	tommy_arrayblkof_done(&arrayblkof);
 }
 
+/* verify node identity, metadata, both list directions and per-bucket order. */
+void test_hash_list(tommy_list* list, struct object_hash* obj, tommy_node* saved, unsigned size, unsigned prefix)
+{
+	unsigned order[130], position[130];
+	unsigned seen[130] = { 0 };
+	tommy_node* node = tommy_list_head(list);
+	tommy_node* prev = tommy_list_tail(list);
+	unsigned i, j;
+
+	for (i = 0; i < size; ++i) {
+		for (j = 0; j < size; ++j)
+			if (node == &obj[j].node)
+				break;
+		if (j == size || seen[j] || (i < prefix && j != i)
+			|| node->prev != prev || node->data != saved[j].data
+			|| node->index != saved[j].index)
+			/* LCOV_EXCL_START */
+			abort();
+		/* LCOV_EXCL_STOP */
+		seen[j] = 1;
+		order[i] = j;
+		position[j] = i;
+		prev = node;
+		node = node->next;
+	}
+	if (node != 0 || tommy_list_tail(list) != (size ? prev : 0))
+		/* LCOV_EXCL_START */
+		abort();
+	/* LCOV_EXCL_STOP */
+
+	/* each original successor must still follow its node, regardless of bucket order. */
+	for (i = 0; i < size; ++i) {
+		if (saved[i].next == 0)
+			continue;
+		for (j = 0; j < size; ++j)
+			if (saved[i].next == &obj[j].node)
+				break;
+		if (j == size || position[i] >= position[j])
+			/* LCOV_EXCL_START */
+			abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	node = tommy_list_tail(list);
+	for (i = size; i > 0; --i) {
+		if (node != &obj[order[i - 1]].node)
+			/* LCOV_EXCL_START */
+			abort();
+		/* LCOV_EXCL_STOP */
+		node = tommy_list_prev(list, node);
+	}
+	if (node != 0)
+		/* LCOV_EXCL_START */
+		abort();
+	/* LCOV_EXCL_STOP */
+}
+
+/* verify the exact bucket order and circular head/tail links. */
+void test_hash_bucket(tommy_node* node, struct object_hash* obj, const unsigned* order, unsigned size)
+{
+	tommy_node* prev = size ? &obj[order[size - 1]].node : 0;
+	unsigned i;
+
+	for (i = 0; i < size; ++i) {
+		if (node != &obj[order[i]].node || node->prev != prev || node->data != &obj[order[i]])
+			/* LCOV_EXCL_START */
+			abort();
+		/* LCOV_EXCL_STOP */
+		prev = node;
+		node = node->next;
+	}
+	if (node != 0)
+		/* LCOV_EXCL_START */
+		abort();
+	/* LCOV_EXCL_STOP */
+}
+
+void test_hashtable_insert_unique(void)
+{
+	struct object_hash obj[257], candidate;
+	tommy_hashtable table;
+	tommy_hashtable_node** bucket;
+	tommy_node saved;
+	tommy_size_t bucket_max, bucket_mask, count;
+
+	const unsigned order[] = { 0, 1, 2, 3, 4, 5 };
+	unsigned i, phase, step;
+
+	tommy_hashtable_init(&table, 16);
+	obj[0].value = 1;
+	compare_counter = 0;
+	if (tommy_hashtable_insert_unique(&table, &obj[0].node, &obj[0], search_hash_value_callback, &obj[0].value, 0) != &obj[0]
+		|| compare_counter != 0 || tommy_hashtable_count(&table) != 1
+		|| tommy_hashtable_search(&table, search_hash_value_callback, &obj[0].value, 0) != &obj[0])
+		/* LCOV_EXCL_START */
+		abort();
+	/* LCOV_EXCL_STOP */
+	tommy_hashtable_remove_existing(&table, &obj[0].node);
+
+	bucket_max = table.bucket_max;
+	obj[0].value = 10;
+	obj[1].value = 20;
+	obj[2].value = 30;
+	obj[3].value = 20;
+	for (i = 0; i < 4; ++i)
+		tommy_hashtable_insert(&table, &obj[i].node, &obj[i], i == 0 ? bucket_max : 0);
+
+	/* the first matching duplicate is returned; the rejected candidate stays intact. */
+	obj[4].value = 20;
+	obj[4].node.next = &obj[4].node;
+	obj[4].node.prev = &obj[4].node;
+	obj[4].node.data = &obj[4];
+	obj[4].node.index = ~(tommy_hash_t)0;
+	saved = obj[4].node;
+	compare_counter = 0;
+	if (tommy_hashtable_insert_unique(&table, &obj[4].node, &obj[4], search_hash_value_callback, &obj[4].value, 0) != &obj[1]
+		|| compare_counter != 1 || tommy_hashtable_count(&table) != 4
+		|| obj[4].value != 20 || obj[4].node.next != saved.next || obj[4].node.prev != saved.prev
+		|| obj[4].node.data != saved.data || obj[4].node.index != saved.index)
+		/* LCOV_EXCL_START */
+		abort();
+	/* LCOV_EXCL_STOP */
+	test_hash_bucket(tommy_hashtable_bucket(&table, 0), obj, order, 4);
+
+	/* equal hashes with different keys must allow insertion at the tail. */
+	obj[4].value = 40;
+	compare_counter = 0;
+	if (tommy_hashtable_insert_unique(&table, &obj[4].node, &obj[4], search_hash_value_callback, &obj[4].value, 0) != &obj[4]
+		|| compare_counter != 3 || tommy_hashtable_count(&table) != 5
+		|| obj[4].node.data != &obj[4] || obj[4].node.index != 0)
+		/* LCOV_EXCL_START */
+		abort();
+	/* LCOV_EXCL_STOP */
+
+	/* different full hashes in the same bucket must never invoke the comparator. */
+	obj[5].value = 50;
+	compare_counter = 0;
+	if (tommy_hashtable_insert_unique(&table, &obj[5].node, &obj[5], search_hash_value_callback, &obj[5].value, 2 * bucket_max) != &obj[5]
+		|| compare_counter != 0 || tommy_hashtable_count(&table) != 6)
+		/* LCOV_EXCL_START */
+		abort();
+	/* LCOV_EXCL_STOP */
+	test_hash_bucket(tommy_hashtable_bucket(&table, 0), obj, order, 6);
+	tommy_hashtable_remove_existing(&table, &obj[1].node);
+	obj[6].value = 20;
+	if (tommy_hashtable_insert_unique(&table, &obj[6].node, &obj[6], search_hash_value_callback, &obj[6].value, 0) != &obj[3]
+		|| tommy_hashtable_count(&table) != 5)
+		/* LCOV_EXCL_START */
+		abort();
+	/* LCOV_EXCL_STOP */
+	tommy_hashtable_done(&table);
+
+	/* insert unique keys, reject duplicates, then repeat during contraction. */
+	tommy_hashtable_init(&table, 16);
+	candidate.node.next = &candidate.node;
+	candidate.node.prev = &candidate.node;
+	candidate.node.data = &candidate;
+	candidate.node.index = ~(tommy_hash_t)0;
+	for (phase = 0; phase < 2; ++phase) {
+		for (step = 0; step < 256; ++step) {
+			tommy_hash_t hash;
+			i = phase == 0 ? step : 255 - step;
+			hash = tommy_inthash_u32(i);
+			if (phase == 0) {
+				obj[i].value = i;
+				if (tommy_hashtable_insert_unique(&table, &obj[i].node, &obj[i], search_hash_value_callback, &obj[i].value, hash) != &obj[i]
+					|| tommy_hashtable_count(&table) != i + 1)
+					/* LCOV_EXCL_START */
+					abort();
+				/* LCOV_EXCL_STOP */
+			}
+
+			candidate.value = i;
+			saved = obj[i].node;
+			count = tommy_hashtable_count(&table);
+			bucket_max = table.bucket_max;
+			bucket_mask = table.bucket_mask;
+			bucket = table.bucket;
+			compare_counter = 0;
+			if (tommy_hashtable_insert_unique(&table, &candidate.node, &candidate, search_hash_value_callback, &candidate.value, hash) != &obj[i]
+				|| compare_counter != 1 || tommy_hashtable_count(&table) != count
+				|| table.bucket_max != bucket_max || table.bucket_mask != bucket_mask
+				|| table.bucket != bucket
+				|| candidate.value != (int)i || candidate.node.next != &candidate.node
+				|| candidate.node.prev != &candidate.node || candidate.node.data != &candidate
+				|| candidate.node.index != ~(tommy_hash_t)0 || obj[i].node.next != saved.next
+				|| obj[i].node.prev != saved.prev || obj[i].node.data != saved.data || obj[i].node.index != saved.index)
+				/* LCOV_EXCL_START */
+				abort();
+			/* LCOV_EXCL_STOP */
+
+			if (phase != 0) {
+				if (tommy_hashtable_remove_existing(&table, &obj[i].node) != &obj[i]
+					|| tommy_hashtable_count(&table) != count - 1)
+					/* LCOV_EXCL_START */
+					abort();
+				/* LCOV_EXCL_STOP */
+				/* also insert a new key while hashlin is shrinking progressively. */
+				if (i == 24) {
+					obj[256].value = 256;
+					if (tommy_hashtable_insert_unique(&table, &obj[256].node, &obj[256], search_hash_value_callback, &obj[256].value, tommy_inthash_u32(256)) != &obj[256]
+						|| tommy_hashtable_count(&table) != count
+						|| tommy_hashtable_search(&table, search_hash_value_callback, &obj[256].value, tommy_inthash_u32(256)) != &obj[256]
+						|| tommy_hashtable_remove_existing(&table, &obj[256].node) != &obj[256]
+						|| tommy_hashtable_count(&table) != count - 1)
+						/* LCOV_EXCL_START */
+						abort();
+					/* LCOV_EXCL_STOP */
+				}
+			}
+		}
+	}
+	tommy_hashtable_done(&table);
+}
+
+void test_hashtable_rehash_existing(void)
+{
+	const unsigned counts[][2] = { { 1, 1 }, { 4, 4 }, { 128, 128 } };
+	struct object_hash obj[130];
+	tommy_hash_t hashes[130];
+	tommy_hashtable table;
+	tommy_hashtable_node** bucket;
+	tommy_size_t bucket_max, bucket_mask;
+	unsigned c, target, mode, i, n, source_size;
+	unsigned source[3], destination[2];
+
+	for (c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
+		n = counts[c][1];
+		source_size = n < 3 ? n : 3;
+		for (target = 0; target < source_size; ++target) {
+			for (mode = 0; mode < 4; ++mode) {
+				tommy_hash_t hash;
+				tommy_node saved;
+				unsigned source_count = 0, destination_count = 0;
+
+				tommy_hashtable_init(&table, 16);
+				for (i = 0; i < counts[c][0]; ++i) {
+					obj[i].value = i;
+					hashes[i] = i < 3 ? 0 : i == 3 ? 1 : 2;
+					tommy_hashtable_insert(&table, &obj[i].node, &obj[i], hashes[i]);
+				}
+				for (i = counts[c][0]; i > n; --i)
+					tommy_hashtable_remove_existing(&table, &obj[i - 1].node);
+
+				bucket_max = table.bucket_max;
+				bucket_mask = table.bucket_mask;
+				bucket = table.bucket;
+				/* exercise unchanged hash, same bucket, occupied bucket and empty bucket. */
+				hash = mode == 0 ? 0 : mode == 1 ? bucket_max : mode == 2 ? 1 : ~(tommy_hash_t)0;
+				saved = obj[target].node;
+				obj[target].value = 1000 + target;
+				tommy_hashtable_rehash_existing(&table, &obj[target].node, hash);
+				hashes[target] = hash;
+
+				if (tommy_hashtable_count(&table) != n || table.bucket_max != bucket_max
+					|| table.bucket_mask != bucket_mask
+					|| table.bucket != bucket
+					|| obj[target].node.index != hash || obj[target].node.data != saved.data
+					|| obj[target].value != (int)(1000 + target)
+					|| (mode == 0 && (obj[target].node.next != saved.next || obj[target].node.prev != saved.prev)))
+					/* LCOV_EXCL_START */
+					abort();
+				/* LCOV_EXCL_STOP */
+
+				for (i = 0; i < source_size; ++i)
+					if (mode == 0 || i != target)
+						source[source_count++] = i;
+				if (mode == 1)
+					source[source_count++] = target;
+				test_hash_bucket(tommy_hashtable_bucket(&table, 0), obj, source, source_count);
+
+				if (n > 3)
+					destination[destination_count++] = 3;
+				if (mode == 2)
+					destination[destination_count++] = target;
+				test_hash_bucket(tommy_hashtable_bucket(&table, 1), obj, destination, destination_count);
+				if (mode == 3)
+					test_hash_bucket(tommy_hashtable_bucket(&table, hash), obj, &target, 1);
+				if (mode != 0 && tommy_hashtable_search(&table, search_callback, &obj[target], 0) != 0)
+					/* LCOV_EXCL_START */
+					abort();
+				/* LCOV_EXCL_STOP */
+				/* also unlink from the new hash, including an unsplit high position. */
+				if (mode != 0) {
+					tommy_hashtable_rehash_existing(&table, &obj[target].node, 0);
+					if (tommy_hashtable_count(&table) != n || obj[target].node.index != 0
+						|| tommy_hashtable_search(&table, search_callback, &obj[target], 0) != &obj[target]
+						|| tommy_hashtable_search(&table, search_callback, &obj[target], hash) != 0)
+						/* LCOV_EXCL_START */
+						abort();
+					/* LCOV_EXCL_STOP */
+					tommy_hashtable_rehash_existing(&table, &obj[target].node, hash);
+				}
+				for (i = 0; i < n; ++i)
+					if (tommy_hashtable_search(&table, search_callback, &obj[i], hashes[i]) != &obj[i])
+						/* LCOV_EXCL_START */
+						abort();
+				/* LCOV_EXCL_STOP */
+
+				/* subsequent resizing and removals must use the updated stored hash. */
+				for (i = n; i < 130; ++i) {
+					obj[i].value = i;
+					hashes[i] = i < 3 ? 0 : i == 3 ? 1 : 2;
+					tommy_hashtable_insert(&table, &obj[i].node, &obj[i], hashes[i]);
+				}
+				for (i = 0; i < 130; ++i)
+					if (tommy_hashtable_search(&table, search_callback, &obj[i], hashes[i]) != &obj[i])
+						/* LCOV_EXCL_START */
+						abort();
+				/* LCOV_EXCL_STOP */
+				for (i = 130; i > 0; --i) {
+					void* data;
+					if (i % 2)
+						data = tommy_hashtable_remove_existing(&table, &obj[i - 1].node);
+					else
+						data = tommy_hashtable_remove(&table, search_callback, &obj[i - 1], hashes[i - 1]);
+					if (data != &obj[i - 1] || tommy_hashtable_count(&table) != i - 1)
+						/* LCOV_EXCL_START */
+						abort();
+					/* LCOV_EXCL_STOP */
+				}
+				tommy_hashtable_done(&table);
+			}
+		}
+	}
+}
+
+void test_hashtable_to_list(void)
+{
+	const unsigned counts[] = { 0, 1, 16, 128 };
+	struct object_hash obj[130];
+	tommy_node saved[130];
+	tommy_hashtable hashtable;
+	tommy_hashtable_node** bucket;
+	tommy_list list;
+	tommy_size_t bucket_max, bucket_mask;
+	unsigned c, i, prefix, size;
+
+	for (c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
+		for (prefix = 0; prefix <= 2; prefix += 2) {
+			size = prefix + counts[c];
+			tommy_hashtable_init(&hashtable, counts[c] + 1);
+			tommy_list_init(&list);
+			for (i = 0; i < size; ++i) {
+				obj[i].value = i / 2;
+				obj[i].node.index = tommy_inthash_u32(obj[i].value);
+				if (i < prefix)
+					tommy_list_insert_tail(&list, &obj[i].node, &obj[i]);
+				else
+					tommy_hashtable_insert(&hashtable, &obj[i].node, &obj[i], obj[i].node.index);
+			}
+			for (i = 0; i < size; ++i)
+				saved[i] = obj[i].node;
+			bucket = hashtable.bucket;
+			bucket_max = hashtable.bucket_max;
+			bucket_mask = hashtable.bucket_mask;
+
+			tommy_hashtable_to_list(&hashtable, &list);
+			test_hash_list(&list, obj, saved, size, prefix);
+			if (tommy_hashtable_count(&hashtable) != 0 || hashtable.bucket != bucket
+				|| hashtable.bucket_max != bucket_max || hashtable.bucket_mask != bucket_mask
+				|| tommy_hashtable_memory_usage(&hashtable) != bucket_max * sizeof(*bucket))
+				/* LCOV_EXCL_START */
+				abort();
+			/* LCOV_EXCL_STOP */
+			for (i = 0; i < bucket_max; ++i)
+				if (tommy_hashtable_bucket(&hashtable, i) != 0)
+					/* LCOV_EXCL_START */
+					abort();
+			/* LCOV_EXCL_STOP */
+			the_count = 0;
+			tommy_hashtable_foreach(&hashtable, count_callback);
+			if (the_count != 0)
+				/* LCOV_EXCL_START */
+				abort();
+			/* LCOV_EXCL_STOP */
+			for (i = prefix; i < size; ++i)
+				if (tommy_hashtable_search(&hashtable, search_callback, &obj[i], obj[i].node.index) != 0)
+					/* LCOV_EXCL_START */
+					abort();
+			/* LCOV_EXCL_STOP */
+
+			/* a repeated call on the empty table must preserve the complete list order. */
+			for (i = 0; i < size; ++i)
+				saved[i] = obj[i].node;
+			tommy_hashtable_to_list(&hashtable, &list);
+			test_hash_list(&list, obj, saved, size, prefix);
+
+			/* transfer the detached nodes back, then search and remove each one. */
+			while (!tommy_list_empty(&list)) {
+				struct object_hash* data = tommy_list_remove_head(&list);
+				tommy_hashtable_insert(&hashtable, &data->node, data, data->node.index);
+			}
+			if (tommy_hashtable_count(&hashtable) != size)
+				/* LCOV_EXCL_START */
+				abort();
+			/* LCOV_EXCL_STOP */
+			for (i = 0; i < size; ++i)
+				if (tommy_hashtable_search(&hashtable, search_callback, &obj[i], obj[i].node.index) != &obj[i]
+					|| tommy_hashtable_remove_existing(&hashtable, &obj[i].node) != &obj[i]
+					|| tommy_hashtable_count(&hashtable) != size - i - 1)
+					/* LCOV_EXCL_START */
+					abort();
+			/* LCOV_EXCL_STOP */
+			tommy_hashtable_done(&hashtable);
+		}
+	}
+}
+
+void test_hashtable_clear(void)
+{
+	const unsigned counts[] = { 0, 1, 8, 32, 128 };
+	struct object_hash obj[128];
+	tommy_hashtable hashtable;
+	tommy_hashtable_node** bucket;
+	tommy_size_t bucket_max, bucket_mask, memory_usage;
+	unsigned c, i, j, n;
+
+	for(c=0;c<sizeof(counts)/sizeof(counts[0]);++c) {
+		n = counts[c];
+		tommy_hashtable_init(&hashtable, n + 1);
+
+		/* include duplicates and different hashes sharing a bucket. */
+		for(i=0;i<n;++i) {
+			obj[i].value = i / 2;
+			tommy_hashtable_insert(&hashtable, &obj[i].node, &obj[i], tommy_inthash_u32(obj[i].value));
+		}
+
+		bucket = hashtable.bucket;
+		bucket_max = hashtable.bucket_max;
+		bucket_mask = hashtable.bucket_mask;
+		memory_usage = tommy_hashtable_memory_usage(&hashtable) - n * sizeof(tommy_hashtable_node);
+
+		/* clearing an empty table again must preserve its capacity too. */
+		for(j=0;j<2;++j) {
+			tommy_hashtable_clear(&hashtable);
+			if (tommy_hashtable_count(&hashtable) != 0
+				|| hashtable.bucket != bucket || hashtable.bucket_max != bucket_max
+				|| hashtable.bucket_mask != bucket_mask
+				|| tommy_hashtable_memory_usage(&hashtable) != memory_usage)
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+
+			for(i=0;i<bucket_max;++i)
+				if (tommy_hashtable_bucket(&hashtable, i) != 0)
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+
+			the_count = 0;
+			tommy_hashtable_foreach(&hashtable, count_callback);
+			tommy_hashtable_foreach_arg(&hashtable, count_arg_callback, &the_count);
+			if (the_count != 0)
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+
+			for(i=0;i<n;++i) {
+				tommy_hash_t hash = tommy_inthash_u32(obj[i].value);
+				if (obj[i].value != (int)(i / 2)
+					|| obj[i].node.data != &obj[i] || obj[i].node.index != hash
+					|| tommy_hashtable_search(&hashtable, search_callback, &obj[i], hash) != 0
+					|| tommy_hashtable_remove(&hashtable, search_callback, &obj[i], hash) != 0)
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+			}
+		}
+
+		/* reuse the same nodes without initializing their old links. */
+		for(i=0;i<128;++i) {
+			obj[i].value = i / 2;
+			tommy_hashtable_insert(&hashtable, &obj[i].node, &obj[i], tommy_inthash_u32(obj[i].value));
+		}
+		if (tommy_hashtable_count(&hashtable) != 128)
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+
+		for(i=0;i<128;++i)
+			if (tommy_hashtable_search(&hashtable, search_callback, &obj[i], tommy_inthash_u32(obj[i].value)) != &obj[i])
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+
+		for(i=128;i>0;--i) {
+			void* data;
+			if (i % 2)
+				data = tommy_hashtable_remove_existing(&hashtable, &obj[i - 1].node);
+			else
+				data = tommy_hashtable_remove(&hashtable, search_callback, &obj[i - 1], tommy_inthash_u32(obj[i - 1].value));
+			if (data != &obj[i - 1] || tommy_hashtable_count(&hashtable) != i - 1)
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+		}
+		tommy_hashtable_done(&hashtable);
+	}
+
+	/* clear must not access objects already freed by foreach. */
+	tommy_hashtable_init(&hashtable, 128);
+	for(i=0;i<128;++i) {
+		struct object_hash* allocated = malloc(sizeof(struct object_hash));
+		allocated->value = i;
+		tommy_hashtable_insert(&hashtable, &allocated->node, allocated, tommy_inthash_u32(i));
+	}
+	tommy_hashtable_foreach(&hashtable, free);
+	tommy_hashtable_clear(&hashtable);
+	obj[0].value = 1;
+	tommy_hashtable_insert(&hashtable, &obj[0].node, &obj[0], 1);
+	if (tommy_hashtable_count(&hashtable) != 1
+		|| tommy_hashtable_remove_existing(&hashtable, &obj[0].node) != &obj[0])
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	tommy_hashtable_done(&hashtable);
+}
+
 void test_hashtable(void)
 {
 	tommy_hashtable hashtable;
@@ -1586,6 +2112,11 @@ void test_hashtable(void)
 	unsigned limit;
 	const unsigned size = TOMMY_SIZE;
 	const unsigned module = TOMMY_SIZE / 4;
+
+	test_hashtable_clear();
+	test_hashtable_insert_unique();
+	test_hashtable_rehash_existing();
+	test_hashtable_to_list();
 
 	HASH = malloc(size * sizeof(struct object_hash));
 
@@ -1696,6 +2227,554 @@ void test_hashtable(void)
 	STOP();
 }
 
+void test_hashdyn_shrink(void)
+{
+	const unsigned counts[][2] = {
+		{ 0, 16 }, { 1, 16 }, { 7, 16 }, { 8, 32 },
+		{ 15, 32 }, { 16, 64 }, { 31, 64 }, { 32, 128 },
+		{ 63, 128 }, { 64, 256 }, { 65, 256 }, { 128, 512 }
+	};
+	struct object_hash obj[130];
+	tommy_node saved[130];
+	tommy_hashdyn table;
+	tommy_hashdyn_node** bucket;
+	tommy_list list;
+	unsigned c, reserved, i, n;
+
+	for (c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
+		for (reserved = 0; reserved < 2; ++reserved) {
+			n = counts[c][0];
+			tommy_hashdyn_init(&table);
+			/* reserve far beyond the contents to exercise multi-bit contractions. */
+			if (reserved)
+				tommy_hashdyn_reserve(&table, 1024);
+			for (i = 0; i < n; ++i) {
+				obj[i].value = i / 2;
+				tommy_hashdyn_insert(&table, &obj[i].node, &obj[i], tommy_inthash_u32(obj[i].value));
+			}
+			for (i = 0; i < n; ++i)
+				saved[i] = obj[i].node;
+			bucket = table.bucket;
+			tommy_hashdyn_shrink(&table);
+			if (tommy_hashdyn_bucket_count(&table) != counts[c][1]
+				|| table.bucket_mask != counts[c][1] - 1
+				|| ((tommy_size_t)1 << table.bucket_bit) != counts[c][1]
+				|| tommy_hashdyn_count(&table) != n
+				|| tommy_hashdyn_memory_usage(&table) != counts[c][1] * sizeof(*bucket) + n * sizeof(tommy_hashdyn_node)
+				|| (!reserved && table.bucket != bucket))
+				/* LCOV_EXCL_START */
+				abort();
+			/* LCOV_EXCL_STOP */
+
+			/* repeated shrinking must not allocate or disturb the contents. */
+			bucket = table.bucket;
+			tommy_hashdyn_shrink(&table);
+			if (table.bucket != bucket || tommy_hashdyn_count(&table) != n)
+				/* LCOV_EXCL_START */
+				abort();
+			/* LCOV_EXCL_STOP */
+			for (i = 0; i < n; ++i) {
+				if (obj[i].node.index != saved[i].index || obj[i].node.data != saved[i].data
+					|| obj[i].value != (int)(i / 2)
+					|| tommy_hashdyn_search(&table, search_callback, &obj[i], saved[i].index) != &obj[i]
+					|| tommy_hashdyn_search(&table, search_hash_value_callback, &obj[i].value, saved[i].index) != &obj[i - i % 2])
+					/* LCOV_EXCL_START */
+					abort();
+				/* LCOV_EXCL_STOP */
+			}
+
+			/* check all links and original bucket ordering, then shrink the drained table. */
+			tommy_list_init(&list);
+			tommy_hashdyn_to_list(&table, &list);
+			tommy_hashdyn_shrink(&table);
+			if (!tommy_hashdyn_empty(&table) || tommy_hashdyn_bucket_count(&table) != 16)
+				/* LCOV_EXCL_START */
+				abort();
+			/* LCOV_EXCL_STOP */
+			test_hash_list(&list, obj, saved, n, 0);
+
+			/* reuse the shrunken table, grow it and remove duplicates in insertion order. */
+			while (!tommy_list_empty(&list)) {
+				struct object_hash* data = tommy_list_remove_head(&list);
+				tommy_hashdyn_insert(&table, &data->node, data, data->node.index);
+			}
+			for (i = n; i < 130; ++i) {
+				obj[i].value = i / 2;
+				tommy_hashdyn_insert(&table, &obj[i].node, &obj[i], tommy_inthash_u32(obj[i].value));
+			}
+			if (tommy_hashdyn_count(&table) != 130 || tommy_hashdyn_bucket_count(&table) != 512)
+				/* LCOV_EXCL_START */
+				abort();
+			/* LCOV_EXCL_STOP */
+			for (i = 0; i < 130; ++i)
+				if (tommy_hashdyn_remove(&table, search_hash_value_callback, &obj[i].value, obj[i].node.index) != &obj[i]
+					|| tommy_hashdyn_count(&table) != 129 - i)
+					/* LCOV_EXCL_START */
+					abort();
+			/* LCOV_EXCL_STOP */
+			tommy_hashdyn_done(&table);
+		}
+	}
+}
+
+void test_hashdyn_insert_unique(void)
+{
+	struct object_hash obj[257], candidate;
+	tommy_hashdyn table;
+	tommy_hashdyn_node** bucket;
+	tommy_node saved;
+	tommy_size_t bucket_max, bucket_mask, count;
+	tommy_uint_t bucket_bit;
+	const unsigned order[] = { 0, 1, 2, 3, 4, 5 };
+	unsigned i, phase, step;
+
+	tommy_hashdyn_init(&table);
+	obj[0].value = 1;
+	compare_counter = 0;
+	if (tommy_hashdyn_insert_unique(&table, &obj[0].node, &obj[0], search_hash_value_callback, &obj[0].value, 0) != &obj[0]
+		|| compare_counter != 0 || tommy_hashdyn_count(&table) != 1
+		|| tommy_hashdyn_search(&table, search_hash_value_callback, &obj[0].value, 0) != &obj[0])
+		/* LCOV_EXCL_START */
+		abort();
+	/* LCOV_EXCL_STOP */
+	tommy_hashdyn_remove_existing(&table, &obj[0].node);
+
+	bucket_max = table.bucket_max;
+	obj[0].value = 10;
+	obj[1].value = 20;
+	obj[2].value = 30;
+	obj[3].value = 20;
+	for (i = 0; i < 4; ++i)
+		tommy_hashdyn_insert(&table, &obj[i].node, &obj[i], i == 0 ? bucket_max : 0);
+
+	/* the first matching duplicate is returned; the rejected candidate stays intact. */
+	obj[4].value = 20;
+	obj[4].node.next = &obj[4].node;
+	obj[4].node.prev = &obj[4].node;
+	obj[4].node.data = &obj[4];
+	obj[4].node.index = ~(tommy_hash_t)0;
+	saved = obj[4].node;
+	compare_counter = 0;
+	if (tommy_hashdyn_insert_unique(&table, &obj[4].node, &obj[4], search_hash_value_callback, &obj[4].value, 0) != &obj[1]
+		|| compare_counter != 1 || tommy_hashdyn_count(&table) != 4
+		|| obj[4].value != 20 || obj[4].node.next != saved.next || obj[4].node.prev != saved.prev
+		|| obj[4].node.data != saved.data || obj[4].node.index != saved.index)
+		/* LCOV_EXCL_START */
+		abort();
+	/* LCOV_EXCL_STOP */
+	test_hash_bucket(tommy_hashdyn_bucket(&table, 0), obj, order, 4);
+
+	/* equal hashes with different keys must allow insertion at the tail. */
+	obj[4].value = 40;
+	compare_counter = 0;
+	if (tommy_hashdyn_insert_unique(&table, &obj[4].node, &obj[4], search_hash_value_callback, &obj[4].value, 0) != &obj[4]
+		|| compare_counter != 3 || tommy_hashdyn_count(&table) != 5
+		|| obj[4].node.data != &obj[4] || obj[4].node.index != 0)
+		/* LCOV_EXCL_START */
+		abort();
+	/* LCOV_EXCL_STOP */
+
+	/* different full hashes in the same bucket must never invoke the comparator. */
+	obj[5].value = 50;
+	compare_counter = 0;
+	if (tommy_hashdyn_insert_unique(&table, &obj[5].node, &obj[5], search_hash_value_callback, &obj[5].value, 2 * bucket_max) != &obj[5]
+		|| compare_counter != 0 || tommy_hashdyn_count(&table) != 6)
+		/* LCOV_EXCL_START */
+		abort();
+	/* LCOV_EXCL_STOP */
+	test_hash_bucket(tommy_hashdyn_bucket(&table, 0), obj, order, 6);
+	tommy_hashdyn_remove_existing(&table, &obj[1].node);
+	obj[6].value = 20;
+	if (tommy_hashdyn_insert_unique(&table, &obj[6].node, &obj[6], search_hash_value_callback, &obj[6].value, 0) != &obj[3]
+		|| tommy_hashdyn_count(&table) != 5)
+		/* LCOV_EXCL_START */
+		abort();
+	/* LCOV_EXCL_STOP */
+	tommy_hashdyn_done(&table);
+
+	/* insert unique keys, reject duplicates, then repeat during contraction. */
+	tommy_hashdyn_init(&table);
+	candidate.node.next = &candidate.node;
+	candidate.node.prev = &candidate.node;
+	candidate.node.data = &candidate;
+	candidate.node.index = ~(tommy_hash_t)0;
+	for (phase = 0; phase < 2; ++phase) {
+		for (step = 0; step < 256; ++step) {
+			tommy_hash_t hash;
+			i = phase == 0 ? step : 255 - step;
+			hash = tommy_inthash_u32(i);
+			if (phase == 0) {
+				obj[i].value = i;
+				if (tommy_hashdyn_insert_unique(&table, &obj[i].node, &obj[i], search_hash_value_callback, &obj[i].value, hash) != &obj[i]
+					|| tommy_hashdyn_count(&table) != i + 1)
+					/* LCOV_EXCL_START */
+					abort();
+				/* LCOV_EXCL_STOP */
+			}
+
+			candidate.value = i;
+			saved = obj[i].node;
+			count = tommy_hashdyn_count(&table);
+			bucket_max = table.bucket_max;
+			bucket_mask = table.bucket_mask;
+			bucket = table.bucket;
+			bucket_bit = table.bucket_bit;
+			compare_counter = 0;
+			if (tommy_hashdyn_insert_unique(&table, &candidate.node, &candidate, search_hash_value_callback, &candidate.value, hash) != &obj[i]
+				|| compare_counter != 1 || tommy_hashdyn_count(&table) != count
+				|| table.bucket_max != bucket_max || table.bucket_mask != bucket_mask
+				|| table.bucket != bucket || table.bucket_bit != bucket_bit
+				|| candidate.value != (int)i || candidate.node.next != &candidate.node
+				|| candidate.node.prev != &candidate.node || candidate.node.data != &candidate
+				|| candidate.node.index != ~(tommy_hash_t)0 || obj[i].node.next != saved.next
+				|| obj[i].node.prev != saved.prev || obj[i].node.data != saved.data || obj[i].node.index != saved.index)
+				/* LCOV_EXCL_START */
+				abort();
+			/* LCOV_EXCL_STOP */
+
+			if (phase != 0) {
+				if (tommy_hashdyn_remove_existing(&table, &obj[i].node) != &obj[i]
+					|| tommy_hashdyn_count(&table) != count - 1)
+					/* LCOV_EXCL_START */
+					abort();
+				/* LCOV_EXCL_STOP */
+				/* also insert a new key while hashlin is shrinking progressively. */
+				if (i == 24) {
+					obj[256].value = 256;
+					if (tommy_hashdyn_insert_unique(&table, &obj[256].node, &obj[256], search_hash_value_callback, &obj[256].value, tommy_inthash_u32(256)) != &obj[256]
+						|| tommy_hashdyn_count(&table) != count
+						|| tommy_hashdyn_search(&table, search_hash_value_callback, &obj[256].value, tommy_inthash_u32(256)) != &obj[256]
+						|| tommy_hashdyn_remove_existing(&table, &obj[256].node) != &obj[256]
+						|| tommy_hashdyn_count(&table) != count - 1)
+						/* LCOV_EXCL_START */
+						abort();
+					/* LCOV_EXCL_STOP */
+				}
+			}
+		}
+	}
+	tommy_hashdyn_done(&table);
+}
+
+void test_hashdyn_rehash_existing(void)
+{
+	const unsigned counts[][2] = { { 1, 1 }, { 4, 4 }, { 128, 128 } };
+	struct object_hash obj[130];
+	tommy_hash_t hashes[130];
+	tommy_hashdyn table;
+	tommy_hashdyn_node** bucket;
+	tommy_uint_t bucket_bit;
+	tommy_size_t bucket_max, bucket_mask;
+	unsigned c, target, mode, i, n, source_size;
+	unsigned source[3], destination[2];
+
+	for (c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
+		n = counts[c][1];
+		source_size = n < 3 ? n : 3;
+		for (target = 0; target < source_size; ++target) {
+			for (mode = 0; mode < 4; ++mode) {
+				tommy_hash_t hash;
+				tommy_node saved;
+				unsigned source_count = 0, destination_count = 0;
+
+				tommy_hashdyn_init(&table);
+				if (n == 4)
+					tommy_hashdyn_reserve(&table, 128);
+				for (i = 0; i < counts[c][0]; ++i) {
+					obj[i].value = i;
+					hashes[i] = i < 3 ? 0 : i == 3 ? 1 : 2;
+					tommy_hashdyn_insert(&table, &obj[i].node, &obj[i], hashes[i]);
+				}
+				for (i = counts[c][0]; i > n; --i)
+					tommy_hashdyn_remove_existing(&table, &obj[i - 1].node);
+
+				bucket_max = table.bucket_max;
+				bucket_mask = table.bucket_mask;
+				bucket = table.bucket;
+				bucket_bit = table.bucket_bit;
+				/* exercise unchanged hash, same bucket, occupied bucket and empty bucket. */
+				hash = mode == 0 ? 0 : mode == 1 ? bucket_max : mode == 2 ? 1 : ~(tommy_hash_t)0;
+				saved = obj[target].node;
+				obj[target].value = 1000 + target;
+				tommy_hashdyn_rehash_existing(&table, &obj[target].node, hash);
+				hashes[target] = hash;
+
+				if (tommy_hashdyn_count(&table) != n || table.bucket_max != bucket_max
+					|| table.bucket_mask != bucket_mask
+					|| table.bucket != bucket || table.bucket_bit != bucket_bit
+					|| obj[target].node.index != hash || obj[target].node.data != saved.data
+					|| obj[target].value != (int)(1000 + target)
+					|| (mode == 0 && (obj[target].node.next != saved.next || obj[target].node.prev != saved.prev)))
+					/* LCOV_EXCL_START */
+					abort();
+				/* LCOV_EXCL_STOP */
+
+				for (i = 0; i < source_size; ++i)
+					if (mode == 0 || i != target)
+						source[source_count++] = i;
+				if (mode == 1)
+					source[source_count++] = target;
+				test_hash_bucket(tommy_hashdyn_bucket(&table, 0), obj, source, source_count);
+
+				if (n > 3)
+					destination[destination_count++] = 3;
+				if (mode == 2)
+					destination[destination_count++] = target;
+				test_hash_bucket(tommy_hashdyn_bucket(&table, 1), obj, destination, destination_count);
+				if (mode == 3)
+					test_hash_bucket(tommy_hashdyn_bucket(&table, hash), obj, &target, 1);
+				if (mode != 0 && tommy_hashdyn_search(&table, search_callback, &obj[target], 0) != 0)
+					/* LCOV_EXCL_START */
+					abort();
+				/* LCOV_EXCL_STOP */
+				/* also unlink from the new hash, including an unsplit high position. */
+				if (mode != 0) {
+					tommy_hashdyn_rehash_existing(&table, &obj[target].node, 0);
+					if (tommy_hashdyn_count(&table) != n || obj[target].node.index != 0
+						|| tommy_hashdyn_search(&table, search_callback, &obj[target], 0) != &obj[target]
+						|| tommy_hashdyn_search(&table, search_callback, &obj[target], hash) != 0)
+						/* LCOV_EXCL_START */
+						abort();
+					/* LCOV_EXCL_STOP */
+					tommy_hashdyn_rehash_existing(&table, &obj[target].node, hash);
+				}
+				for (i = 0; i < n; ++i)
+					if (tommy_hashdyn_search(&table, search_callback, &obj[i], hashes[i]) != &obj[i])
+						/* LCOV_EXCL_START */
+						abort();
+				/* LCOV_EXCL_STOP */
+
+				/* subsequent resizing and removals must use the updated stored hash. */
+				for (i = n; i < 130; ++i) {
+					obj[i].value = i;
+					hashes[i] = i < 3 ? 0 : i == 3 ? 1 : 2;
+					tommy_hashdyn_insert(&table, &obj[i].node, &obj[i], hashes[i]);
+				}
+				for (i = 0; i < 130; ++i)
+					if (tommy_hashdyn_search(&table, search_callback, &obj[i], hashes[i]) != &obj[i])
+						/* LCOV_EXCL_START */
+						abort();
+				/* LCOV_EXCL_STOP */
+				for (i = 130; i > 0; --i) {
+					void* data;
+					if (i % 2)
+						data = tommy_hashdyn_remove_existing(&table, &obj[i - 1].node);
+					else
+						data = tommy_hashdyn_remove(&table, search_callback, &obj[i - 1], hashes[i - 1]);
+					if (data != &obj[i - 1] || tommy_hashdyn_count(&table) != i - 1)
+						/* LCOV_EXCL_START */
+						abort();
+					/* LCOV_EXCL_STOP */
+				}
+				tommy_hashdyn_done(&table);
+			}
+		}
+	}
+}
+
+void test_hashdyn_to_list(void)
+{
+	const unsigned counts[] = { 0, 1, 8, 128 };
+	struct object_hash obj[130];
+	tommy_node saved[130];
+	tommy_hashdyn hashdyn;
+	tommy_hashdyn_node** bucket;
+	tommy_list list;
+	tommy_size_t bucket_max, bucket_mask;
+	tommy_uint_t bucket_bit;
+	unsigned c, i, prefix, reserved, size;
+
+	for (c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
+		for (reserved = 0; reserved < 2; ++reserved) {
+			for (prefix = 0; prefix <= 2; prefix += 2) {
+				size = prefix + counts[c];
+				tommy_hashdyn_init(&hashdyn);
+				/* include sparse tables with capacity reserved beyond their contents. */
+				if (reserved)
+					tommy_hashdyn_reserve(&hashdyn, 512);
+				tommy_list_init(&list);
+				for (i = 0; i < size; ++i) {
+					obj[i].value = i / 2;
+					obj[i].node.index = tommy_inthash_u32(obj[i].value);
+					if (i < prefix)
+						tommy_list_insert_tail(&list, &obj[i].node, &obj[i]);
+					else
+						tommy_hashdyn_insert(&hashdyn, &obj[i].node, &obj[i], obj[i].node.index);
+				}
+				for (i = 0; i < size; ++i)
+					saved[i] = obj[i].node;
+				bucket = hashdyn.bucket;
+				bucket_max = hashdyn.bucket_max;
+				bucket_mask = hashdyn.bucket_mask;
+				bucket_bit = hashdyn.bucket_bit;
+
+				tommy_hashdyn_to_list(&hashdyn, &list);
+				test_hash_list(&list, obj, saved, size, prefix);
+				if (tommy_hashdyn_count(&hashdyn) != 0 || hashdyn.bucket != bucket
+					|| hashdyn.bucket_max != bucket_max || hashdyn.bucket_mask != bucket_mask
+					|| hashdyn.bucket_bit != bucket_bit
+					|| tommy_hashdyn_memory_usage(&hashdyn) != bucket_max * sizeof(*bucket))
+					/* LCOV_EXCL_START */
+					abort();
+				/* LCOV_EXCL_STOP */
+				for (i = 0; i < bucket_max; ++i)
+					if (tommy_hashdyn_bucket(&hashdyn, i) != 0)
+						/* LCOV_EXCL_START */
+						abort();
+				/* LCOV_EXCL_STOP */
+				the_count = 0;
+				tommy_hashdyn_foreach(&hashdyn, count_callback);
+				if (the_count != 0)
+					/* LCOV_EXCL_START */
+					abort();
+				/* LCOV_EXCL_STOP */
+				for (i = prefix; i < size; ++i)
+					if (tommy_hashdyn_search(&hashdyn, search_callback, &obj[i], obj[i].node.index) != 0)
+						/* LCOV_EXCL_START */
+						abort();
+				/* LCOV_EXCL_STOP */
+
+				for (i = 0; i < size; ++i)
+					saved[i] = obj[i].node;
+				tommy_hashdyn_to_list(&hashdyn, &list);
+				test_hash_list(&list, obj, saved, size, prefix);
+
+				/* reuse the nodes and verify removals across shrink thresholds. */
+				while (!tommy_list_empty(&list)) {
+					struct object_hash* data = tommy_list_remove_head(&list);
+					tommy_hashdyn_insert(&hashdyn, &data->node, data, data->node.index);
+				}
+				if (tommy_hashdyn_count(&hashdyn) != size)
+					/* LCOV_EXCL_START */
+					abort();
+				/* LCOV_EXCL_STOP */
+				for (i = 0; i < size; ++i)
+					if (tommy_hashdyn_search(&hashdyn, search_callback, &obj[i], obj[i].node.index) != &obj[i]
+						|| tommy_hashdyn_remove_existing(&hashdyn, &obj[i].node) != &obj[i]
+						|| tommy_hashdyn_count(&hashdyn) != size - i - 1)
+						/* LCOV_EXCL_START */
+						abort();
+				/* LCOV_EXCL_STOP */
+				tommy_hashdyn_done(&hashdyn);
+			}
+		}
+	}
+}
+
+void test_hashdyn_clear(void)
+{
+	const unsigned counts[] = { 0, 1, 8, 32, 128 };
+	struct object_hash obj[128];
+	tommy_hashdyn hashdyn;
+	tommy_hashdyn_node** bucket;
+	tommy_size_t bucket_max, bucket_mask, memory_usage;
+	tommy_uint_t bucket_bit;
+	unsigned c, i, j, n;
+
+	for(c=0;c<sizeof(counts)/sizeof(counts[0]);++c) {
+		n = counts[c];
+		tommy_hashdyn_init(&hashdyn);
+		/* also exercise an empty table with reserved capacity. */
+		if (n == 0)
+			tommy_hashdyn_reserve(&hashdyn, 128);
+
+		for(i=0;i<n;++i) {
+			obj[i].value = i / 2;
+			tommy_hashdyn_insert(&hashdyn, &obj[i].node, &obj[i], tommy_inthash_u32(obj[i].value));
+		}
+
+		bucket = hashdyn.bucket;
+		bucket_max = hashdyn.bucket_max;
+		bucket_mask = hashdyn.bucket_mask;
+		bucket_bit = hashdyn.bucket_bit;
+		memory_usage = tommy_hashdyn_memory_usage(&hashdyn) - n * sizeof(tommy_hashdyn_node);
+
+		for(j=0;j<2;++j) {
+			tommy_hashdyn_clear(&hashdyn);
+			if (tommy_hashdyn_count(&hashdyn) != 0
+				|| hashdyn.bucket != bucket || hashdyn.bucket_max != bucket_max
+				|| hashdyn.bucket_mask != bucket_mask || hashdyn.bucket_bit != bucket_bit
+				|| tommy_hashdyn_memory_usage(&hashdyn) != memory_usage)
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+
+			for(i=0;i<bucket_max;++i)
+				if (tommy_hashdyn_bucket(&hashdyn, i) != 0)
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+
+			the_count = 0;
+			tommy_hashdyn_foreach(&hashdyn, count_callback);
+			tommy_hashdyn_foreach_arg(&hashdyn, count_arg_callback, &the_count);
+			if (the_count != 0)
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+
+			for(i=0;i<n;++i) {
+				tommy_hash_t hash = tommy_inthash_u32(obj[i].value);
+				if (obj[i].value != (int)(i / 2)
+					|| obj[i].node.data != &obj[i] || obj[i].node.index != hash
+					|| tommy_hashdyn_search(&hashdyn, search_callback, &obj[i], hash) != 0
+					|| tommy_hashdyn_remove(&hashdyn, search_callback, &obj[i], hash) != 0)
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+			}
+		}
+
+		/* reinsert old nodes and exercise growth after clear. */
+		for(i=0;i<128;++i) {
+			obj[i].value = i / 2;
+			tommy_hashdyn_insert(&hashdyn, &obj[i].node, &obj[i], tommy_inthash_u32(obj[i].value));
+		}
+		if (tommy_hashdyn_count(&hashdyn) != 128)
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+
+		for(i=0;i<128;++i)
+			if (tommy_hashdyn_search(&hashdyn, search_callback, &obj[i], tommy_inthash_u32(obj[i].value)) != &obj[i])
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+
+		/* both removal paths must still work across shrink thresholds. */
+		for(i=128;i>0;--i) {
+			void* data;
+			if (i % 2)
+				data = tommy_hashdyn_remove_existing(&hashdyn, &obj[i - 1].node);
+			else
+				data = tommy_hashdyn_remove(&hashdyn, search_callback, &obj[i - 1], tommy_inthash_u32(obj[i - 1].value));
+			if (data != &obj[i - 1] || tommy_hashdyn_count(&hashdyn) != i - 1)
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+		}
+		tommy_hashdyn_done(&hashdyn);
+	}
+
+	/* clear must not access objects already freed by foreach. */
+	tommy_hashdyn_init(&hashdyn);
+	for(i=0;i<128;++i) {
+		struct object_hash* allocated = malloc(sizeof(struct object_hash));
+		allocated->value = i;
+		tommy_hashdyn_insert(&hashdyn, &allocated->node, allocated, tommy_inthash_u32(i));
+	}
+	tommy_hashdyn_foreach(&hashdyn, free);
+	tommy_hashdyn_clear(&hashdyn);
+	obj[0].value = 1;
+	tommy_hashdyn_insert(&hashdyn, &obj[0].node, &obj[0], 1);
+	if (tommy_hashdyn_count(&hashdyn) != 1
+		|| tommy_hashdyn_remove_existing(&hashdyn, &obj[0].node) != &obj[0])
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	tommy_hashdyn_done(&hashdyn);
+}
+
 void test_hashdyn(void)
 {
 	tommy_hashdyn hashdyn;
@@ -1704,6 +2783,12 @@ void test_hashdyn(void)
 	unsigned limit;
 	const unsigned size = TOMMY_SIZE;
 	const unsigned module = TOMMY_SIZE / 4;
+
+	test_hashdyn_clear();
+	test_hashdyn_shrink();
+	test_hashdyn_insert_unique();
+	test_hashdyn_rehash_existing();
+	test_hashdyn_to_list();
 
 	HASH = malloc(size * sizeof(struct object_hash));
 
@@ -1802,6 +2887,551 @@ void test_hashdyn(void)
 	STOP();
 }
 
+void test_hashlin_insert_unique(void)
+{
+	struct object_hash obj[257], candidate;
+	tommy_hashlin table;
+	tommy_hashlin_node** bucket;
+	tommy_node saved;
+	tommy_size_t bucket_max, bucket_mask, count;
+	tommy_uint_t bucket_bit, state;
+	tommy_size_t low_max, low_mask, split;
+	const unsigned order[] = { 0, 1, 2, 3, 4, 5 };
+	unsigned i, phase, step;
+
+	tommy_hashlin_init(&table);
+	obj[0].value = 1;
+	compare_counter = 0;
+	if (tommy_hashlin_insert_unique(&table, &obj[0].node, &obj[0], search_hash_value_callback, &obj[0].value, 0) != &obj[0]
+		|| compare_counter != 0 || tommy_hashlin_count(&table) != 1
+		|| tommy_hashlin_search(&table, search_hash_value_callback, &obj[0].value, 0) != &obj[0])
+		/* LCOV_EXCL_START */
+		abort();
+	/* LCOV_EXCL_STOP */
+	tommy_hashlin_remove_existing(&table, &obj[0].node);
+
+	bucket_max = table.bucket_max;
+	obj[0].value = 10;
+	obj[1].value = 20;
+	obj[2].value = 30;
+	obj[3].value = 20;
+	for (i = 0; i < 4; ++i)
+		tommy_hashlin_insert(&table, &obj[i].node, &obj[i], i == 0 ? bucket_max : 0);
+
+	/* the first matching duplicate is returned; the rejected candidate stays intact. */
+	obj[4].value = 20;
+	obj[4].node.next = &obj[4].node;
+	obj[4].node.prev = &obj[4].node;
+	obj[4].node.data = &obj[4];
+	obj[4].node.index = ~(tommy_hash_t)0;
+	saved = obj[4].node;
+	compare_counter = 0;
+	if (tommy_hashlin_insert_unique(&table, &obj[4].node, &obj[4], search_hash_value_callback, &obj[4].value, 0) != &obj[1]
+		|| compare_counter != 1 || tommy_hashlin_count(&table) != 4
+		|| obj[4].value != 20 || obj[4].node.next != saved.next || obj[4].node.prev != saved.prev
+		|| obj[4].node.data != saved.data || obj[4].node.index != saved.index)
+		/* LCOV_EXCL_START */
+		abort();
+	/* LCOV_EXCL_STOP */
+	test_hash_bucket(tommy_hashlin_bucket(&table, 0), obj, order, 4);
+
+	/* equal hashes with different keys must allow insertion at the tail. */
+	obj[4].value = 40;
+	compare_counter = 0;
+	if (tommy_hashlin_insert_unique(&table, &obj[4].node, &obj[4], search_hash_value_callback, &obj[4].value, 0) != &obj[4]
+		|| compare_counter != 3 || tommy_hashlin_count(&table) != 5
+		|| obj[4].node.data != &obj[4] || obj[4].node.index != 0)
+		/* LCOV_EXCL_START */
+		abort();
+	/* LCOV_EXCL_STOP */
+
+	/* different full hashes in the same bucket must never invoke the comparator. */
+	obj[5].value = 50;
+	compare_counter = 0;
+	if (tommy_hashlin_insert_unique(&table, &obj[5].node, &obj[5], search_hash_value_callback, &obj[5].value, 2 * bucket_max) != &obj[5]
+		|| compare_counter != 0 || tommy_hashlin_count(&table) != 6)
+		/* LCOV_EXCL_START */
+		abort();
+	/* LCOV_EXCL_STOP */
+	test_hash_bucket(tommy_hashlin_bucket(&table, 0), obj, order, 6);
+	tommy_hashlin_remove_existing(&table, &obj[1].node);
+	obj[6].value = 20;
+	if (tommy_hashlin_insert_unique(&table, &obj[6].node, &obj[6], search_hash_value_callback, &obj[6].value, 0) != &obj[3]
+		|| tommy_hashlin_count(&table) != 5)
+		/* LCOV_EXCL_START */
+		abort();
+	/* LCOV_EXCL_STOP */
+	tommy_hashlin_done(&table);
+
+	/* insert unique keys, reject duplicates, then repeat during contraction. */
+	tommy_hashlin_init(&table);
+	candidate.node.next = &candidate.node;
+	candidate.node.prev = &candidate.node;
+	candidate.node.data = &candidate;
+	candidate.node.index = ~(tommy_hash_t)0;
+	for (phase = 0; phase < 2; ++phase) {
+		for (step = 0; step < 256; ++step) {
+			tommy_hash_t hash;
+			i = phase == 0 ? step : 255 - step;
+			hash = tommy_inthash_u32(i);
+			if (phase == 0) {
+				obj[i].value = i;
+				if (tommy_hashlin_insert_unique(&table, &obj[i].node, &obj[i], search_hash_value_callback, &obj[i].value, hash) != &obj[i]
+					|| tommy_hashlin_count(&table) != i + 1)
+					/* LCOV_EXCL_START */
+					abort();
+				/* LCOV_EXCL_STOP */
+			}
+
+			candidate.value = i;
+			saved = obj[i].node;
+			count = tommy_hashlin_count(&table);
+			bucket_max = table.bucket_max;
+			bucket_mask = table.bucket_mask;
+			bucket = table.bucket[0];
+			bucket_bit = table.bucket_bit;
+			state = table.state;
+			low_max = table.low_max;
+			low_mask = table.low_mask;
+			split = table.split;
+			compare_counter = 0;
+			if (tommy_hashlin_insert_unique(&table, &candidate.node, &candidate, search_hash_value_callback, &candidate.value, hash) != &obj[i]
+				|| compare_counter != 1 || tommy_hashlin_count(&table) != count
+				|| table.bucket_max != bucket_max || table.bucket_mask != bucket_mask
+				|| table.bucket[0] != bucket || table.bucket_bit != bucket_bit || table.state != state
+				|| table.low_max != low_max || table.low_mask != low_mask || table.split != split
+				|| candidate.value != (int)i || candidate.node.next != &candidate.node
+				|| candidate.node.prev != &candidate.node || candidate.node.data != &candidate
+				|| candidate.node.index != ~(tommy_hash_t)0 || obj[i].node.next != saved.next
+				|| obj[i].node.prev != saved.prev || obj[i].node.data != saved.data || obj[i].node.index != saved.index)
+				/* LCOV_EXCL_START */
+				abort();
+			/* LCOV_EXCL_STOP */
+
+			if (phase != 0) {
+				if (tommy_hashlin_remove_existing(&table, &obj[i].node) != &obj[i]
+					|| tommy_hashlin_count(&table) != count - 1)
+					/* LCOV_EXCL_START */
+					abort();
+				/* LCOV_EXCL_STOP */
+				/* also insert a new key while hashlin is shrinking progressively. */
+				if (i == 24) {
+					obj[256].value = 256;
+					if (tommy_hashlin_insert_unique(&table, &obj[256].node, &obj[256], search_hash_value_callback, &obj[256].value, tommy_inthash_u32(256)) != &obj[256]
+						|| tommy_hashlin_count(&table) != count
+						|| tommy_hashlin_search(&table, search_hash_value_callback, &obj[256].value, tommy_inthash_u32(256)) != &obj[256]
+						|| tommy_hashlin_remove_existing(&table, &obj[256].node) != &obj[256]
+						|| tommy_hashlin_count(&table) != count - 1)
+						/* LCOV_EXCL_START */
+						abort();
+					/* LCOV_EXCL_STOP */
+				}
+			}
+		}
+	}
+	tommy_hashlin_done(&table);
+}
+
+void test_hashlin_rehash_existing(void)
+{
+	const unsigned counts[][2] = { { 1, 1 }, { 4, 4 }, { 33, 33 }, { 48, 48 }, { 63, 63 }, { 64, 64 },
+				       { 65, 65 }, { 128, 128 }, { 128, 31 }, { 128, 24 }, { 128, 17 },
+				       { 128, 16 }, { 128, 15 }, { 128, 9 }, { 128, 8 } };
+	struct object_hash obj[130];
+	tommy_hash_t hashes[130];
+	tommy_hashlin table;
+	tommy_hashlin_node** segments[TOMMY_SIZE_BIT];
+	tommy_uint_t bucket_bit, state;
+	tommy_size_t low_max, low_mask, split;
+	tommy_size_t bucket_max, bucket_mask;
+	unsigned c, target, mode, i, n, source_size;
+	unsigned source[3], destination[2];
+
+	for (c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
+		n = counts[c][1];
+		source_size = n < 3 ? n : 3;
+		for (target = 0; target < source_size; ++target) {
+			for (mode = 0; mode < 4; ++mode) {
+				tommy_hash_t hash;
+				tommy_node saved;
+				unsigned source_count = 0, destination_count = 0;
+
+				tommy_hashlin_init(&table);
+				for (i = 0; i < counts[c][0]; ++i) {
+					obj[i].value = i;
+					hashes[i] = i < 3 ? 0 : i == 3 ? 1 : 2;
+					tommy_hashlin_insert(&table, &obj[i].node, &obj[i], hashes[i]);
+				}
+				for (i = counts[c][0]; i > n; --i)
+					tommy_hashlin_remove_existing(&table, &obj[i - 1].node);
+
+				bucket_max = table.bucket_max;
+				bucket_mask = table.bucket_mask;
+				bucket_bit = table.bucket_bit;
+				state = table.state;
+				low_max = table.low_max;
+				low_mask = table.low_mask;
+				split = table.split;
+				for (i = 0; i < bucket_bit; ++i)
+					segments[i] = table.bucket[i];
+				/* exercise unchanged hash, same bucket, occupied bucket and empty bucket. */
+				hash = mode == 0 ? 0 : mode == 1 ? bucket_max : mode == 2 ? 1 : ~(tommy_hash_t)0;
+				saved = obj[target].node;
+				obj[target].value = 1000 + target;
+				tommy_hashlin_rehash_existing(&table, &obj[target].node, hash);
+				hashes[target] = hash;
+
+				if (tommy_hashlin_count(&table) != n || table.bucket_max != bucket_max
+					|| table.bucket_mask != bucket_mask
+					|| table.bucket_bit != bucket_bit || table.state != state
+					|| table.low_max != low_max || table.low_mask != low_mask || table.split != split
+					|| obj[target].node.index != hash || obj[target].node.data != saved.data
+					|| obj[target].value != (int)(1000 + target)
+					|| (mode == 0 && (obj[target].node.next != saved.next || obj[target].node.prev != saved.prev)))
+					/* LCOV_EXCL_START */
+					abort();
+				/* LCOV_EXCL_STOP */
+				for (i = 0; i < bucket_bit; ++i)
+					if (table.bucket[i] != segments[i])
+						/* LCOV_EXCL_START */
+						abort();
+				/* LCOV_EXCL_STOP */
+
+				for (i = 0; i < source_size; ++i)
+					if (mode == 0 || i != target)
+						source[source_count++] = i;
+				if (mode == 1)
+					source[source_count++] = target;
+				test_hash_bucket(tommy_hashlin_bucket(&table, 0), obj, source, source_count);
+
+				if (n > 3)
+					destination[destination_count++] = 3;
+				if (mode == 2)
+					destination[destination_count++] = target;
+				test_hash_bucket(tommy_hashlin_bucket(&table, 1), obj, destination, destination_count);
+				if (mode == 3)
+					test_hash_bucket(tommy_hashlin_bucket(&table, hash), obj, &target, 1);
+				if (mode != 0 && tommy_hashlin_search(&table, search_callback, &obj[target], 0) != 0)
+					/* LCOV_EXCL_START */
+					abort();
+				/* LCOV_EXCL_STOP */
+				/* also unlink from the new hash, including an unsplit high position. */
+				if (mode != 0) {
+					tommy_hashlin_rehash_existing(&table, &obj[target].node, 0);
+					if (tommy_hashlin_count(&table) != n || obj[target].node.index != 0
+						|| tommy_hashlin_search(&table, search_callback, &obj[target], 0) != &obj[target]
+						|| tommy_hashlin_search(&table, search_callback, &obj[target], hash) != 0)
+						/* LCOV_EXCL_START */
+						abort();
+					/* LCOV_EXCL_STOP */
+					tommy_hashlin_rehash_existing(&table, &obj[target].node, hash);
+				}
+				for (i = 0; i < n; ++i)
+					if (tommy_hashlin_search(&table, search_callback, &obj[i], hashes[i]) != &obj[i])
+						/* LCOV_EXCL_START */
+						abort();
+				/* LCOV_EXCL_STOP */
+
+				/* subsequent resizing and removals must use the updated stored hash. */
+				for (i = n; i < 130; ++i) {
+					obj[i].value = i;
+					hashes[i] = i < 3 ? 0 : i == 3 ? 1 : 2;
+					tommy_hashlin_insert(&table, &obj[i].node, &obj[i], hashes[i]);
+				}
+				for (i = 0; i < 130; ++i)
+					if (tommy_hashlin_search(&table, search_callback, &obj[i], hashes[i]) != &obj[i])
+						/* LCOV_EXCL_START */
+						abort();
+				/* LCOV_EXCL_STOP */
+				for (i = 130; i > 0; --i) {
+					void* data;
+					if (i % 2)
+						data = tommy_hashlin_remove_existing(&table, &obj[i - 1].node);
+					else
+						data = tommy_hashlin_remove(&table, search_callback, &obj[i - 1], hashes[i - 1]);
+					if (data != &obj[i - 1] || tommy_hashlin_count(&table) != i - 1)
+						/* LCOV_EXCL_START */
+						abort();
+					/* LCOV_EXCL_STOP */
+				}
+				tommy_hashlin_done(&table);
+			}
+		}
+	}
+}
+
+void test_hashlin_to_list(void)
+{
+	const unsigned counts[][2] = {
+		{ 0, 0 }, { 1, 1 }, { 33, 33 }, { 48, 48 }, { 63, 63 }, { 64, 64 },
+		{ 65, 65 }, { 128, 128 }, { 128, 31 }, { 128, 24 }, { 128, 17 },
+		{ 128, 16 }, { 128, 15 }, { 128, 9 }, { 128, 8 }
+	};
+	struct object_hash obj[130];
+	tommy_node saved[130];
+	tommy_hashlin hashlin;
+	tommy_hashlin_node** segments[TOMMY_SIZE_BIT];
+	tommy_list list;
+	tommy_size_t bucket_max, bucket_mask;
+	tommy_uint_t bucket_bit, stable_state;
+	unsigned c, i, prefix, size;
+
+	for (c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
+		for (prefix = 0; prefix <= 2; prefix += 2) {
+			size = prefix + counts[c][1];
+			tommy_hashlin_init(&hashlin);
+			stable_state = hashlin.state;
+			tommy_list_init(&list);
+			for (i = 0; i < prefix + counts[c][0]; ++i) {
+				obj[i].value = i / 2;
+				obj[i].node.index = tommy_inthash_u32(obj[i].value);
+				if (i < prefix)
+					tommy_list_insert_tail(&list, &obj[i].node, &obj[i]);
+				else
+					tommy_hashlin_insert(&hashlin, &obj[i].node, &obj[i], obj[i].node.index);
+			}
+			for (i = prefix + counts[c][0]; i > size; --i)
+				tommy_hashlin_remove_existing(&hashlin, &obj[i - 1].node);
+			for (i = 0; i < size; ++i)
+				saved[i] = obj[i].node;
+			bucket_max = hashlin.bucket_max;
+			bucket_mask = hashlin.bucket_mask;
+			bucket_bit = hashlin.bucket_bit;
+			for (i = 0; i < bucket_bit; ++i)
+				segments[i] = hashlin.bucket[i];
+
+			/* inactive slots must never be transferred, including stale shrink pointers. */
+			for (i = hashlin.low_max + hashlin.split; i < bucket_max; ++i)
+				*tommy_hashlin_pos(&hashlin, i) = &obj[prefix].node;
+
+			tommy_hashlin_to_list(&hashlin, &list);
+			test_hash_list(&list, obj, saved, size, prefix);
+			if (tommy_hashlin_count(&hashlin) != 0 || hashlin.bucket_max != bucket_max
+				|| hashlin.bucket_mask != bucket_mask || hashlin.bucket_bit != bucket_bit
+				|| hashlin.state != stable_state || hashlin.low_max != bucket_max
+				|| hashlin.low_mask != bucket_mask || hashlin.split != 0
+				|| tommy_hashlin_memory_usage(&hashlin) != bucket_max * sizeof(tommy_hashlin_node*))
+				/* LCOV_EXCL_START */
+				abort();
+			/* LCOV_EXCL_STOP */
+			for (i = 0; i < bucket_bit; ++i)
+				if (hashlin.bucket[i] != segments[i])
+					/* LCOV_EXCL_START */
+					abort();
+			/* LCOV_EXCL_STOP */
+			for (i = 0; i < bucket_max; ++i)
+				if (tommy_hashlin_bucket(&hashlin, i) != 0)
+					/* LCOV_EXCL_START */
+					abort();
+			/* LCOV_EXCL_STOP */
+			the_count = 0;
+			tommy_hashlin_foreach(&hashlin, count_callback);
+			if (the_count != 0)
+				/* LCOV_EXCL_START */
+				abort();
+			/* LCOV_EXCL_STOP */
+			for (i = prefix; i < size; ++i)
+				if (tommy_hashlin_search(&hashlin, search_callback, &obj[i], obj[i].node.index) != 0)
+					/* LCOV_EXCL_START */
+					abort();
+			/* LCOV_EXCL_STOP */
+
+			for (i = 0; i < size; ++i)
+				saved[i] = obj[i].node;
+			tommy_hashlin_to_list(&hashlin, &list);
+			test_hash_list(&list, obj, saved, size, prefix);
+
+			/* reinsert all transferred nodes, then grow beyond the retained capacity. */
+			while (!tommy_list_empty(&list)) {
+				struct object_hash* data = tommy_list_remove_head(&list);
+				tommy_hashlin_insert(&hashlin, &data->node, data, data->node.index);
+			}
+			for (i = size; i < 130; ++i) {
+				obj[i].value = i / 2;
+				tommy_hashlin_insert(&hashlin, &obj[i].node, &obj[i], tommy_inthash_u32(obj[i].value));
+			}
+			if (tommy_hashlin_count(&hashlin) != 130 || hashlin.bucket_max <= bucket_max)
+				/* LCOV_EXCL_START */
+				abort();
+			/* LCOV_EXCL_STOP */
+			for (i = 0; i < 130; ++i)
+				if (tommy_hashlin_search(&hashlin, search_callback, &obj[i], obj[i].node.index) != &obj[i]
+					|| tommy_hashlin_remove_existing(&hashlin, &obj[i].node) != &obj[i]
+					|| tommy_hashlin_count(&hashlin) != 130 - i - 1)
+					/* LCOV_EXCL_START */
+					abort();
+			/* LCOV_EXCL_STOP */
+			if (hashlin.bucket_max != (tommy_size_t)1 << TOMMY_HASHLIN_BIT)
+				/* LCOV_EXCL_START */
+				abort();
+			/* LCOV_EXCL_STOP */
+			tommy_hashlin_done(&hashlin);
+		}
+	}
+}
+
+void test_hashlin_clear(void)
+{
+	const unsigned counts[][2] = {
+		{ 0, 0 }, { 1, 1 }, { 32, 32 },
+		{ 33, 33 }, { 48, 48 }, { 63, 63 }, { 64, 64 },
+		{ 65, 65 }, { 96, 96 }, { 127, 127 }, { 128, 128 },
+		{ 128, 31 }, { 128, 24 }, { 128, 17 }, { 128, 16 },
+		{ 128, 15 }, { 128, 12 }, { 128, 9 }, { 128, 8 }
+	};
+	struct object_hash obj[256];
+	tommy_hashlin hashlin;
+	tommy_hashlin_node** bucket[TOMMY_SIZE_BIT];
+	tommy_size_t bucket_max, bucket_mask, memory_usage;
+	tommy_uint_t bucket_bit, stable_state;
+	unsigned c, i, j, n, retained;
+	unsigned stable = 0, grow = 0, shrink = 0;
+
+	for(c=0;c<sizeof(counts)/sizeof(counts[0]);++c) {
+		n = counts[c][0];
+		retained = counts[c][1];
+		tommy_hashlin_init(&hashlin);
+		stable_state = hashlin.state;
+
+		for(i=0;i<n;++i) {
+			obj[i].value = i / 2;
+			tommy_hashlin_insert(&hashlin, &obj[i].node, &obj[i], tommy_inthash_u32(obj[i].value));
+		}
+		/* stop at different points of a progressive shrink. */
+		for(i=n;i>retained;--i)
+			tommy_hashlin_remove_existing(&hashlin, &obj[i - 1].node);
+
+		if (hashlin.state == stable_state)
+			++stable;
+		else if (n == retained)
+			++grow;
+		else
+			++shrink;
+
+		bucket_max = hashlin.bucket_max;
+		bucket_mask = hashlin.bucket_mask;
+		bucket_bit = hashlin.bucket_bit;
+		for(i=0;i<bucket_bit;++i)
+			bucket[i] = hashlin.bucket[i];
+		memory_usage = tommy_hashlin_memory_usage(&hashlin) - retained * sizeof(tommy_hashlin_node);
+
+		/* inactive slots may contain arbitrary values or stale node pointers. */
+		for(i=hashlin.low_max+hashlin.split;i<bucket_max;++i)
+			*tommy_hashlin_pos(&hashlin, i) = &obj[0].node;
+
+		for(j=0;j<2;++j) {
+			tommy_hashlin_clear(&hashlin);
+			if (tommy_hashlin_count(&hashlin) != 0
+				|| hashlin.bucket_max != bucket_max || hashlin.bucket_mask != bucket_mask
+				|| hashlin.bucket_bit != bucket_bit || hashlin.state != stable_state
+				|| hashlin.low_max != bucket_max || hashlin.low_mask != bucket_mask
+				|| hashlin.split != 0 || tommy_hashlin_memory_usage(&hashlin) != memory_usage)
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+
+			for(i=0;i<bucket_bit;++i)
+				if (hashlin.bucket[i] != bucket[i])
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+
+			for(i=0;i<bucket_max;++i)
+				if (tommy_hashlin_bucket(&hashlin, i) != 0)
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+
+			the_count = 0;
+			tommy_hashlin_foreach(&hashlin, count_callback);
+			tommy_hashlin_foreach_arg(&hashlin, count_arg_callback, &the_count);
+			if (the_count != 0)
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+
+			for(i=0;i<retained;++i) {
+				tommy_hash_t hash = tommy_inthash_u32(obj[i].value);
+				if (obj[i].value != (int)(i / 2)
+					|| obj[i].node.data != &obj[i] || obj[i].node.index != hash
+					|| tommy_hashlin_search(&hashlin, search_callback, &obj[i], hash) != 0
+					|| tommy_hashlin_remove(&hashlin, search_callback, &obj[i], hash) != 0)
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+			}
+		}
+
+		/* reuse old nodes and grow beyond the preserved capacity. */
+		for(i=0;i<256;++i) {
+			obj[i].value = i / 2;
+			tommy_hashlin_insert(&hashlin, &obj[i].node, &obj[i], tommy_inthash_u32(obj[i].value));
+			if (tommy_hashlin_count(&hashlin) != i + 1)
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+		}
+		if (hashlin.bucket_max <= bucket_max)
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+
+		for(i=0;i<256;++i)
+			if (tommy_hashlin_search(&hashlin, search_callback, &obj[i], tommy_inthash_u32(obj[i].value)) != &obj[i])
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+
+		/* verify both removal paths while the table shrinks again. */
+		for(i=256;i>0;--i) {
+			void* data;
+			if (i % 2)
+				data = tommy_hashlin_remove_existing(&hashlin, &obj[i - 1].node);
+			else
+				data = tommy_hashlin_remove(&hashlin, search_callback, &obj[i - 1], tommy_inthash_u32(obj[i - 1].value));
+			if (data != &obj[i - 1] || tommy_hashlin_count(&hashlin) != i - 1)
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+		}
+		if (hashlin.bucket_max != (tommy_size_t)1 << TOMMY_HASHLIN_BIT)
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		tommy_hashlin_done(&hashlin);
+	}
+
+	if (stable == 0 || grow == 0 || shrink == 0)
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+
+	/* free objects during a partial grow or shrink, then clear and reuse. */
+	for(c=0;c<2;++c) {
+		struct object_hash* allocated[128];
+		n = c == 0 ? 33 : 128;
+		retained = c == 0 ? 33 : 24;
+		tommy_hashlin_init(&hashlin);
+		for(i=0;i<n;++i) {
+			allocated[i] = malloc(sizeof(struct object_hash));
+			allocated[i]->value = i;
+			tommy_hashlin_insert(&hashlin, &allocated[i]->node, allocated[i], tommy_inthash_u32(i));
+		}
+		for(i=n;i>retained;--i)
+			free(tommy_hashlin_remove_existing(&hashlin, &allocated[i - 1]->node));
+		tommy_hashlin_foreach(&hashlin, free);
+		tommy_hashlin_clear(&hashlin);
+		obj[0].value = 1;
+		tommy_hashlin_insert(&hashlin, &obj[0].node, &obj[0], 1);
+		if (tommy_hashlin_count(&hashlin) != 1
+			|| tommy_hashlin_remove_existing(&hashlin, &obj[0].node) != &obj[0])
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		tommy_hashlin_done(&hashlin);
+	}
+}
+
 void test_hashlin(void)
 {
 	tommy_hashlin hashlin;
@@ -1811,6 +3441,11 @@ void test_hashlin(void)
 	const unsigned size = TOMMY_SIZE;
 	const unsigned module = TOMMY_SIZE / 4;
 	tommy_hashlin_node* bucket;
+
+	test_hashlin_clear();
+	test_hashlin_insert_unique();
+	test_hashlin_rehash_existing();
+	test_hashlin_to_list();
 
 	HASH = malloc(size * sizeof(struct object_hash));
 
@@ -2123,4 +3758,3 @@ int main()
 
 	return EXIT_SUCCESS;
 }
-
