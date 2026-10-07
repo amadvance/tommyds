@@ -155,15 +155,11 @@ tommy_inline void tommy_tree_insert_balance(tommy_tree* tree, tommy_tree_node* n
 	}
 }
 
-TOMMY_API void* tommy_tree_insert(tommy_tree* tree, tommy_tree_node* node, void* data)
+tommy_inline void* tommy_tree_insert_impl(tommy_tree* tree, tommy_tree_node* node, void* data, tommy_bool_t unique)
 {
 	tommy_tree_node* parent = 0;
+	tommy_tree_node* existing = 0;
 	tommy_tree_node** link = &tree->root;
-
-	node->data = data;
-	node->prev = 0;
-	node->next = 0;
-	node->index = 0;
 
 	while (*link) {
 		int cmp = tree->cmp(data, (*link)->data);
@@ -171,12 +167,21 @@ TOMMY_API void* tommy_tree_insert(tommy_tree* tree, tommy_tree_node* node, void*
 		parent = *link;
 		if (cmp < 0)
 			link = &parent->prev;
-		else if (cmp > 0)
+		else if (cmp == 0 && unique) {
+			existing = parent;
+			link = &parent->prev;
+		} else {
+			/* placing equal keys after existing ones preserves insertion order through rotations */
 			link = &parent->next;
-		else
-			return parent->data;
+		}
 	}
 
+	if (existing)
+		return existing->data;
+
+	node->data = data;
+	node->prev = 0;
+	node->next = 0;
 	node->index = (tommy_size_t)(tommy_uintptr_t)parent;
 	*link = node;
 	++tree->count;
@@ -184,6 +189,16 @@ TOMMY_API void* tommy_tree_insert(tommy_tree* tree, tommy_tree_node* node, void*
 	tommy_tree_insert_balance(tree, node);
 
 	return node->data;
+}
+
+TOMMY_API void tommy_tree_insert(tommy_tree* tree, tommy_tree_node* node, void* data)
+{
+	tommy_tree_insert_impl(tree, node, data, 0);
+}
+
+TOMMY_API void* tommy_tree_insert_unique(tommy_tree* tree, tommy_tree_node* node, void* data)
+{
+	return tommy_tree_insert_impl(tree, node, data, 1);
 }
 
 tommy_inline void tommy_tree_remove_balance(tommy_tree* tree, tommy_tree_node* node, tommy_bool_t left_shrunk)
@@ -326,35 +341,69 @@ TOMMY_API void* tommy_tree_remove_existing(tommy_tree* tree, tommy_tree_node* no
 	return data;
 }
 
-TOMMY_API void tommy_tree_foreach_node(tommy_tree_node* root, tommy_foreach_func* func)
+tommy_inline void tommy_tree_to_list_node(tommy_tree_node* node, tommy_list* list)
 {
-	while (root) {
-		tommy_tree_node* next;
+	if (node) {
+		tommy_tree_node* right = node->next;
 
-		tommy_tree_foreach_node(root->prev, func);
-
-		/* make a copy in case func is free() */
-		next = root->next;
-
-		func(root->data);
-
-		root = next;
+		tommy_tree_to_list_node(node->prev, list);
+		/* list insertion overwrites child links, so keep the right subtree reachable */
+		tommy_list_insert_tail(list, node, node->data);
+		tommy_tree_to_list_node(right, list);
 	}
 }
 
-TOMMY_API void tommy_tree_foreach_arg_node(tommy_tree_node* root, tommy_foreach_arg_func* func, void* arg)
+TOMMY_API void tommy_tree_to_list(tommy_tree* tree, tommy_list* list)
 {
-	while (root) {
+	tommy_tree_to_list_node(tree->root, list);
+	tommy_tree_clear(tree);
+}
+
+TOMMY_API void tommy_tree_foreach(tommy_tree* tree, tommy_foreach_func* func)
+{
+	/* AVL height is less than twice the bit width of its node count */
+	tommy_tree_node* stack[2 * TOMMY_SIZE_BIT];
+	tommy_size_t depth = 0;
+	tommy_tree_node* node = tree->root;
+
+	while (node || depth) {
 		tommy_tree_node* next;
 
-		tommy_tree_foreach_arg_node(root->prev, func, arg);
+		while (node) {
+			stack[depth] = node;
+			++depth;
+			node = node->prev;
+		}
 
-		/* make a copy in case func is free() */
-		next = root->next;
+		node = stack[--depth];
+		/* save the next subtree before the callback can free this node */
+		next = node->next;
+		func(node->data);
+		node = next;
+	}
+}
 
-		func(arg, root->data);
+TOMMY_API void tommy_tree_foreach_arg(tommy_tree* tree, tommy_foreach_arg_func* func, void* arg)
+{
+	/* AVL height is less than twice the bit width of its node count */
+	tommy_tree_node* stack[2 * TOMMY_SIZE_BIT];
+	tommy_size_t depth = 0;
+	tommy_tree_node* node = tree->root;
 
-		root = next;
+	while (node || depth) {
+		tommy_tree_node* next;
+
+		while (node) {
+			stack[depth] = node;
+			++depth;
+			node = node->prev;
+		}
+
+		node = stack[--depth];
+		/* save the next subtree before the callback can free this node */
+		next = node->next;
+		func(arg, node->data);
+		node = next;
 	}
 }
 
