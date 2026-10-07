@@ -7,6 +7,13 @@ TommyDS HISTORY
    keys and has a void return type. Code that used its return
    value to detect duplicates must call the new tommy_tree_insert_unique().
    Tree search and removal select the first equal element in tree order.
+ * BREAKING CHANGE: Reimplemented tommy_hash_u32(), tommy_hash_u64(),
+   tommy_strhash_u32(), and added tommy_strhash_u64() using MurmurHash3
+   (x86_32 and x64_64) for significantly faster hashing. This is a breaking
+   change because the resulting hash values are different from previous
+   versions. tommy_hash_u32() and tommy_hash_u64() now produce identical hash
+   results to tommy_strhash_u32() and tommy_strhash_u64() for 0-terminated
+   strings.
  * Added tommy_hashtable_bucket_count(), tommy_hashtable_clear(),
    tommy_hashtable_empty(), tommy_hashtable_insert_unique(),
    tommy_hashtable_rehash_existing() and tommy_hashtable_to_list().

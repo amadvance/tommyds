@@ -373,13 +373,12 @@ tommy_inline tommy_uint_t tommy_ilog2_u32(tommy_uint32_t value)
 #endif
 }
 
-#if TOMMY_SIZE_BIT == 64
 /**
  * Bit scan reverse or integer log2 for 64 bits.
  */
 tommy_inline tommy_uint_t tommy_ilog2_u64(tommy_uint64_t value)
 {
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && defined(_WIN64)
 	unsigned long count;
 	_BitScanReverse64(&count, value);
 	return count;
@@ -394,7 +393,6 @@ tommy_inline tommy_uint_t tommy_ilog2_u64(tommy_uint64_t value)
 		return tommy_ilog2_u32(l);
 #endif
 }
-#endif
 
 /**
  * Bit scan forward or trailing zero count.
@@ -424,13 +422,12 @@ tommy_inline tommy_uint_t tommy_ctz_u32(tommy_uint32_t value)
 #endif
 }
 
-#if TOMMY_SIZE_BIT == 64
 /**
  * Bit scan forward or trailing zero count for 64 bits.
  */
 tommy_inline tommy_uint_t tommy_ctz_u64(tommy_uint64_t value)
 {
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && defined(_WIN64)
 	unsigned long count;
 	_BitScanForward64(&count, value);
 	return count;
@@ -445,7 +442,6 @@ tommy_inline tommy_uint_t tommy_ctz_u64(tommy_uint64_t value)
 		return tommy_ctz_u32(h) + 32;
 #endif
 }
-#endif
 
 /**
  * Rounds up to the next power of 2.
@@ -492,6 +488,15 @@ tommy_inline tommy_uint64_t tommy_roundup_pow2_u64(tommy_uint64_t value)
 tommy_inline int tommy_haszero_u32(tommy_uint32_t value)
 {
 	return ((value - 0x01010101) & ~value & 0x80808080) != 0;
+}
+
+/**
+ * Check if the specified 64-bit word has a byte at 0.
+ * \return 0 or 1.
+ */
+tommy_inline int tommy_haszero_u64(tommy_uint64_t value)
+{
+	return ((value - 0x0101010101010101ULL) & ~value & 0x8080808080808080ULL) != 0;
 }
 
 /**
