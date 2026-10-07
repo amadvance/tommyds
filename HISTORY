@@ -1,10 +1,52 @@
 TommyDS HISTORY
 ===============
 
-3.1 2026/04
+4.0 2026/10
 ===========
- * New tommy_hashdyn_to_list() function.
- * New tommy_list_insert_after() function.
+ * BREAKING CHANGE: tommy_tree_insert() now inserts elements with duplicate
+   keys and has a void return type. Code that used its return
+   value to detect duplicates must call the new tommy_tree_insert_unique().
+   Tree search and removal select the first equal element in tree order.
+ * Added tommy_hashtable_bucket_count(), tommy_hashtable_clear(),
+   tommy_hashtable_empty(), tommy_hashtable_insert_unique(),
+   tommy_hashtable_rehash_existing() and tommy_hashtable_to_list().
+   These query table state, empty it while retaining buckets, insert only
+   absent keys, update an existing node's hash, and drain nodes to a list.
+ * Added tommy_hashdyn_bucket_count(), tommy_hashdyn_clear(),
+   tommy_hashdyn_empty(), tommy_hashdyn_insert_unique(),
+   tommy_hashdyn_rehash_existing(), tommy_hashdyn_reserve(),
+   tommy_hashdyn_shrink() and tommy_hashdyn_to_list().
+   In addition to state queries, reuse, unique insertion, rehashing, and
+   list transfer, these can reserve or shrink the bucket allocation.
+ * Added tommy_hashlin_bucket_count(), tommy_hashlin_clear(),
+   tommy_hashlin_empty(), tommy_hashlin_insert_unique(),
+   tommy_hashlin_rehash_existing() and tommy_hashlin_to_list().
+   These provide state queries, reuse, unique insertion, rehashing, and
+   transfer to a list for the linear hash table.
+ * Added tommy_list_insert_before(), tommy_list_insert_after(),
+   tommy_list_remove_head(), tommy_list_remove_tail(), tommy_list_prev(),
+   tommy_list_move_head(), tommy_list_move_tail(), tommy_list_reverse()
+   and tommy_list_swap().
+   These add relative insertion, removal at either end, backward iteration,
+   and ways to reorder or exchange list contents.
+ * Added tommy_list_split(), tommy_list_prepend(),
+   tommy_list_splice_before(), tommy_list_splice_after() and
+   tommy_list_merge().
+   These transfer ranges or whole lists without copying objects, and merge
+   two sorted lists while preserving the order of equal elements.
+ * Added tommy_tree_head(), tommy_tree_tail(), tommy_tree_next(),
+   tommy_tree_prev(), tommy_tree_parent(), tommy_tree_empty(),
+   tommy_tree_remove_head() and tommy_tree_remove_tail().
+   These navigate the tree and its key order, test for emptiness, and remove
+   its smallest or greatest element.
+ * Added tommy_tree_search_greater_equal(),
+   tommy_tree_search_greater_equal_compare(),
+   tommy_tree_search_less_equal(),
+   tommy_tree_search_less_equal_compare(), tommy_tree_insert_unique(),
+   tommy_tree_remove_compare(), tommy_tree_clear() and tommy_tree_to_list().
+   These find inclusive key bounds, keep unique insertion available, remove
+   using a custom comparison, clear for reuse, and drain nodes to a list in
+   tree order.
 
 3.0 2025/11
 ===========
