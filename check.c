@@ -2132,6 +2132,7 @@ void test_arrayblk(void)
 {
 	tommy_arrayblk arrayblk;
 	tommy_uintptr_t i;
+	void** first_ref = 0;
 	const unsigned size = 50 * TOMMY_SIZE;
 
 	tommy_arrayblk_init(&arrayblk);
@@ -2142,6 +2143,8 @@ void test_arrayblk(void)
 	START("arrayblk init");
 	for (i = 0; i < size; ++i) {
 		tommy_arrayblk_grow(&arrayblk, i + 1);
+		if (i == 0)
+			first_ref = tommy_arrayblk_ref(&arrayblk, i);
 		if (tommy_arrayblk_get(&arrayblk, i) != 0) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -2149,6 +2152,11 @@ void test_arrayblk(void)
 		}
 	}
 	STOP();
+	if (first_ref != tommy_arrayblk_ref(&arrayblk, 0)) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
 
 	START("arrayblk set");
 	for (i = 0; i < size; ++i) {
@@ -2179,6 +2187,7 @@ void test_arrayblkof(void)
 {
 	tommy_arrayblkof arrayblkof;
 	unsigned i;
+	unsigned* first_ref = 0;
 	const unsigned size = 50 * TOMMY_SIZE;
 
 	tommy_arrayblkof_init(&arrayblkof, sizeof(unsigned));
@@ -2190,6 +2199,8 @@ void test_arrayblkof(void)
 	for (i = 0; i < size; ++i) {
 		tommy_arrayblkof_grow(&arrayblkof, i + 1);
 		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
+		if (i == 0)
+			first_ref = ref;
 		if (*ref != 0) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -2197,6 +2208,11 @@ void test_arrayblkof(void)
 		}
 	}
 	STOP();
+	if (first_ref != tommy_arrayblkof_ref(&arrayblkof, 0)) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
 
 	START("arrayblkof set");
 	for (i = 0; i < size; ++i) {

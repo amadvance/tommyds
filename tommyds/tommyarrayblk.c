@@ -6,9 +6,11 @@
 /******************************************************************************/
 /* array */
 
-void tommy_arrayblk_init(tommy_arrayblk* array)
+TOMMY_API void tommy_arrayblk_init(tommy_arrayblk* array)
 {
-	tommy_array_init(&array->block);
+	array->block_capacity = (tommy_size_t)1 << TOMMY_ARRAY_BIT;
+	array->block = tommy_cast(void***, tommy_malloc(array->block_capacity * sizeof(array->block[0])));
+	array->block_count = 0;
 
 	array->count = 0;
 }
@@ -17,42 +19,45 @@ TOMMY_API void tommy_arrayblk_done(tommy_arrayblk* array)
 {
 	tommy_size_t i;
 
-	for (i = 0; i < tommy_array_size(&array->block); ++i)
-		tommy_free(tommy_array_get(&array->block, i));
+	for (i = 0; i < array->block_count; ++i)
+		tommy_free(array->block[i]);
 
-	tommy_array_done(&array->block);
+	tommy_free(array->block);
 }
 
 TOMMY_API void tommy_arrayblk_grow(tommy_arrayblk* array, tommy_size_t count)
 {
 	tommy_size_t block_max;
-	tommy_size_t block_mac;
+	tommy_size_t capacity;
 
 	if (array->count >= count)
 		return;
 	array->count = count;
 
-	block_max = (count + TOMMY_ARRAYBLK_SIZE - 1) / TOMMY_ARRAYBLK_SIZE;
-	block_mac = tommy_array_size(&array->block);
+	if (count <= array->block_count * TOMMY_ARRAYBLK_SIZE)
+		return;
+	block_max = (count - 1) / TOMMY_ARRAYBLK_SIZE + 1;
 
-	if (block_mac < block_max) {
-		/* grow the block array */
-		tommy_array_grow(&array->block, block_max);
+	if (array->block_capacity < block_max) {
+		/* only the directory moves; addresses inside existing blocks stay valid */
+		capacity = array->block_capacity;
+		while (capacity < block_max)
+			capacity *= 2;
+		array->block = tommy_cast(void***, tommy_realloc(array->block, capacity * sizeof(array->block[0])));
+		array->block_capacity = capacity;
+	}
 
-		/* allocate new blocks */
-		while (block_mac < block_max) {
-			void** ptr = tommy_cast(void**, tommy_calloc(TOMMY_ARRAYBLK_SIZE, sizeof(void*)));
+	/* allocate new blocks */
+	while (array->block_count < block_max) {
+		void** ptr = tommy_cast(void**, tommy_calloc(TOMMY_ARRAYBLK_SIZE, sizeof(void*)));
 
-			/* set the new block */
-			tommy_array_set(&array->block, block_mac, ptr);
-
-			++block_mac;
-		}
+		array->block[array->block_count] = ptr;
+		++array->block_count;
 	}
 }
 
 TOMMY_API tommy_size_t tommy_arrayblk_memory_usage(tommy_arrayblk* array)
 {
-	return tommy_array_memory_usage(&array->block) + tommy_array_size(&array->block) * TOMMY_ARRAYBLK_SIZE * sizeof(void*);
+	return array->block_capacity * sizeof(array->block[0]) + array->block_count * TOMMY_ARRAYBLK_SIZE * sizeof(void*);
 }
 

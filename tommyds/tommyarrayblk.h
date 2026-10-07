@@ -4,12 +4,10 @@
 /** \file
  * Dynamic array based on blocks of fixed size.
  *
- * This array is able to grow dynamically upon request, without any reallocation.
+ * This array is able to grow dynamically without reallocating stored elements.
  *
- * The grow operation involves an allocation of a new array block, without reallocating
- * the already used memory, and thus **not increasing** the heap fragmentation,
- * and **minimizing** the space occupation.
- * This also implies that the address of the stored elements never change.
+ * Growth allocates new blocks without moving existing ones. The directory of
+ * block pointers may be reallocated, but element addresses never change.
  *
  * Allocated blocks are always of the same fixed size of 4 Ki pointers.
  */
@@ -18,7 +16,6 @@
 #define __TOMMYARRAYBLK_H
 
 #include "tommytypes.h"
-#include "tommyarray.h"
 
 #include <assert.h> /* for assert */
 
@@ -35,7 +32,9 @@
  * \note Don't use internal fields directly, but access the container only using functions.
  */
 typedef struct tommy_arrayblk_struct {
-	tommy_array block; /**< Array of blocks. */
+	void*** block; /**< Directory of blocks. */
+	tommy_size_t block_count; /**< Number of allocated blocks. */
+	tommy_size_t block_capacity; /**< Number of directory entries allocated. */
 	tommy_size_t count; /**< Number of initialized elements in the array. */
 } tommy_arrayblk;
 
@@ -62,13 +61,9 @@ TOMMY_API void tommy_arrayblk_grow(tommy_arrayblk* array, tommy_size_t size);
  */
 tommy_inline void** tommy_arrayblk_ref(tommy_arrayblk* array, tommy_size_t pos)
 {
-	void** ptr;
-
 	assert(pos < array->count);
 
-	ptr = tommy_cast(void**, tommy_array_get(&array->block, pos / TOMMY_ARRAYBLK_SIZE));
-
-	return &ptr[pos % TOMMY_ARRAYBLK_SIZE];
+	return &array->block[pos / TOMMY_ARRAYBLK_SIZE][pos % TOMMY_ARRAYBLK_SIZE];
 }
 
 /**
