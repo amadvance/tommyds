@@ -158,10 +158,11 @@ static tommy_uint64_t nano(void)
 	t = mach_absolute_time();
 
 	r = mach_timebase_info(&info);
-	if (r != 0)
+	if (r != 0) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
 	ret = (t / info.denom) * info.numer;
 
@@ -171,10 +172,11 @@ static tommy_uint64_t nano(void)
 	int r;
 
 	r = clock_gettime(CLOCK_MONOTONIC, &ts);
-	if (r != 0)
+	if (r != 0) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
 	ret = ts.tv_sec * (tommy_uint64_t)1000000000 + ts.tv_nsec;
 #else
@@ -182,10 +184,11 @@ static tommy_uint64_t nano(void)
 	int r;
 
 	r = gettimeofday(&tv, 0);
-	if (r != 0)
+	if (r != 0) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
 	ret = tv.tv_sec * (tommy_uint64_t)1000000000 + tv.tv_usec * 1000;
 #endif
@@ -221,10 +224,11 @@ loop:
 	r = (unsigned)(SEED / divider);
 
 	/* it may happen as the divider is approximated down */
-	if (r >= max)
+	if (r >= max) {
 		/* LCOV_EXCL_START */
 		goto loop;
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
 	return r;
 }
@@ -643,10 +647,11 @@ void test_strhash_alignment(void)
 		for (alignment = 0; alignment < 4; ++alignment) {
 			memset(buffer[alignment], 0xa5, sizeof(buffer[alignment]));
 			memcpy(key[alignment], STRHASH32[i].data, strlen(STRHASH32[i].data) + 1);
-			if (tommy_strhash_u32(0xa766795d, key[alignment]) != STRHASH32[i].hash)
+			if (tommy_strhash_u32(0xa766795d, key[alignment]) != STRHASH32[i].hash) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 		}
 	}
 
@@ -661,14 +666,16 @@ void test_strhash_alignment(void)
 		for (s = 0; s < sizeof(seed) / sizeof(seed[0]); ++s) {
 			tommy_uint32_t expected = tommy_strhash_u32(seed[s], key[0]);
 			for (alignment = 0; alignment < 4; ++alignment) {
-				if (tommy_strhash_u32(seed[s], key[alignment]) != expected)
+				if (tommy_strhash_u32(seed[s], key[alignment]) != expected) {
 					/* LCOV_EXCL_START */
 					abort();
-				/* LCOV_EXCL_STOP */
-				if (tommy_hash_u32(seed[s], key[alignment], len) != expected)
+					/* LCOV_EXCL_STOP */
+				}
+				if (tommy_hash_u32(seed[s], key[alignment], len) != expected) {
 					/* LCOV_EXCL_START */
 					abort();
-				/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 			}
 		}
 	}
@@ -694,10 +701,11 @@ void test_strhash_u64_alignment(void)
 		for (alignment = 0; alignment < 8; ++alignment) {
 			memset(buffer[alignment], 0xa5, sizeof(buffer[alignment]));
 			memcpy(key[alignment], STRHASH64[i].data, strlen(STRHASH64[i].data) + 1);
-			if (tommy_strhash_u64(0x2f022773a766795dULL, key[alignment]) != STRHASH64[i].hash)
+			if (tommy_strhash_u64(0x2f022773a766795dULL, key[alignment]) != STRHASH64[i].hash) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 		}
 	}
 
@@ -712,14 +720,16 @@ void test_strhash_u64_alignment(void)
 		for (s = 0; s < sizeof(seed) / sizeof(seed[0]); ++s) {
 			tommy_uint64_t expected = tommy_strhash_u64(seed[s], key[0]);
 			for (alignment = 0; alignment < 8; ++alignment) {
-				if (tommy_strhash_u64(seed[s], key[alignment]) != expected)
+				if (tommy_strhash_u64(seed[s], key[alignment]) != expected) {
 					/* LCOV_EXCL_START */
 					abort();
-				/* LCOV_EXCL_STOP */
-				if (tommy_hash_u64(seed[s], key[alignment], len) != expected)
+					/* LCOV_EXCL_STOP */
+				}
+				if (tommy_hash_u64(seed[s], key[alignment], len) != expected) {
 					/* LCOV_EXCL_START */
 					abort();
-				/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 			}
 		}
 	}
@@ -738,56 +748,64 @@ void test_hash(void)
 	test_strhash_alignment();
 	test_strhash_u64_alignment();
 
-	if (tommy_hash_u32(0xa766795d, 0, 0) != 0x3ba63d24)
+	if (tommy_hash_u32(0xa766795d, 0, 0) != 0x3ba63d24) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
-	if (tommy_hash_u64(0x2f022773a766795dULL, 0, 0) != 0xf1999eea212f89e6ULL)
+	if (tommy_hash_u64(0x2f022773a766795dULL, 0, 0) != 0xf1999eea212f89e6ULL) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
 	for (i = 0; HASH32[i].data; ++i) {
-		if (tommy_hash_u32(0xa766795d, HASH32[i].data, HASH32[i].len) != HASH32[i].hash)
+		if (tommy_hash_u32(0xa766795d, HASH32[i].data, HASH32[i].len) != HASH32[i].hash) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 	}
 
 	for (i = 0; STRHASH32[i].data; ++i) {
-		if (tommy_strhash_u32(0xa766795d, STRHASH32[i].data) != STRHASH32[i].hash)
+		if (tommy_strhash_u32(0xa766795d, STRHASH32[i].data) != STRHASH32[i].hash) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 	}
 
 	for (i = 0; HASH64[i].data; ++i) {
-		if (tommy_hash_u64(0x2f022773a766795dULL, HASH64[i].data, HASH64[i].len) != HASH64[i].hash)
+		if (tommy_hash_u64(0x2f022773a766795dULL, HASH64[i].data, HASH64[i].len) != HASH64[i].hash) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 	}
 
 	for (i = 0; STRHASH64[i].data; ++i) {
-		if (tommy_strhash_u64(0x2f022773a766795dULL, STRHASH64[i].data) != STRHASH64[i].hash)
+		if (tommy_strhash_u64(0x2f022773a766795dULL, STRHASH64[i].data) != STRHASH64[i].hash) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 	}
 
 	for (i = 0; INTHASH32[i].value || !i; ++i) {
-		if (tommy_inthash_u32(INTHASH32[i].value) != INTHASH32[i].hash)
+		if (tommy_inthash_u32(INTHASH32[i].value) != INTHASH32[i].hash) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 	}
 
 	for (i = 0; INTHASH64[i].value || !i; ++i) {
-		if (tommy_inthash_u64(INTHASH64[i].value) != INTHASH64[i].hash)
+		if (tommy_inthash_u64(INTHASH64[i].value) != INTHASH64[i].hash) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 	}
 
 	STOP();
@@ -842,26 +860,29 @@ void test_alloc(void)
 
 	/* ensure at least pointer alignment */
 	tommy_allocator_init(&alloc, sizeof(void*), 1);
-	if (alloc.align_size < sizeof(void*))
+	if (alloc.align_size < sizeof(void*)) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 	tommy_allocator_done(&alloc);
 
 	/* ensure correct alignment */
 	tommy_allocator_init(&alloc, sizeof(void*) - 1, sizeof(void*));
-	if (alloc.block_size != sizeof(void*))
+	if (alloc.block_size != sizeof(void*)) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 	tommy_allocator_done(&alloc);
 
 	/* check big blocks */
 	tommy_allocator_init(&alloc, 128000, 64);
-	if (tommy_allocator_alloc(&alloc) == 0)
+	if (tommy_allocator_alloc(&alloc) == 0) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 	tommy_allocator_done(&alloc);
 
 	tommy_allocator_init(&alloc, 64, 64);
@@ -893,15 +914,17 @@ void test_list_order(tommy_node* list)
 			const struct object* a = node->data;
 			const struct object* b = node->next->data;
 			/* check order */
-			if (a->value > b->value)
+			if (a->value > b->value) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 			/* check order for stable sort */
-			if (a->value == b->value && a > b)
+			if (a->value == b->value && a > b) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 		}
 		node = node->next;
 	}
@@ -915,39 +938,44 @@ void test_list_sequence(tommy_list* list, struct object* obj, const unsigned* or
 	unsigned i;
 
 	if (tommy_list_empty(list) != (size == 0)
-		|| tommy_list_tail(list) != (size ? &obj[order[size - 1]].node : 0))
+		|| tommy_list_tail(list) != (size ? &obj[order[size - 1]].node : 0)) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
 	for (i = 0; i < size; ++i) {
 		if (node != &obj[order[i]].node || node->prev != prev
-			|| node->data != &obj[order[i]] || node->index != order[i] + 1)
+			|| node->data != &obj[order[i]] || node->index != order[i] + 1) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 		prev = node;
 		node = node->next;
 	}
 
-	if (node != 0 || tommy_list_count(list) != size)
+	if (node != 0 || tommy_list_count(list) != size) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
 	node = tommy_list_tail(list);
 	for (i = size; i > 0; --i) {
-		if (node != &obj[order[i - 1]].node)
+		if (node != &obj[order[i - 1]].node) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 		node = tommy_list_prev(list, node);
 	}
 
-	if (node != 0)
+	if (node != 0) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 }
 
 void test_list_build(tommy_list* list, struct object* obj, unsigned start, unsigned size)
@@ -1209,19 +1237,21 @@ void test_list_reverse_move(void)
 	obj[1].node.data = 0;
 	tommy_list_move_head(&list, &obj[1].node);
 	tommy_list_move_tail(&list, &obj[1].node);
-	if (tommy_list_tail(&list) != &obj[1].node || obj[1].node.data != 0 || obj[1].node.index != 2)
+	if (tommy_list_tail(&list) != &obj[1].node || obj[1].node.data != 0 || obj[1].node.index != 2) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 }
 
 void test_list_removed(tommy_node* node, tommy_node* saved)
 {
 	if (node->next != saved->next || node->prev != saved->prev
-		|| node->data != saved->data || node->index != saved->index)
+		|| node->data != saved->data || node->index != saved->index) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 }
 
 void test_list_remove_ends(void)
@@ -1255,17 +1285,19 @@ void test_list_remove_ends(void)
 					data = tommy_list_remove_head(&list);
 					++head;
 				}
-				if (data != saved.data)
+				if (data != saved.data) {
 					/* LCOV_EXCL_START */
 					abort();
-				/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 				test_list_removed(node, &saved);
 				test_list_sequence(&list, obj, order + head, tail - head);
 			}
-			if (tommy_list_remove_head(&list) != 0 || tommy_list_remove_tail(&list) != 0)
+			if (tommy_list_remove_head(&list) != 0 || tommy_list_remove_tail(&list) != 0) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 			test_list_sequence(&list, obj, 0, 0);
 		}
 	}
@@ -1276,10 +1308,11 @@ void test_list_remove_ends(void)
 		obj[0].node.data = 0;
 		saved = obj[0].node;
 		data = mode ? tommy_list_remove_tail(&list) : tommy_list_remove_head(&list);
-		if (data != 0)
+		if (data != 0) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 		test_list_removed(&obj[0].node, &saved);
 		test_list_sequence(&list, obj, 0, 0);
 	}
@@ -1341,35 +1374,40 @@ void test_list(void)
 	/* sort an empty list */
 	tommy_list_sort(&list, compare);
 
-	if (!tommy_list_empty(&list))
+	if (!tommy_list_empty(&list)) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
-	if (tommy_list_tail(&list) != 0)
+	if (tommy_list_tail(&list) != 0) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
-	if (tommy_list_head(&list) != 0)
+	if (tommy_list_head(&list) != 0) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
 	for (i = 0; i < size; ++i) {
 		VECTOR[i].value = LIST[i].value = rnd(size);
 		tommy_list_insert_tail(&list, &LIST[i].node, &LIST[i]);
 	}
 
-	if (tommy_list_tail(&list) == 0)
+	if (tommy_list_tail(&list) == 0) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
-	if (tommy_list_head(&list) == 0)
+	if (tommy_list_head(&list) == 0) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
 	START("sort random");
 	tommy_list_sort(&list, compare);
@@ -1475,50 +1513,57 @@ void test_tree(void)
 	for (i = 0; i < size; ++i)
 		tommy_tree_insert(&tree, &OBJ[i].node, &OBJ[i]);
 
-	if (tommy_tree_memory_usage(&tree) < size * sizeof(tommy_tree_node))
+	if (tommy_tree_memory_usage(&tree) < size * sizeof(tommy_tree_node)) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
-	if (tommy_tree_count(&tree) != size)
+	if (tommy_tree_count(&tree) != size) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
 	the_count = 0;
 	tommy_tree_foreach(&tree, count_callback);
-	if (the_count != size)
+	if (the_count != size) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
 	the_count = 0;
 	tommy_tree_foreach_arg(&tree, count_arg_callback, &the_count);
-	if (the_count != size)
+	if (the_count != size) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
 	/* search present */
 	for (i = 0; i < size / 2; ++i) {
-		if (tommy_tree_search(&tree, &OBJ[i]) == 0)
+		if (tommy_tree_search(&tree, &OBJ[i]) == 0) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
-		if (tommy_tree_search_compare(&tree, &compare, &OBJ[i]) == 0)
+			/* LCOV_EXCL_STOP */
+		}
+		if (tommy_tree_search_compare(&tree, &compare, &OBJ[i]) == 0) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 	}
 
 	/* insert existing */
 	for (i = 0; i < size; ++i) {
 		struct object_tree EXTRA;
 		EXTRA.value = i;
-		if (tommy_tree_insert_unique(&tree, &EXTRA.node, &EXTRA) == &EXTRA)
+		if (tommy_tree_insert_unique(&tree, &EXTRA.node, &EXTRA) == &EXTRA) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 	}
 
 	/* remove existing */
@@ -1527,29 +1572,33 @@ void test_tree(void)
 
 	/* remove missing */
 	for (i = 0; i < size / 2; ++i)
-		if (tommy_tree_remove(&tree, &OBJ[i]) != 0)
+		if (tommy_tree_remove(&tree, &OBJ[i]) != 0) {
 			/* LCOV_EXCL_START */
 			abort();
-	/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 
 	/* search missing */
 	for (i = 0; i < size / 2; ++i) {
-		if (tommy_tree_search(&tree, &OBJ[i]) != 0)
+		if (tommy_tree_search(&tree, &OBJ[i]) != 0) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
-		if (tommy_tree_search_compare(&tree, &compare, &OBJ[i]) != 0)
+			/* LCOV_EXCL_STOP */
+		}
+		if (tommy_tree_search_compare(&tree, &compare, &OBJ[i]) != 0) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 	}
 
 	/* remove present */
 	for (i = 0; i < size / 2; ++i)
-		if (tommy_tree_remove(&tree, &OBJ[size / 2 + i]) == 0)
+		if (tommy_tree_remove(&tree, &OBJ[size / 2 + i]) == 0) {
 			/* LCOV_EXCL_START */
 			abort();
-	/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 
 	/* reverse order */
 	for (i = 0; i < size; ++i)
@@ -1597,99 +1646,186 @@ void test_tree_duplicates(void)
 		tommy_tree_insert(&tree, &objects[i].node, &objects[i]);
 	}
 
-	if (tommy_tree_count(&tree) != 96)
+	if (tommy_tree_count(&tree) != 96) {
+		/* LCOV_EXCL_START */
 		abort();
+		/* LCOV_EXCL_STOP */
+	}
 
 	node = tommy_tree_head(&tree);
 	for (group = 0; group < 4; ++group) {
 		for (i = group; i < 96; i += 4) {
-			if (node != &objects[i].node)
+			if (node != &objects[i].node) {
+				/* LCOV_EXCL_START */
 				abort();
+				/* LCOV_EXCL_STOP */
+			}
 			node = tommy_tree_next(node);
 		}
 	}
-	if (node)
+	if (node) {
+		/* LCOV_EXCL_START */
 		abort();
+		/* LCOV_EXCL_STOP */
+	}
 
 	for (group = 0; group < 4; ++group) {
 		key.value = group;
-		if (tommy_tree_search(&tree, &key) != &objects[group])
+		if (tommy_tree_search(&tree, &key) != &objects[group]) {
+			/* LCOV_EXCL_START */
 			abort();
-		if (tommy_tree_search_compare(&tree, &compare, &key) != &objects[group])
+			/* LCOV_EXCL_STOP */
+		}
+		if (tommy_tree_search_compare(&tree, &compare, &key) != &objects[group]) {
+			/* LCOV_EXCL_START */
 			abort();
-		if (tommy_tree_search_greater_equal(&tree, &key) != &objects[group])
+			/* LCOV_EXCL_STOP */
+		}
+		if (tommy_tree_search_greater_equal(&tree, &key) != &objects[group]) {
+			/* LCOV_EXCL_START */
 			abort();
-		if (tommy_tree_search_greater_equal_compare(&tree, &compare, &key) != &objects[group])
+			/* LCOV_EXCL_STOP */
+		}
+		if (tommy_tree_search_greater_equal_compare(&tree, &compare, &key) != &objects[group]) {
+			/* LCOV_EXCL_START */
 			abort();
-		if (tommy_tree_search_less_equal(&tree, &key) != &objects[92 + group])
+			/* LCOV_EXCL_STOP */
+		}
+		if (tommy_tree_search_less_equal(&tree, &key) != &objects[92 + group]) {
+			/* LCOV_EXCL_START */
 			abort();
-		if (tommy_tree_search_less_equal_compare(&tree, &compare, &key) != &objects[92 + group])
+			/* LCOV_EXCL_STOP */
+		}
+		if (tommy_tree_search_less_equal_compare(&tree, &compare, &key) != &objects[92 + group]) {
+			/* LCOV_EXCL_START */
 			abort();
+			/* LCOV_EXCL_STOP */
+		}
 	}
 
 	key.value = 2;
-	if (tommy_tree_search_node_compare(&tree, &compare_tree_group, &key) != &objects[2].node)
+	if (tommy_tree_search_node_compare(&tree, &compare_tree_group, &key) != &objects[2].node) {
+		/* LCOV_EXCL_START */
 		abort();
-	if (tommy_tree_search_compare(&tree, &compare_tree_group, &key) != &objects[2])
+		/* LCOV_EXCL_STOP */
+	}
+	if (tommy_tree_search_compare(&tree, &compare_tree_group, &key) != &objects[2]) {
+		/* LCOV_EXCL_START */
 		abort();
-	if (tommy_tree_search_greater_equal_compare(&tree, &compare_tree_group, &key) != &objects[2])
+		/* LCOV_EXCL_STOP */
+	}
+	if (tommy_tree_search_greater_equal_compare(&tree, &compare_tree_group, &key) != &objects[2]) {
+		/* LCOV_EXCL_START */
 		abort();
-	if (tommy_tree_search_less_equal_compare(&tree, &compare_tree_group, &key) != &objects[95])
+		/* LCOV_EXCL_STOP */
+	}
+	if (tommy_tree_search_less_equal_compare(&tree, &compare_tree_group, &key) != &objects[95]) {
+		/* LCOV_EXCL_START */
 		abort();
+		/* LCOV_EXCL_STOP */
+	}
 
 	candidate.value = 2;
 	memset(&candidate.node, 0xa5, sizeof(candidate.node));
 	memcpy(before, &candidate.node, sizeof(before));
-	if (tommy_tree_insert_unique(&tree, &candidate.node, &candidate) != &objects[2])
+	if (tommy_tree_insert_unique(&tree, &candidate.node, &candidate) != &objects[2]) {
+		/* LCOV_EXCL_START */
 		abort();
-	if (memcmp(&candidate.node, &before, sizeof(before)) != 0 || tommy_tree_count(&tree) != 96)
+		/* LCOV_EXCL_STOP */
+	}
+	if (memcmp(&candidate.node, &before, sizeof(before)) != 0 || tommy_tree_count(&tree) != 96) {
+		/* LCOV_EXCL_START */
 		abort();
+		/* LCOV_EXCL_STOP */
+	}
 
 	for (i = 2; i < 96; i += 4) {
-		if (tommy_tree_remove(&tree, &candidate) != &objects[i])
+		if (tommy_tree_remove(&tree, &candidate) != &objects[i]) {
+			/* LCOV_EXCL_START */
 			abort();
+			/* LCOV_EXCL_STOP */
+		}
 	}
-	if (tommy_tree_remove(&tree, &candidate) != 0 || tommy_tree_count(&tree) != 72)
+	if (tommy_tree_remove(&tree, &candidate) != 0 || tommy_tree_count(&tree) != 72) {
+		/* LCOV_EXCL_START */
 		abort();
-	if (tommy_tree_search_greater_equal(&tree, &candidate) != &objects[3])
+		/* LCOV_EXCL_STOP */
+	}
+	if (tommy_tree_search_greater_equal(&tree, &candidate) != &objects[3]) {
+		/* LCOV_EXCL_START */
 		abort();
-	if (tommy_tree_search_less_equal(&tree, &candidate) != &objects[93])
+		/* LCOV_EXCL_STOP */
+	}
+	if (tommy_tree_search_less_equal(&tree, &candidate) != &objects[93]) {
+		/* LCOV_EXCL_START */
 		abort();
+		/* LCOV_EXCL_STOP */
+	}
 	for (i = 3; i < 96; i += 4) {
-		if (tommy_tree_remove_compare(&tree, &compare_tree_group, &candidate) != &objects[i])
+		if (tommy_tree_remove_compare(&tree, &compare_tree_group, &candidate) != &objects[i]) {
+			/* LCOV_EXCL_START */
 			abort();
+			/* LCOV_EXCL_STOP */
+		}
 	}
-	if (tommy_tree_remove_compare(&tree, &compare_tree_group, &candidate) != 0 || tommy_tree_count(&tree) != 48)
+	if (tommy_tree_remove_compare(&tree, &compare_tree_group, &candidate) != 0 || tommy_tree_count(&tree) != 48) {
+		/* LCOV_EXCL_START */
 		abort();
-	if (tommy_tree_search_node_compare(&tree, &compare_tree_group, &candidate) != 0)
+		/* LCOV_EXCL_STOP */
+	}
+	if (tommy_tree_search_node_compare(&tree, &compare_tree_group, &candidate) != 0) {
+		/* LCOV_EXCL_START */
 		abort();
+		/* LCOV_EXCL_STOP */
+	}
 
 	candidate.value = 4;
-	if (tommy_tree_insert_unique(&tree, &candidate.node, &candidate) != &candidate)
+	if (tommy_tree_insert_unique(&tree, &candidate.node, &candidate) != &candidate) {
+		/* LCOV_EXCL_START */
 		abort();
-	if (tommy_tree_tail(&tree) != &candidate.node || tommy_tree_count(&tree) != 49)
+		/* LCOV_EXCL_STOP */
+	}
+	if (tommy_tree_tail(&tree) != &candidate.node || tommy_tree_count(&tree) != 49) {
+		/* LCOV_EXCL_START */
 		abort();
+		/* LCOV_EXCL_STOP */
+	}
 
 	key.value = -1;
-	if (tommy_tree_search_less_equal(&tree, &key) != 0)
+	if (tommy_tree_search_less_equal(&tree, &key) != 0) {
+		/* LCOV_EXCL_START */
 		abort();
+		/* LCOV_EXCL_STOP */
+	}
 	key.value = 5;
-	if (tommy_tree_search_greater_equal(&tree, &key) != 0)
+	if (tommy_tree_search_greater_equal(&tree, &key) != 0) {
+		/* LCOV_EXCL_START */
 		abort();
+		/* LCOV_EXCL_STOP */
+	}
 
 	value = 4;
-	if (tommy_tree_remove_compare(&tree, &compare_tree_int, &value) != &candidate)
+	if (tommy_tree_remove_compare(&tree, &compare_tree_int, &value) != &candidate) {
+		/* LCOV_EXCL_START */
 		abort();
-	if (tommy_tree_remove_compare(&tree, &compare_tree_int, &value) != 0)
+		/* LCOV_EXCL_STOP */
+	}
+	if (tommy_tree_remove_compare(&tree, &compare_tree_int, &value) != 0) {
+		/* LCOV_EXCL_START */
 		abort();
+		/* LCOV_EXCL_STOP */
+	}
 	for (group = 0; group < 4; ++group) {
 		if (group >= 2)
 			continue;
 		for (i = group; i < 96; i += 4)
 			tommy_tree_remove_existing(&tree, &objects[i].node);
 	}
-	if (!tommy_tree_empty(&tree))
+	if (!tommy_tree_empty(&tree)) {
+		/* LCOV_EXCL_START */
 		abort();
+		/* LCOV_EXCL_STOP */
+	}
 }
 
 static void tree_foreach_free_arg_callback(void* arg, void* data)
@@ -1697,8 +1833,11 @@ static void tree_foreach_free_arg_callback(void* arg, void* data)
 	int* expected = arg;
 	struct object_tree* object = data;
 
-	if (object->value != *expected)
+	if (object->value != *expected) {
+		/* LCOV_EXCL_START */
 		abort();
+		/* LCOV_EXCL_STOP */
+	}
 	++*expected;
 	free(object);
 }
@@ -1725,8 +1864,11 @@ void test_tree_foreach(void)
 			tommy_tree_foreach(&tree, free);
 		} else {
 			tommy_tree_foreach_arg(&tree, tree_foreach_free_arg_callback, &expected);
-			if (expected != 64)
+			if (expected != 64) {
+				/* LCOV_EXCL_START */
 				abort();
+				/* LCOV_EXCL_STOP */
+			}
 		}
 		tommy_tree_clear(&tree);
 	}
@@ -1744,14 +1886,23 @@ void test_tree_clear(void)
 	tommy_tree_insert(&tree, &objects[0].node, &objects[0]);
 	tommy_tree_insert(&tree, &objects[1].node, &objects[1]);
 	tommy_tree_clear(&tree);
-	if (!tommy_tree_empty(&tree) || tommy_tree_count(&tree) != 0)
+	if (!tommy_tree_empty(&tree) || tommy_tree_count(&tree) != 0) {
+		/* LCOV_EXCL_START */
 		abort();
-	if (tommy_tree_head(&tree) != 0 || tommy_tree_tail(&tree) != 0)
+		/* LCOV_EXCL_STOP */
+	}
+	if (tommy_tree_head(&tree) != 0 || tommy_tree_tail(&tree) != 0) {
+		/* LCOV_EXCL_START */
 		abort();
+		/* LCOV_EXCL_STOP */
+	}
 
 	tommy_tree_insert(&tree, &objects[0].node, &objects[0]);
-	if (tommy_tree_search(&tree, &objects[0]) != &objects[0])
+	if (tommy_tree_search(&tree, &objects[0]) != &objects[0]) {
+		/* LCOV_EXCL_START */
 		abort();
+		/* LCOV_EXCL_STOP */
+	}
 	tommy_tree_remove_existing(&tree, &objects[0].node);
 
 	allocated = malloc(sizeof(*allocated));
@@ -1759,12 +1910,18 @@ void test_tree_clear(void)
 	tommy_tree_insert(&tree, &allocated->node, allocated);
 	tommy_tree_foreach(&tree, free);
 	tommy_tree_clear(&tree);
-	if (!tommy_tree_empty(&tree))
+	if (!tommy_tree_empty(&tree)) {
+		/* LCOV_EXCL_START */
 		abort();
+		/* LCOV_EXCL_STOP */
+	}
 
 	tommy_tree_insert(&tree, &objects[1].node, &objects[1]);
-	if (tommy_tree_remove(&tree, &objects[1]) != &objects[1])
+	if (tommy_tree_remove(&tree, &objects[1]) != &objects[1]) {
+		/* LCOV_EXCL_START */
 		abort();
+		/* LCOV_EXCL_STOP */
+	}
 }
 
 void test_tree_to_list(void)
@@ -1782,14 +1939,20 @@ void test_tree_to_list(void)
 	tommy_tree_init(&tree, &compare);
 	tommy_list_init(&list);
 	tommy_tree_to_list(&tree, &list);
-	if (!tommy_tree_empty(&tree) || !tommy_list_empty(&list))
+	if (!tommy_tree_empty(&tree) || !tommy_list_empty(&list)) {
+		/* LCOV_EXCL_START */
 		abort();
+		/* LCOV_EXCL_STOP */
+	}
 
 	reused.value = 7;
 	tommy_tree_insert(&tree, &reused.node, &reused);
 	tommy_tree_to_list(&tree, &list);
-	if (tommy_list_head(&list) != &reused.node || tommy_list_tail(&list) != &reused.node)
+	if (tommy_list_head(&list) != &reused.node || tommy_list_tail(&list) != &reused.node) {
+		/* LCOV_EXCL_START */
 		abort();
+		/* LCOV_EXCL_STOP */
+	}
 	tommy_list_init(&list);
 
 	for (i = 0; i < 2; ++i)
@@ -1802,43 +1965,70 @@ void test_tree_to_list(void)
 		index[i] = objects[i].node.index;
 
 	tommy_tree_to_list(&tree, &list);
-	if (!tommy_tree_empty(&tree) || tommy_tree_count(&tree) != 0)
+	if (!tommy_tree_empty(&tree) || tommy_tree_count(&tree) != 0) {
+		/* LCOV_EXCL_START */
 		abort();
-	if (tommy_list_count(&list) != 98)
+		/* LCOV_EXCL_STOP */
+	}
+	if (tommy_list_count(&list) != 98) {
+		/* LCOV_EXCL_START */
 		abort();
+		/* LCOV_EXCL_STOP */
+	}
 
 	node = tommy_list_head(&list);
 	for (i = 0; i < 2; ++i) {
-		if (node != &prefix[i].node)
+		if (node != &prefix[i].node) {
+			/* LCOV_EXCL_START */
 			abort();
+			/* LCOV_EXCL_STOP */
+		}
 		node = node->next;
 	}
 	for (group = 0; group < 5; ++group) {
 		for (i = group; i < 96; i += 5) {
-			if (node != &objects[i].node || node->data != &objects[i] || node->index != index[i])
+			if (node != &objects[i].node || node->data != &objects[i] || node->index != index[i]) {
+				/* LCOV_EXCL_START */
 				abort();
+				/* LCOV_EXCL_STOP */
+			}
 			node = node->next;
 		}
 	}
-	if (node)
+	if (node) {
+		/* LCOV_EXCL_START */
 		abort();
+		/* LCOV_EXCL_STOP */
+	}
 
 	node = tommy_list_tail(&list);
 	for (i = 0; i < 98; ++i) {
-		if (!node)
+		if (!node) {
+			/* LCOV_EXCL_START */
 			abort();
+			/* LCOV_EXCL_STOP */
+		}
 		node = tommy_list_prev(&list, node);
 	}
-	if (node)
+	if (node) {
+		/* LCOV_EXCL_START */
 		abort();
+		/* LCOV_EXCL_STOP */
+	}
 
 	tommy_tree_to_list(&tree, &list);
-	if (tommy_list_count(&list) != 98)
+	if (tommy_list_count(&list) != 98) {
+		/* LCOV_EXCL_START */
 		abort();
+		/* LCOV_EXCL_STOP */
+	}
 	reused.value = 8;
 	tommy_tree_insert(&tree, &reused.node, &reused);
-	if (tommy_tree_remove(&tree, &reused) != &reused)
+	if (tommy_tree_remove(&tree, &reused) != &reused) {
+		/* LCOV_EXCL_START */
 		abort();
+		/* LCOV_EXCL_STOP */
+	}
 }
 
 void test_array(void)
@@ -1855,10 +2045,11 @@ void test_array(void)
 	START("array init");
 	for (i = 0; i < size; ++i) {
 		tommy_array_grow(&array, i + 1);
-		if (tommy_array_get(&array, i) != 0)
+		if (tommy_array_get(&array, i) != 0) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 	}
 	STOP();
 
@@ -1870,17 +2061,19 @@ void test_array(void)
 
 	START("array get");
 	for (i = 0; i < size; ++i) {
-		if (tommy_array_get(&array, i) != (void*)i)
+		if (tommy_array_get(&array, i) != (void*)i) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 	}
 	STOP();
 
-	if (tommy_array_memory_usage(&array) < size * sizeof(void*))
+	if (tommy_array_memory_usage(&array) < size * sizeof(void*)) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
 	tommy_array_done(&array);
 }
@@ -1900,10 +2093,11 @@ void test_arrayof(void)
 	for (i = 0; i < size; ++i) {
 		tommy_arrayof_grow(&arrayof, i + 1);
 		unsigned* ref = tommy_arrayof_ref(&arrayof, i);
-		if (*ref != 0)
+		if (*ref != 0) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 	}
 	STOP();
 
@@ -1917,17 +2111,19 @@ void test_arrayof(void)
 	START("arrayof get");
 	for (i = 0; i < size; ++i) {
 		unsigned* ref = tommy_arrayof_ref(&arrayof, i);
-		if (*ref != i)
+		if (*ref != i) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 	}
 	STOP();
 
-	if (tommy_arrayof_memory_usage(&arrayof) < size * sizeof(unsigned))
+	if (tommy_arrayof_memory_usage(&arrayof) < size * sizeof(unsigned)) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
 	tommy_arrayof_done(&arrayof);
 }
@@ -1946,10 +2142,11 @@ void test_arrayblk(void)
 	START("arrayblk init");
 	for (i = 0; i < size; ++i) {
 		tommy_arrayblk_grow(&arrayblk, i + 1);
-		if (tommy_arrayblk_get(&arrayblk, i) != 0)
+		if (tommy_arrayblk_get(&arrayblk, i) != 0) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 	}
 	STOP();
 
@@ -1961,17 +2158,19 @@ void test_arrayblk(void)
 
 	START("arrayblk get");
 	for (i = 0; i < size; ++i) {
-		if (tommy_arrayblk_get(&arrayblk, i) != (void*)i)
+		if (tommy_arrayblk_get(&arrayblk, i) != (void*)i) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 	}
 	STOP();
 
-	if (tommy_arrayblk_memory_usage(&arrayblk) < size * sizeof(void*))
+	if (tommy_arrayblk_memory_usage(&arrayblk) < size * sizeof(void*)) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
 	tommy_arrayblk_done(&arrayblk);
 }
@@ -1991,10 +2190,11 @@ void test_arrayblkof(void)
 	for (i = 0; i < size; ++i) {
 		tommy_arrayblkof_grow(&arrayblkof, i + 1);
 		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
-		if (*ref != 0)
+		if (*ref != 0) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 	}
 	STOP();
 
@@ -2008,17 +2208,19 @@ void test_arrayblkof(void)
 	START("arrayblkof get");
 	for (i = 0; i < size; ++i) {
 		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
-		if (*ref != i)
+		if (*ref != i) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 	}
 	STOP();
 
-	if (tommy_arrayblkof_memory_usage(&arrayblkof) < size * sizeof(unsigned))
+	if (tommy_arrayblkof_memory_usage(&arrayblkof) < size * sizeof(unsigned)) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
 	tommy_arrayblkof_done(&arrayblkof);
 }
@@ -2038,20 +2240,22 @@ void test_hash_list(tommy_list* list, struct object_hash* obj, tommy_node* saved
 				break;
 		if (j == size || seen[j] || (i < prefix && j != i)
 			|| node->prev != prev || node->data != saved[j].data
-			|| node->index != saved[j].index)
+			|| node->index != saved[j].index) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 		seen[j] = 1;
 		order[i] = j;
 		position[j] = i;
 		prev = node;
 		node = node->next;
 	}
-	if (node != 0 || tommy_list_tail(list) != (size ? prev : 0))
+	if (node != 0 || tommy_list_tail(list) != (size ? prev : 0)) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
 	/* each original successor must still follow its node, regardless of bucket order. */
 	for (i = 0; i < size; ++i) {
@@ -2060,24 +2264,27 @@ void test_hash_list(tommy_list* list, struct object_hash* obj, tommy_node* saved
 		for (j = 0; j < size; ++j)
 			if (saved[i].next == &obj[j].node)
 				break;
-		if (j == size || position[i] >= position[j])
+		if (j == size || position[i] >= position[j]) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 	}
 
 	node = tommy_list_tail(list);
 	for (i = size; i > 0; --i) {
-		if (node != &obj[order[i - 1]].node)
+		if (node != &obj[order[i - 1]].node) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 		node = tommy_list_prev(list, node);
 	}
-	if (node != 0)
+	if (node != 0) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 }
 
 /* verify the exact bucket order and circular head/tail links. */
@@ -2087,17 +2294,19 @@ void test_hash_bucket(tommy_node* node, struct object_hash* obj, const unsigned*
 	unsigned i;
 
 	for (i = 0; i < size; ++i) {
-		if (node != &obj[order[i]].node || node->prev != prev || node->data != &obj[order[i]])
+		if (node != &obj[order[i]].node || node->prev != prev || node->data != &obj[order[i]]) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 		prev = node;
 		node = node->next;
 	}
-	if (node != 0)
+	if (node != 0) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 }
 
 void test_hashtable_insert_unique(void)
@@ -2116,10 +2325,11 @@ void test_hashtable_insert_unique(void)
 	compare_counter = 0;
 	if (tommy_hashtable_insert_unique(&table, &obj[0].node, &obj[0], search_hash_value_callback, &obj[0].value, 0) != &obj[0]
 		|| compare_counter != 0 || tommy_hashtable_count(&table) != 1
-		|| tommy_hashtable_search(&table, search_hash_value_callback, &obj[0].value, 0) != &obj[0])
+		|| tommy_hashtable_search(&table, search_hash_value_callback, &obj[0].value, 0) != &obj[0]) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 	tommy_hashtable_remove_existing(&table, &obj[0].node);
 
 	bucket_max = table.bucket_max;
@@ -2141,10 +2351,11 @@ void test_hashtable_insert_unique(void)
 	if (tommy_hashtable_insert_unique(&table, &obj[4].node, &obj[4], search_hash_value_callback, &obj[4].value, 0) != &obj[1]
 		|| compare_counter != 1 || tommy_hashtable_count(&table) != 4
 		|| obj[4].value != 20 || obj[4].node.next != saved.next || obj[4].node.prev != saved.prev
-		|| obj[4].node.data != saved.data || obj[4].node.index != saved.index)
+		|| obj[4].node.data != saved.data || obj[4].node.index != saved.index) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 	test_hash_bucket(tommy_hashtable_bucket(&table, 0), obj, order, 4);
 
 	/* equal hashes with different keys must allow insertion at the tail. */
@@ -2152,27 +2363,30 @@ void test_hashtable_insert_unique(void)
 	compare_counter = 0;
 	if (tommy_hashtable_insert_unique(&table, &obj[4].node, &obj[4], search_hash_value_callback, &obj[4].value, 0) != &obj[4]
 		|| compare_counter != 3 || tommy_hashtable_count(&table) != 5
-		|| obj[4].node.data != &obj[4] || obj[4].node.index != 0)
+		|| obj[4].node.data != &obj[4] || obj[4].node.index != 0) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
 	/* different full hashes in the same bucket must never invoke the comparator. */
 	obj[5].value = 50;
 	compare_counter = 0;
 	if (tommy_hashtable_insert_unique(&table, &obj[5].node, &obj[5], search_hash_value_callback, &obj[5].value, 2 * bucket_max) != &obj[5]
-		|| compare_counter != 0 || tommy_hashtable_count(&table) != 6)
+		|| compare_counter != 0 || tommy_hashtable_count(&table) != 6) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 	test_hash_bucket(tommy_hashtable_bucket(&table, 0), obj, order, 6);
 	tommy_hashtable_remove_existing(&table, &obj[1].node);
 	obj[6].value = 20;
 	if (tommy_hashtable_insert_unique(&table, &obj[6].node, &obj[6], search_hash_value_callback, &obj[6].value, 0) != &obj[3]
-		|| tommy_hashtable_count(&table) != 5)
+		|| tommy_hashtable_count(&table) != 5) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 	tommy_hashtable_done(&table);
 
 	/* insert unique keys, reject duplicates, then repeat during contraction. */
@@ -2189,10 +2403,11 @@ void test_hashtable_insert_unique(void)
 			if (phase == 0) {
 				obj[i].value = i;
 				if (tommy_hashtable_insert_unique(&table, &obj[i].node, &obj[i], search_hash_value_callback, &obj[i].value, hash) != &obj[i]
-					|| tommy_hashtable_count(&table) != i + 1)
+					|| tommy_hashtable_count(&table) != i + 1) {
 					/* LCOV_EXCL_START */
 					abort();
-				/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 			}
 
 			candidate.value = i;
@@ -2209,17 +2424,19 @@ void test_hashtable_insert_unique(void)
 				|| candidate.value != (int)i || candidate.node.next != &candidate.node
 				|| candidate.node.prev != &candidate.node || candidate.node.data != &candidate
 				|| candidate.node.index != ~(tommy_hash_t)0 || obj[i].node.next != saved.next
-				|| obj[i].node.prev != saved.prev || obj[i].node.data != saved.data || obj[i].node.index != saved.index)
+				|| obj[i].node.prev != saved.prev || obj[i].node.data != saved.data || obj[i].node.index != saved.index) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 
 			if (phase != 0) {
 				if (tommy_hashtable_remove_existing(&table, &obj[i].node) != &obj[i]
-					|| tommy_hashtable_count(&table) != count - 1)
+					|| tommy_hashtable_count(&table) != count - 1) {
 					/* LCOV_EXCL_START */
 					abort();
-				/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 				/* also insert a new key while hashlin is shrinking progressively. */
 				if (i == 24) {
 					obj[256].value = 256;
@@ -2227,10 +2444,11 @@ void test_hashtable_insert_unique(void)
 						|| tommy_hashtable_count(&table) != count
 						|| tommy_hashtable_search(&table, search_hash_value_callback, &obj[256].value, tommy_inthash_u32(256)) != &obj[256]
 						|| tommy_hashtable_remove_existing(&table, &obj[256].node) != &obj[256]
-						|| tommy_hashtable_count(&table) != count - 1)
+						|| tommy_hashtable_count(&table) != count - 1) {
 						/* LCOV_EXCL_START */
 						abort();
-					/* LCOV_EXCL_STOP */
+						/* LCOV_EXCL_STOP */
+					}
 				}
 			}
 		}
@@ -2282,10 +2500,11 @@ void test_hashtable_rehash_existing(void)
 					|| table.bucket != bucket
 					|| obj[target].node.index != hash || obj[target].node.data != saved.data
 					|| obj[target].value != (int)(1000 + target)
-					|| (mode == 0 && (obj[target].node.next != saved.next || obj[target].node.prev != saved.prev)))
+					|| (mode == 0 && (obj[target].node.next != saved.next || obj[target].node.prev != saved.prev))) {
 					/* LCOV_EXCL_START */
 					abort();
-				/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 
 				for (i = 0; i < source_size; ++i)
 					if (mode == 0 || i != target)
@@ -2301,26 +2520,29 @@ void test_hashtable_rehash_existing(void)
 				test_hash_bucket(tommy_hashtable_bucket(&table, 1), obj, destination, destination_count);
 				if (mode == 3)
 					test_hash_bucket(tommy_hashtable_bucket(&table, hash), obj, &target, 1);
-				if (mode != 0 && tommy_hashtable_search(&table, search_callback, &obj[target], 0) != 0)
+				if (mode != 0 && tommy_hashtable_search(&table, search_callback, &obj[target], 0) != 0) {
 					/* LCOV_EXCL_START */
 					abort();
-				/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 				/* also unlink from the new hash, including an unsplit high position. */
 				if (mode != 0) {
 					tommy_hashtable_rehash_existing(&table, &obj[target].node, 0);
 					if (tommy_hashtable_count(&table) != n || obj[target].node.index != 0
 						|| tommy_hashtable_search(&table, search_callback, &obj[target], 0) != &obj[target]
-						|| tommy_hashtable_search(&table, search_callback, &obj[target], hash) != 0)
+						|| tommy_hashtable_search(&table, search_callback, &obj[target], hash) != 0) {
 						/* LCOV_EXCL_START */
 						abort();
-					/* LCOV_EXCL_STOP */
+						/* LCOV_EXCL_STOP */
+					}
 					tommy_hashtable_rehash_existing(&table, &obj[target].node, hash);
 				}
 				for (i = 0; i < n; ++i)
-					if (tommy_hashtable_search(&table, search_callback, &obj[i], hashes[i]) != &obj[i])
+					if (tommy_hashtable_search(&table, search_callback, &obj[i], hashes[i]) != &obj[i]) {
 						/* LCOV_EXCL_START */
 						abort();
-				/* LCOV_EXCL_STOP */
+						/* LCOV_EXCL_STOP */
+					}
 
 				/* subsequent resizing and removals must use the updated stored hash. */
 				for (i = n; i < 130; ++i) {
@@ -2329,20 +2551,22 @@ void test_hashtable_rehash_existing(void)
 					tommy_hashtable_insert(&table, &obj[i].node, &obj[i], hashes[i]);
 				}
 				for (i = 0; i < 130; ++i)
-					if (tommy_hashtable_search(&table, search_callback, &obj[i], hashes[i]) != &obj[i])
+					if (tommy_hashtable_search(&table, search_callback, &obj[i], hashes[i]) != &obj[i]) {
 						/* LCOV_EXCL_START */
 						abort();
-				/* LCOV_EXCL_STOP */
+						/* LCOV_EXCL_STOP */
+					}
 				for (i = 130; i > 0; --i) {
 					void* data;
 					if (i % 2)
 						data = tommy_hashtable_remove_existing(&table, &obj[i - 1].node);
 					else
 						data = tommy_hashtable_remove(&table, search_callback, &obj[i - 1], hashes[i - 1]);
-					if (data != &obj[i - 1] || tommy_hashtable_count(&table) != i - 1)
+					if (data != &obj[i - 1] || tommy_hashtable_count(&table) != i - 1) {
 						/* LCOV_EXCL_START */
 						abort();
-					/* LCOV_EXCL_STOP */
+						/* LCOV_EXCL_STOP */
+					}
 				}
 				tommy_hashtable_done(&table);
 			}
@@ -2384,26 +2608,30 @@ void test_hashtable_to_list(void)
 			test_hash_list(&list, obj, saved, size, prefix);
 			if (tommy_hashtable_count(&hashtable) != 0 || hashtable.bucket != bucket
 				|| hashtable.bucket_max != bucket_max || hashtable.bucket_mask != bucket_mask
-				|| tommy_hashtable_memory_usage(&hashtable) != bucket_max * sizeof(*bucket))
+				|| tommy_hashtable_memory_usage(&hashtable) != bucket_max * sizeof(*bucket)) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 			for (i = 0; i < bucket_max; ++i)
-				if (tommy_hashtable_bucket(&hashtable, i) != 0)
+				if (tommy_hashtable_bucket(&hashtable, i) != 0) {
 					/* LCOV_EXCL_START */
 					abort();
-			/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 			the_count = 0;
 			tommy_hashtable_foreach(&hashtable, count_callback);
-			if (the_count != 0)
+			if (the_count != 0) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 			for (i = prefix; i < size; ++i)
-				if (tommy_hashtable_search(&hashtable, search_callback, &obj[i], obj[i].node.index) != 0)
+				if (tommy_hashtable_search(&hashtable, search_callback, &obj[i], obj[i].node.index) != 0) {
 					/* LCOV_EXCL_START */
 					abort();
-			/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 
 			/* a repeated call on the empty table must preserve the complete list order. */
 			for (i = 0; i < size; ++i)
@@ -2416,17 +2644,19 @@ void test_hashtable_to_list(void)
 				struct object_hash* data = tommy_list_remove_head(&list);
 				tommy_hashtable_insert(&hashtable, &data->node, data, data->node.index);
 			}
-			if (tommy_hashtable_count(&hashtable) != size)
+			if (tommy_hashtable_count(&hashtable) != size) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 			for (i = 0; i < size; ++i)
 				if (tommy_hashtable_search(&hashtable, search_callback, &obj[i], obj[i].node.index) != &obj[i]
 					|| tommy_hashtable_remove_existing(&hashtable, &obj[i].node) != &obj[i]
-					|| tommy_hashtable_count(&hashtable) != size - i - 1)
+					|| tommy_hashtable_count(&hashtable) != size - i - 1) {
 					/* LCOV_EXCL_START */
 					abort();
-			/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 			tommy_hashtable_done(&hashtable);
 		}
 	}
@@ -2462,34 +2692,38 @@ void test_hashtable_clear(void)
 			if (tommy_hashtable_count(&hashtable) != 0
 				|| hashtable.bucket != bucket || hashtable.bucket_max != bucket_max
 				|| hashtable.bucket_mask != bucket_mask
-				|| tommy_hashtable_memory_usage(&hashtable) != memory_usage)
+				|| tommy_hashtable_memory_usage(&hashtable) != memory_usage) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 
 			for (i = 0; i < bucket_max; ++i)
-				if (tommy_hashtable_bucket(&hashtable, i) != 0)
+				if (tommy_hashtable_bucket(&hashtable, i) != 0) {
 					/* LCOV_EXCL_START */
 					abort();
-			/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 
 			the_count = 0;
 			tommy_hashtable_foreach(&hashtable, count_callback);
 			tommy_hashtable_foreach_arg(&hashtable, count_arg_callback, &the_count);
-			if (the_count != 0)
+			if (the_count != 0) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 
 			for (i = 0; i < n; ++i) {
 				tommy_hash_t hash = tommy_inthash_u32(obj[i].value);
 				if (obj[i].value != (int)(i / 2)
 					|| obj[i].node.data != &obj[i] || obj[i].node.index != hash
 					|| tommy_hashtable_search(&hashtable, search_callback, &obj[i], hash) != 0
-					|| tommy_hashtable_remove(&hashtable, search_callback, &obj[i], hash) != 0)
+					|| tommy_hashtable_remove(&hashtable, search_callback, &obj[i], hash) != 0) {
 					/* LCOV_EXCL_START */
 					abort();
-				/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 			}
 		}
 
@@ -2498,16 +2732,18 @@ void test_hashtable_clear(void)
 			obj[i].value = i / 2;
 			tommy_hashtable_insert(&hashtable, &obj[i].node, &obj[i], tommy_inthash_u32(obj[i].value));
 		}
-		if (tommy_hashtable_count(&hashtable) != 128)
+		if (tommy_hashtable_count(&hashtable) != 128) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 
 		for (i = 0; i < 128; ++i)
-			if (tommy_hashtable_search(&hashtable, search_callback, &obj[i], tommy_inthash_u32(obj[i].value)) != &obj[i])
+			if (tommy_hashtable_search(&hashtable, search_callback, &obj[i], tommy_inthash_u32(obj[i].value)) != &obj[i]) {
 				/* LCOV_EXCL_START */
 				abort();
-		/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 
 		for (i = 128; i > 0; --i) {
 			void* data;
@@ -2515,10 +2751,11 @@ void test_hashtable_clear(void)
 				data = tommy_hashtable_remove_existing(&hashtable, &obj[i - 1].node);
 			else
 				data = tommy_hashtable_remove(&hashtable, search_callback, &obj[i - 1], tommy_inthash_u32(obj[i - 1].value));
-			if (data != &obj[i - 1] || tommy_hashtable_count(&hashtable) != i - 1)
+			if (data != &obj[i - 1] || tommy_hashtable_count(&hashtable) != i - 1) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 		}
 		tommy_hashtable_done(&hashtable);
 	}
@@ -2535,10 +2772,11 @@ void test_hashtable_clear(void)
 	obj[0].value = 1;
 	tommy_hashtable_insert(&hashtable, &obj[0].node, &obj[0], 1);
 	if (tommy_hashtable_count(&hashtable) != 1
-		|| tommy_hashtable_remove_existing(&hashtable, &obj[0].node) != &obj[0])
+		|| tommy_hashtable_remove_existing(&hashtable, &obj[0].node) != &obj[0]) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 	tommy_hashtable_done(&hashtable);
 }
 
@@ -2565,10 +2803,11 @@ void test_hashtable(void)
 	tommy_hashtable_init(&hashtable, 1);
 
 	/* check that we allocated space for more elements */
-	if (hashtable.bucket_max == 1)
+	if (hashtable.bucket_max == 1) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
 	/* destroy it as empty */
 	tommy_hashtable_done(&hashtable);
@@ -2586,22 +2825,25 @@ void test_hashtable(void)
 		for (i = 0; i < n; ++i)
 			tommy_hashtable_insert(&hashtable, &HASH[i].node, &HASH[i], HASH[i].value);
 
-		if (tommy_hashtable_memory_usage(&hashtable) < n * sizeof(void*))
+		if (tommy_hashtable_memory_usage(&hashtable) < n * sizeof(void*)) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 
-		if (tommy_hashtable_count(&hashtable) != n)
+		if (tommy_hashtable_count(&hashtable) != n) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 
 		the_count = 0;
 		tommy_hashtable_foreach(&hashtable, count_callback);
-		if (the_count != n)
+		if (the_count != n) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 
 		/* remove in backward order */
 		for (i = 0; i < n / 2; ++i)
@@ -2609,17 +2851,19 @@ void test_hashtable(void)
 
 		/* remove missing */
 		for (i = 0; i < n / 2; ++i)
-			if (tommy_hashtable_remove(&hashtable, search_callback, &HASH[n - i - 1], HASH[n - i - 1].value) != 0)
+			if (tommy_hashtable_remove(&hashtable, search_callback, &HASH[n - i - 1], HASH[n - i - 1].value) != 0) {
 				/* LCOV_EXCL_START */
 				abort();
-		/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 
 		/* remove search */
 		for (i = 0; i < n / 2; ++i)
-			if (tommy_hashtable_remove(&hashtable, search_callback, &HASH[n / 2 - i - 1], HASH[n / 2 - i - 1].value) == 0)
+			if (tommy_hashtable_remove(&hashtable, search_callback, &HASH[n / 2 - i - 1], HASH[n / 2 - i - 1].value) == 0) {
 				/* LCOV_EXCL_START */
 				abort();
-		/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 
 		tommy_hashtable_done(&hashtable);
 	}
@@ -2640,10 +2884,11 @@ void test_hashtable(void)
 
 		the_count = 0;
 		tommy_hashtable_foreach_arg(&hashtable, count_arg_callback, &the_count);
-		if (the_count != n)
+		if (the_count != n) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 
 		/* insert all the others */
 		for (; i < size; ++i, ++j) {
@@ -2655,10 +2900,11 @@ void test_hashtable(void)
 		}
 
 		for (; j < size; ++j)
-			if (tommy_hashtable_remove(&hashtable, search_callback, &HASH[j], HASH[j].value) == 0)
+			if (tommy_hashtable_remove(&hashtable, search_callback, &HASH[j], HASH[j].value) == 0) {
 				/* LCOV_EXCL_START */
 				abort();
-		/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 
 		tommy_hashtable_done(&hashtable);
 	}
@@ -2699,36 +2945,40 @@ void test_hashdyn_shrink(void)
 				|| ((tommy_size_t)1 << table.bucket_bit) != counts[c][1]
 				|| tommy_hashdyn_count(&table) != n
 				|| tommy_hashdyn_memory_usage(&table) != counts[c][1] * sizeof(*bucket) + n * sizeof(tommy_hashdyn_node)
-				|| (!reserved && table.bucket != bucket))
+				|| (!reserved && table.bucket != bucket)) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 
 			/* repeated shrinking must not allocate or disturb the contents. */
 			bucket = table.bucket;
 			tommy_hashdyn_shrink(&table);
-			if (table.bucket != bucket || tommy_hashdyn_count(&table) != n)
+			if (table.bucket != bucket || tommy_hashdyn_count(&table) != n) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 			for (i = 0; i < n; ++i) {
 				if (obj[i].node.index != saved[i].index || obj[i].node.data != saved[i].data
 					|| obj[i].value != (int)(i / 2)
 					|| tommy_hashdyn_search(&table, search_callback, &obj[i], saved[i].index) != &obj[i]
-					|| tommy_hashdyn_search(&table, search_hash_value_callback, &obj[i].value, saved[i].index) != &obj[i - i % 2])
+					|| tommy_hashdyn_search(&table, search_hash_value_callback, &obj[i].value, saved[i].index) != &obj[i - i % 2]) {
 					/* LCOV_EXCL_START */
 					abort();
-				/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 			}
 
 			/* check all links and original bucket ordering, then shrink the drained table. */
 			tommy_list_init(&list);
 			tommy_hashdyn_to_list(&table, &list);
 			tommy_hashdyn_shrink(&table);
-			if (!tommy_hashdyn_empty(&table) || tommy_hashdyn_bucket_count(&table) != 16)
+			if (!tommy_hashdyn_empty(&table) || tommy_hashdyn_bucket_count(&table) != 16) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 			test_hash_list(&list, obj, saved, n, 0);
 
 			/* reuse the shrunken table, grow it and remove duplicates in insertion order. */
@@ -2740,16 +2990,18 @@ void test_hashdyn_shrink(void)
 				obj[i].value = i / 2;
 				tommy_hashdyn_insert(&table, &obj[i].node, &obj[i], tommy_inthash_u32(obj[i].value));
 			}
-			if (tommy_hashdyn_count(&table) != 130 || tommy_hashdyn_bucket_count(&table) != 512)
+			if (tommy_hashdyn_count(&table) != 130 || tommy_hashdyn_bucket_count(&table) != 512) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 			for (i = 0; i < 130; ++i)
 				if (tommy_hashdyn_remove(&table, search_hash_value_callback, &obj[i].value, obj[i].node.index) != &obj[i]
-					|| tommy_hashdyn_count(&table) != 129 - i)
+					|| tommy_hashdyn_count(&table) != 129 - i) {
 					/* LCOV_EXCL_START */
 					abort();
-			/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 			tommy_hashdyn_done(&table);
 		}
 	}
@@ -2771,10 +3023,11 @@ void test_hashdyn_insert_unique(void)
 	compare_counter = 0;
 	if (tommy_hashdyn_insert_unique(&table, &obj[0].node, &obj[0], search_hash_value_callback, &obj[0].value, 0) != &obj[0]
 		|| compare_counter != 0 || tommy_hashdyn_count(&table) != 1
-		|| tommy_hashdyn_search(&table, search_hash_value_callback, &obj[0].value, 0) != &obj[0])
+		|| tommy_hashdyn_search(&table, search_hash_value_callback, &obj[0].value, 0) != &obj[0]) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 	tommy_hashdyn_remove_existing(&table, &obj[0].node);
 
 	bucket_max = table.bucket_max;
@@ -2796,10 +3049,11 @@ void test_hashdyn_insert_unique(void)
 	if (tommy_hashdyn_insert_unique(&table, &obj[4].node, &obj[4], search_hash_value_callback, &obj[4].value, 0) != &obj[1]
 		|| compare_counter != 1 || tommy_hashdyn_count(&table) != 4
 		|| obj[4].value != 20 || obj[4].node.next != saved.next || obj[4].node.prev != saved.prev
-		|| obj[4].node.data != saved.data || obj[4].node.index != saved.index)
+		|| obj[4].node.data != saved.data || obj[4].node.index != saved.index) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 	test_hash_bucket(tommy_hashdyn_bucket(&table, 0), obj, order, 4);
 
 	/* equal hashes with different keys must allow insertion at the tail. */
@@ -2807,27 +3061,30 @@ void test_hashdyn_insert_unique(void)
 	compare_counter = 0;
 	if (tommy_hashdyn_insert_unique(&table, &obj[4].node, &obj[4], search_hash_value_callback, &obj[4].value, 0) != &obj[4]
 		|| compare_counter != 3 || tommy_hashdyn_count(&table) != 5
-		|| obj[4].node.data != &obj[4] || obj[4].node.index != 0)
+		|| obj[4].node.data != &obj[4] || obj[4].node.index != 0) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
 	/* different full hashes in the same bucket must never invoke the comparator. */
 	obj[5].value = 50;
 	compare_counter = 0;
 	if (tommy_hashdyn_insert_unique(&table, &obj[5].node, &obj[5], search_hash_value_callback, &obj[5].value, 2 * bucket_max) != &obj[5]
-		|| compare_counter != 0 || tommy_hashdyn_count(&table) != 6)
+		|| compare_counter != 0 || tommy_hashdyn_count(&table) != 6) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 	test_hash_bucket(tommy_hashdyn_bucket(&table, 0), obj, order, 6);
 	tommy_hashdyn_remove_existing(&table, &obj[1].node);
 	obj[6].value = 20;
 	if (tommy_hashdyn_insert_unique(&table, &obj[6].node, &obj[6], search_hash_value_callback, &obj[6].value, 0) != &obj[3]
-		|| tommy_hashdyn_count(&table) != 5)
+		|| tommy_hashdyn_count(&table) != 5) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 	tommy_hashdyn_done(&table);
 
 	/* insert unique keys, reject duplicates, then repeat during contraction. */
@@ -2844,10 +3101,11 @@ void test_hashdyn_insert_unique(void)
 			if (phase == 0) {
 				obj[i].value = i;
 				if (tommy_hashdyn_insert_unique(&table, &obj[i].node, &obj[i], search_hash_value_callback, &obj[i].value, hash) != &obj[i]
-					|| tommy_hashdyn_count(&table) != i + 1)
+					|| tommy_hashdyn_count(&table) != i + 1) {
 					/* LCOV_EXCL_START */
 					abort();
-				/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 			}
 
 			candidate.value = i;
@@ -2865,17 +3123,19 @@ void test_hashdyn_insert_unique(void)
 				|| candidate.value != (int)i || candidate.node.next != &candidate.node
 				|| candidate.node.prev != &candidate.node || candidate.node.data != &candidate
 				|| candidate.node.index != ~(tommy_hash_t)0 || obj[i].node.next != saved.next
-				|| obj[i].node.prev != saved.prev || obj[i].node.data != saved.data || obj[i].node.index != saved.index)
+				|| obj[i].node.prev != saved.prev || obj[i].node.data != saved.data || obj[i].node.index != saved.index) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 
 			if (phase != 0) {
 				if (tommy_hashdyn_remove_existing(&table, &obj[i].node) != &obj[i]
-					|| tommy_hashdyn_count(&table) != count - 1)
+					|| tommy_hashdyn_count(&table) != count - 1) {
 					/* LCOV_EXCL_START */
 					abort();
-				/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 				/* also insert a new key while hashlin is shrinking progressively. */
 				if (i == 24) {
 					obj[256].value = 256;
@@ -2883,10 +3143,11 @@ void test_hashdyn_insert_unique(void)
 						|| tommy_hashdyn_count(&table) != count
 						|| tommy_hashdyn_search(&table, search_hash_value_callback, &obj[256].value, tommy_inthash_u32(256)) != &obj[256]
 						|| tommy_hashdyn_remove_existing(&table, &obj[256].node) != &obj[256]
-						|| tommy_hashdyn_count(&table) != count - 1)
+						|| tommy_hashdyn_count(&table) != count - 1) {
 						/* LCOV_EXCL_START */
 						abort();
-					/* LCOV_EXCL_STOP */
+						/* LCOV_EXCL_STOP */
+					}
 				}
 			}
 		}
@@ -2942,10 +3203,11 @@ void test_hashdyn_rehash_existing(void)
 					|| table.bucket != bucket || table.bucket_bit != bucket_bit
 					|| obj[target].node.index != hash || obj[target].node.data != saved.data
 					|| obj[target].value != (int)(1000 + target)
-					|| (mode == 0 && (obj[target].node.next != saved.next || obj[target].node.prev != saved.prev)))
+					|| (mode == 0 && (obj[target].node.next != saved.next || obj[target].node.prev != saved.prev))) {
 					/* LCOV_EXCL_START */
 					abort();
-				/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 
 				for (i = 0; i < source_size; ++i)
 					if (mode == 0 || i != target)
@@ -2961,26 +3223,29 @@ void test_hashdyn_rehash_existing(void)
 				test_hash_bucket(tommy_hashdyn_bucket(&table, 1), obj, destination, destination_count);
 				if (mode == 3)
 					test_hash_bucket(tommy_hashdyn_bucket(&table, hash), obj, &target, 1);
-				if (mode != 0 && tommy_hashdyn_search(&table, search_callback, &obj[target], 0) != 0)
+				if (mode != 0 && tommy_hashdyn_search(&table, search_callback, &obj[target], 0) != 0) {
 					/* LCOV_EXCL_START */
 					abort();
-				/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 				/* also unlink from the new hash, including an unsplit high position. */
 				if (mode != 0) {
 					tommy_hashdyn_rehash_existing(&table, &obj[target].node, 0);
 					if (tommy_hashdyn_count(&table) != n || obj[target].node.index != 0
 						|| tommy_hashdyn_search(&table, search_callback, &obj[target], 0) != &obj[target]
-						|| tommy_hashdyn_search(&table, search_callback, &obj[target], hash) != 0)
+						|| tommy_hashdyn_search(&table, search_callback, &obj[target], hash) != 0) {
 						/* LCOV_EXCL_START */
 						abort();
-					/* LCOV_EXCL_STOP */
+						/* LCOV_EXCL_STOP */
+					}
 					tommy_hashdyn_rehash_existing(&table, &obj[target].node, hash);
 				}
 				for (i = 0; i < n; ++i)
-					if (tommy_hashdyn_search(&table, search_callback, &obj[i], hashes[i]) != &obj[i])
+					if (tommy_hashdyn_search(&table, search_callback, &obj[i], hashes[i]) != &obj[i]) {
 						/* LCOV_EXCL_START */
 						abort();
-				/* LCOV_EXCL_STOP */
+						/* LCOV_EXCL_STOP */
+					}
 
 				/* subsequent resizing and removals must use the updated stored hash. */
 				for (i = n; i < 130; ++i) {
@@ -2989,20 +3254,22 @@ void test_hashdyn_rehash_existing(void)
 					tommy_hashdyn_insert(&table, &obj[i].node, &obj[i], hashes[i]);
 				}
 				for (i = 0; i < 130; ++i)
-					if (tommy_hashdyn_search(&table, search_callback, &obj[i], hashes[i]) != &obj[i])
+					if (tommy_hashdyn_search(&table, search_callback, &obj[i], hashes[i]) != &obj[i]) {
 						/* LCOV_EXCL_START */
 						abort();
-				/* LCOV_EXCL_STOP */
+						/* LCOV_EXCL_STOP */
+					}
 				for (i = 130; i > 0; --i) {
 					void* data;
 					if (i % 2)
 						data = tommy_hashdyn_remove_existing(&table, &obj[i - 1].node);
 					else
 						data = tommy_hashdyn_remove(&table, search_callback, &obj[i - 1], hashes[i - 1]);
-					if (data != &obj[i - 1] || tommy_hashdyn_count(&table) != i - 1)
+					if (data != &obj[i - 1] || tommy_hashdyn_count(&table) != i - 1) {
 						/* LCOV_EXCL_START */
 						abort();
-					/* LCOV_EXCL_STOP */
+						/* LCOV_EXCL_STOP */
+					}
 				}
 				tommy_hashdyn_done(&table);
 			}
@@ -3051,26 +3318,30 @@ void test_hashdyn_to_list(void)
 				if (tommy_hashdyn_count(&hashdyn) != 0 || hashdyn.bucket != bucket
 					|| hashdyn.bucket_max != bucket_max || hashdyn.bucket_mask != bucket_mask
 					|| hashdyn.bucket_bit != bucket_bit
-					|| tommy_hashdyn_memory_usage(&hashdyn) != bucket_max * sizeof(*bucket))
+					|| tommy_hashdyn_memory_usage(&hashdyn) != bucket_max * sizeof(*bucket)) {
 					/* LCOV_EXCL_START */
 					abort();
-				/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 				for (i = 0; i < bucket_max; ++i)
-					if (tommy_hashdyn_bucket(&hashdyn, i) != 0)
+					if (tommy_hashdyn_bucket(&hashdyn, i) != 0) {
 						/* LCOV_EXCL_START */
 						abort();
-				/* LCOV_EXCL_STOP */
+						/* LCOV_EXCL_STOP */
+					}
 				the_count = 0;
 				tommy_hashdyn_foreach(&hashdyn, count_callback);
-				if (the_count != 0)
+				if (the_count != 0) {
 					/* LCOV_EXCL_START */
 					abort();
-				/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 				for (i = prefix; i < size; ++i)
-					if (tommy_hashdyn_search(&hashdyn, search_callback, &obj[i], obj[i].node.index) != 0)
+					if (tommy_hashdyn_search(&hashdyn, search_callback, &obj[i], obj[i].node.index) != 0) {
 						/* LCOV_EXCL_START */
 						abort();
-				/* LCOV_EXCL_STOP */
+						/* LCOV_EXCL_STOP */
+					}
 
 				for (i = 0; i < size; ++i)
 					saved[i] = obj[i].node;
@@ -3082,17 +3353,19 @@ void test_hashdyn_to_list(void)
 					struct object_hash* data = tommy_list_remove_head(&list);
 					tommy_hashdyn_insert(&hashdyn, &data->node, data, data->node.index);
 				}
-				if (tommy_hashdyn_count(&hashdyn) != size)
+				if (tommy_hashdyn_count(&hashdyn) != size) {
 					/* LCOV_EXCL_START */
 					abort();
-				/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 				for (i = 0; i < size; ++i)
 					if (tommy_hashdyn_search(&hashdyn, search_callback, &obj[i], obj[i].node.index) != &obj[i]
 						|| tommy_hashdyn_remove_existing(&hashdyn, &obj[i].node) != &obj[i]
-						|| tommy_hashdyn_count(&hashdyn) != size - i - 1)
+						|| tommy_hashdyn_count(&hashdyn) != size - i - 1) {
 						/* LCOV_EXCL_START */
 						abort();
-				/* LCOV_EXCL_STOP */
+						/* LCOV_EXCL_STOP */
+					}
 				tommy_hashdyn_done(&hashdyn);
 			}
 		}
@@ -3132,34 +3405,38 @@ void test_hashdyn_clear(void)
 			if (tommy_hashdyn_count(&hashdyn) != 0
 				|| hashdyn.bucket != bucket || hashdyn.bucket_max != bucket_max
 				|| hashdyn.bucket_mask != bucket_mask || hashdyn.bucket_bit != bucket_bit
-				|| tommy_hashdyn_memory_usage(&hashdyn) != memory_usage)
+				|| tommy_hashdyn_memory_usage(&hashdyn) != memory_usage) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 
 			for (i = 0; i < bucket_max; ++i)
-				if (tommy_hashdyn_bucket(&hashdyn, i) != 0)
+				if (tommy_hashdyn_bucket(&hashdyn, i) != 0) {
 					/* LCOV_EXCL_START */
 					abort();
-			/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 
 			the_count = 0;
 			tommy_hashdyn_foreach(&hashdyn, count_callback);
 			tommy_hashdyn_foreach_arg(&hashdyn, count_arg_callback, &the_count);
-			if (the_count != 0)
+			if (the_count != 0) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 
 			for (i = 0; i < n; ++i) {
 				tommy_hash_t hash = tommy_inthash_u32(obj[i].value);
 				if (obj[i].value != (int)(i / 2)
 					|| obj[i].node.data != &obj[i] || obj[i].node.index != hash
 					|| tommy_hashdyn_search(&hashdyn, search_callback, &obj[i], hash) != 0
-					|| tommy_hashdyn_remove(&hashdyn, search_callback, &obj[i], hash) != 0)
+					|| tommy_hashdyn_remove(&hashdyn, search_callback, &obj[i], hash) != 0) {
 					/* LCOV_EXCL_START */
 					abort();
-				/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 			}
 		}
 
@@ -3168,16 +3445,18 @@ void test_hashdyn_clear(void)
 			obj[i].value = i / 2;
 			tommy_hashdyn_insert(&hashdyn, &obj[i].node, &obj[i], tommy_inthash_u32(obj[i].value));
 		}
-		if (tommy_hashdyn_count(&hashdyn) != 128)
+		if (tommy_hashdyn_count(&hashdyn) != 128) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 
 		for (i = 0; i < 128; ++i)
-			if (tommy_hashdyn_search(&hashdyn, search_callback, &obj[i], tommy_inthash_u32(obj[i].value)) != &obj[i])
+			if (tommy_hashdyn_search(&hashdyn, search_callback, &obj[i], tommy_inthash_u32(obj[i].value)) != &obj[i]) {
 				/* LCOV_EXCL_START */
 				abort();
-		/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 
 		/* both removal paths must still work across shrink thresholds. */
 		for (i = 128; i > 0; --i) {
@@ -3186,10 +3465,11 @@ void test_hashdyn_clear(void)
 				data = tommy_hashdyn_remove_existing(&hashdyn, &obj[i - 1].node);
 			else
 				data = tommy_hashdyn_remove(&hashdyn, search_callback, &obj[i - 1], tommy_inthash_u32(obj[i - 1].value));
-			if (data != &obj[i - 1] || tommy_hashdyn_count(&hashdyn) != i - 1)
+			if (data != &obj[i - 1] || tommy_hashdyn_count(&hashdyn) != i - 1) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 		}
 		tommy_hashdyn_done(&hashdyn);
 	}
@@ -3206,10 +3486,11 @@ void test_hashdyn_clear(void)
 	obj[0].value = 1;
 	tommy_hashdyn_insert(&hashdyn, &obj[0].node, &obj[0], 1);
 	if (tommy_hashdyn_count(&hashdyn) != 1
-		|| tommy_hashdyn_remove_existing(&hashdyn, &obj[0].node) != &obj[0])
+		|| tommy_hashdyn_remove_existing(&hashdyn, &obj[0].node) != &obj[0]) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 	tommy_hashdyn_done(&hashdyn);
 }
 
@@ -3246,22 +3527,25 @@ void test_hashdyn(void)
 		for (i = 0; i < n; ++i)
 			tommy_hashdyn_insert(&hashdyn, &HASH[i].node, &HASH[i], HASH[i].value);
 
-		if (tommy_hashdyn_memory_usage(&hashdyn) < n * sizeof(void*))
+		if (tommy_hashdyn_memory_usage(&hashdyn) < n * sizeof(void*)) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 
-		if (tommy_hashdyn_count(&hashdyn) != n)
+		if (tommy_hashdyn_count(&hashdyn) != n) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 
 		the_count = 0;
 		tommy_hashdyn_foreach(&hashdyn, count_callback);
-		if (the_count != n)
+		if (the_count != n) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 
 		/* remove in backward order */
 		for (i = 0; i < n / 2; ++i)
@@ -3269,17 +3553,19 @@ void test_hashdyn(void)
 
 		/* remove missing */
 		for (i = 0; i < n / 2; ++i)
-			if (tommy_hashdyn_remove(&hashdyn, search_callback, &HASH[n - i - 1], HASH[n - i - 1].value) != 0)
+			if (tommy_hashdyn_remove(&hashdyn, search_callback, &HASH[n - i - 1], HASH[n - i - 1].value) != 0) {
 				/* LCOV_EXCL_START */
 				abort();
-		/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 
 		/* remove search */
 		for (i = 0; i < n / 2; ++i)
-			if (tommy_hashdyn_remove(&hashdyn, search_callback, &HASH[n / 2 - i - 1], HASH[n / 2 - i - 1].value) == 0)
+			if (tommy_hashdyn_remove(&hashdyn, search_callback, &HASH[n / 2 - i - 1], HASH[n / 2 - i - 1].value) == 0) {
 				/* LCOV_EXCL_START */
 				abort();
-		/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 
 		tommy_hashdyn_done(&hashdyn);
 	}
@@ -3300,10 +3586,11 @@ void test_hashdyn(void)
 
 		the_count = 0;
 		tommy_hashdyn_foreach_arg(&hashdyn, count_arg_callback, &the_count);
-		if (the_count != n)
+		if (the_count != n) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 
 		/* insert all the others */
 		for (; i < size; ++i, ++j) {
@@ -3315,10 +3602,11 @@ void test_hashdyn(void)
 		}
 
 		for (; j < size; ++j)
-			if (tommy_hashdyn_remove(&hashdyn, search_callback, &HASH[j], HASH[j].value) == 0)
+			if (tommy_hashdyn_remove(&hashdyn, search_callback, &HASH[j], HASH[j].value) == 0) {
 				/* LCOV_EXCL_START */
 				abort();
-		/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 
 		tommy_hashdyn_done(&hashdyn);
 	}
@@ -3342,10 +3630,11 @@ void test_hashlin_insert_unique(void)
 	compare_counter = 0;
 	if (tommy_hashlin_insert_unique(&table, &obj[0].node, &obj[0], search_hash_value_callback, &obj[0].value, 0) != &obj[0]
 		|| compare_counter != 0 || tommy_hashlin_count(&table) != 1
-		|| tommy_hashlin_search(&table, search_hash_value_callback, &obj[0].value, 0) != &obj[0])
+		|| tommy_hashlin_search(&table, search_hash_value_callback, &obj[0].value, 0) != &obj[0]) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 	tommy_hashlin_remove_existing(&table, &obj[0].node);
 
 	bucket_max = table.bucket_max;
@@ -3367,10 +3656,11 @@ void test_hashlin_insert_unique(void)
 	if (tommy_hashlin_insert_unique(&table, &obj[4].node, &obj[4], search_hash_value_callback, &obj[4].value, 0) != &obj[1]
 		|| compare_counter != 1 || tommy_hashlin_count(&table) != 4
 		|| obj[4].value != 20 || obj[4].node.next != saved.next || obj[4].node.prev != saved.prev
-		|| obj[4].node.data != saved.data || obj[4].node.index != saved.index)
+		|| obj[4].node.data != saved.data || obj[4].node.index != saved.index) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 	test_hash_bucket(tommy_hashlin_bucket(&table, 0), obj, order, 4);
 
 	/* equal hashes with different keys must allow insertion at the tail. */
@@ -3378,27 +3668,30 @@ void test_hashlin_insert_unique(void)
 	compare_counter = 0;
 	if (tommy_hashlin_insert_unique(&table, &obj[4].node, &obj[4], search_hash_value_callback, &obj[4].value, 0) != &obj[4]
 		|| compare_counter != 3 || tommy_hashlin_count(&table) != 5
-		|| obj[4].node.data != &obj[4] || obj[4].node.index != 0)
+		|| obj[4].node.data != &obj[4] || obj[4].node.index != 0) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
 	/* different full hashes in the same bucket must never invoke the comparator. */
 	obj[5].value = 50;
 	compare_counter = 0;
 	if (tommy_hashlin_insert_unique(&table, &obj[5].node, &obj[5], search_hash_value_callback, &obj[5].value, 2 * bucket_max) != &obj[5]
-		|| compare_counter != 0 || tommy_hashlin_count(&table) != 6)
+		|| compare_counter != 0 || tommy_hashlin_count(&table) != 6) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 	test_hash_bucket(tommy_hashlin_bucket(&table, 0), obj, order, 6);
 	tommy_hashlin_remove_existing(&table, &obj[1].node);
 	obj[6].value = 20;
 	if (tommy_hashlin_insert_unique(&table, &obj[6].node, &obj[6], search_hash_value_callback, &obj[6].value, 0) != &obj[3]
-		|| tommy_hashlin_count(&table) != 5)
+		|| tommy_hashlin_count(&table) != 5) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 	tommy_hashlin_done(&table);
 
 	/* insert unique keys, reject duplicates, then repeat during contraction. */
@@ -3415,10 +3708,11 @@ void test_hashlin_insert_unique(void)
 			if (phase == 0) {
 				obj[i].value = i;
 				if (tommy_hashlin_insert_unique(&table, &obj[i].node, &obj[i], search_hash_value_callback, &obj[i].value, hash) != &obj[i]
-					|| tommy_hashlin_count(&table) != i + 1)
+					|| tommy_hashlin_count(&table) != i + 1) {
 					/* LCOV_EXCL_START */
 					abort();
-				/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 			}
 
 			candidate.value = i;
@@ -3441,17 +3735,19 @@ void test_hashlin_insert_unique(void)
 				|| candidate.value != (int)i || candidate.node.next != &candidate.node
 				|| candidate.node.prev != &candidate.node || candidate.node.data != &candidate
 				|| candidate.node.index != ~(tommy_hash_t)0 || obj[i].node.next != saved.next
-				|| obj[i].node.prev != saved.prev || obj[i].node.data != saved.data || obj[i].node.index != saved.index)
+				|| obj[i].node.prev != saved.prev || obj[i].node.data != saved.data || obj[i].node.index != saved.index) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 
 			if (phase != 0) {
 				if (tommy_hashlin_remove_existing(&table, &obj[i].node) != &obj[i]
-					|| tommy_hashlin_count(&table) != count - 1)
+					|| tommy_hashlin_count(&table) != count - 1) {
 					/* LCOV_EXCL_START */
 					abort();
-				/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 				/* also insert a new key while hashlin is shrinking progressively. */
 				if (i == 24) {
 					obj[256].value = 256;
@@ -3459,10 +3755,11 @@ void test_hashlin_insert_unique(void)
 						|| tommy_hashlin_count(&table) != count
 						|| tommy_hashlin_search(&table, search_hash_value_callback, &obj[256].value, tommy_inthash_u32(256)) != &obj[256]
 						|| tommy_hashlin_remove_existing(&table, &obj[256].node) != &obj[256]
-						|| tommy_hashlin_count(&table) != count - 1)
+						|| tommy_hashlin_count(&table) != count - 1) {
 						/* LCOV_EXCL_START */
 						abort();
-					/* LCOV_EXCL_STOP */
+						/* LCOV_EXCL_STOP */
+					}
 				}
 			}
 		}
@@ -3525,15 +3822,17 @@ void test_hashlin_rehash_existing(void)
 					|| table.low_max != low_max || table.low_mask != low_mask || table.split != split
 					|| obj[target].node.index != hash || obj[target].node.data != saved.data
 					|| obj[target].value != (int)(1000 + target)
-					|| (mode == 0 && (obj[target].node.next != saved.next || obj[target].node.prev != saved.prev)))
+					|| (mode == 0 && (obj[target].node.next != saved.next || obj[target].node.prev != saved.prev))) {
 					/* LCOV_EXCL_START */
 					abort();
-				/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 				for (i = 0; i < bucket_bit; ++i)
-					if (table.bucket[i] != segments[i])
+					if (table.bucket[i] != segments[i]) {
 						/* LCOV_EXCL_START */
 						abort();
-				/* LCOV_EXCL_STOP */
+						/* LCOV_EXCL_STOP */
+					}
 
 				for (i = 0; i < source_size; ++i)
 					if (mode == 0 || i != target)
@@ -3549,26 +3848,29 @@ void test_hashlin_rehash_existing(void)
 				test_hash_bucket(tommy_hashlin_bucket(&table, 1), obj, destination, destination_count);
 				if (mode == 3)
 					test_hash_bucket(tommy_hashlin_bucket(&table, hash), obj, &target, 1);
-				if (mode != 0 && tommy_hashlin_search(&table, search_callback, &obj[target], 0) != 0)
+				if (mode != 0 && tommy_hashlin_search(&table, search_callback, &obj[target], 0) != 0) {
 					/* LCOV_EXCL_START */
 					abort();
-				/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 				/* also unlink from the new hash, including an unsplit high position. */
 				if (mode != 0) {
 					tommy_hashlin_rehash_existing(&table, &obj[target].node, 0);
 					if (tommy_hashlin_count(&table) != n || obj[target].node.index != 0
 						|| tommy_hashlin_search(&table, search_callback, &obj[target], 0) != &obj[target]
-						|| tommy_hashlin_search(&table, search_callback, &obj[target], hash) != 0)
+						|| tommy_hashlin_search(&table, search_callback, &obj[target], hash) != 0) {
 						/* LCOV_EXCL_START */
 						abort();
-					/* LCOV_EXCL_STOP */
+						/* LCOV_EXCL_STOP */
+					}
 					tommy_hashlin_rehash_existing(&table, &obj[target].node, hash);
 				}
 				for (i = 0; i < n; ++i)
-					if (tommy_hashlin_search(&table, search_callback, &obj[i], hashes[i]) != &obj[i])
+					if (tommy_hashlin_search(&table, search_callback, &obj[i], hashes[i]) != &obj[i]) {
 						/* LCOV_EXCL_START */
 						abort();
-				/* LCOV_EXCL_STOP */
+						/* LCOV_EXCL_STOP */
+					}
 
 				/* subsequent resizing and removals must use the updated stored hash. */
 				for (i = n; i < 130; ++i) {
@@ -3577,20 +3879,22 @@ void test_hashlin_rehash_existing(void)
 					tommy_hashlin_insert(&table, &obj[i].node, &obj[i], hashes[i]);
 				}
 				for (i = 0; i < 130; ++i)
-					if (tommy_hashlin_search(&table, search_callback, &obj[i], hashes[i]) != &obj[i])
+					if (tommy_hashlin_search(&table, search_callback, &obj[i], hashes[i]) != &obj[i]) {
 						/* LCOV_EXCL_START */
 						abort();
-				/* LCOV_EXCL_STOP */
+						/* LCOV_EXCL_STOP */
+					}
 				for (i = 130; i > 0; --i) {
 					void* data;
 					if (i % 2)
 						data = tommy_hashlin_remove_existing(&table, &obj[i - 1].node);
 					else
 						data = tommy_hashlin_remove(&table, search_callback, &obj[i - 1], hashes[i - 1]);
-					if (data != &obj[i - 1] || tommy_hashlin_count(&table) != i - 1)
+					if (data != &obj[i - 1] || tommy_hashlin_count(&table) != i - 1) {
 						/* LCOV_EXCL_START */
 						abort();
-					/* LCOV_EXCL_STOP */
+						/* LCOV_EXCL_STOP */
+					}
 				}
 				tommy_hashlin_done(&table);
 			}
@@ -3648,31 +3952,36 @@ void test_hashlin_to_list(void)
 				|| hashlin.bucket_mask != bucket_mask || hashlin.bucket_bit != bucket_bit
 				|| hashlin.state != stable_state || hashlin.low_max != bucket_max
 				|| hashlin.low_mask != bucket_mask || hashlin.split != 0
-				|| tommy_hashlin_memory_usage(&hashlin) != bucket_max * sizeof(tommy_hashlin_node*))
+				|| tommy_hashlin_memory_usage(&hashlin) != bucket_max * sizeof(tommy_hashlin_node*)) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 			for (i = 0; i < bucket_bit; ++i)
-				if (hashlin.bucket[i] != segments[i])
+				if (hashlin.bucket[i] != segments[i]) {
 					/* LCOV_EXCL_START */
 					abort();
-			/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 			for (i = 0; i < bucket_max; ++i)
-				if (tommy_hashlin_bucket(&hashlin, i) != 0)
+				if (tommy_hashlin_bucket(&hashlin, i) != 0) {
 					/* LCOV_EXCL_START */
 					abort();
-			/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 			the_count = 0;
 			tommy_hashlin_foreach(&hashlin, count_callback);
-			if (the_count != 0)
+			if (the_count != 0) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 			for (i = prefix; i < size; ++i)
-				if (tommy_hashlin_search(&hashlin, search_callback, &obj[i], obj[i].node.index) != 0)
+				if (tommy_hashlin_search(&hashlin, search_callback, &obj[i], obj[i].node.index) != 0) {
 					/* LCOV_EXCL_START */
 					abort();
-			/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 
 			for (i = 0; i < size; ++i)
 				saved[i] = obj[i].node;
@@ -3688,21 +3997,24 @@ void test_hashlin_to_list(void)
 				obj[i].value = i / 2;
 				tommy_hashlin_insert(&hashlin, &obj[i].node, &obj[i], tommy_inthash_u32(obj[i].value));
 			}
-			if (tommy_hashlin_count(&hashlin) != 130 || hashlin.bucket_max <= bucket_max)
+			if (tommy_hashlin_count(&hashlin) != 130 || hashlin.bucket_max <= bucket_max) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 			for (i = 0; i < 130; ++i)
 				if (tommy_hashlin_search(&hashlin, search_callback, &obj[i], obj[i].node.index) != &obj[i]
 					|| tommy_hashlin_remove_existing(&hashlin, &obj[i].node) != &obj[i]
-					|| tommy_hashlin_count(&hashlin) != 130 - i - 1)
+					|| tommy_hashlin_count(&hashlin) != 130 - i - 1) {
 					/* LCOV_EXCL_START */
 					abort();
-			/* LCOV_EXCL_STOP */
-			if (hashlin.bucket_max != (tommy_size_t)1 << TOMMY_HASHLIN_BIT)
+					/* LCOV_EXCL_STOP */
+				}
+			if (hashlin.bucket_max != (tommy_size_t)1 << TOMMY_HASHLIN_BIT) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 			tommy_hashlin_done(&hashlin);
 		}
 	}
@@ -3763,40 +4075,45 @@ void test_hashlin_clear(void)
 				|| hashlin.bucket_max != bucket_max || hashlin.bucket_mask != bucket_mask
 				|| hashlin.bucket_bit != bucket_bit || hashlin.state != stable_state
 				|| hashlin.low_max != bucket_max || hashlin.low_mask != bucket_mask
-				|| hashlin.split != 0 || tommy_hashlin_memory_usage(&hashlin) != memory_usage)
+				|| hashlin.split != 0 || tommy_hashlin_memory_usage(&hashlin) != memory_usage) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 
 			for (i = 0; i < bucket_bit; ++i)
-				if (hashlin.bucket[i] != bucket[i])
+				if (hashlin.bucket[i] != bucket[i]) {
 					/* LCOV_EXCL_START */
 					abort();
-			/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 
 			for (i = 0; i < bucket_max; ++i)
-				if (tommy_hashlin_bucket(&hashlin, i) != 0)
+				if (tommy_hashlin_bucket(&hashlin, i) != 0) {
 					/* LCOV_EXCL_START */
 					abort();
-			/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 
 			the_count = 0;
 			tommy_hashlin_foreach(&hashlin, count_callback);
 			tommy_hashlin_foreach_arg(&hashlin, count_arg_callback, &the_count);
-			if (the_count != 0)
+			if (the_count != 0) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 
 			for (i = 0; i < retained; ++i) {
 				tommy_hash_t hash = tommy_inthash_u32(obj[i].value);
 				if (obj[i].value != (int)(i / 2)
 					|| obj[i].node.data != &obj[i] || obj[i].node.index != hash
 					|| tommy_hashlin_search(&hashlin, search_callback, &obj[i], hash) != 0
-					|| tommy_hashlin_remove(&hashlin, search_callback, &obj[i], hash) != 0)
+					|| tommy_hashlin_remove(&hashlin, search_callback, &obj[i], hash) != 0) {
 					/* LCOV_EXCL_START */
 					abort();
-				/* LCOV_EXCL_STOP */
+					/* LCOV_EXCL_STOP */
+				}
 			}
 		}
 
@@ -3804,21 +4121,24 @@ void test_hashlin_clear(void)
 		for (i = 0; i < 256; ++i) {
 			obj[i].value = i / 2;
 			tommy_hashlin_insert(&hashlin, &obj[i].node, &obj[i], tommy_inthash_u32(obj[i].value));
-			if (tommy_hashlin_count(&hashlin) != i + 1)
+			if (tommy_hashlin_count(&hashlin) != i + 1) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 		}
-		if (hashlin.bucket_max <= bucket_max)
+		if (hashlin.bucket_max <= bucket_max) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 
 		for (i = 0; i < 256; ++i)
-			if (tommy_hashlin_search(&hashlin, search_callback, &obj[i], tommy_inthash_u32(obj[i].value)) != &obj[i])
+			if (tommy_hashlin_search(&hashlin, search_callback, &obj[i], tommy_inthash_u32(obj[i].value)) != &obj[i]) {
 				/* LCOV_EXCL_START */
 				abort();
-		/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 
 		/* verify both removal paths while the table shrinks again. */
 		for (i = 256; i > 0; --i) {
@@ -3827,22 +4147,25 @@ void test_hashlin_clear(void)
 				data = tommy_hashlin_remove_existing(&hashlin, &obj[i - 1].node);
 			else
 				data = tommy_hashlin_remove(&hashlin, search_callback, &obj[i - 1], tommy_inthash_u32(obj[i - 1].value));
-			if (data != &obj[i - 1] || tommy_hashlin_count(&hashlin) != i - 1)
+			if (data != &obj[i - 1] || tommy_hashlin_count(&hashlin) != i - 1) {
 				/* LCOV_EXCL_START */
 				abort();
-			/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 		}
-		if (hashlin.bucket_max != (tommy_size_t)1 << TOMMY_HASHLIN_BIT)
+		if (hashlin.bucket_max != (tommy_size_t)1 << TOMMY_HASHLIN_BIT) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 		tommy_hashlin_done(&hashlin);
 	}
 
-	if (stable == 0 || grow == 0 || shrink == 0)
+	if (stable == 0 || grow == 0 || shrink == 0) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
 	/* free objects during a partial grow or shrink, then clear and reuse. */
 	for (c = 0; c < 2; ++c) {
@@ -3862,10 +4185,11 @@ void test_hashlin_clear(void)
 		obj[0].value = 1;
 		tommy_hashlin_insert(&hashlin, &obj[0].node, &obj[0], 1);
 		if (tommy_hashlin_count(&hashlin) != 1
-			|| tommy_hashlin_remove_existing(&hashlin, &obj[0].node) != &obj[0])
+			|| tommy_hashlin_remove_existing(&hashlin, &obj[0].node) != &obj[0]) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 		tommy_hashlin_done(&hashlin);
 	}
 }
@@ -3898,10 +4222,11 @@ void test_hashlin(void)
 
 	/* get the bucket of the last element */
 	bucket = tommy_hashlin_bucket(&hashlin, module - 1);
-	if (bucket == 0)
+	if (bucket == 0) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
 	/* deinitialize without removing elements to force deallocation */
 	tommy_hashlin_done(&hashlin);
@@ -3919,22 +4244,25 @@ void test_hashlin(void)
 		for (i = 0; i < n; ++i)
 			tommy_hashlin_insert(&hashlin, &HASH[i].node, &HASH[i], HASH[i].value);
 
-		if (tommy_hashlin_memory_usage(&hashlin) < n * sizeof(void*))
+		if (tommy_hashlin_memory_usage(&hashlin) < n * sizeof(void*)) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 
-		if (tommy_hashlin_count(&hashlin) != n)
+		if (tommy_hashlin_count(&hashlin) != n) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 
 		the_count = 0;
 		tommy_hashlin_foreach(&hashlin, count_callback);
-		if (the_count != n)
+		if (the_count != n) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 
 		/* remove in backward order */
 		for (i = 0; i < n / 2; ++i)
@@ -3942,17 +4270,19 @@ void test_hashlin(void)
 
 		/* remove missing */
 		for (i = 0; i < n / 2; ++i)
-			if (tommy_hashlin_remove(&hashlin, search_callback, &HASH[n - i - 1], HASH[n - i - 1].value) != 0)
+			if (tommy_hashlin_remove(&hashlin, search_callback, &HASH[n - i - 1], HASH[n - i - 1].value) != 0) {
 				/* LCOV_EXCL_START */
 				abort();
-		/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 
 		/* remove search */
 		for (i = 0; i < n / 2; ++i)
-			if (tommy_hashlin_remove(&hashlin, search_callback, &HASH[n / 2 - i - 1], HASH[n / 2 - i - 1].value) == 0)
+			if (tommy_hashlin_remove(&hashlin, search_callback, &HASH[n / 2 - i - 1], HASH[n / 2 - i - 1].value) == 0) {
 				/* LCOV_EXCL_START */
 				abort();
-		/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 
 		tommy_hashlin_done(&hashlin);
 	}
@@ -3973,10 +4303,11 @@ void test_hashlin(void)
 
 		the_count = 0;
 		tommy_hashlin_foreach_arg(&hashlin, count_arg_callback, &the_count);
-		if (the_count != n)
+		if (the_count != n) {
 			/* LCOV_EXCL_START */
 			abort();
-		/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 
 		/* insert all the others */
 		for (; i < size; ++i, ++j) {
@@ -3988,10 +4319,11 @@ void test_hashlin(void)
 		}
 
 		for (; j < size; ++j)
-			if (tommy_hashlin_remove(&hashlin, search_callback, &HASH[j], HASH[j].value) == 0)
+			if (tommy_hashlin_remove(&hashlin, search_callback, &HASH[j], HASH[j].value) == 0) {
 				/* LCOV_EXCL_START */
 				abort();
-		/* LCOV_EXCL_STOP */
+				/* LCOV_EXCL_STOP */
+			}
 
 		tommy_hashlin_done(&hashlin);
 	}
@@ -4020,20 +4352,23 @@ void test_trie(void)
 	for (i = 0; i < size; ++i)
 		tommy_trie_insert(&trie, &OBJ[i].node, &OBJ[i], OBJ[i].value);
 
-	if (tommy_trie_memory_usage(&trie) < size * sizeof(tommy_trie_node))
+	if (tommy_trie_memory_usage(&trie) < size * sizeof(tommy_trie_node)) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
-	if (tommy_allocator_memory_usage(&alloc) < trie.node_count * TOMMY_TRIE_BLOCK_SIZE)
+	if (tommy_allocator_memory_usage(&alloc) < trie.node_count * TOMMY_TRIE_BLOCK_SIZE) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
-	if (tommy_trie_count(&trie) != size)
+	if (tommy_trie_count(&trie) != size) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
 	/* insert duplicate */
 	for (i = 0; i < 2; ++i) {
@@ -4043,10 +4378,11 @@ void test_trie(void)
 
 	/* search present */
 	for (i = 0; i < size / 2; ++i)
-		if (tommy_trie_search(&trie, OBJ[i].value) == 0)
+		if (tommy_trie_search(&trie, OBJ[i].value) == 0) {
 			/* LCOV_EXCL_START */
 			abort();
-	/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 
 	/* remove first duplicate */
 	tommy_trie_remove_existing(&trie, &DUP[0].node);
@@ -4056,40 +4392,45 @@ void test_trie(void)
 		tommy_trie_remove_existing(&trie, &OBJ[i].node);
 
 	/* remove missing using the same bucket of the duplicate */
-	if (tommy_trie_remove(&trie, 1) != 0)
+	if (tommy_trie_remove(&trie, 1) != 0) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
 	/* search missing using the same bucket of the duplicate */
-	if (tommy_trie_search(&trie, 1) != 0)
+	if (tommy_trie_search(&trie, 1) != 0) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
 	/* remove second duplicate */
 	tommy_trie_remove_existing(&trie, &DUP[1].node);
 
 	/* remove missing */
 	for (i = 0; i < size / 2; ++i)
-		if (tommy_trie_remove(&trie, OBJ[i].value) != 0)
+		if (tommy_trie_remove(&trie, OBJ[i].value) != 0) {
 			/* LCOV_EXCL_START */
 			abort();
-	/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 
 	/* search missing */
 	for (i = 0; i < size / 2; ++i)
-		if (tommy_trie_search(&trie, OBJ[i].value) != 0)
+		if (tommy_trie_search(&trie, OBJ[i].value) != 0) {
 			/* LCOV_EXCL_START */
 			abort();
-	/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 
 	/* remove present */
 	for (i = 0; i < size / 2; ++i)
-		if (tommy_trie_remove(&trie, OBJ[size / 2 + i].value) == 0)
+		if (tommy_trie_remove(&trie, OBJ[size / 2 + i].value) == 0) {
 			/* LCOV_EXCL_START */
 			abort();
-	/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 
 	tommy_allocator_done(&alloc);
 	STOP();
@@ -4115,15 +4456,17 @@ void test_trie_inplace(void)
 	for (i = 0; i < size; ++i)
 		tommy_trie_inplace_insert(&trie_inplace, &OBJ[i].node, &OBJ[i], OBJ[i].value);
 
-	if (tommy_trie_inplace_memory_usage(&trie_inplace) < size * sizeof(tommy_trie_inplace_node))
+	if (tommy_trie_inplace_memory_usage(&trie_inplace) < size * sizeof(tommy_trie_inplace_node)) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
-	if (tommy_trie_inplace_count(&trie_inplace) != size)
+	if (tommy_trie_inplace_count(&trie_inplace) != size) {
 		/* LCOV_EXCL_START */
 		abort();
-	/* LCOV_EXCL_STOP */
+		/* LCOV_EXCL_STOP */
+	}
 
 	/* insert duplicates */
 	for (i = 0; i < 2; ++i) {
@@ -4133,10 +4476,11 @@ void test_trie_inplace(void)
 
 	/* search present */
 	for (i = 0; i < size / 2; ++i)
-		if (tommy_trie_inplace_search(&trie_inplace, OBJ[i].value) == 0)
+		if (tommy_trie_inplace_search(&trie_inplace, OBJ[i].value) == 0) {
 			/* LCOV_EXCL_START */
 			abort();
-	/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 
 	/* remove first duplicate */
 	tommy_trie_inplace_remove_existing(&trie_inplace, &DUP[0].node);
@@ -4150,24 +4494,27 @@ void test_trie_inplace(void)
 
 	/* remove missing */
 	for (i = 0; i < size / 2; ++i)
-		if (tommy_trie_inplace_remove(&trie_inplace, OBJ[i].value) != 0)
+		if (tommy_trie_inplace_remove(&trie_inplace, OBJ[i].value) != 0) {
 			/* LCOV_EXCL_START */
 			abort();
-	/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 
 	/* search missing */
 	for (i = 0; i < size / 2; ++i)
-		if (tommy_trie_inplace_search(&trie_inplace, OBJ[i].value) != 0)
+		if (tommy_trie_inplace_search(&trie_inplace, OBJ[i].value) != 0) {
 			/* LCOV_EXCL_START */
 			abort();
-	/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 
 	/* remove present */
 	for (i = 0; i < size / 2; ++i)
-		if (tommy_trie_inplace_remove(&trie_inplace, OBJ[size / 2 + i].value) == 0)
+		if (tommy_trie_inplace_remove(&trie_inplace, OBJ[size / 2 + i].value) == 0) {
 			/* LCOV_EXCL_START */
 			abort();
-	/* LCOV_EXCL_STOP */
+			/* LCOV_EXCL_STOP */
+		}
 
 	STOP();
 }
