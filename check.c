@@ -317,6 +317,51 @@ static void count_arg_callback(void* arg, void* data)
 	++*count;
 }
 
+static void array_foreach_check_callback(void* data)
+{
+	if (data != (void*)(tommy_uintptr_t)(the_count + 1)) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	++the_count;
+}
+
+static void array_foreach_check_arg_callback(void* arg, void* data)
+{
+	tommy_uintptr_t* expected = arg;
+	if (data != (void*)(*expected + 1)) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	++*expected;
+}
+
+static void arrayof_foreach_check_callback(void* data)
+{
+	unsigned* val = data;
+	if (*val != the_count + 1) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	*val = *val * 2;
+	++the_count;
+}
+
+static void arrayof_foreach_check_arg_callback(void* arg, void* data)
+{
+	unsigned* expected = arg;
+	unsigned* val = data;
+	if (*val != (*expected + 1) * 2) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	++*expected;
+}
+
 static int search_callback(const void* arg, const void* obj)
 {
 	return arg != obj;
@@ -2236,6 +2281,726 @@ void test_arrayblkof(void)
 		/* LCOV_EXCL_START */
 		abort();
 		/* LCOV_EXCL_STOP */
+	}
+
+	tommy_arrayblkof_done(&arrayblkof);
+}
+
+void test_array_ops(void)
+{
+	tommy_array array;
+	tommy_uintptr_t i;
+
+	tommy_array_init(&array);
+
+	/* foreach on empty array */
+	the_count = 0;
+	tommy_array_foreach(&array, count_callback);
+	if (the_count != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	the_count = 0;
+	tommy_array_foreach_arg(&array, count_arg_callback, &the_count);
+	if (the_count != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	/* reserve on empty array */
+	tommy_array_reserve(&array, 0);
+	if (tommy_array_size(&array) != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	tommy_array_reserve(&array, 50);
+	if (tommy_array_size(&array) != 0 || tommy_array_memory_usage(&array) < 64 * sizeof(void*)) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	tommy_array_reserve(&array, 100);
+	if (tommy_array_size(&array) != 0 || tommy_array_memory_usage(&array) < 128 * sizeof(void*)) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	/* resize growing */
+	tommy_array_resize(&array, 100);
+	if (tommy_array_size(&array) != 100) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	for (i = 0; i < 100; ++i) {
+		if (tommy_array_get(&array, i) != 0) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_array_set(&array, i, (void*)(i + 1));
+	}
+
+	/* resize shrinking and invariant check */
+	tommy_array_resize(&array, 50);
+	if (tommy_array_size(&array) != 50) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	for (i = 0; i < 50; ++i) {
+		if (tommy_array_get(&array, i) != (void*)(i + 1)) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+	tommy_array_resize(&array, 100);
+	for (i = 50; i < 100; ++i) {
+		if (tommy_array_get(&array, i) != 0) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
+	/* boundary resizes */
+	tommy_array_resize(&array, 63);
+	tommy_array_resize(&array, 64);
+	tommy_array_resize(&array, 65);
+	tommy_array_resize(&array, 127);
+	tommy_array_resize(&array, 128);
+	tommy_array_resize(&array, 129);
+	tommy_array_resize(&array, 63);
+
+	/* clear */
+	tommy_array_set(&array, 0, (void*)1);
+	tommy_array_clear(&array);
+	if (tommy_array_size(&array) != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	tommy_array_resize(&array, 10);
+	for (i = 0; i < 10; ++i) {
+		if (tommy_array_get(&array, i) != 0) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
+	/* shrink */
+	tommy_array_resize(&array, 200);
+	for (i = 0; i < 70; ++i)
+		tommy_array_set(&array, i, (void*)(i + 1));
+	tommy_array_resize(&array, 70);
+	tommy_array_shrink(&array);
+	if (tommy_array_size(&array) != 70 || tommy_array_memory_usage(&array) != 128 * sizeof(void*)) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	for (i = 0; i < 70; ++i) {
+		if (tommy_array_get(&array, i) != (void*)(i + 1)) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
+	tommy_array_clear(&array);
+	tommy_array_shrink(&array);
+	if (tommy_array_size(&array) != 0 || tommy_array_memory_usage(&array) != 64 * sizeof(void*)) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	tommy_array_grow(&array, 1);
+	if (tommy_array_get(&array, 0) != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	/* foreach and foreach_arg on populated array */
+	tommy_array_resize(&array, 200);
+	for (i = 0; i < 200; ++i)
+		tommy_array_set(&array, i, (void*)(i + 1));
+	the_count = 0;
+	tommy_array_foreach(&array, array_foreach_check_callback);
+	if (the_count != 200) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	{
+		tommy_uintptr_t expected = 0;
+		tommy_array_foreach_arg(&array, array_foreach_check_arg_callback, &expected);
+		if (expected != 200) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
+	tommy_array_done(&array);
+}
+
+void test_arrayof_ops(void)
+{
+	tommy_arrayof arrayof;
+	unsigned i;
+
+	tommy_arrayof_init(&arrayof, sizeof(unsigned));
+
+	/* foreach on empty array */
+	the_count = 0;
+	tommy_arrayof_foreach(&arrayof, count_callback);
+	if (the_count != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	the_count = 0;
+	tommy_arrayof_foreach_arg(&arrayof, count_arg_callback, &the_count);
+	if (the_count != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	/* reserve on empty array */
+	tommy_arrayof_reserve(&arrayof, 0);
+	if (tommy_arrayof_size(&arrayof) != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	tommy_arrayof_reserve(&arrayof, 50);
+	if (tommy_arrayof_size(&arrayof) != 0 || tommy_arrayof_memory_usage(&arrayof) < 64 * sizeof(unsigned)) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	tommy_arrayof_reserve(&arrayof, 100);
+	if (tommy_arrayof_size(&arrayof) != 0 || tommy_arrayof_memory_usage(&arrayof) < 128 * sizeof(unsigned)) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	/* resize growing */
+	tommy_arrayof_resize(&arrayof, 100);
+	if (tommy_arrayof_size(&arrayof) != 100) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	for (i = 0; i < 100; ++i) {
+		unsigned* ref = tommy_arrayof_ref(&arrayof, i);
+		if (*ref != 0) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		*ref = i + 1;
+	}
+
+	/* resize shrinking and invariant check */
+	tommy_arrayof_resize(&arrayof, 50);
+	if (tommy_arrayof_size(&arrayof) != 50) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	for (i = 0; i < 50; ++i) {
+		unsigned* ref = tommy_arrayof_ref(&arrayof, i);
+		if (*ref != i + 1) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+	tommy_arrayof_resize(&arrayof, 100);
+	for (i = 50; i < 100; ++i) {
+		unsigned* ref = tommy_arrayof_ref(&arrayof, i);
+		if (*ref != 0) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
+	/* boundary resizes */
+	tommy_arrayof_resize(&arrayof, 63);
+	tommy_arrayof_resize(&arrayof, 64);
+	tommy_arrayof_resize(&arrayof, 65);
+	tommy_arrayof_resize(&arrayof, 127);
+	tommy_arrayof_resize(&arrayof, 128);
+	tommy_arrayof_resize(&arrayof, 129);
+	tommy_arrayof_resize(&arrayof, 63);
+
+	/* clear */
+	{
+		unsigned* ref = tommy_arrayof_ref(&arrayof, 0);
+		*ref = 1;
+	}
+	tommy_arrayof_clear(&arrayof);
+	if (tommy_arrayof_size(&arrayof) != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	tommy_arrayof_resize(&arrayof, 10);
+	for (i = 0; i < 10; ++i) {
+		unsigned* ref = tommy_arrayof_ref(&arrayof, i);
+		if (*ref != 0) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
+	/* shrink */
+	tommy_arrayof_resize(&arrayof, 200);
+	for (i = 0; i < 70; ++i) {
+		unsigned* ref = tommy_arrayof_ref(&arrayof, i);
+		*ref = i + 1;
+	}
+	tommy_arrayof_resize(&arrayof, 70);
+	tommy_arrayof_shrink(&arrayof);
+	if (tommy_arrayof_size(&arrayof) != 70 || tommy_arrayof_memory_usage(&arrayof) != 128 * sizeof(unsigned)) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	for (i = 0; i < 70; ++i) {
+		unsigned* ref = tommy_arrayof_ref(&arrayof, i);
+		if (*ref != i + 1) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
+	tommy_arrayof_clear(&arrayof);
+	tommy_arrayof_shrink(&arrayof);
+	if (tommy_arrayof_size(&arrayof) != 0 || tommy_arrayof_memory_usage(&arrayof) != 64 * sizeof(unsigned)) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	tommy_arrayof_grow(&arrayof, 1);
+	{
+		unsigned* ref = tommy_arrayof_ref(&arrayof, 0);
+		if (*ref != 0) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
+	/* foreach and foreach_arg on populated array */
+	tommy_arrayof_resize(&arrayof, 200);
+	for (i = 0; i < 200; ++i) {
+		unsigned* ref = tommy_arrayof_ref(&arrayof, i);
+		*ref = i + 1;
+	}
+	the_count = 0;
+	tommy_arrayof_foreach(&arrayof, arrayof_foreach_check_callback);
+	if (the_count != 200) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	{
+		unsigned expected = 0;
+		tommy_arrayof_foreach_arg(&arrayof, arrayof_foreach_check_arg_callback, &expected);
+		if (expected != 200) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
+	tommy_arrayof_done(&arrayof);
+}
+
+void test_arrayblk_ops(void)
+{
+	tommy_arrayblk arrayblk;
+	tommy_uintptr_t i;
+
+	tommy_arrayblk_init(&arrayblk);
+
+	/* foreach on empty array */
+	the_count = 0;
+	tommy_arrayblk_foreach(&arrayblk, count_callback);
+	if (the_count != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	the_count = 0;
+	tommy_arrayblk_foreach_arg(&arrayblk, count_arg_callback, &the_count);
+	if (the_count != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	/* reserve on empty array */
+	tommy_arrayblk_reserve(&arrayblk, 0);
+	if (tommy_arrayblk_size(&arrayblk) != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	tommy_arrayblk_reserve(&arrayblk, 100);
+	if (tommy_arrayblk_size(&arrayblk) != 0 || arrayblk.block_count != 1) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	tommy_arrayblk_reserve(&arrayblk, TOMMY_ARRAYBLK_SIZE + 1);
+	if (tommy_arrayblk_size(&arrayblk) != 0 || arrayblk.block_count != 2) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	/* test directory expansion beyond initial 64 block entries */
+	tommy_arrayblk_reserve(&arrayblk, 65 * TOMMY_ARRAYBLK_SIZE);
+	if (tommy_arrayblk_size(&arrayblk) != 0 || arrayblk.block_capacity < 65) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	/* resize growing across block boundary */
+	tommy_arrayblk_resize(&arrayblk, TOMMY_ARRAYBLK_SIZE + 50);
+	if (tommy_arrayblk_size(&arrayblk) != TOMMY_ARRAYBLK_SIZE + 50) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	for (i = 0; i < TOMMY_ARRAYBLK_SIZE + 50; ++i) {
+		if (tommy_arrayblk_get(&arrayblk, i) != 0) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_arrayblk_set(&arrayblk, i, (void*)(i + 1));
+	}
+
+	/* resize shrinking across block boundary */
+	tommy_arrayblk_resize(&arrayblk, TOMMY_ARRAYBLK_SIZE - 10);
+	if (tommy_arrayblk_size(&arrayblk) != TOMMY_ARRAYBLK_SIZE - 10) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	for (i = 0; i < TOMMY_ARRAYBLK_SIZE - 10; ++i) {
+		if (tommy_arrayblk_get(&arrayblk, i) != (void*)(i + 1)) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
+	/* regrowing and invariant check across block boundary */
+	tommy_arrayblk_resize(&arrayblk, TOMMY_ARRAYBLK_SIZE + 50);
+	for (i = TOMMY_ARRAYBLK_SIZE - 10; i < TOMMY_ARRAYBLK_SIZE + 50; ++i) {
+		if (tommy_arrayblk_get(&arrayblk, i) != 0) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
+	/* boundary resizes */
+	tommy_arrayblk_resize(&arrayblk, 4095);
+	tommy_arrayblk_resize(&arrayblk, 4096);
+	tommy_arrayblk_resize(&arrayblk, 4097);
+	tommy_arrayblk_resize(&arrayblk, 4095);
+
+	/* clear */
+	tommy_arrayblk_set(&arrayblk, 0, (void*)1);
+	tommy_arrayblk_clear(&arrayblk);
+	if (tommy_arrayblk_size(&arrayblk) != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	tommy_arrayblk_resize(&arrayblk, 10);
+	for (i = 0; i < 10; ++i) {
+		if (tommy_arrayblk_get(&arrayblk, i) != 0) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
+	/* shrink with directory reduction */
+	tommy_arrayblk_reserve(&arrayblk, 65 * TOMMY_ARRAYBLK_SIZE);
+	tommy_arrayblk_resize(&arrayblk, TOMMY_ARRAYBLK_SIZE + 50);
+	for (i = 0; i < TOMMY_ARRAYBLK_SIZE + 10; ++i)
+		tommy_arrayblk_set(&arrayblk, i, (void*)(i + 1));
+	tommy_arrayblk_resize(&arrayblk, TOMMY_ARRAYBLK_SIZE + 10);
+	tommy_arrayblk_shrink(&arrayblk);
+	if (tommy_arrayblk_size(&arrayblk) != TOMMY_ARRAYBLK_SIZE + 10 || arrayblk.block_count != 2 || arrayblk.block_capacity != 64) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	for (i = 0; i < TOMMY_ARRAYBLK_SIZE + 10; ++i) {
+		if (tommy_arrayblk_get(&arrayblk, i) != (void*)(i + 1)) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
+	/* shrink to empty */
+	tommy_arrayblk_clear(&arrayblk);
+	tommy_arrayblk_shrink(&arrayblk);
+	if (tommy_arrayblk_size(&arrayblk) != 0 || arrayblk.block_count != 0 || arrayblk.block_capacity != 64) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	tommy_arrayblk_grow(&arrayblk, 1);
+	if (tommy_arrayblk_get(&arrayblk, 0) != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	/* foreach and foreach_arg on populated array spanning multiple blocks */
+	tommy_arrayblk_resize(&arrayblk, TOMMY_ARRAYBLK_SIZE + 50);
+	for (i = 0; i < TOMMY_ARRAYBLK_SIZE + 50; ++i)
+		tommy_arrayblk_set(&arrayblk, i, (void*)(i + 1));
+	the_count = 0;
+	tommy_arrayblk_foreach(&arrayblk, array_foreach_check_callback);
+	if (the_count != TOMMY_ARRAYBLK_SIZE + 50) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	{
+		tommy_uintptr_t expected = 0;
+		tommy_arrayblk_foreach_arg(&arrayblk, array_foreach_check_arg_callback, &expected);
+		if (expected != TOMMY_ARRAYBLK_SIZE + 50) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
+	tommy_arrayblk_done(&arrayblk);
+}
+
+void test_arrayblkof_ops(void)
+{
+	tommy_arrayblkof arrayblkof;
+	unsigned i;
+
+	tommy_arrayblkof_init(&arrayblkof, sizeof(unsigned));
+
+	/* foreach on empty array */
+	the_count = 0;
+	tommy_arrayblkof_foreach(&arrayblkof, count_callback);
+	if (the_count != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	the_count = 0;
+	tommy_arrayblkof_foreach_arg(&arrayblkof, count_arg_callback, &the_count);
+	if (the_count != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	/* reserve on empty array */
+	tommy_arrayblkof_reserve(&arrayblkof, 0);
+	if (tommy_arrayblkof_size(&arrayblkof) != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	tommy_arrayblkof_reserve(&arrayblkof, 100);
+	if (tommy_arrayblkof_size(&arrayblkof) != 0 || arrayblkof.block_count != 1) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	tommy_arrayblkof_reserve(&arrayblkof, TOMMY_ARRAYBLKOF_SIZE + 1);
+	if (tommy_arrayblkof_size(&arrayblkof) != 0 || arrayblkof.block_count != 2) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	/* test directory expansion beyond initial 64 block entries */
+	tommy_arrayblkof_reserve(&arrayblkof, 65 * TOMMY_ARRAYBLKOF_SIZE);
+	if (tommy_arrayblkof_size(&arrayblkof) != 0 || arrayblkof.block_capacity < 65) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	/* resize growing across block boundary */
+	tommy_arrayblkof_resize(&arrayblkof, TOMMY_ARRAYBLKOF_SIZE + 50);
+	if (tommy_arrayblkof_size(&arrayblkof) != TOMMY_ARRAYBLKOF_SIZE + 50) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	for (i = 0; i < TOMMY_ARRAYBLKOF_SIZE + 50; ++i) {
+		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
+		if (*ref != 0) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		*ref = i + 1;
+	}
+
+	/* resize shrinking across block boundary */
+	tommy_arrayblkof_resize(&arrayblkof, TOMMY_ARRAYBLKOF_SIZE - 10);
+	if (tommy_arrayblkof_size(&arrayblkof) != TOMMY_ARRAYBLKOF_SIZE - 10) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	for (i = 0; i < TOMMY_ARRAYBLKOF_SIZE - 10; ++i) {
+		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
+		if (*ref != i + 1) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
+	/* regrowing and invariant check across block boundary */
+	tommy_arrayblkof_resize(&arrayblkof, TOMMY_ARRAYBLKOF_SIZE + 50);
+	for (i = TOMMY_ARRAYBLKOF_SIZE - 10; i < TOMMY_ARRAYBLKOF_SIZE + 50; ++i) {
+		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
+		if (*ref != 0) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
+	/* boundary resizes */
+	tommy_arrayblkof_resize(&arrayblkof, 4095);
+	tommy_arrayblkof_resize(&arrayblkof, 4096);
+	tommy_arrayblkof_resize(&arrayblkof, 4097);
+	tommy_arrayblkof_resize(&arrayblkof, 4095);
+
+	/* clear */
+	{
+		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, 0);
+		*ref = 1;
+	}
+	tommy_arrayblkof_clear(&arrayblkof);
+	if (tommy_arrayblkof_size(&arrayblkof) != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	tommy_arrayblkof_resize(&arrayblkof, 10);
+	for (i = 0; i < 10; ++i) {
+		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
+		if (*ref != 0) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
+	/* shrink with directory reduction */
+	tommy_arrayblkof_reserve(&arrayblkof, 65 * TOMMY_ARRAYBLKOF_SIZE);
+	tommy_arrayblkof_resize(&arrayblkof, TOMMY_ARRAYBLKOF_SIZE + 50);
+	for (i = 0; i < TOMMY_ARRAYBLKOF_SIZE + 10; ++i) {
+		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
+		*ref = i + 1;
+	}
+	tommy_arrayblkof_resize(&arrayblkof, TOMMY_ARRAYBLKOF_SIZE + 10);
+	tommy_arrayblkof_shrink(&arrayblkof);
+	if (tommy_arrayblkof_size(&arrayblkof) != TOMMY_ARRAYBLKOF_SIZE + 10 || arrayblkof.block_count != 2 || arrayblkof.block_capacity != 64) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	for (i = 0; i < TOMMY_ARRAYBLKOF_SIZE + 10; ++i) {
+		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
+		if (*ref != i + 1) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
+	/* shrink to empty */
+	tommy_arrayblkof_clear(&arrayblkof);
+	tommy_arrayblkof_shrink(&arrayblkof);
+	if (tommy_arrayblkof_size(&arrayblkof) != 0 || arrayblkof.block_count != 0 || arrayblkof.block_capacity != 64) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	tommy_arrayblkof_grow(&arrayblkof, 1);
+	{
+		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, 0);
+		if (*ref != 0) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
+	/* foreach and foreach_arg on populated array spanning multiple blocks */
+	tommy_arrayblkof_resize(&arrayblkof, TOMMY_ARRAYBLKOF_SIZE + 50);
+	for (i = 0; i < TOMMY_ARRAYBLKOF_SIZE + 50; ++i) {
+		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
+		*ref = i + 1;
+	}
+	the_count = 0;
+	tommy_arrayblkof_foreach(&arrayblkof, arrayof_foreach_check_callback);
+	if (the_count != TOMMY_ARRAYBLKOF_SIZE + 50) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	{
+		unsigned expected = 0;
+		tommy_arrayblkof_foreach_arg(&arrayblkof, arrayof_foreach_check_arg_callback, &expected);
+		if (expected != TOMMY_ARRAYBLKOF_SIZE + 50) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
 	}
 
 	tommy_arrayblkof_done(&arrayblkof);
@@ -4550,9 +5315,13 @@ int main()
 	test_tree_clear();
 	test_tree_to_list();
 	test_array();
+	test_array_ops();
 	test_arrayof();
+	test_arrayof_ops();
 	test_arrayblk();
+	test_arrayblk_ops();
 	test_arrayblkof();
+	test_arrayblkof_ops();
 	test_hashtable();
 	test_hashdyn();
 	test_hashlin();

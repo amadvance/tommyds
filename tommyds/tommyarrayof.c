@@ -3,6 +3,8 @@
 
 #include "tommyarrayof.h"
 
+#include <string.h> /* for memset */
+
 /******************************************************************************/
 /* array */
 
@@ -32,13 +34,9 @@ TOMMY_API void tommy_arrayof_done(tommy_arrayof* array)
 	}
 }
 
-TOMMY_API void tommy_arrayof_grow(tommy_arrayof* array, tommy_size_t count)
+TOMMY_API void tommy_arrayof_reserve(tommy_arrayof* array, tommy_size_t size)
 {
-	if (array->count >= count)
-		return;
-	array->count = count;
-
-	while (count > array->bucket_max) {
+	while (size > array->bucket_max) {
 		unsigned char* segment;
 
 		/* allocate one more segment */
@@ -50,6 +48,83 @@ TOMMY_API void tommy_arrayof_grow(tommy_arrayof* array, tommy_size_t count)
 
 		++array->bucket_bit;
 		array->bucket_max = (tommy_size_t)1 << array->bucket_bit;
+	}
+}
+
+TOMMY_API void tommy_arrayof_resize(tommy_arrayof* array, tommy_size_t size)
+{
+	tommy_size_t pos;
+
+	if (size >= array->count) {
+		tommy_arrayof_grow(array, size);
+		return;
+	}
+
+	/* clear the unused elements to maintain the invariant that unused slots are zero */
+	pos = size;
+	while (pos < array->count) {
+		tommy_uint_t bsr = tommy_ilog2(pos | 1);
+		tommy_size_t seg_end = (bsr < TOMMY_ARRAYOF_BIT) ? ((tommy_size_t)1 << TOMMY_ARRAYOF_BIT) : ((tommy_size_t)1 << (bsr + 1));
+		tommy_size_t chunk_end = array->count < seg_end ? array->count : seg_end;
+		unsigned char* ptr = tommy_cast(unsigned char*, array->bucket[bsr]);
+
+		memset(ptr + pos * array->element_size, 0, (chunk_end - pos) * array->element_size);
+		pos = chunk_end;
+	}
+
+	array->count = size;
+}
+
+TOMMY_API void tommy_arrayof_shrink(tommy_arrayof* array)
+{
+	tommy_uint_t target_bucket_bit = TOMMY_ARRAYOF_BIT;
+
+	if (array->count > (tommy_size_t)1 << TOMMY_ARRAYOF_BIT)
+		target_bucket_bit = tommy_ilog2(array->count - 1) + 1;
+
+	while (array->bucket_bit > target_bucket_bit) {
+		unsigned char* segment;
+		--array->bucket_bit;
+		segment = tommy_cast(unsigned char*, array->bucket[array->bucket_bit]);
+		tommy_free(segment + ((tommy_ptrdiff_t)1 << array->bucket_bit) * array->element_size);
+	}
+
+	array->bucket_max = (tommy_size_t)1 << array->bucket_bit;
+}
+
+TOMMY_API void tommy_arrayof_foreach(tommy_arrayof* array, tommy_foreach_func* func)
+{
+	tommy_size_t pos = 0;
+
+	while (pos < array->count) {
+		tommy_uint_t bsr = tommy_ilog2(pos | 1);
+		tommy_size_t seg_end = (bsr < TOMMY_ARRAYOF_BIT) ? ((tommy_size_t)1 << TOMMY_ARRAYOF_BIT) : ((tommy_size_t)1 << (bsr + 1));
+		tommy_size_t chunk_end = array->count < seg_end ? array->count : seg_end;
+		unsigned char* ptr = tommy_cast(unsigned char*, array->bucket[bsr]) + pos * array->element_size;
+
+		while (pos < chunk_end) {
+			func(ptr);
+			ptr += array->element_size;
+			++pos;
+		}
+	}
+}
+
+TOMMY_API void tommy_arrayof_foreach_arg(tommy_arrayof* array, tommy_foreach_arg_func* func, void* arg)
+{
+	tommy_size_t pos = 0;
+
+	while (pos < array->count) {
+		tommy_uint_t bsr = tommy_ilog2(pos | 1);
+		tommy_size_t seg_end = (bsr < TOMMY_ARRAYOF_BIT) ? ((tommy_size_t)1 << TOMMY_ARRAYOF_BIT) : ((tommy_size_t)1 << (bsr + 1));
+		tommy_size_t chunk_end = array->count < seg_end ? array->count : seg_end;
+		unsigned char* ptr = tommy_cast(unsigned char*, array->bucket[bsr]) + pos * array->element_size;
+
+		while (pos < chunk_end) {
+			func(arg, ptr);
+			ptr += array->element_size;
+			++pos;
+		}
 	}
 }
 

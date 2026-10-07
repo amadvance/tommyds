@@ -51,10 +51,48 @@ TOMMY_API void tommy_array_init(tommy_array* array);
 TOMMY_API void tommy_array_done(tommy_array* array);
 
 /**
+ * Allocates space for at least the specified number of elements.
+ * The initialized size and existing elements are unchanged.
+ * Existing element references remain valid.
+ */
+TOMMY_API void tommy_array_reserve(tommy_array* array, tommy_size_t size);
+
+/**
  * Grows the size up to the specified value.
  * All the new elements in the array are initialized with the 0 value.
  */
-TOMMY_API void tommy_array_grow(tommy_array* array, tommy_size_t size);
+tommy_inline void tommy_array_grow(tommy_array* array, tommy_size_t size)
+{
+	if (size > array->count) {
+		array->count = size;
+
+		if (size > array->bucket_max)
+			tommy_array_reserve(array, size);
+	}
+}
+
+/**
+ * Changes the initialized size, preserving the common prefix.
+ * New elements are initialized to zero.
+ * Reducing the size does not release allocated capacity.
+ */
+TOMMY_API void tommy_array_resize(tommy_array* array, tommy_size_t size);
+
+/**
+ * Removes all elements, preserving the allocated capacity.
+ * Pointed-to objects are not freed.
+ * The array remains initialized and can be reused immediately.
+ */
+tommy_inline void tommy_array_clear(tommy_array* array)
+{
+	tommy_array_resize(array, 0);
+}
+
+/**
+ * Releases unused allocated memory.
+ * Preserves the size, values, and addresses of existing elements.
+ */
+TOMMY_API void tommy_array_shrink(tommy_array* array);
 
 /**
  * Gets a reference of the element at the specified position.
@@ -112,6 +150,26 @@ tommy_inline tommy_size_t tommy_array_size(tommy_array* array)
 {
 	return array->count;
 }
+
+/**
+ * Calls the specified function for each element in the array.
+ *
+ * You cannot add or remove elements, nor change the size of the array,
+ * from inside the callback.
+ *
+ * \param array Array to iterate.
+ * \param func Function to call with each element.
+ */
+TOMMY_API void tommy_array_foreach(tommy_array* array, tommy_foreach_func* func);
+
+/**
+ * Calls the specified function with an argument for each element in the array.
+ *
+ * \param array Array to iterate.
+ * \param func Function to call with each element.
+ * \param arg Argument to pass to the function.
+ */
+TOMMY_API void tommy_array_foreach_arg(tommy_array* array, tommy_foreach_arg_func* func, void* arg);
 
 /**
  * Gets the size of allocated memory.

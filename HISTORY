@@ -54,6 +54,27 @@ TommyDS HISTORY
    These find inclusive key bounds, keep unique insertion available, remove
    using a custom comparison, clear for reuse, and drain nodes to a list in
    tree order.
+ * Added tommy_array_reserve(), tommy_arrayof_reserve(),
+   tommy_arrayblk_reserve() and tommy_arrayblkof_reserve().
+   These preallocate capacity to accommodate elements without increasing the
+   initialized size or invalidating existing references.
+ * Added tommy_array_resize(), tommy_arrayof_resize(),
+   tommy_arrayblk_resize(), tommy_arrayblkof_resize(), tommy_array_clear(),
+   tommy_arrayof_clear(), tommy_arrayblk_clear() and tommy_arrayblkof_clear().
+   These allow changing the initialized size bidirectionally with automatic
+   zeroing of unused slots upon shrinking, and clearing while preserving
+   allocated capacity for immediate reuse.
+ * Added tommy_array_shrink(), tommy_arrayof_shrink(),
+   tommy_arrayblk_shrink() and tommy_arrayblkof_shrink().
+   These release unused allocated segments or blocks without moving existing
+   elements or altering their addresses.
+ * Added tommy_array_foreach(), tommy_array_foreach_arg(),
+   tommy_arrayof_foreach(), tommy_arrayof_foreach_arg(),
+   tommy_arrayblk_foreach(), tommy_arrayblk_foreach_arg(),
+   tommy_arrayblkof_foreach() and tommy_arrayblkof_foreach_arg().
+   These iterate across initialized elements in order, passing the element
+   pointer or in-place record reference to callback functions.
+
 
 3.0 2025/11
 ===========
