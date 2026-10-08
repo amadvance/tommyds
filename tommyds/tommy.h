@@ -856,6 +856,11 @@
  * When using C++, include this header instead of the individual headers.
  */
 
+/* include MSVC intrinsics before extern "C" to preserve C++ linkage */
+#if defined(_MSC_VER) && defined(__cplusplus)
+#include <intrin.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
