@@ -10,7 +10,7 @@
 
 TOMMY_API void tommy_arrayblk_init(tommy_arrayblk* array)
 {
-	array->block_capacity = (tommy_size_t)1 << TOMMY_ARRAY_BIT;
+	array->block_capacity = (tommy_size_t)1 << TOMMY_ARRAYBLK_BIT;
 	array->block = tommy_cast(void***, tommy_malloc(array->block_capacity * sizeof(array->block[0])));
 	array->block_count = 0;
 
@@ -82,7 +82,7 @@ TOMMY_API void tommy_arrayblk_shrink(tommy_arrayblk* array)
 		tommy_free(array->block[array->block_count]);
 	}
 
-	tommy_size_t min_capacity = (tommy_size_t)1 << TOMMY_ARRAY_BIT;
+	tommy_size_t min_capacity = (tommy_size_t)1 << TOMMY_ARRAYBLK_BIT;
 	tommy_size_t capacity = min_capacity;
 	while (capacity < block_max)
 		capacity *= 2;

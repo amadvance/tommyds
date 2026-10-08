@@ -23,6 +23,11 @@
 /* array */
 
 /**
+ * Initial and minimal capacity of the block directory expressed as a power of 2.
+ */
+#define TOMMY_ARRAYBLK_BIT 6
+
+/**
  * Elements for each block.
  */
 #define TOMMY_ARRAYBLK_SIZE (4 * 1024)
