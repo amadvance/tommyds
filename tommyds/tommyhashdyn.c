@@ -268,11 +268,12 @@ TOMMY_API tommy_size_t tommy_hashdyn_memory_usage(const tommy_hashdyn* hashdyn)
 
 TOMMY_API void tommy_hashdyn_to_list(tommy_hashdyn* hashdyn, tommy_list* list)
 {
-	/* move everything to the list */
-	for (tommy_size_t pos = 0; pos < hashdyn->bucket_max; ++pos)
+	/* clear buckets as they are transferred to avoid a second scan */
+	for (tommy_size_t pos = 0; pos < hashdyn->bucket_max; ++pos) {
 		tommy_list_concat(list, &hashdyn->bucket[pos]);
+		hashdyn->bucket[pos] = 0;
+	}
 
-	/* clear all */
-	tommy_hashdyn_clear(hashdyn);
+	hashdyn->count = 0;
 }
 
