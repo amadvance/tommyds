@@ -108,12 +108,14 @@
 /* trie */
 
 /**
- * Number of bits of the elements to store in the trie.
+ * Number of bits supported for trie keys.
  *
- * If you need to store integers bigger than 32 bits you can
- * increase this value.
+ * All keys must fit in TOMMY_TRIE_BIT bits, even if tommy_key_t is wider.
+ * This requirement is checked with assert(), and is not enforced
+ * when assertions are disabled.
  *
- * Keeping this value small improves the performance of the trie.
+ * Increase this value to support larger keys.
+ * Keeping it small improves trie performance.
  */
 #define TOMMY_TRIE_BIT 32
 
