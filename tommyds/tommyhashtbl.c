@@ -135,7 +135,7 @@ TOMMY_API void tommy_hashtable_foreach_arg(tommy_hashtable* hashtable, tommy_for
 	}
 }
 
-TOMMY_API tommy_size_t tommy_hashtable_memory_usage(tommy_hashtable* hashtable)
+TOMMY_API tommy_size_t tommy_hashtable_memory_usage(const tommy_hashtable* hashtable)
 {
 	return hashtable->bucket_max * (tommy_size_t)sizeof(hashtable->bucket[0])
 	       + tommy_hashtable_count(hashtable) * (tommy_size_t)sizeof(tommy_hashtable_node);

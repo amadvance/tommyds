@@ -158,7 +158,7 @@ tommy_inline void tommy_arrayof_remove_tail(tommy_arrayof* array)
 /**
  * Checks whether the array is empty.
  */
-tommy_inline tommy_bool_t tommy_arrayof_empty(tommy_arrayof* array)
+tommy_inline tommy_bool_t tommy_arrayof_empty(const tommy_arrayof* array)
 {
 	return array->count == 0;
 }
@@ -167,7 +167,7 @@ tommy_inline tommy_bool_t tommy_arrayof_empty(tommy_arrayof* array)
  * Gets the initialized size of the array.
  * \param array Array to query.
  */
-tommy_inline tommy_size_t tommy_arrayof_size(tommy_arrayof* array)
+tommy_inline tommy_size_t tommy_arrayof_size(const tommy_arrayof* array)
 {
 	return array->count;
 }
@@ -175,7 +175,7 @@ tommy_inline tommy_size_t tommy_arrayof_size(tommy_arrayof* array)
 /**
  * Gets the number of elements that fit without further allocation.
  */
-tommy_inline tommy_size_t tommy_arrayof_capacity(tommy_arrayof* array)
+tommy_inline tommy_size_t tommy_arrayof_capacity(const tommy_arrayof* array)
 {
 	return array->bucket_max;
 }
@@ -217,7 +217,7 @@ TOMMY_API void tommy_arrayof_foreach_arg(tommy_arrayof* array, tommy_foreach_arg
  * Gets the size of allocated memory.
  * \param array Array to query.
  */
-TOMMY_API tommy_size_t tommy_arrayof_memory_usage(tommy_arrayof* array);
+TOMMY_API tommy_size_t tommy_arrayof_memory_usage(const tommy_arrayof* array);
 
 #endif
 

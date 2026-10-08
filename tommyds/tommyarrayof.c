@@ -119,7 +119,7 @@ TOMMY_API void tommy_arrayof_foreach_arg(tommy_arrayof* array, tommy_foreach_arg
 	}
 }
 
-TOMMY_API tommy_size_t tommy_arrayof_memory_usage(tommy_arrayof* array)
+TOMMY_API tommy_size_t tommy_arrayof_memory_usage(const tommy_arrayof* array)
 {
 	return array->bucket_max * (tommy_size_t)array->element_size;
 }

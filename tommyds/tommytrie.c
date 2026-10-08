@@ -325,7 +325,7 @@ TOMMY_API tommy_trie_node* tommy_trie_bucket(tommy_trie* trie, tommy_key_t key)
 	}
 }
 
-TOMMY_API tommy_size_t tommy_trie_memory_usage(tommy_trie* trie)
+TOMMY_API tommy_size_t tommy_trie_memory_usage(const tommy_trie* trie)
 {
 	return tommy_trie_count(trie) * (tommy_size_t)sizeof(tommy_trie_node)
 	       + trie->node_count * (tommy_size_t)TOMMY_TRIE_BLOCK_SIZE;

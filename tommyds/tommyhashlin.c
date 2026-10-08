@@ -317,7 +317,7 @@ TOMMY_API void tommy_hashlin_foreach_arg(tommy_hashlin* hashlin, tommy_foreach_a
 	}
 }
 
-TOMMY_API tommy_size_t tommy_hashlin_memory_usage(tommy_hashlin* hashlin)
+TOMMY_API tommy_size_t tommy_hashlin_memory_usage(const tommy_hashlin* hashlin)
 {
 	return hashlin->bucket_max * (tommy_size_t)sizeof(hashlin->bucket[0][0])
 	       + hashlin->count * (tommy_size_t)sizeof(tommy_hashlin_node);

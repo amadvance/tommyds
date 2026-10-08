@@ -311,7 +311,7 @@ TOMMY_API void tommy_hashtable_foreach_arg(tommy_hashtable* hashtable, tommy_for
 /**
  * Gets the number of elements.
  */
-tommy_inline tommy_size_t tommy_hashtable_count(tommy_hashtable* hashtable)
+tommy_inline tommy_size_t tommy_hashtable_count(const tommy_hashtable* hashtable)
 {
 	return hashtable->count;
 }
@@ -320,7 +320,7 @@ tommy_inline tommy_size_t tommy_hashtable_count(tommy_hashtable* hashtable)
  * Checks if empty.
  * \return If the hashtable is empty.
  */
-tommy_inline tommy_bool_t tommy_hashtable_empty(tommy_hashtable* hashtable)
+tommy_inline tommy_bool_t tommy_hashtable_empty(const tommy_hashtable* hashtable)
 {
 	return hashtable->count == 0;
 }
@@ -328,7 +328,7 @@ tommy_inline tommy_bool_t tommy_hashtable_empty(tommy_hashtable* hashtable)
 /**
  * Gets the number of buckets.
  */
-tommy_inline tommy_size_t tommy_hashtable_bucket_count(tommy_hashtable* hashtable)
+tommy_inline tommy_size_t tommy_hashtable_bucket_count(const tommy_hashtable* hashtable)
 {
 	return hashtable->bucket_max;
 }
@@ -337,7 +337,7 @@ tommy_inline tommy_size_t tommy_hashtable_bucket_count(tommy_hashtable* hashtabl
  * Gets the size of allocated memory.
  * It includes the size of the ::tommy_hashtable_node of the stored elements.
  */
-TOMMY_API tommy_size_t tommy_hashtable_memory_usage(tommy_hashtable* hashtable);
+TOMMY_API tommy_size_t tommy_hashtable_memory_usage(const tommy_hashtable* hashtable);
 
 /**
  * Transfers all elements from the hashtable into a tommy_list.

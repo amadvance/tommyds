@@ -573,19 +573,19 @@ TOMMY_API void tommy_list_sort(tommy_list* list, tommy_compare_func* cmp);
  * Checks if empty.
  * \return If the list is empty.
  */
-tommy_inline tommy_bool_t tommy_list_empty(tommy_list* list)
+tommy_inline tommy_bool_t tommy_list_empty(const tommy_list* list)
 {
-	return tommy_list_head(list) == 0;
+	return *list == 0;
 }
 
 /**
  * Gets the number of elements.
  * \note This operation is O(n).
  */
-tommy_inline tommy_size_t tommy_list_count(tommy_list* list)
+tommy_inline tommy_size_t tommy_list_count(const tommy_list* list)
 {
 	tommy_size_t count = 0;
-	tommy_node* i = tommy_list_head(list);
+	const tommy_node* i = *list;
 
 	while (i) {
 		++count;

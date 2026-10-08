@@ -122,7 +122,7 @@ TOMMY_API void tommy_allocator_free(tommy_allocator* alloc, void* ptr)
 	--alloc->count;
 }
 
-TOMMY_API tommy_size_t tommy_allocator_memory_usage(tommy_allocator* alloc)
+TOMMY_API tommy_size_t tommy_allocator_memory_usage(const tommy_allocator* alloc)
 {
 	return alloc->count * (tommy_size_t)alloc->block_size;
 }

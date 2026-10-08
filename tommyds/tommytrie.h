@@ -270,7 +270,7 @@ TOMMY_API void* tommy_trie_remove_existing(tommy_trie* trie, tommy_trie_node* no
 /**
  * Gets the number of elements.
  */
-tommy_inline tommy_size_t tommy_trie_count(tommy_trie* trie)
+tommy_inline tommy_size_t tommy_trie_count(const tommy_trie* trie)
 {
 	return trie->count;
 }
@@ -279,7 +279,7 @@ tommy_inline tommy_size_t tommy_trie_count(tommy_trie* trie)
  * Checks if empty in O(1) time.
  * \return If the trie contains no elements.
  */
-tommy_inline tommy_bool_t tommy_trie_empty(tommy_trie* trie)
+tommy_inline tommy_bool_t tommy_trie_empty(const tommy_trie* trie)
 {
 	return trie->count == 0;
 }
@@ -288,7 +288,7 @@ tommy_inline tommy_bool_t tommy_trie_empty(tommy_trie* trie)
  * Gets the size of allocated memory.
  * It includes the size of the ::tommy_trie_node of the stored elements.
  */
-TOMMY_API tommy_size_t tommy_trie_memory_usage(tommy_trie* trie);
+TOMMY_API tommy_size_t tommy_trie_memory_usage(const tommy_trie* trie);
 
 #endif
 

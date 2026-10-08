@@ -69,7 +69,7 @@ TOMMY_API void tommy_allocator_free(tommy_allocator* alloc, void* ptr);
  * \param alloc Allocator to use.
  * \return Size of allocated memory in bytes.
  */
-TOMMY_API tommy_size_t tommy_allocator_memory_usage(tommy_allocator* alloc);
+TOMMY_API tommy_size_t tommy_allocator_memory_usage(const tommy_allocator* alloc);
 
 #endif
 

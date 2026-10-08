@@ -649,7 +649,7 @@ TOMMY_API void tommy_tree_foreach_arg(tommy_tree* tree, tommy_foreach_arg_func* 
  * Checks if empty.
  * \return If the tree is empty.
  */
-tommy_inline tommy_bool_t tommy_tree_empty(tommy_tree* tree)
+tommy_inline tommy_bool_t tommy_tree_empty(const tommy_tree* tree)
 {
 	return tree->root == 0;
 }
@@ -657,7 +657,7 @@ tommy_inline tommy_bool_t tommy_tree_empty(tommy_tree* tree)
 /**
  * Gets the number of elements.
  */
-tommy_inline tommy_size_t tommy_tree_count(tommy_tree* tree)
+tommy_inline tommy_size_t tommy_tree_count(const tommy_tree* tree)
 {
 	return tree->count;
 }
@@ -666,7 +666,7 @@ tommy_inline tommy_size_t tommy_tree_count(tommy_tree* tree)
  * Gets the size of allocated memory.
  * It includes the size of the ::tommy_tree_node of the stored elements.
  */
-TOMMY_API tommy_size_t tommy_tree_memory_usage(tommy_tree* tree);
+TOMMY_API tommy_size_t tommy_tree_memory_usage(const tommy_tree* tree);
 
 #endif
 

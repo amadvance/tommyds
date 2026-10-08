@@ -401,7 +401,7 @@ TOMMY_API void tommy_tree_foreach_arg(tommy_tree* tree, tommy_foreach_arg_func* 
 	}
 }
 
-TOMMY_API tommy_size_t tommy_tree_memory_usage(tommy_tree* tree)
+TOMMY_API tommy_size_t tommy_tree_memory_usage(const tommy_tree* tree)
 {
 	return tommy_tree_count(tree) * sizeof(tommy_tree_node);
 }

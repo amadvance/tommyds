@@ -167,7 +167,7 @@ tommy_inline void* tommy_arrayblk_remove_tail(tommy_arrayblk* array)
 /**
  * Checks whether the array is empty.
  */
-tommy_inline tommy_bool_t tommy_arrayblk_empty(tommy_arrayblk* array)
+tommy_inline tommy_bool_t tommy_arrayblk_empty(const tommy_arrayblk* array)
 {
 	return array->count == 0;
 }
@@ -175,7 +175,7 @@ tommy_inline tommy_bool_t tommy_arrayblk_empty(tommy_arrayblk* array)
 /**
  * Gets the initialized size of the array.
  */
-tommy_inline tommy_size_t tommy_arrayblk_size(tommy_arrayblk* array)
+tommy_inline tommy_size_t tommy_arrayblk_size(const tommy_arrayblk* array)
 {
 	return array->count;
 }
@@ -183,7 +183,7 @@ tommy_inline tommy_size_t tommy_arrayblk_size(tommy_arrayblk* array)
 /**
  * Gets the number of elements that fit without further allocation.
  */
-tommy_inline tommy_size_t tommy_arrayblk_capacity(tommy_arrayblk* array)
+tommy_inline tommy_size_t tommy_arrayblk_capacity(const tommy_arrayblk* array)
 {
 	return array->block_count * TOMMY_ARRAYBLK_SIZE;
 }
@@ -223,7 +223,7 @@ TOMMY_API void tommy_arrayblk_foreach_arg(tommy_arrayblk* array, tommy_foreach_a
 /**
  * Gets the size of allocated memory.
  */
-TOMMY_API tommy_size_t tommy_arrayblk_memory_usage(tommy_arrayblk* array);
+TOMMY_API tommy_size_t tommy_arrayblk_memory_usage(const tommy_arrayblk* array);
 
 #endif
 

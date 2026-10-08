@@ -135,7 +135,7 @@ TOMMY_API void tommy_arrayblkof_foreach_arg(tommy_arrayblkof* array, tommy_forea
 	}
 }
 
-TOMMY_API tommy_size_t tommy_arrayblkof_memory_usage(tommy_arrayblkof* array)
+TOMMY_API tommy_size_t tommy_arrayblkof_memory_usage(const tommy_arrayblkof* array)
 {
 	return array->block_capacity * sizeof(array->block[0]) + array->block_count * TOMMY_ARRAYBLKOF_SIZE * array->element_size;
 }
