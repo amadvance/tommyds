@@ -470,24 +470,20 @@ tommy_inline void tommy_list_swap(tommy_list* first, tommy_list* second)
  */
 tommy_inline void tommy_list_concat(tommy_list* first, tommy_list* second)
 {
-	tommy_node* first_head;
-	tommy_node* first_tail;
-	tommy_node* second_head;
-
 	/* if the second is empty, nothing to do */
-	second_head = tommy_list_head(second);
+	tommy_node* second_head = tommy_list_head(second);
 	if (second_head == 0)
 		return;
 
 	/* if the first is empty, copy the second */
-	first_head = tommy_list_head(first);
+	tommy_node* first_head = tommy_list_head(first);
 	if (first_head == 0) {
 		*first = *second;
 		return;
 	}
 
 	/* tail of the first list */
-	first_tail = first_head->prev;
+	tommy_node* first_tail = first_head->prev;
 
 	/* set the "circular" prev list */
 	first_head->prev = second_head->prev;

@@ -218,8 +218,6 @@ tommy_inline tommy_tree_node* tommy_tree_parent(tommy_tree_node* node)
  */
 tommy_inline tommy_tree_node* tommy_tree_next(tommy_tree_node* node)
 {
-	tommy_tree_node* parent;
-
 	if (node->next) {
 		node = node->next;
 		while (node->prev)
@@ -227,7 +225,7 @@ tommy_inline tommy_tree_node* tommy_tree_next(tommy_tree_node* node)
 		return node;
 	}
 
-	parent = tommy_tree_parent(node);
+	tommy_tree_node* parent = tommy_tree_parent(node);
 	while (parent && node == parent->next) {
 		node = parent;
 		parent = tommy_tree_parent(parent);
@@ -243,8 +241,6 @@ tommy_inline tommy_tree_node* tommy_tree_next(tommy_tree_node* node)
  */
 tommy_inline tommy_tree_node* tommy_tree_prev(tommy_tree_node* node)
 {
-	tommy_tree_node* parent;
-
 	if (node->prev) {
 		node = node->prev;
 		while (node->next)
@@ -252,7 +248,7 @@ tommy_inline tommy_tree_node* tommy_tree_prev(tommy_tree_node* node)
 		return node;
 	}
 
-	parent = tommy_tree_parent(node);
+	tommy_tree_node* parent = tommy_tree_parent(node);
 	while (parent && node == parent->prev) {
 		node = parent;
 		parent = tommy_tree_parent(parent);

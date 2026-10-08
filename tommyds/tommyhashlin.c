@@ -33,14 +33,12 @@ tommy_inline void tommy_hashlin_stable(tommy_hashlin* hashlin)
 
 TOMMY_API void tommy_hashlin_init(tommy_hashlin* hashlin)
 {
-	tommy_uint_t i;
-
 	/* fixed initial size */
 	hashlin->bucket_bit = TOMMY_HASHLIN_BIT;
 	hashlin->bucket_max = (tommy_size_t)1 << hashlin->bucket_bit;
 	hashlin->bucket_mask = hashlin->bucket_max - 1;
 	hashlin->bucket[0] = tommy_cast(tommy_hashlin_node**, tommy_calloc(hashlin->bucket_max, sizeof(tommy_hashlin_node*)));
-	for (i = 1; i < TOMMY_HASHLIN_BIT; ++i)
+	for (tommy_uint_t i = 1; i < TOMMY_HASHLIN_BIT; ++i)
 		hashlin->bucket[i] = hashlin->bucket[0];
 
 	/* stable state */
@@ -51,10 +49,8 @@ TOMMY_API void tommy_hashlin_init(tommy_hashlin* hashlin)
 
 TOMMY_API void tommy_hashlin_done(tommy_hashlin* hashlin)
 {
-	tommy_uint_t i;
-
 	tommy_free(hashlin->bucket[0]);
-	for (i = TOMMY_HASHLIN_BIT; i < hashlin->bucket_bit; ++i) {
+	for (tommy_uint_t i = TOMMY_HASHLIN_BIT; i < hashlin->bucket_bit; ++i) {
 		tommy_hashlin_node** segment = hashlin->bucket[i];
 		tommy_free(&segment[(tommy_ptrdiff_t)1 << i]);
 	}
@@ -62,11 +58,9 @@ TOMMY_API void tommy_hashlin_done(tommy_hashlin* hashlin)
 
 TOMMY_API void tommy_hashlin_clear(tommy_hashlin* hashlin)
 {
-	tommy_uint_t i;
-
 	/* clear the initial segment once, despite its multiple bucket aliases. */
 	memset(hashlin->bucket[0], 0, ((tommy_size_t)1 << TOMMY_HASHLIN_BIT) * sizeof(tommy_hashlin_node*));
-	for (i = TOMMY_HASHLIN_BIT; i < hashlin->bucket_bit; ++i) {
+	for (tommy_uint_t i = TOMMY_HASHLIN_BIT; i < hashlin->bucket_bit; ++i) {
 		tommy_hashlin_node** segment = hashlin->bucket[i];
 
 		/* clear also the slots not yet initialized by a progressive grow. */
@@ -90,15 +84,13 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 		/* otherwise continue with the already setup shrink one */
 		/* but in backward direction */
 		if (hashlin->state == TOMMY_HASHLIN_STATE_STABLE) {
-			tommy_hashlin_node** segment;
-
 			/* set the lower size */
 			hashlin->low_max = hashlin->bucket_max;
 			hashlin->low_mask = hashlin->bucket_mask;
 
 			/* allocate the new vector using malloc() and not calloc() */
 			/* because data is fully initialized in the split process */
-			segment = tommy_cast(tommy_hashlin_node**, tommy_malloc(hashlin->low_max * sizeof(tommy_hashlin_node*)));
+			tommy_hashlin_node** segment = tommy_cast(tommy_hashlin_node**, tommy_malloc(hashlin->low_max * sizeof(tommy_hashlin_node*)));
 
 			/* store it adjusting the offset */
 			/* cast to ptrdiff_t to ensure to get a negative value */
@@ -124,25 +116,20 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 
 		/* reallocate buckets until the split target */
 		while (hashlin->split + hashlin->low_max < split_target) {
+			/* get the low and high buckets */
 			tommy_hashlin_node** split[2];
-			tommy_hashlin_node* j;
-			tommy_size_t mask;
-
-			/* get the low bucket */
 			split[0] = tommy_hashlin_pos(hashlin, hashlin->split);
-
-			/* get the high bucket */
 			split[1] = tommy_hashlin_pos(hashlin, hashlin->split + hashlin->low_max);
 
 			/* save the low bucket */
-			j = *split[0];
+			tommy_hashlin_node* j = *split[0];
 
 			/* reinitialize the buckets */
 			*split[0] = 0;
 			*split[1] = 0;
 
 			/* the bit used to identify the bucket */
-			mask = hashlin->low_max;
+			tommy_size_t mask = hashlin->low_max;
 
 			/* flush the bucket */
 			while (j) {
@@ -203,15 +190,12 @@ tommy_inline void hashlin_shrink_step(tommy_hashlin* hashlin)
 
 		/* reallocate buckets until the split target */
 		while (hashlin->split + hashlin->low_max > split_target) {
-			tommy_hashlin_node** split[2];
-
 			/* go backward position */
 			--hashlin->split;
 
-			/* get the low bucket */
+			/* get the low and high buckets */
+			tommy_hashlin_node** split[2];
 			split[0] = tommy_hashlin_pos(hashlin, hashlin->split);
-
-			/* get the high bucket */
 			split[1] = tommy_hashlin_pos(hashlin, hashlin->split + hashlin->low_max);
 
 			/* concat the high bucket into the low one */
@@ -219,15 +203,13 @@ tommy_inline void hashlin_shrink_step(tommy_hashlin* hashlin)
 
 			/* if we have finished, clean up and change the state */
 			if (hashlin->split == 0) {
-				tommy_hashlin_node** segment;
-
 				/* shrink the hash size */
 				--hashlin->bucket_bit;
 				hashlin->bucket_max = (tommy_size_t)1 << hashlin->bucket_bit;
 				hashlin->bucket_mask = hashlin->bucket_max - 1;
 
 				/* free the last segment */
-				segment = hashlin->bucket[hashlin->bucket_bit];
+				tommy_hashlin_node** segment = hashlin->bucket[hashlin->bucket_bit];
 				tommy_free(&segment[(tommy_ptrdiff_t)1 << hashlin->bucket_bit]);
 
 				/* go in stable mode */
@@ -305,13 +287,10 @@ TOMMY_API void* tommy_hashlin_remove(tommy_hashlin* hashlin, tommy_search_func* 
 
 TOMMY_API void tommy_hashlin_foreach(tommy_hashlin* hashlin, tommy_foreach_func* func)
 {
-	tommy_size_t bucket_max;
-	tommy_size_t pos;
-
 	/* number of valid buckets */
-	bucket_max = hashlin->low_max + hashlin->split;
+	tommy_size_t bucket_max = hashlin->low_max + hashlin->split;
 
-	for (pos = 0; pos < bucket_max; ++pos) {
+	for (tommy_size_t pos = 0; pos < bucket_max; ++pos) {
 		tommy_hashlin_node* node = *tommy_hashlin_pos(hashlin, pos);
 
 		while (node) {
@@ -324,13 +303,10 @@ TOMMY_API void tommy_hashlin_foreach(tommy_hashlin* hashlin, tommy_foreach_func*
 
 TOMMY_API void tommy_hashlin_foreach_arg(tommy_hashlin* hashlin, tommy_foreach_arg_func* func, void* arg)
 {
-	tommy_size_t bucket_max;
-	tommy_size_t pos;
-
 	/* number of valid buckets */
-	bucket_max = hashlin->low_max + hashlin->split;
+	tommy_size_t bucket_max = hashlin->low_max + hashlin->split;
 
-	for (pos = 0; pos < bucket_max; ++pos) {
+	for (tommy_size_t pos = 0; pos < bucket_max; ++pos) {
 		tommy_hashlin_node* node = *tommy_hashlin_pos(hashlin, pos);
 
 		while (node) {
@@ -350,10 +326,9 @@ TOMMY_API tommy_size_t tommy_hashlin_memory_usage(tommy_hashlin* hashlin)
 TOMMY_API void tommy_hashlin_to_list(tommy_hashlin* hashlin, tommy_list* list)
 {
 	tommy_size_t bucket_max = hashlin->low_max + hashlin->split;
-	tommy_size_t pos;
 
 	/* inactive slots may be uninitialized or refer to nodes already merged. */
-	for (pos = 0; pos < bucket_max; ++pos)
+	for (tommy_size_t pos = 0; pos < bucket_max; ++pos)
 		tommy_list_concat(list, tommy_hashlin_pos(hashlin, pos));
 
 	/* clear all allocated slots before making the table stable and reusable. */

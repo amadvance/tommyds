@@ -114,15 +114,12 @@ TOMMY_API void tommy_arrayof_shrink(tommy_arrayof* array);
  */
 tommy_inline void* tommy_arrayof_ref(tommy_arrayof* array, tommy_size_t pos)
 {
-	unsigned char* ptr;
-	tommy_uint_t bsr;
-
 	assert(pos < array->count);
 
 	/* get the highest bit set, in case of all 0, return 0 */
-	bsr = tommy_ilog2(pos | 1);
+	tommy_uint_t bsr = tommy_ilog2(pos | 1);
 
-	ptr = tommy_cast(unsigned char*, array->bucket[bsr]);
+	unsigned char* ptr = tommy_cast(unsigned char*, array->bucket[bsr]);
 
 	return ptr + pos * array->element_size;
 }

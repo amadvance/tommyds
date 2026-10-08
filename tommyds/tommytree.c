@@ -217,10 +217,8 @@ tommy_inline void tommy_tree_remove_balance(tommy_tree* tree, tommy_tree_node* n
 		}
 
 		if (balance == 0) {
-			tommy_tree_node* parent;
-
 			tommy_tree_balance_set(node, balance);
-			parent = tommy_tree_parent(node);
+			tommy_tree_node* parent = tommy_tree_parent(node);
 			if (!parent)
 				return;
 			left_shrunk = node == parent->prev;
@@ -367,8 +365,6 @@ TOMMY_API void tommy_tree_foreach(tommy_tree* tree, tommy_foreach_func* func)
 	tommy_tree_node* node = tree->root;
 
 	while (node || depth) {
-		tommy_tree_node* next;
-
 		while (node) {
 			stack[depth] = node;
 			++depth;
@@ -377,7 +373,7 @@ TOMMY_API void tommy_tree_foreach(tommy_tree* tree, tommy_foreach_func* func)
 
 		node = stack[--depth];
 		/* save the next subtree before the callback can free this node */
-		next = node->next;
+		tommy_tree_node* next = node->next;
 		func(node->data);
 		node = next;
 	}
@@ -391,8 +387,6 @@ TOMMY_API void tommy_tree_foreach_arg(tommy_tree* tree, tommy_foreach_arg_func* 
 	tommy_tree_node* node = tree->root;
 
 	while (node || depth) {
-		tommy_tree_node* next;
-
 		while (node) {
 			stack[depth] = node;
 			++depth;
@@ -401,7 +395,7 @@ TOMMY_API void tommy_tree_foreach_arg(tommy_tree* tree, tommy_foreach_arg_func* 
 
 		node = stack[--depth];
 		/* save the next subtree before the callback can free this node */
-		next = node->next;
+		tommy_tree_node* next = node->next;
 		func(arg, node->data);
 		node = next;
 	}

@@ -48,13 +48,12 @@ TOMMY_API void tommy_list_splice_after(tommy_list* list, tommy_node* reference, 
 
 TOMMY_API void tommy_list_merge(tommy_list* first, tommy_list* second, tommy_compare_func* cmp)
 {
-	tommy_chain first_chain;
-	tommy_chain second_chain;
-	tommy_node* first_head = tommy_list_head(first);
 	tommy_node* second_head = tommy_list_head(second);
 
 	if (!second_head)
 		return;
+
+	tommy_node* first_head = tommy_list_head(first);
 
 	if (!first_head) {
 		*first = *second;
@@ -62,6 +61,8 @@ TOMMY_API void tommy_list_merge(tommy_list* first, tommy_list* second, tommy_com
 	}
 
 	/* create chains from the non-empty lists */
+	tommy_chain first_chain;
+	tommy_chain second_chain;
 	first_chain.head = first_head;
 	first_chain.tail = first_head->prev;
 	second_chain.head = second_head;
@@ -96,15 +97,13 @@ TOMMY_API void tommy_list_reverse(tommy_list* list)
 
 TOMMY_API void tommy_list_sort(tommy_list* list, tommy_compare_func* cmp)
 {
-	tommy_chain chain;
-	tommy_node* head;
-
 	if (tommy_list_empty(list))
 		return;
 
-	head = tommy_list_head(list);
+	tommy_node* head = tommy_list_head(list);
 
 	/* create a chain from the list */
+	tommy_chain chain;
 	chain.head = head;
 	chain.tail = head->prev;
 

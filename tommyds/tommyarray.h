@@ -101,12 +101,10 @@ TOMMY_API void tommy_array_shrink(tommy_array* array);
  */
 tommy_inline void** tommy_array_ref(tommy_array* array, tommy_size_t pos)
 {
-	tommy_uint_t bsr;
-
 	assert(pos < array->count);
 
 	/* get the highest bit set, in case of all 0, return 0 */
-	bsr = tommy_ilog2(pos | 1);
+	tommy_uint_t bsr = tommy_ilog2(pos | 1);
 
 	return &array->bucket[bsr][pos];
 }

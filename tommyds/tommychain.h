@@ -155,26 +155,20 @@ tommy_inline void tommy_chain_mergesort(tommy_chain* chain, tommy_compare_func* 
 	 * Value stored inside the bit bucket.
 	 * It's used to know which bucket is empty or full.
 	 */
-	tommy_size_t counter;
+	tommy_size_t counter = 0;
 	tommy_node* node = chain->head;
 	tommy_node* tail = chain->tail;
-	tommy_size_t mask;
-	tommy_size_t i;
 
-	counter = 0;
 	while (1) {
-		tommy_node* next;
-		tommy_chain* last;
-
 		/* carry bit to add */
-		last = &bit[TOMMY_SIZE_BIT];
+		tommy_chain* last = &bit[TOMMY_SIZE_BIT];
 		bit[TOMMY_SIZE_BIT].head = node;
 		bit[TOMMY_SIZE_BIT].tail = node;
-		next = node->next;
+		tommy_node* next = node->next;
 
 		/* add the bit, propagating the carry */
-		i = 0;
-		mask = counter;
+		tommy_size_t i = 0;
+		tommy_size_t mask = counter;
 		while ((mask & 1) != 0) {
 			tommy_chain_merge_degenerated(&bit[i], last, cmp);
 			mask >>= 1;
@@ -194,8 +188,8 @@ tommy_inline void tommy_chain_mergesort(tommy_chain* chain, tommy_compare_func* 
 	}
 
 	/* merge the buckets */
-	i = tommy_ctz(counter);
-	mask = counter >> i;
+	tommy_size_t i = tommy_ctz(counter);
+	tommy_size_t mask = counter >> i;
 	while (mask != 1) {
 		mask >>= 1;
 		if (mask & 1)

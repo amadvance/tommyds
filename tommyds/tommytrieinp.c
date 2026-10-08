@@ -71,9 +71,7 @@ tommy_inline void tommy_trie_inplace_list_remove(tommy_trie_inplace_node** let_p
 
 TOMMY_API void tommy_trie_inplace_init(tommy_trie_inplace* trie_inplace)
 {
-	tommy_uint_t i;
-
-	for (i = 0; i < TOMMY_TRIE_INPLACE_BUCKET_MAX; ++i)
+	for (tommy_uint_t i = 0; i < TOMMY_TRIE_INPLACE_BUCKET_MAX; ++i)
 		trie_inplace->bucket[i] = 0;
 
 	trie_inplace->count = 0;
@@ -81,9 +79,8 @@ TOMMY_API void tommy_trie_inplace_init(tommy_trie_inplace* trie_inplace)
 
 static void trie_inplace_bucket_insert(tommy_uint_t shift, tommy_trie_inplace_node** let_ptr, tommy_trie_inplace_node* insert, tommy_key_t key)
 {
-	tommy_trie_inplace_node* node;
+	tommy_trie_inplace_node* node = *let_ptr;
 
-	node = *let_ptr;
 	while (node && node->key != key) {
 		let_ptr = &node->map[(key >> shift) & TOMMY_TRIE_INPLACE_TREE_MASK];
 		node = *let_ptr;
@@ -102,19 +99,16 @@ static void trie_inplace_bucket_insert(tommy_uint_t shift, tommy_trie_inplace_no
 
 TOMMY_API void tommy_trie_inplace_insert(tommy_trie_inplace* trie_inplace, tommy_trie_inplace_node* node, void* data, tommy_key_t key)
 {
-	tommy_trie_inplace_node** let_ptr;
-	tommy_uint_t i;
-
 	/* ensure that the element is not too big */
 	assert(key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT < TOMMY_TRIE_INPLACE_BUCKET_MAX);
 
 	node->data = data;
 	node->key = key;
 	/* clear the child pointers */
-	for (i = 0; i < TOMMY_TRIE_INPLACE_TREE_MAX; ++i)
+	for (tommy_uint_t i = 0; i < TOMMY_TRIE_INPLACE_TREE_MAX; ++i)
 		node->map[i] = 0;
 
-	let_ptr = &trie_inplace->bucket[key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT];
+	tommy_trie_inplace_node** let_ptr = &trie_inplace->bucket[key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT];
 
 	trie_inplace_bucket_insert(TOMMY_TRIE_INPLACE_BUCKET_SHIFT, let_ptr, node, key);
 
@@ -123,12 +117,8 @@ TOMMY_API void tommy_trie_inplace_insert(tommy_trie_inplace* trie_inplace, tommy
 
 static tommy_trie_inplace_node* trie_inplace_bucket_remove(tommy_uint_t shift, tommy_trie_inplace_node** let_ptr, tommy_trie_inplace_node* remove, tommy_key_t key)
 {
-	tommy_trie_inplace_node* node;
-	int i;
-	tommy_trie_inplace_node** leaf_let_ptr;
-	tommy_trie_inplace_node* leaf;
+	tommy_trie_inplace_node* node = *let_ptr;
 
-	node = *let_ptr;
 	while (node && node->key != key) {
 		let_ptr = &node->map[(key >> shift) & TOMMY_TRIE_INPLACE_TREE_MASK];
 		node = *let_ptr;
@@ -152,18 +142,18 @@ static tommy_trie_inplace_node* trie_inplace_bucket_remove(tommy_uint_t shift, t
 	if (*let_ptr != 0) {
 		/* copy the child pointers to the new one */
 		node = *let_ptr;
-		for (i = 0; i < TOMMY_TRIE_INPLACE_TREE_MAX; ++i)
+		for (tommy_uint_t i = 0; i < TOMMY_TRIE_INPLACE_TREE_MAX; ++i)
 			node->map[i] = remove->map[i];
 
 		return remove;
 	}
 
 	/* find a leaf */
-	leaf_let_ptr = 0;
-	leaf = remove;
+	tommy_trie_inplace_node** leaf_let_ptr = 0;
+	tommy_trie_inplace_node* leaf = remove;
 
 	/* search backward, statistically we have more zeros than ones */
-	i = TOMMY_TRIE_INPLACE_TREE_MAX - 1;
+	int i = TOMMY_TRIE_INPLACE_TREE_MAX - 1;
 	while (i >= 0) {
 		if (leaf->map[i]) {
 			leaf_let_ptr = &leaf->map[i];
@@ -182,8 +172,8 @@ static tommy_trie_inplace_node* trie_inplace_bucket_remove(tommy_uint_t shift, t
 	*leaf_let_ptr = 0;
 
 	/* copy the child pointers */
-	for (i = 0; i < TOMMY_TRIE_INPLACE_TREE_MAX; ++i)
-		leaf->map[i] = remove->map[i];
+	for (tommy_uint_t j = 0; j < TOMMY_TRIE_INPLACE_TREE_MAX; ++j)
+		leaf->map[j] = remove->map[j];
 
 	/* put it in place */
 	*let_ptr = leaf;
@@ -193,15 +183,12 @@ static tommy_trie_inplace_node* trie_inplace_bucket_remove(tommy_uint_t shift, t
 
 TOMMY_API void* tommy_trie_inplace_remove(tommy_trie_inplace* trie_inplace, tommy_key_t key)
 {
-	tommy_trie_inplace_node* ret;
-	tommy_trie_inplace_node** let_ptr;
-
 	/* ensure that the element is not too big */
 	assert(key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT < TOMMY_TRIE_INPLACE_BUCKET_MAX);
 
-	let_ptr = &trie_inplace->bucket[key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT];
+	tommy_trie_inplace_node** let_ptr = &trie_inplace->bucket[key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT];
 
-	ret = trie_inplace_bucket_remove(TOMMY_TRIE_INPLACE_BUCKET_SHIFT, let_ptr, 0, key);
+	tommy_trie_inplace_node* ret = trie_inplace_bucket_remove(TOMMY_TRIE_INPLACE_BUCKET_SHIFT, let_ptr, 0, key);
 
 	if (!ret)
 		return 0;
@@ -213,16 +200,14 @@ TOMMY_API void* tommy_trie_inplace_remove(tommy_trie_inplace* trie_inplace, tomm
 
 TOMMY_API void* tommy_trie_inplace_remove_existing(tommy_trie_inplace* trie_inplace, tommy_trie_inplace_node* node)
 {
-	tommy_trie_inplace_node* ret;
 	tommy_key_t key = node->key;
-	tommy_trie_inplace_node** let_ptr;
 
 	/* ensure that the element is not too big */
 	assert(key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT < TOMMY_TRIE_INPLACE_BUCKET_MAX);
 
-	let_ptr = &trie_inplace->bucket[key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT];
+	tommy_trie_inplace_node** let_ptr = &trie_inplace->bucket[key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT];
 
-	ret = trie_inplace_bucket_remove(TOMMY_TRIE_INPLACE_BUCKET_SHIFT, let_ptr, node, key);
+	tommy_trie_inplace_node* ret = trie_inplace_bucket_remove(TOMMY_TRIE_INPLACE_BUCKET_SHIFT, let_ptr, node, key);
 
 	/* the element removed must match the one passed */
 	assert(ret == node);
@@ -234,14 +219,11 @@ TOMMY_API void* tommy_trie_inplace_remove_existing(tommy_trie_inplace* trie_inpl
 
 TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_bucket(tommy_trie_inplace* trie_inplace, tommy_key_t key)
 {
-	tommy_trie_inplace_node* node;
-	tommy_uint_t shift;
-
 	/* ensure that the element is not too big */
 	assert(key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT < TOMMY_TRIE_INPLACE_BUCKET_MAX);
 
-	node = trie_inplace->bucket[key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT];
-	shift = TOMMY_TRIE_INPLACE_BUCKET_SHIFT;
+	tommy_trie_inplace_node* node = trie_inplace->bucket[key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT];
+	tommy_uint_t shift = TOMMY_TRIE_INPLACE_BUCKET_SHIFT;
 
 	while (node && node->key != key) {
 		node = node->map[(key >> shift) & TOMMY_TRIE_INPLACE_TREE_MASK];

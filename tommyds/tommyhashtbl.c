@@ -107,9 +107,8 @@ TOMMY_API void tommy_hashtable_foreach(tommy_hashtable* hashtable, tommy_foreach
 {
 	tommy_size_t bucket_max = hashtable->bucket_max;
 	tommy_hashtable_node** bucket = hashtable->bucket;
-	tommy_size_t pos;
 
-	for (pos = 0; pos < bucket_max; ++pos) {
+	for (tommy_size_t pos = 0; pos < bucket_max; ++pos) {
 		tommy_hashtable_node* node = bucket[pos];
 
 		while (node) {
@@ -124,9 +123,8 @@ TOMMY_API void tommy_hashtable_foreach_arg(tommy_hashtable* hashtable, tommy_for
 {
 	tommy_size_t bucket_max = hashtable->bucket_max;
 	tommy_hashtable_node** bucket = hashtable->bucket;
-	tommy_size_t pos;
 
-	for (pos = 0; pos < bucket_max; ++pos) {
+	for (tommy_size_t pos = 0; pos < bucket_max; ++pos) {
 		tommy_hashtable_node* node = bucket[pos];
 
 		while (node) {
@@ -145,9 +143,7 @@ TOMMY_API tommy_size_t tommy_hashtable_memory_usage(tommy_hashtable* hashtable)
 
 TOMMY_API void tommy_hashtable_to_list(tommy_hashtable* hashtable, tommy_list* list)
 {
-	tommy_size_t pos;
-
-	for (pos = 0; pos < hashtable->bucket_max; ++pos)
+	for (tommy_size_t pos = 0; pos < hashtable->bucket_max; ++pos)
 		tommy_list_concat(list, &hashtable->bucket[pos]);
 
 	tommy_hashtable_clear(hashtable);

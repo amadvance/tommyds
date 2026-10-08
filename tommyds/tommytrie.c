@@ -52,9 +52,7 @@ typedef struct tommy_trie_tree_struct tommy_trie_tree;
 
 TOMMY_API void tommy_trie_init(tommy_trie* trie, tommy_allocator* alloc)
 {
-	tommy_uint_t i;
-
-	for (i = 0; i < TOMMY_TRIE_BUCKET_MAX; ++i)
+	for (tommy_uint_t i = 0; i < TOMMY_TRIE_BUCKET_MAX; ++i)
 		trie->bucket[i] = 0;
 
 	trie->count = 0;
@@ -128,15 +126,13 @@ expand:
 
 TOMMY_API void tommy_trie_insert(tommy_trie* trie, tommy_trie_node* node, void* data, tommy_key_t key)
 {
-	tommy_trie_node** let_ptr;
-
 	/* ensure that the element is not too big */
 	assert(key >> TOMMY_TRIE_BUCKET_SHIFT < TOMMY_TRIE_BUCKET_MAX);
 
 	node->data = data;
 	node->index = key;
 
-	let_ptr = &trie->bucket[key >> TOMMY_TRIE_BUCKET_SHIFT];
+	tommy_trie_node** let_ptr = &trie->bucket[key >> TOMMY_TRIE_BUCKET_SHIFT];
 
 	trie_bucket_insert(trie, TOMMY_TRIE_BUCKET_SHIFT, let_ptr, node, key);
 
@@ -230,15 +226,12 @@ reduce:
 
 TOMMY_API void* tommy_trie_remove(tommy_trie* trie, tommy_key_t key)
 {
-	tommy_trie_node* ret;
-	tommy_trie_node** let_ptr;
-
 	/* ensure that the element is not too big */
 	assert(key >> TOMMY_TRIE_BUCKET_SHIFT < TOMMY_TRIE_BUCKET_MAX);
 
-	let_ptr = &trie->bucket[key >> TOMMY_TRIE_BUCKET_SHIFT];
+	tommy_trie_node** let_ptr = &trie->bucket[key >> TOMMY_TRIE_BUCKET_SHIFT];
 
-	ret = trie_bucket_remove_existing(trie, TOMMY_TRIE_BUCKET_SHIFT, let_ptr, 0, key);
+	tommy_trie_node* ret = trie_bucket_remove_existing(trie, TOMMY_TRIE_BUCKET_SHIFT, let_ptr, 0, key);
 
 	if (!ret)
 		return 0;
@@ -250,16 +243,14 @@ TOMMY_API void* tommy_trie_remove(tommy_trie* trie, tommy_key_t key)
 
 TOMMY_API void* tommy_trie_remove_existing(tommy_trie* trie, tommy_trie_node* node)
 {
-	tommy_trie_node* ret;
 	tommy_key_t key = node->index;
-	tommy_trie_node** let_ptr;
 
 	/* ensure that the element is not too big */
 	assert(key >> TOMMY_TRIE_BUCKET_SHIFT < TOMMY_TRIE_BUCKET_MAX);
 
-	let_ptr = &trie->bucket[key >> TOMMY_TRIE_BUCKET_SHIFT];
+	tommy_trie_node** let_ptr = &trie->bucket[key >> TOMMY_TRIE_BUCKET_SHIFT];
 
-	ret = trie_bucket_remove_existing(trie, TOMMY_TRIE_BUCKET_SHIFT, let_ptr, node, key);
+	tommy_trie_node* ret = trie_bucket_remove_existing(trie, TOMMY_TRIE_BUCKET_SHIFT, let_ptr, node, key);
 
 	/* the element removed must match the one passed */
 	assert(ret == node);
@@ -271,35 +262,31 @@ TOMMY_API void* tommy_trie_remove_existing(tommy_trie* trie, tommy_trie_node* no
 
 TOMMY_API tommy_trie_node* tommy_trie_bucket(tommy_trie* trie, tommy_key_t key)
 {
-	tommy_trie_node* node;
-	void* ptr;
-	tommy_uint_t type;
-	tommy_uint_t shift;
-
 	/* ensure that the element is not too big */
 	assert(key >> TOMMY_TRIE_BUCKET_SHIFT < TOMMY_TRIE_BUCKET_MAX);
 
-	ptr = trie->bucket[key >> TOMMY_TRIE_BUCKET_SHIFT];
+	void* ptr = trie->bucket[key >> TOMMY_TRIE_BUCKET_SHIFT];
+	tommy_uint_t shift = TOMMY_TRIE_BUCKET_SHIFT;
 
-	shift = TOMMY_TRIE_BUCKET_SHIFT;
-
-recurse:
-	if (!ptr)
-		return 0;
-
-	type = trie_get_type(ptr);
-
-	switch (type) {
-	case TOMMY_TRIE_TYPE_NODE :
-		node = tommy_cast(tommy_trie_node*, ptr);
-		if (node->index != key)
+	while (1) {
+		if (!ptr)
 			return 0;
-		return node;
-	default :
-	case TOMMY_TRIE_TYPE_TREE :
-		ptr = trie_get_tree(ptr)->map[(key >> shift) & TOMMY_TRIE_TREE_MASK];
-		shift -= TOMMY_TRIE_TREE_BIT;
-		goto recurse;
+
+		tommy_uint_t type = trie_get_type(ptr);
+
+		switch (type) {
+		case TOMMY_TRIE_TYPE_NODE : {
+			tommy_trie_node* node = tommy_cast(tommy_trie_node*, ptr);
+			if (node->index != key)
+				return 0;
+			return node;
+		}
+		default :
+		case TOMMY_TRIE_TYPE_TREE :
+			ptr = trie_get_tree(ptr)->map[(key >> shift) & TOMMY_TRIE_TREE_MASK];
+			shift -= TOMMY_TRIE_TREE_BIT;
+			break;
+		}
 	}
 }
 

@@ -230,11 +230,8 @@ tommy_inline tommy_hashlin_node** tommy_hashlin_pos(tommy_hashlin* hashlin, tomm
  */
 tommy_inline tommy_hashlin_node** tommy_hashlin_bucket_ref(tommy_hashlin* hashlin, tommy_hash_t hash)
 {
-	tommy_size_t pos;
-	tommy_size_t high_pos;
-
-	pos = hash & hashlin->low_mask;
-	high_pos = hash & hashlin->bucket_mask;
+	tommy_size_t pos = hash & hashlin->low_mask;
+	tommy_size_t high_pos = hash & hashlin->bucket_mask;
 
 	/* if this position is already allocated in the high half */
 	if (pos < hashlin->split) {

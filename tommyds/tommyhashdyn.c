@@ -46,19 +46,15 @@ static void tommy_hashdyn_resize(tommy_hashdyn* hashdyn, tommy_uint_t new_bucket
 		/* empty table: allocate zeroed memory with calloc without looping */
 		new_bucket = tommy_cast(tommy_hashdyn_node**, tommy_calloc(new_bucket_max, sizeof(tommy_hashdyn_node*)));
 	} else if (new_bucket_bit > bucket_bit) {
-		tommy_size_t i;
-
 		if (new_bucket_bit == bucket_bit + 1) {
 			/* grow by 1 bit: zero the two buckets inline in loop to preserve cache locality */
 			new_bucket = tommy_cast(tommy_hashdyn_node**, tommy_malloc(new_bucket_max * sizeof(tommy_hashdyn_node*)));
 
-			for (i = 0; i < bucket_max; ++i) {
-				tommy_hashdyn_node* j;
-
+			for (tommy_size_t i = 0; i < bucket_max; ++i) {
 				new_bucket[i] = 0;
 				new_bucket[i + bucket_max] = 0;
 
-				j = hashdyn->bucket[i];
+				tommy_hashdyn_node* j = hashdyn->bucket[i];
 				while (j) {
 					tommy_hashdyn_node* j_next = j->next;
 					tommy_size_t pos = j->index & new_bucket_mask;
@@ -73,7 +69,7 @@ static void tommy_hashdyn_resize(tommy_hashdyn* hashdyn, tommy_uint_t new_bucket
 			/* grow by multiple bits with elements: allocate zeroed memory and reinsert */
 			new_bucket = tommy_cast(tommy_hashdyn_node**, tommy_calloc(new_bucket_max, sizeof(tommy_hashdyn_node*)));
 
-			for (i = 0; i < bucket_max; ++i) {
+			for (tommy_size_t i = 0; i < bucket_max; ++i) {
 				tommy_hashdyn_node* j = hashdyn->bucket[i];
 
 				while (j) {
@@ -88,25 +84,21 @@ static void tommy_hashdyn_resize(tommy_hashdyn* hashdyn, tommy_uint_t new_bucket
 			}
 		}
 	} else {
-		tommy_size_t i;
-
 		/* all buckets are overwritten, no pre-zeroing needed */
 		new_bucket = tommy_cast(tommy_hashdyn_node**, tommy_malloc(new_bucket_max * sizeof(tommy_hashdyn_node*)));
 
 		if (new_bucket_bit + 1 == bucket_bit) {
 			/* shrink by 1 bit: each new bucket joins exactly two old buckets */
-			for (i = 0; i < new_bucket_max; ++i) {
+			for (tommy_size_t i = 0; i < new_bucket_max; ++i) {
 				new_bucket[i] = hashdyn->bucket[i];
 				tommy_list_concat(&new_bucket[i], &hashdyn->bucket[i + new_bucket_max]);
 			}
 		} else {
 			/* shrink by multiple bits */
-			for (i = 0; i < new_bucket_max; ++i) {
-				tommy_size_t j;
-
+			for (tommy_size_t i = 0; i < new_bucket_max; ++i) {
 				/* all old buckets with the same new modulus must be concatenated. */
 				new_bucket[i] = hashdyn->bucket[i];
-				for (j = i + new_bucket_max; j < bucket_max; j += new_bucket_max)
+				for (tommy_size_t j = i + new_bucket_max; j < bucket_max; j += new_bucket_max)
 					tommy_list_concat(&new_bucket[i], &hashdyn->bucket[j]);
 			}
 		}
@@ -240,9 +232,8 @@ TOMMY_API void tommy_hashdyn_foreach(tommy_hashdyn* hashdyn, tommy_foreach_func*
 {
 	tommy_size_t bucket_max = hashdyn->bucket_max;
 	tommy_hashdyn_node** bucket = hashdyn->bucket;
-	tommy_size_t pos;
 
-	for (pos = 0; pos < bucket_max; ++pos) {
+	for (tommy_size_t pos = 0; pos < bucket_max; ++pos) {
 		tommy_hashdyn_node* node = bucket[pos];
 
 		while (node) {
@@ -257,9 +248,8 @@ TOMMY_API void tommy_hashdyn_foreach_arg(tommy_hashdyn* hashdyn, tommy_foreach_a
 {
 	tommy_size_t bucket_max = hashdyn->bucket_max;
 	tommy_hashdyn_node** bucket = hashdyn->bucket;
-	tommy_size_t pos;
 
-	for (pos = 0; pos < bucket_max; ++pos) {
+	for (tommy_size_t pos = 0; pos < bucket_max; ++pos) {
 		tommy_hashdyn_node* node = bucket[pos];
 
 		while (node) {
@@ -278,10 +268,8 @@ TOMMY_API tommy_size_t tommy_hashdyn_memory_usage(tommy_hashdyn* hashdyn)
 
 TOMMY_API void tommy_hashdyn_to_list(tommy_hashdyn* hashdyn, tommy_list* list)
 {
-	tommy_size_t pos;
-
 	/* move everything to the list */
-	for (pos = 0; pos < hashdyn->bucket_max; ++pos)
+	for (tommy_size_t pos = 0; pos < hashdyn->bucket_max; ++pos)
 		tommy_list_concat(list, &hashdyn->bucket[pos]);
 
 	/* clear all */

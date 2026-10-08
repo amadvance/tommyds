@@ -140,59 +140,54 @@ static void nano_init(void)
 
 static tommy_uint64_t nano(void)
 {
-	tommy_uint64_t ret;
 #if defined(_WIN32)
 	LARGE_INTEGER t;
 
 	if (!QueryPerformanceCounter(&t))
 		return 0;
 
-	ret = (t.QuadPart / win_frequency.QuadPart) * 1000000000;
+	tommy_uint64_t ret = (t.QuadPart / win_frequency.QuadPart) * 1000000000;
 
 	ret += (t.QuadPart % win_frequency.QuadPart) * 1000000000 / win_frequency.QuadPart;
+	return ret;
 #elif defined(__MACH__)
 	mach_timebase_info_data_t info;
-	kern_return_t r;
-	tommy_uint64_t t;
+	tommy_uint64_t t = mach_absolute_time();
 
-	t = mach_absolute_time();
-
-	r = mach_timebase_info(&info);
+	kern_return_t r = mach_timebase_info(&info);
 	if (r != 0) {
 		/* LCOV_EXCL_START */
 		abort();
 		/* LCOV_EXCL_STOP */
 	}
 
-	ret = (t / info.denom) * info.numer;
+	tommy_uint64_t ret = (t / info.denom) * info.numer;
 
 	ret += (t % info.denom) * info.numer / info.denom;
+	return ret;
 #elif defined(__linux)
 	struct timespec ts;
-	int r;
 
-	r = clock_gettime(CLOCK_MONOTONIC, &ts);
+	int r = clock_gettime(CLOCK_MONOTONIC, &ts);
 	if (r != 0) {
 		/* LCOV_EXCL_START */
 		abort();
 		/* LCOV_EXCL_STOP */
 	}
 
-	ret = ts.tv_sec * (tommy_uint64_t)1000000000 + ts.tv_nsec;
+	return ts.tv_sec * (tommy_uint64_t)1000000000 + ts.tv_nsec;
 #else
 	struct timeval tv;
-	int r;
 
-	r = gettimeofday(&tv, 0);
+	int r = gettimeofday(&tv, 0);
 	if (r != 0) {
 		/* LCOV_EXCL_START */
 		abort();
 		/* LCOV_EXCL_STOP */
 	}
 
-	ret = tv.tv_sec * (tommy_uint64_t)1000000000 + tv.tv_usec * 1000;
+	return tv.tv_sec * (tommy_uint64_t)1000000000 + tv.tv_usec * 1000;
 #endif
-	return ret;
 }
 
 /******************************************************************************/
@@ -208,29 +203,26 @@ tommy_uint64_t SEED = 0;
 
 unsigned rnd(unsigned max)
 {
-	unsigned r;
-	tommy_uint64_t divider;
-
-loop:
 	/* linear congruential generator from MMIX by Donald Knuth, http://en.wikipedia.org/wiki/Linear_congruential_generator */
 #ifdef _MSC_VER
-	divider = 0xFFFFFFFFFFFFFFFF / max;
-	SEED = SEED * 6364136223846793005 + 1442695040888963407;
+	tommy_uint64_t divider = 0xFFFFFFFFFFFFFFFF / max;
 #else
-	divider = 0xFFFFFFFFFFFFFFFFULL / max;
-	SEED = SEED * 6364136223846793005LL + 1442695040888963407LL;
+	tommy_uint64_t divider = 0xFFFFFFFFFFFFFFFFULL / max;
 #endif
 
-	r = (unsigned)(SEED / divider);
+	while (1) {
+#ifdef _MSC_VER
+		SEED = SEED * 6364136223846793005 + 1442695040888963407;
+#else
+		SEED = SEED * 6364136223846793005LL + 1442695040888963407LL;
+#endif
 
-	/* it may happen as the divider is approximated down */
-	if (r >= max) {
-		/* LCOV_EXCL_START */
-		goto loop;
-		/* LCOV_EXCL_STOP */
+		unsigned r = (unsigned)(SEED / divider);
+
+		/* it may happen as the divider is approximated down */
+		if (r < max)
+			return r;
 	}
-
-	return r;
 }
 
 /******************************************************************************/
@@ -238,13 +230,9 @@ loop:
 
 unsigned isqrt(unsigned n)
 {
-	unsigned root, remain, place;
-
-	root = 0;
-
-	remain = n;
-
-	place = 0x40000000;
+	unsigned root = 0;
+	unsigned remain = n;
+	unsigned place = 0x40000000;
 
 	while (place > remain)
 		place /= 4;
@@ -271,10 +259,8 @@ static tommy_uint64_t the_start;
 
 void cache_clear(void)
 {
-	unsigned i;
-
 	/* read & write */
-	for (i = 0; i < sizeof(the_cache); i += 32)
+	for (unsigned i = 0; i < sizeof(the_cache); i += 32)
 		the_cache[i] += 1;
 
 #ifdef WIN32
@@ -677,19 +663,15 @@ void test_strhash_alignment(void)
 	const tommy_uint32_t seed[] = { 0, 1, 0xa766795d, 0xffffffff };
 	unsigned char buffer[4][256 + 8];
 	unsigned char* key[4];
-	unsigned alignment;
-	unsigned i;
-	unsigned len;
-	unsigned s;
 
-	for (alignment = 0; alignment < 4; ++alignment) {
+	for (unsigned alignment = 0; alignment < 4; ++alignment) {
 		unsigned char* base = buffer[alignment];
 		key[alignment] = base + ((4 - ((tommy_uintptr_t)base & 3)) & 3) + alignment;
 	}
 
 	/* verify the published vectors at every alignment */
-	for (i = 0; STRHASH32[i].data; ++i) {
-		for (alignment = 0; alignment < 4; ++alignment) {
+	for (unsigned i = 0; STRHASH32[i].data; ++i) {
+		for (unsigned alignment = 0; alignment < 4; ++alignment) {
 			memset(buffer[alignment], 0xa5, sizeof(buffer[alignment]));
 			memcpy(key[alignment], STRHASH32[i].data, strlen(STRHASH32[i].data) + 1);
 			if (tommy_strhash_u32(0xa766795d, key[alignment]) != STRHASH32[i].hash) {
@@ -701,16 +683,16 @@ void test_strhash_alignment(void)
 	}
 
 	/* cover all tails, complete blocks and non-ASCII bytes with several seeds */
-	for (len = 0; len < 256; ++len) {
-		for (alignment = 0; alignment < 4; ++alignment) {
+	for (unsigned len = 0; len < 256; ++len) {
+		for (unsigned alignment = 0; alignment < 4; ++alignment) {
 			memset(buffer[alignment], 0xa5, sizeof(buffer[alignment]));
-			for (i = 0; i < len; ++i)
+			for (unsigned i = 0; i < len; ++i)
 				key[alignment][i] = (i * 73 + len * 11) % 255 + 1;
 			key[alignment][len] = 0;
 		}
-		for (s = 0; s < sizeof(seed) / sizeof(seed[0]); ++s) {
+		for (unsigned s = 0; s < sizeof(seed) / sizeof(seed[0]); ++s) {
 			tommy_uint32_t expected = tommy_strhash_u32(seed[s], key[0]);
-			for (alignment = 0; alignment < 4; ++alignment) {
+			for (unsigned alignment = 0; alignment < 4; ++alignment) {
 				if (tommy_strhash_u32(seed[s], key[alignment]) != expected) {
 					/* LCOV_EXCL_START */
 					abort();
@@ -731,19 +713,15 @@ void test_strhash_u64_alignment(void)
 	const tommy_uint64_t seed[] = { 0, 1, 0xa766795dULL, 0x2f022773a766795dULL, 0xffffffffffffffffULL };
 	unsigned char buffer[8][256 + 16];
 	unsigned char* key[8];
-	unsigned alignment;
-	unsigned i;
-	unsigned len;
-	unsigned s;
 
-	for (alignment = 0; alignment < 8; ++alignment) {
+	for (unsigned alignment = 0; alignment < 8; ++alignment) {
 		unsigned char* base = buffer[alignment];
 		key[alignment] = base + ((8 - ((tommy_uintptr_t)base & 7)) & 7) + alignment;
 	}
 
 	/* verify the published vectors at every alignment */
-	for (i = 0; STRHASH64[i].data; ++i) {
-		for (alignment = 0; alignment < 8; ++alignment) {
+	for (unsigned i = 0; STRHASH64[i].data; ++i) {
+		for (unsigned alignment = 0; alignment < 8; ++alignment) {
 			memset(buffer[alignment], 0xa5, sizeof(buffer[alignment]));
 			memcpy(key[alignment], STRHASH64[i].data, strlen(STRHASH64[i].data) + 1);
 			if (tommy_strhash_u64(0x2f022773a766795dULL, key[alignment]) != STRHASH64[i].hash) {
@@ -755,16 +733,16 @@ void test_strhash_u64_alignment(void)
 	}
 
 	/* cover all tails, complete blocks and non-ASCII bytes with several seeds across all 8 alignments */
-	for (len = 0; len < 256; ++len) {
-		for (alignment = 0; alignment < 8; ++alignment) {
+	for (unsigned len = 0; len < 256; ++len) {
+		for (unsigned alignment = 0; alignment < 8; ++alignment) {
 			memset(buffer[alignment], 0xa5, sizeof(buffer[alignment]));
-			for (i = 0; i < len; ++i)
+			for (unsigned i = 0; i < len; ++i)
 				key[alignment][i] = (i * 73 + len * 11) % 255 + 1;
 			key[alignment][len] = 0;
 		}
-		for (s = 0; s < sizeof(seed) / sizeof(seed[0]); ++s) {
+		for (unsigned s = 0; s < sizeof(seed) / sizeof(seed[0]); ++s) {
 			tommy_uint64_t expected = tommy_strhash_u64(seed[s], key[0]);
-			for (alignment = 0; alignment < 8; ++alignment) {
+			for (unsigned alignment = 0; alignment < 8; ++alignment) {
 				if (tommy_strhash_u64(seed[s], key[alignment]) != expected) {
 					/* LCOV_EXCL_START */
 					abort();
@@ -782,11 +760,8 @@ void test_strhash_u64_alignment(void)
 
 void test_hash(void)
 {
-	unsigned i;
 	unsigned char buffer[16];
 	unsigned COUNT = 1024 * 1024 * 16;
-	tommy_uint32_t hash32;
-	tommy_uint64_t hash64;
 
 	START("hash_test_vectors");
 
@@ -805,7 +780,7 @@ void test_hash(void)
 		/* LCOV_EXCL_STOP */
 	}
 
-	for (i = 0; HASH32[i].data; ++i) {
+	for (unsigned i = 0; HASH32[i].data; ++i) {
 		if (tommy_hash_u32(0xa766795d, HASH32[i].data, HASH32[i].len) != HASH32[i].hash) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -813,7 +788,7 @@ void test_hash(void)
 		}
 	}
 
-	for (i = 0; STRHASH32[i].data; ++i) {
+	for (unsigned i = 0; STRHASH32[i].data; ++i) {
 		if (tommy_strhash_u32(0xa766795d, STRHASH32[i].data) != STRHASH32[i].hash) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -821,7 +796,7 @@ void test_hash(void)
 		}
 	}
 
-	for (i = 0; HASH64[i].data; ++i) {
+	for (unsigned i = 0; HASH64[i].data; ++i) {
 		if (tommy_hash_u64(0x2f022773a766795dULL, HASH64[i].data, HASH64[i].len) != HASH64[i].hash) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -829,7 +804,7 @@ void test_hash(void)
 		}
 	}
 
-	for (i = 0; STRHASH64[i].data; ++i) {
+	for (unsigned i = 0; STRHASH64[i].data; ++i) {
 		if (tommy_strhash_u64(0x2f022773a766795dULL, STRHASH64[i].data) != STRHASH64[i].hash) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -837,7 +812,7 @@ void test_hash(void)
 		}
 	}
 
-	for (i = 0; INTHASH32[i].value || !i; ++i) {
+	for (unsigned i = 0; INTHASH32[i].value || !i; ++i) {
 		if (tommy_inthash_u32(INTHASH32[i].value) != INTHASH32[i].hash) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -845,7 +820,7 @@ void test_hash(void)
 		}
 	}
 
-	for (i = 0; INTHASH64[i].value || !i; ++i) {
+	for (unsigned i = 0; INTHASH64[i].value || !i; ++i) {
 		if (tommy_inthash_u64(INTHASH64[i].value) != INTHASH64[i].hash) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -858,12 +833,12 @@ void test_hash(void)
 	memset(buffer, 0xAA, sizeof(buffer));
 	buffer[sizeof(buffer) - 1] = 0;
 
-	hash32 = 0;
-	hash64 = 0;
+	tommy_uint32_t hash32 = 0;
+	tommy_uint64_t hash64 = 0;
 
 	START("hash_u32");
 
-	for (i = 0; i < COUNT; ++i) {
+	for (unsigned i = 0; i < COUNT; ++i) {
 		hash32 = tommy_hash_u32(hash32, buffer, sizeof(buffer));
 	}
 
@@ -871,7 +846,7 @@ void test_hash(void)
 
 	START("strhash_u32");
 
-	for (i = 0; i < COUNT; ++i) {
+	for (unsigned i = 0; i < COUNT; ++i) {
 		hash32 = tommy_strhash_u32(hash32, buffer);
 	}
 
@@ -879,7 +854,7 @@ void test_hash(void)
 
 	START("hash_u64");
 
-	for (i = 0; i < COUNT; ++i) {
+	for (unsigned i = 0; i < COUNT; ++i) {
 		hash64 = tommy_hash_u64(hash64, buffer, sizeof(buffer));
 	}
 
@@ -887,7 +862,7 @@ void test_hash(void)
 
 	START("strhash_u64");
 
-	for (i = 0; i < COUNT; ++i) {
+	for (unsigned i = 0; i < COUNT; ++i) {
 		hash64 = tommy_strhash_u64(hash64, buffer);
 	}
 
@@ -897,11 +872,8 @@ void test_hash(void)
 void test_alloc(void)
 {
 	const unsigned size = 10 * TOMMY_SIZE;
-	unsigned i;
 	tommy_allocator alloc;
-	void** PTR;
-
-	PTR = malloc(size * sizeof(void*));
+	void** PTR = malloc(size * sizeof(void*));
 
 	/* ensure at least pointer alignment */
 	tommy_allocator_init(&alloc, sizeof(void*), 1);
@@ -933,13 +905,13 @@ void test_alloc(void)
 	tommy_allocator_init(&alloc, 64, 64);
 
 	START("alloc");
-	for (i = 0; i < size; ++i) {
+	for (unsigned i = 0; i < size; ++i) {
 		PTR[i] = tommy_allocator_alloc(&alloc);
 	}
 	STOP();
 
 	START("free");
-	for (i = 0; i < size; ++i) {
+	for (unsigned i = 0; i < size; ++i) {
 		tommy_allocator_free(&alloc, PTR[i]);
 	}
 	STOP();
@@ -980,7 +952,6 @@ void test_list_sequence(tommy_list* list, struct object* obj, const unsigned* or
 {
 	tommy_node* node = tommy_list_head(list);
 	tommy_node* prev = tommy_list_tail(list);
-	unsigned i;
 
 	if (tommy_list_empty(list) != (size == 0)
 		|| tommy_list_tail(list) != (size ? &obj[order[size - 1]].node : 0)) {
@@ -989,7 +960,7 @@ void test_list_sequence(tommy_list* list, struct object* obj, const unsigned* or
 		/* LCOV_EXCL_STOP */
 	}
 
-	for (i = 0; i < size; ++i) {
+	for (unsigned i = 0; i < size; ++i) {
 		if (node != &obj[order[i]].node || node->prev != prev
 			|| node->data != &obj[order[i]] || node->index != order[i] + 1) {
 			/* LCOV_EXCL_START */
@@ -1007,7 +978,7 @@ void test_list_sequence(tommy_list* list, struct object* obj, const unsigned* or
 	}
 
 	node = tommy_list_tail(list);
-	for (i = size; i > 0; --i) {
+	for (unsigned i = size; i > 0; --i) {
 		if (node != &obj[order[i - 1]].node) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -1025,10 +996,8 @@ void test_list_sequence(tommy_list* list, struct object* obj, const unsigned* or
 
 void test_list_build(tommy_list* list, struct object* obj, unsigned start, unsigned size)
 {
-	unsigned i;
-
 	tommy_list_init(list);
-	for (i = start; i < start + size; ++i) {
+	for (unsigned i = start; i < start + size; ++i) {
 		obj[i].node.index = i + 1;
 		tommy_list_insert_tail(list, &obj[i].node, &obj[i]);
 	}
@@ -1041,34 +1010,25 @@ void test_list_merge(void)
 	const unsigned combinations[] = { 1, 3, 9, 27, 81 };
 	tommy_list first;
 	tommy_list second;
-	unsigned n;
-	unsigned m;
-	unsigned a;
-	unsigned b;
-	unsigned i;
-	unsigned key;
-	unsigned size;
-	unsigned code;
-	tommy_bool_t sorted;
 
 	/* All sorted sequences of up to four nodes with keys in [0, 2].
 	 * Object identity distinguishes duplicates, including duplicates across lists.
 	 * The oracle groups by key, retaining the original first-then-second order.
 	 */
-	for (n = 0; n <= 4; ++n) {
-		for (m = 0; m <= 4; ++m) {
-			for (a = 0; a < combinations[n]; ++a) {
-				for (b = 0; b < combinations[m]; ++b) {
-					sorted = 1;
-					code = a;
-					for (i = 0; i < n; ++i) {
+	for (unsigned n = 0; n <= 4; ++n) {
+		for (unsigned m = 0; m <= 4; ++m) {
+			for (unsigned a = 0; a < combinations[n]; ++a) {
+				for (unsigned b = 0; b < combinations[m]; ++b) {
+					tommy_bool_t sorted = 1;
+					unsigned code = a;
+					for (unsigned i = 0; i < n; ++i) {
 						obj[i].value = code % 3;
 						code /= 3;
 						if (i && obj[i - 1].value > obj[i].value)
 							sorted = 0;
 					}
 					code = b;
-					for (i = n; i < n + m; ++i) {
+					for (unsigned i = n; i < n + m; ++i) {
 						obj[i].value = code % 3;
 						code /= 3;
 						if (i != n && obj[i - 1].value > obj[i].value)
@@ -1079,9 +1039,9 @@ void test_list_merge(void)
 
 					test_list_build(&first, obj, 0, n);
 					test_list_build(&second, obj, n, m);
-					size = 0;
-					for (key = 0; key < 3; ++key)
-						for (i = 0; i < n + m; ++i)
+					unsigned size = 0;
+					for (unsigned key = 0; key < 3; ++key)
+						for (unsigned i = 0; i < n + m; ++i)
 							if (obj[i].value == (int)key)
 								order[size++] = i;
 
@@ -1100,17 +1060,14 @@ void test_list_split(void)
 	const unsigned previous_order[] = { 5 };
 	tommy_list first;
 	tommy_list second;
-	tommy_list previous;
-	unsigned n;
-	unsigned pos;
 
 	/* split at every position, including the head, tail and null node. */
-	for (n = 0; n <= 5; ++n) {
-		for (pos = 0; pos <= n; ++pos) {
+	for (unsigned n = 0; n <= 5; ++n) {
+		for (unsigned pos = 0; pos <= n; ++pos) {
 			test_list_build(&first, obj, 0, n);
 			/* the previous destination value is overwritten, but its nodes are untouched. */
 			test_list_build(&second, obj, 5, 1);
-			previous = second;
+			tommy_list previous = second;
 			tommy_list_split(&first, pos == n ? 0 : &obj[pos].node, &second);
 			test_list_sequence(&first, obj, order, pos);
 			test_list_sequence(&second, obj, order + pos, n - pos);
@@ -1136,31 +1093,23 @@ void test_list_splice(void)
 {
 	struct object obj[8];
 	unsigned order[8];
-	unsigned reuse[1];
 	tommy_list first;
 	tommy_list second;
-	unsigned n;
-	unsigned m;
-	unsigned pos;
-	unsigned operation;
-	unsigned insert;
-	unsigned i;
-	unsigned size;
 
 	/* both splice operations, every valid reference and empty/singleton cases. */
-	for (n = 1; n <= 4; ++n) {
-		for (m = 0; m <= 3; ++m) {
-			for (operation = 0; operation < 2; ++operation) {
-				for (pos = 0; pos < n; ++pos) {
+	for (unsigned n = 1; n <= 4; ++n) {
+		for (unsigned m = 0; m <= 3; ++m) {
+			for (unsigned operation = 0; operation < 2; ++operation) {
+				for (unsigned pos = 0; pos < n; ++pos) {
 					test_list_build(&first, obj, 0, n);
 					test_list_build(&second, obj, n, m);
-					insert = operation == 0 ? pos : pos + 1;
-					size = 0;
-					for (i = 0; i < insert; ++i)
+					unsigned insert = operation == 0 ? pos : pos + 1;
+					unsigned size = 0;
+					for (unsigned i = 0; i < insert; ++i)
 						order[size++] = i;
-					for (i = n; i < n + m; ++i)
+					for (unsigned i = n; i < n + m; ++i)
 						order[size++] = i;
-					for (i = insert; i < n; ++i)
+					for (unsigned i = insert; i < n; ++i)
 						order[size++] = i;
 
 					switch (operation) {
@@ -1174,7 +1123,7 @@ void test_list_splice(void)
 					test_list_sequence(&first, obj, order, size);
 
 					/* the source can be reused after reinitialization without affecting the destination. */
-					reuse[0] = n + m;
+					unsigned reuse[1] = { n + m };
 					test_list_build(&second, obj, reuse[0], 1);
 					test_list_sequence(&second, obj, reuse, 1);
 					test_list_sequence(&first, obj, order, size);
@@ -1190,17 +1139,13 @@ void test_list_concat(void)
 	unsigned order[8];
 	tommy_list first;
 	tommy_list second;
-	unsigned n;
-	unsigned m;
-	unsigned i;
-	unsigned size;
 
-	for (n = 0; n <= 4; ++n) {
-		for (m = 0; m <= 3; ++m) {
+	for (unsigned n = 0; n <= 4; ++n) {
+		for (unsigned m = 0; m <= 3; ++m) {
 			test_list_build(&first, obj, 0, n);
 			test_list_build(&second, obj, n, m);
-			size = 0;
-			for (i = 0; i < n + m; ++i)
+			unsigned size = 0;
+			for (unsigned i = 0; i < n + m; ++i)
 				order[size++] = i;
 			tommy_list_concat(&first, &second);
 			test_list_sequence(&first, obj, order, size);
@@ -1214,19 +1159,15 @@ void test_list_prepend(void)
 	unsigned order[8];
 	tommy_list first;
 	tommy_list second;
-	unsigned n;
-	unsigned m;
-	unsigned i;
-	unsigned size;
 
-	for (n = 0; n <= 4; ++n) {
-		for (m = 0; m <= 3; ++m) {
+	for (unsigned n = 0; n <= 4; ++n) {
+		for (unsigned m = 0; m <= 3; ++m) {
 			test_list_build(&first, obj, 0, n);
 			test_list_build(&second, obj, n, m);
-			size = 0;
-			for (i = n; i < n + m; ++i)
+			unsigned size = 0;
+			for (unsigned i = n; i < n + m; ++i)
 				order[size++] = i;
-			for (i = 0; i < n; ++i)
+			for (unsigned i = 0; i < n; ++i)
 				order[size++] = i;
 			tommy_list_prepend(&first, &second);
 			test_list_sequence(&first, obj, order, size);
@@ -1240,15 +1181,10 @@ void test_list_reverse_move(void)
 	const unsigned forward[] = { 0, 1, 2, 3, 4, 5 };
 	unsigned order[6];
 	tommy_list list;
-	unsigned n;
-	unsigned pos;
-	unsigned tail;
-	unsigned i;
-	unsigned size;
 
-	for (n = 0; n <= 6; ++n) {
+	for (unsigned n = 0; n <= 6; ++n) {
 		test_list_build(&list, obj, 0, n);
-		for (i = 0; i < n; ++i)
+		for (unsigned i = 0; i < n; ++i)
 			order[i] = n - 1 - i;
 		tommy_list_reverse(&list);
 		test_list_sequence(&list, obj, order, n);
@@ -1256,13 +1192,13 @@ void test_list_reverse_move(void)
 		test_list_sequence(&list, obj, forward, n);
 
 		/* move every node to either end, including nodes already at that end. */
-		for (pos = 0; pos < n; ++pos) {
-			for (tail = 0; tail < 2; ++tail) {
+		for (unsigned pos = 0; pos < n; ++pos) {
+			for (unsigned tail = 0; tail < 2; ++tail) {
 				test_list_build(&list, obj, 0, n);
-				size = 0;
+				unsigned size = 0;
 				if (!tail)
 					order[size++] = pos;
-				for (i = 0; i < n; ++i)
+				for (unsigned i = 0; i < n; ++i)
 					if (i != pos)
 						order[size++] = i;
 				if (tail)
@@ -1304,25 +1240,18 @@ void test_list_remove_ends(void)
 	struct object obj[6];
 	const unsigned order[] = { 0, 1, 2, 3, 4, 5 };
 	tommy_list list;
-	tommy_node* node;
-	tommy_node saved;
-	void* data;
-	unsigned n;
-	unsigned mode;
-	unsigned head;
-	unsigned tail;
-	tommy_bool_t remove_tail;
 
 	/* drain from the head, from the tail, and alternating between both. */
-	for (n = 0; n <= 6; ++n) {
-		for (mode = 0; mode < 3; ++mode) {
+	for (unsigned n = 0; n <= 6; ++n) {
+		for (unsigned mode = 0; mode < 3; ++mode) {
 			test_list_build(&list, obj, 0, n);
-			head = 0;
-			tail = n;
+			unsigned head = 0;
+			unsigned tail = n;
 			while (head != tail) {
-				remove_tail = mode == 1 || (mode == 2 && (tail - head) % 2 == 0);
-				node = &obj[remove_tail ? tail - 1 : head].node;
-				saved = *node;
+				tommy_bool_t remove_tail = mode == 1 || (mode == 2 && (tail - head) % 2 == 0);
+				tommy_node* node = &obj[remove_tail ? tail - 1 : head].node;
+				tommy_node saved = *node;
+				void* data;
 				if (remove_tail) {
 					data = tommy_list_remove_tail(&list);
 					--tail;
@@ -1348,11 +1277,11 @@ void test_list_remove_ends(void)
 	}
 
 	/* null data still removes the node, despite returning 0. */
-	for (mode = 0; mode < 2; ++mode) {
+	for (unsigned mode = 0; mode < 2; ++mode) {
 		test_list_build(&list, obj, 0, 1);
 		obj[0].node.data = 0;
-		saved = obj[0].node;
-		data = mode ? tommy_list_remove_tail(&list) : tommy_list_remove_head(&list);
+		tommy_node saved = obj[0].node;
+		void* data = mode ? tommy_list_remove_tail(&list) : tommy_list_remove_head(&list);
 		if (data != 0) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -1369,11 +1298,9 @@ void test_list_swap(void)
 	const unsigned order[] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 	tommy_list first;
 	tommy_list second;
-	unsigned n;
-	unsigned m;
 
-	for (n = 0; n <= 4; ++n) {
-		for (m = 0; m <= 4; ++m) {
+	for (unsigned n = 0; n <= 4; ++n) {
+		for (unsigned m = 0; m <= 4; ++m) {
 			test_list_build(&first, obj, 0, n);
 			test_list_build(&second, obj, n, m);
 			tommy_list_swap(&first, &second);
@@ -1392,11 +1319,8 @@ void test_list_swap(void)
 
 void test_list(void)
 {
-	struct object* LIST;
-	struct object_vector* VECTOR;
-	tommy_node* list;
-	unsigned i;
 	const unsigned size = TOMMY_SIZE;
+	tommy_node* list;
 
 	test_list_merge();
 	test_list_split();
@@ -1407,10 +1331,10 @@ void test_list(void)
 	test_list_remove_ends();
 	test_list_swap();
 
-	LIST = malloc(size * sizeof(struct object));
-	VECTOR = malloc(size * sizeof(struct object_vector));
+	struct object* LIST = malloc(size * sizeof(struct object));
+	struct object_vector* VECTOR = malloc(size * sizeof(struct object_vector));
 
-	for (i = 0; i < size; ++i) {
+	for (unsigned i = 0; i < size; ++i) {
 		VECTOR[i].value = LIST[i].value = 0;
 	}
 
@@ -1437,7 +1361,7 @@ void test_list(void)
 		/* LCOV_EXCL_STOP */
 	}
 
-	for (i = 0; i < size; ++i) {
+	for (unsigned i = 0; i < size; ++i) {
 		VECTOR[i].value = LIST[i].value = rnd(size);
 		tommy_list_insert_tail(&list, &LIST[i].node, &LIST[i]);
 	}
@@ -1466,7 +1390,7 @@ void test_list(void)
 
 	/* forward order with some (1%) random values */
 	list = 0;
-	for (i = 0; i < size; ++i) {
+	for (unsigned i = 0; i < size; ++i) {
 		VECTOR[i].value = LIST[i].value = i;
 		if (rnd(100) == 0)
 			VECTOR[i].value = LIST[i].value = rnd(size);
@@ -1485,7 +1409,7 @@ void test_list(void)
 
 	/* forward order */
 	list = 0;
-	for (i = 0; i < size; ++i) {
+	for (unsigned i = 0; i < size; ++i) {
 		VECTOR[i].value = LIST[i].value = i;
 		tommy_list_insert_tail(&list, &LIST[i].node, &LIST[i]);
 	}
@@ -1502,7 +1426,7 @@ void test_list(void)
 
 	/* backward order */
 	list = 0;
-	for (i = 0; i < size; ++i) {
+	for (unsigned i = 0; i < size; ++i) {
 		VECTOR[i].value = LIST[i].value = size - 1 - i;
 		tommy_list_insert_tail(&list, &LIST[i].node, &LIST[i]);
 	}
@@ -1519,7 +1443,7 @@ void test_list(void)
 
 	/* use a small range of random value to insert a lot of duplicates */
 	list = 0;
-	for (i = 0; i < size; ++i) {
+	for (unsigned i = 0; i < size; ++i) {
 		VECTOR[i].value = LIST[i].value = rnd(size / 1000 + 2);
 		tommy_list_insert_tail(&list, &LIST[i].node, &LIST[i]);
 	}
@@ -1540,22 +1464,19 @@ void test_list(void)
 
 void test_tree(void)
 {
-	tommy_tree tree;
-	struct object_tree* OBJ;
-	unsigned i;
 	const unsigned size = TOMMY_SIZE / 4;
-
-	OBJ = malloc(size * sizeof(struct object_tree));
+	struct object_tree* OBJ = malloc(size * sizeof(struct object_tree));
+	tommy_tree tree;
 
 	START("tree");
 	tommy_tree_init(&tree, &compare);
 
 	/* forward order */
-	for (i = 0; i < size; ++i)
+	for (unsigned i = 0; i < size; ++i)
 		OBJ[i].value = i;
 
 	/* insert */
-	for (i = 0; i < size; ++i)
+	for (unsigned i = 0; i < size; ++i)
 		tommy_tree_insert(&tree, &OBJ[i].node, &OBJ[i]);
 
 	if (tommy_tree_memory_usage(&tree) < size * sizeof(tommy_tree_node)) {
@@ -1587,7 +1508,7 @@ void test_tree(void)
 	}
 
 	/* search present */
-	for (i = 0; i < size / 2; ++i) {
+	for (unsigned i = 0; i < size / 2; ++i) {
 		if (tommy_tree_search(&tree, &OBJ[i]) == 0) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -1601,7 +1522,7 @@ void test_tree(void)
 	}
 
 	/* insert existing */
-	for (i = 0; i < size; ++i) {
+	for (unsigned i = 0; i < size; ++i) {
 		struct object_tree EXTRA;
 		EXTRA.value = i;
 		if (tommy_tree_insert_unique(&tree, &EXTRA.node, &EXTRA) == &EXTRA) {
@@ -1612,11 +1533,11 @@ void test_tree(void)
 	}
 
 	/* remove existing */
-	for (i = 0; i < size / 2; ++i)
+	for (unsigned i = 0; i < size / 2; ++i)
 		tommy_tree_remove_existing(&tree, &OBJ[i].node);
 
 	/* remove missing */
-	for (i = 0; i < size / 2; ++i)
+	for (unsigned i = 0; i < size / 2; ++i)
 		if (tommy_tree_remove(&tree, &OBJ[i]) != 0) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -1624,7 +1545,7 @@ void test_tree(void)
 		}
 
 	/* search missing */
-	for (i = 0; i < size / 2; ++i) {
+	for (unsigned i = 0; i < size / 2; ++i) {
 		if (tommy_tree_search(&tree, &OBJ[i]) != 0) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -1638,7 +1559,7 @@ void test_tree(void)
 	}
 
 	/* remove present */
-	for (i = 0; i < size / 2; ++i)
+	for (unsigned i = 0; i < size / 2; ++i)
 		if (tommy_tree_remove(&tree, &OBJ[size / 2 + i]) == 0) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -1646,27 +1567,27 @@ void test_tree(void)
 		}
 
 	/* reverse order */
-	for (i = 0; i < size; ++i)
+	for (unsigned i = 0; i < size; ++i)
 		OBJ[i].value = size - i;
 
 	/* insert */
-	for (i = 0; i < size; ++i)
+	for (unsigned i = 0; i < size; ++i)
 		tommy_tree_insert(&tree, &OBJ[i].node, &OBJ[i]);
 
 	/* remove all */
-	for (i = 0; i < size; ++i)
+	for (unsigned i = 0; i < size; ++i)
 		tommy_tree_remove_existing(&tree, &OBJ[i].node);
 
 	/* random order */
-	for (i = 0; i < size; ++i)
+	for (unsigned i = 0; i < size; ++i)
 		OBJ[i].value = tommy_inthash_u32(i);
 
 	/* insert */
-	for (i = 0; i < size; ++i)
+	for (unsigned i = 0; i < size; ++i)
 		tommy_tree_insert(&tree, &OBJ[i].node, &OBJ[i]);
 
 	/* remove all */
-	for (i = 0; i < size; ++i)
+	for (unsigned i = 0; i < size; ++i)
 		tommy_tree_remove_existing(&tree, &OBJ[i].node);
 
 	STOP();
@@ -1676,17 +1597,10 @@ void test_tree_duplicates(void)
 {
 	tommy_tree tree;
 	struct object_tree objects[96];
-	struct object_tree candidate;
-	struct object_tree key;
-	unsigned char before[sizeof(candidate.node)];
-	tommy_tree_node* node;
-	unsigned i;
-	unsigned group;
-	int value;
 
 	tommy_tree_init(&tree, &compare);
 
-	for (i = 0; i < 96; ++i) {
+	for (unsigned i = 0; i < 96; ++i) {
 		objects[i].value = i % 4;
 		tommy_tree_insert(&tree, &objects[i].node, &objects[i]);
 	}
@@ -1697,9 +1611,9 @@ void test_tree_duplicates(void)
 		/* LCOV_EXCL_STOP */
 	}
 
-	node = tommy_tree_head(&tree);
-	for (group = 0; group < 4; ++group) {
-		for (i = group; i < 96; i += 4) {
+	tommy_tree_node* node = tommy_tree_head(&tree);
+	for (unsigned group = 0; group < 4; ++group) {
+		for (unsigned i = group; i < 96; i += 4) {
 			if (node != &objects[i].node) {
 				/* LCOV_EXCL_START */
 				abort();
@@ -1714,7 +1628,8 @@ void test_tree_duplicates(void)
 		/* LCOV_EXCL_STOP */
 	}
 
-	for (group = 0; group < 4; ++group) {
+	for (unsigned group = 0; group < 4; ++group) {
+		struct object_tree key;
 		key.value = group;
 		if (tommy_tree_search(&tree, &key) != &objects[group]) {
 			/* LCOV_EXCL_START */
@@ -1748,6 +1663,7 @@ void test_tree_duplicates(void)
 		}
 	}
 
+	struct object_tree key;
 	key.value = 2;
 	if (tommy_tree_search_node_compare(&tree, &compare_tree_group, &key) != &objects[2].node) {
 		/* LCOV_EXCL_START */
@@ -1770,8 +1686,10 @@ void test_tree_duplicates(void)
 		/* LCOV_EXCL_STOP */
 	}
 
+	struct object_tree candidate;
 	candidate.value = 2;
 	memset(&candidate.node, 0xa5, sizeof(candidate.node));
+	unsigned char before[sizeof(candidate.node)];
 	memcpy(before, &candidate.node, sizeof(before));
 	if (tommy_tree_insert_unique(&tree, &candidate.node, &candidate) != &objects[2]) {
 		/* LCOV_EXCL_START */
@@ -1784,7 +1702,7 @@ void test_tree_duplicates(void)
 		/* LCOV_EXCL_STOP */
 	}
 
-	for (i = 2; i < 96; i += 4) {
+	for (unsigned i = 2; i < 96; i += 4) {
 		if (tommy_tree_remove(&tree, &candidate) != &objects[i]) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -1806,7 +1724,7 @@ void test_tree_duplicates(void)
 		abort();
 		/* LCOV_EXCL_STOP */
 	}
-	for (i = 3; i < 96; i += 4) {
+	for (unsigned i = 3; i < 96; i += 4) {
 		if (tommy_tree_remove_compare(&tree, &compare_tree_group, &candidate) != &objects[i]) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -1849,7 +1767,7 @@ void test_tree_duplicates(void)
 		/* LCOV_EXCL_STOP */
 	}
 
-	value = 4;
+	int value = 4;
 	if (tommy_tree_remove_compare(&tree, &compare_tree_int, &value) != &candidate) {
 		/* LCOV_EXCL_START */
 		abort();
@@ -1860,10 +1778,10 @@ void test_tree_duplicates(void)
 		abort();
 		/* LCOV_EXCL_STOP */
 	}
-	for (group = 0; group < 4; ++group) {
+	for (unsigned group = 0; group < 4; ++group) {
 		if (group >= 2)
 			continue;
-		for (i = group; i < 96; i += 4)
+		for (unsigned i = group; i < 96; i += 4)
 			tommy_tree_remove_existing(&tree, &objects[i].node);
 	}
 	if (!tommy_tree_empty(&tree)) {
@@ -1890,16 +1808,14 @@ static void tree_foreach_free_arg_callback(void* arg, void* data)
 void test_tree_foreach(void)
 {
 	tommy_tree tree;
-	unsigned pass;
-	unsigned i;
 
-	for (pass = 0; pass < 2; ++pass) {
+	for (unsigned pass = 0; pass < 2; ++pass) {
 		int expected = 0;
 
 		tommy_tree_init(&tree, &compare);
 		tommy_tree_foreach(&tree, free);
 		tommy_tree_foreach_arg(&tree, tree_foreach_free_arg_callback, &expected);
-		for (i = 0; i < 64; ++i) {
+		for (unsigned i = 0; i < 64; ++i) {
 			struct object_tree* object = malloc(sizeof(*object));
 
 			object->value = i * 37 % 64;
@@ -1923,7 +1839,6 @@ void test_tree_clear(void)
 {
 	tommy_tree tree;
 	struct object_tree objects[2];
-	struct object_tree* allocated;
 
 	tommy_tree_init(&tree, &compare);
 	objects[0].value = 1;
@@ -1950,7 +1865,7 @@ void test_tree_clear(void)
 	}
 	tommy_tree_remove_existing(&tree, &objects[0].node);
 
-	allocated = malloc(sizeof(*allocated));
+	struct object_tree* allocated = malloc(sizeof(*allocated));
 	allocated->value = 3;
 	tommy_tree_insert(&tree, &allocated->node, allocated);
 	tommy_tree_foreach(&tree, free);
@@ -1977,9 +1892,6 @@ void test_tree_to_list(void)
 	struct object_tree prefix[2];
 	struct object_tree reused;
 	tommy_size_t index[96];
-	tommy_node* node;
-	unsigned group;
-	unsigned i;
 
 	tommy_tree_init(&tree, &compare);
 	tommy_list_init(&list);
@@ -2000,13 +1912,13 @@ void test_tree_to_list(void)
 	}
 	tommy_list_init(&list);
 
-	for (i = 0; i < 2; ++i)
+	for (unsigned i = 0; i < 2; ++i)
 		tommy_list_insert_tail(&list, &prefix[i].node, &prefix[i]);
-	for (i = 0; i < 96; ++i) {
+	for (unsigned i = 0; i < 96; ++i) {
 		objects[i].value = i % 5;
 		tommy_tree_insert(&tree, &objects[i].node, &objects[i]);
 	}
-	for (i = 0; i < 96; ++i)
+	for (unsigned i = 0; i < 96; ++i)
 		index[i] = objects[i].node.index;
 
 	tommy_tree_to_list(&tree, &list);
@@ -2021,8 +1933,8 @@ void test_tree_to_list(void)
 		/* LCOV_EXCL_STOP */
 	}
 
-	node = tommy_list_head(&list);
-	for (i = 0; i < 2; ++i) {
+	tommy_node* node = tommy_list_head(&list);
+	for (unsigned i = 0; i < 2; ++i) {
 		if (node != &prefix[i].node) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -2030,8 +1942,8 @@ void test_tree_to_list(void)
 		}
 		node = node->next;
 	}
-	for (group = 0; group < 5; ++group) {
-		for (i = group; i < 96; i += 5) {
+	for (unsigned group = 0; group < 5; ++group) {
+		for (unsigned i = group; i < 96; i += 5) {
 			if (node != &objects[i].node || node->data != &objects[i] || node->index != index[i]) {
 				/* LCOV_EXCL_START */
 				abort();
@@ -2047,7 +1959,7 @@ void test_tree_to_list(void)
 	}
 
 	node = tommy_list_tail(&list);
-	for (i = 0; i < 98; ++i) {
+	for (unsigned i = 0; i < 98; ++i) {
 		if (!node) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -2078,9 +1990,8 @@ void test_tree_to_list(void)
 
 void test_array(void)
 {
-	tommy_array array;
-	tommy_uintptr_t i;
 	const unsigned size = 50 * TOMMY_SIZE;
+	tommy_array array;
 
 	tommy_array_init(&array);
 
@@ -2088,7 +1999,7 @@ void test_array(void)
 	tommy_array_grow(&array, 0);
 
 	START("array init");
-	for (i = 0; i < size; ++i) {
+	for (tommy_uintptr_t i = 0; i < size; ++i) {
 		tommy_array_grow(&array, i + 1);
 		if (tommy_array_get(&array, i) != 0) {
 			/* LCOV_EXCL_START */
@@ -2099,13 +2010,13 @@ void test_array(void)
 	STOP();
 
 	START("array set");
-	for (i = 0; i < size; ++i) {
+	for (tommy_uintptr_t i = 0; i < size; ++i) {
 		tommy_array_set(&array, i, (void*)i);
 	}
 	STOP();
 
 	START("array get");
-	for (i = 0; i < size; ++i) {
+	for (tommy_uintptr_t i = 0; i < size; ++i) {
 		if (tommy_array_get(&array, i) != (void*)i) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -2125,9 +2036,8 @@ void test_array(void)
 
 void test_arrayof(void)
 {
-	tommy_arrayof arrayof;
-	unsigned i;
 	const unsigned size = 50 * TOMMY_SIZE;
+	tommy_arrayof arrayof;
 
 	tommy_arrayof_init(&arrayof, sizeof(unsigned));
 
@@ -2135,7 +2045,7 @@ void test_arrayof(void)
 	tommy_arrayof_grow(&arrayof, 0);
 
 	START("arrayof init");
-	for (i = 0; i < size; ++i) {
+	for (unsigned i = 0; i < size; ++i) {
 		tommy_arrayof_grow(&arrayof, i + 1);
 		unsigned* ref = tommy_arrayof_ref(&arrayof, i);
 		if (*ref != 0) {
@@ -2147,14 +2057,14 @@ void test_arrayof(void)
 	STOP();
 
 	START("arrayof set");
-	for (i = 0; i < size; ++i) {
+	for (unsigned i = 0; i < size; ++i) {
 		unsigned* ref = tommy_arrayof_ref(&arrayof, i);
 		*ref = i;
 	}
 	STOP();
 
 	START("arrayof get");
-	for (i = 0; i < size; ++i) {
+	for (unsigned i = 0; i < size; ++i) {
 		unsigned* ref = tommy_arrayof_ref(&arrayof, i);
 		if (*ref != i) {
 			/* LCOV_EXCL_START */
@@ -2175,10 +2085,9 @@ void test_arrayof(void)
 
 void test_arrayblk(void)
 {
-	tommy_arrayblk arrayblk;
-	tommy_uintptr_t i;
-	void** first_ref = 0;
 	const unsigned size = 50 * TOMMY_SIZE;
+	tommy_arrayblk arrayblk;
+	void** first_ref = 0;
 
 	tommy_arrayblk_init(&arrayblk);
 
@@ -2186,7 +2095,7 @@ void test_arrayblk(void)
 	tommy_arrayblk_grow(&arrayblk, 0);
 
 	START("arrayblk init");
-	for (i = 0; i < size; ++i) {
+	for (tommy_uintptr_t i = 0; i < size; ++i) {
 		tommy_arrayblk_grow(&arrayblk, i + 1);
 		if (i == 0)
 			first_ref = tommy_arrayblk_ref(&arrayblk, i);
@@ -2204,13 +2113,13 @@ void test_arrayblk(void)
 	}
 
 	START("arrayblk set");
-	for (i = 0; i < size; ++i) {
+	for (tommy_uintptr_t i = 0; i < size; ++i) {
 		tommy_arrayblk_set(&arrayblk, i, (void*)i);
 	}
 	STOP();
 
 	START("arrayblk get");
-	for (i = 0; i < size; ++i) {
+	for (tommy_uintptr_t i = 0; i < size; ++i) {
 		if (tommy_arrayblk_get(&arrayblk, i) != (void*)i) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -2230,10 +2139,9 @@ void test_arrayblk(void)
 
 void test_arrayblkof(void)
 {
-	tommy_arrayblkof arrayblkof;
-	unsigned i;
-	unsigned* first_ref = 0;
 	const unsigned size = 50 * TOMMY_SIZE;
+	tommy_arrayblkof arrayblkof;
+	unsigned* first_ref = 0;
 
 	tommy_arrayblkof_init(&arrayblkof, sizeof(unsigned));
 
@@ -2241,7 +2149,7 @@ void test_arrayblkof(void)
 	tommy_arrayblkof_grow(&arrayblkof, 0);
 
 	START("arrayblkof init");
-	for (i = 0; i < size; ++i) {
+	for (unsigned i = 0; i < size; ++i) {
 		tommy_arrayblkof_grow(&arrayblkof, i + 1);
 		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
 		if (i == 0)
@@ -2260,14 +2168,14 @@ void test_arrayblkof(void)
 	}
 
 	START("arrayblkof set");
-	for (i = 0; i < size; ++i) {
+	for (unsigned i = 0; i < size; ++i) {
 		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
 		*ref = i;
 	}
 	STOP();
 
 	START("arrayblkof get");
-	for (i = 0; i < size; ++i) {
+	for (unsigned i = 0; i < size; ++i) {
 		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
 		if (*ref != i) {
 			/* LCOV_EXCL_START */
@@ -2289,7 +2197,6 @@ void test_arrayblkof(void)
 void test_array_ops(void)
 {
 	tommy_array array;
-	tommy_uintptr_t i;
 
 	tommy_array_init(&array);
 
@@ -2338,7 +2245,7 @@ void test_array_ops(void)
 		abort();
 		/* LCOV_EXCL_STOP */
 	}
-	for (i = 0; i < 100; ++i) {
+	for (tommy_uintptr_t i = 0; i < 100; ++i) {
 		if (tommy_array_get(&array, i) != 0) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -2354,7 +2261,7 @@ void test_array_ops(void)
 		abort();
 		/* LCOV_EXCL_STOP */
 	}
-	for (i = 0; i < 50; ++i) {
+	for (tommy_uintptr_t i = 0; i < 50; ++i) {
 		if (tommy_array_get(&array, i) != (void*)(i + 1)) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -2362,7 +2269,7 @@ void test_array_ops(void)
 		}
 	}
 	tommy_array_resize(&array, 100);
-	for (i = 50; i < 100; ++i) {
+	for (tommy_uintptr_t i = 50; i < 100; ++i) {
 		if (tommy_array_get(&array, i) != 0) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -2388,7 +2295,7 @@ void test_array_ops(void)
 		/* LCOV_EXCL_STOP */
 	}
 	tommy_array_resize(&array, 10);
-	for (i = 0; i < 10; ++i) {
+	for (tommy_uintptr_t i = 0; i < 10; ++i) {
 		if (tommy_array_get(&array, i) != 0) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -2398,7 +2305,7 @@ void test_array_ops(void)
 
 	/* shrink */
 	tommy_array_resize(&array, 200);
-	for (i = 0; i < 70; ++i)
+	for (tommy_uintptr_t i = 0; i < 70; ++i)
 		tommy_array_set(&array, i, (void*)(i + 1));
 	tommy_array_resize(&array, 70);
 	tommy_array_shrink(&array);
@@ -2407,7 +2314,7 @@ void test_array_ops(void)
 		abort();
 		/* LCOV_EXCL_STOP */
 	}
-	for (i = 0; i < 70; ++i) {
+	for (tommy_uintptr_t i = 0; i < 70; ++i) {
 		if (tommy_array_get(&array, i) != (void*)(i + 1)) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -2432,7 +2339,7 @@ void test_array_ops(void)
 
 	/* foreach and foreach_arg on populated array */
 	tommy_array_resize(&array, 200);
-	for (i = 0; i < 200; ++i)
+	for (tommy_uintptr_t i = 0; i < 200; ++i)
 		tommy_array_set(&array, i, (void*)(i + 1));
 	the_count = 0;
 	tommy_array_foreach(&array, array_foreach_check_callback);
@@ -2457,7 +2364,6 @@ void test_array_ops(void)
 void test_arrayof_ops(void)
 {
 	tommy_arrayof arrayof;
-	unsigned i;
 
 	tommy_arrayof_init(&arrayof, sizeof(unsigned));
 
@@ -2506,7 +2412,7 @@ void test_arrayof_ops(void)
 		abort();
 		/* LCOV_EXCL_STOP */
 	}
-	for (i = 0; i < 100; ++i) {
+	for (unsigned i = 0; i < 100; ++i) {
 		unsigned* ref = tommy_arrayof_ref(&arrayof, i);
 		if (*ref != 0) {
 			/* LCOV_EXCL_START */
@@ -2523,7 +2429,7 @@ void test_arrayof_ops(void)
 		abort();
 		/* LCOV_EXCL_STOP */
 	}
-	for (i = 0; i < 50; ++i) {
+	for (unsigned i = 0; i < 50; ++i) {
 		unsigned* ref = tommy_arrayof_ref(&arrayof, i);
 		if (*ref != i + 1) {
 			/* LCOV_EXCL_START */
@@ -2532,7 +2438,7 @@ void test_arrayof_ops(void)
 		}
 	}
 	tommy_arrayof_resize(&arrayof, 100);
-	for (i = 50; i < 100; ++i) {
+	for (unsigned i = 50; i < 100; ++i) {
 		unsigned* ref = tommy_arrayof_ref(&arrayof, i);
 		if (*ref != 0) {
 			/* LCOV_EXCL_START */
@@ -2562,7 +2468,7 @@ void test_arrayof_ops(void)
 		/* LCOV_EXCL_STOP */
 	}
 	tommy_arrayof_resize(&arrayof, 10);
-	for (i = 0; i < 10; ++i) {
+	for (unsigned i = 0; i < 10; ++i) {
 		unsigned* ref = tommy_arrayof_ref(&arrayof, i);
 		if (*ref != 0) {
 			/* LCOV_EXCL_START */
@@ -2573,7 +2479,7 @@ void test_arrayof_ops(void)
 
 	/* shrink */
 	tommy_arrayof_resize(&arrayof, 200);
-	for (i = 0; i < 70; ++i) {
+	for (unsigned i = 0; i < 70; ++i) {
 		unsigned* ref = tommy_arrayof_ref(&arrayof, i);
 		*ref = i + 1;
 	}
@@ -2584,7 +2490,7 @@ void test_arrayof_ops(void)
 		abort();
 		/* LCOV_EXCL_STOP */
 	}
-	for (i = 0; i < 70; ++i) {
+	for (unsigned i = 0; i < 70; ++i) {
 		unsigned* ref = tommy_arrayof_ref(&arrayof, i);
 		if (*ref != i + 1) {
 			/* LCOV_EXCL_START */
@@ -2613,7 +2519,7 @@ void test_arrayof_ops(void)
 
 	/* foreach and foreach_arg on populated array */
 	tommy_arrayof_resize(&arrayof, 200);
-	for (i = 0; i < 200; ++i) {
+	for (unsigned i = 0; i < 200; ++i) {
 		unsigned* ref = tommy_arrayof_ref(&arrayof, i);
 		*ref = i + 1;
 	}
@@ -2640,7 +2546,6 @@ void test_arrayof_ops(void)
 void test_arrayblk_ops(void)
 {
 	tommy_arrayblk arrayblk;
-	tommy_uintptr_t i;
 
 	tommy_arrayblk_init(&arrayblk);
 
@@ -2697,7 +2602,7 @@ void test_arrayblk_ops(void)
 		abort();
 		/* LCOV_EXCL_STOP */
 	}
-	for (i = 0; i < TOMMY_ARRAYBLK_SIZE + 50; ++i) {
+	for (tommy_uintptr_t i = 0; i < TOMMY_ARRAYBLK_SIZE + 50; ++i) {
 		if (tommy_arrayblk_get(&arrayblk, i) != 0) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -2713,7 +2618,7 @@ void test_arrayblk_ops(void)
 		abort();
 		/* LCOV_EXCL_STOP */
 	}
-	for (i = 0; i < TOMMY_ARRAYBLK_SIZE - 10; ++i) {
+	for (tommy_uintptr_t i = 0; i < TOMMY_ARRAYBLK_SIZE - 10; ++i) {
 		if (tommy_arrayblk_get(&arrayblk, i) != (void*)(i + 1)) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -2723,7 +2628,7 @@ void test_arrayblk_ops(void)
 
 	/* regrowing and invariant check across block boundary */
 	tommy_arrayblk_resize(&arrayblk, TOMMY_ARRAYBLK_SIZE + 50);
-	for (i = TOMMY_ARRAYBLK_SIZE - 10; i < TOMMY_ARRAYBLK_SIZE + 50; ++i) {
+	for (tommy_uintptr_t i = TOMMY_ARRAYBLK_SIZE - 10; i < TOMMY_ARRAYBLK_SIZE + 50; ++i) {
 		if (tommy_arrayblk_get(&arrayblk, i) != 0) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -2746,7 +2651,7 @@ void test_arrayblk_ops(void)
 		/* LCOV_EXCL_STOP */
 	}
 	tommy_arrayblk_resize(&arrayblk, 10);
-	for (i = 0; i < 10; ++i) {
+	for (tommy_uintptr_t i = 0; i < 10; ++i) {
 		if (tommy_arrayblk_get(&arrayblk, i) != 0) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -2757,7 +2662,7 @@ void test_arrayblk_ops(void)
 	/* shrink with directory reduction */
 	tommy_arrayblk_reserve(&arrayblk, 65 * TOMMY_ARRAYBLK_SIZE);
 	tommy_arrayblk_resize(&arrayblk, TOMMY_ARRAYBLK_SIZE + 50);
-	for (i = 0; i < TOMMY_ARRAYBLK_SIZE + 10; ++i)
+	for (tommy_uintptr_t i = 0; i < TOMMY_ARRAYBLK_SIZE + 10; ++i)
 		tommy_arrayblk_set(&arrayblk, i, (void*)(i + 1));
 	tommy_arrayblk_resize(&arrayblk, TOMMY_ARRAYBLK_SIZE + 10);
 	tommy_arrayblk_shrink(&arrayblk);
@@ -2766,7 +2671,7 @@ void test_arrayblk_ops(void)
 		abort();
 		/* LCOV_EXCL_STOP */
 	}
-	for (i = 0; i < TOMMY_ARRAYBLK_SIZE + 10; ++i) {
+	for (tommy_uintptr_t i = 0; i < TOMMY_ARRAYBLK_SIZE + 10; ++i) {
 		if (tommy_arrayblk_get(&arrayblk, i) != (void*)(i + 1)) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -2792,7 +2697,7 @@ void test_arrayblk_ops(void)
 
 	/* foreach and foreach_arg on populated array spanning multiple blocks */
 	tommy_arrayblk_resize(&arrayblk, TOMMY_ARRAYBLK_SIZE + 50);
-	for (i = 0; i < TOMMY_ARRAYBLK_SIZE + 50; ++i)
+	for (tommy_uintptr_t i = 0; i < TOMMY_ARRAYBLK_SIZE + 50; ++i)
 		tommy_arrayblk_set(&arrayblk, i, (void*)(i + 1));
 	the_count = 0;
 	tommy_arrayblk_foreach(&arrayblk, array_foreach_check_callback);
@@ -2817,7 +2722,6 @@ void test_arrayblk_ops(void)
 void test_arrayblkof_ops(void)
 {
 	tommy_arrayblkof arrayblkof;
-	unsigned i;
 
 	tommy_arrayblkof_init(&arrayblkof, sizeof(unsigned));
 
@@ -2874,7 +2778,7 @@ void test_arrayblkof_ops(void)
 		abort();
 		/* LCOV_EXCL_STOP */
 	}
-	for (i = 0; i < TOMMY_ARRAYBLKOF_SIZE + 50; ++i) {
+	for (unsigned i = 0; i < TOMMY_ARRAYBLKOF_SIZE + 50; ++i) {
 		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
 		if (*ref != 0) {
 			/* LCOV_EXCL_START */
@@ -2891,7 +2795,7 @@ void test_arrayblkof_ops(void)
 		abort();
 		/* LCOV_EXCL_STOP */
 	}
-	for (i = 0; i < TOMMY_ARRAYBLKOF_SIZE - 10; ++i) {
+	for (unsigned i = 0; i < TOMMY_ARRAYBLKOF_SIZE - 10; ++i) {
 		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
 		if (*ref != i + 1) {
 			/* LCOV_EXCL_START */
@@ -2902,7 +2806,7 @@ void test_arrayblkof_ops(void)
 
 	/* regrowing and invariant check across block boundary */
 	tommy_arrayblkof_resize(&arrayblkof, TOMMY_ARRAYBLKOF_SIZE + 50);
-	for (i = TOMMY_ARRAYBLKOF_SIZE - 10; i < TOMMY_ARRAYBLKOF_SIZE + 50; ++i) {
+	for (unsigned i = TOMMY_ARRAYBLKOF_SIZE - 10; i < TOMMY_ARRAYBLKOF_SIZE + 50; ++i) {
 		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
 		if (*ref != 0) {
 			/* LCOV_EXCL_START */
@@ -2929,7 +2833,7 @@ void test_arrayblkof_ops(void)
 		/* LCOV_EXCL_STOP */
 	}
 	tommy_arrayblkof_resize(&arrayblkof, 10);
-	for (i = 0; i < 10; ++i) {
+	for (unsigned i = 0; i < 10; ++i) {
 		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
 		if (*ref != 0) {
 			/* LCOV_EXCL_START */
@@ -2941,7 +2845,7 @@ void test_arrayblkof_ops(void)
 	/* shrink with directory reduction */
 	tommy_arrayblkof_reserve(&arrayblkof, 65 * TOMMY_ARRAYBLKOF_SIZE);
 	tommy_arrayblkof_resize(&arrayblkof, TOMMY_ARRAYBLKOF_SIZE + 50);
-	for (i = 0; i < TOMMY_ARRAYBLKOF_SIZE + 10; ++i) {
+	for (unsigned i = 0; i < TOMMY_ARRAYBLKOF_SIZE + 10; ++i) {
 		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
 		*ref = i + 1;
 	}
@@ -2952,7 +2856,7 @@ void test_arrayblkof_ops(void)
 		abort();
 		/* LCOV_EXCL_STOP */
 	}
-	for (i = 0; i < TOMMY_ARRAYBLKOF_SIZE + 10; ++i) {
+	for (unsigned i = 0; i < TOMMY_ARRAYBLKOF_SIZE + 10; ++i) {
 		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
 		if (*ref != i + 1) {
 			/* LCOV_EXCL_START */
@@ -2982,7 +2886,7 @@ void test_arrayblkof_ops(void)
 
 	/* foreach and foreach_arg on populated array spanning multiple blocks */
 	tommy_arrayblkof_resize(&arrayblkof, TOMMY_ARRAYBLKOF_SIZE + 50);
-	for (i = 0; i < TOMMY_ARRAYBLKOF_SIZE + 50; ++i) {
+	for (unsigned i = 0; i < TOMMY_ARRAYBLKOF_SIZE + 50; ++i) {
 		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
 		*ref = i + 1;
 	}
@@ -3013,9 +2917,9 @@ void test_hash_list(tommy_list* list, struct object_hash* obj, tommy_node* saved
 	unsigned seen[130] = { 0 };
 	tommy_node* node = tommy_list_head(list);
 	tommy_node* prev = tommy_list_tail(list);
-	unsigned i, j;
 
-	for (i = 0; i < size; ++i) {
+	for (unsigned i = 0; i < size; ++i) {
+		unsigned j;
 		for (j = 0; j < size; ++j)
 			if (node == &obj[j].node)
 				break;
@@ -3039,9 +2943,10 @@ void test_hash_list(tommy_list* list, struct object_hash* obj, tommy_node* saved
 	}
 
 	/* each original successor must still follow its node, regardless of bucket order. */
-	for (i = 0; i < size; ++i) {
+	for (unsigned i = 0; i < size; ++i) {
 		if (saved[i].next == 0)
 			continue;
+		unsigned j;
 		for (j = 0; j < size; ++j)
 			if (saved[i].next == &obj[j].node)
 				break;
@@ -3053,7 +2958,7 @@ void test_hash_list(tommy_list* list, struct object_hash* obj, tommy_node* saved
 	}
 
 	node = tommy_list_tail(list);
-	for (i = size; i > 0; --i) {
+	for (unsigned i = size; i > 0; --i) {
 		if (node != &obj[order[i - 1]].node) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -3072,9 +2977,8 @@ void test_hash_list(tommy_list* list, struct object_hash* obj, tommy_node* saved
 void test_hash_bucket(tommy_node* node, struct object_hash* obj, const unsigned* order, unsigned size)
 {
 	tommy_node* prev = size ? &obj[order[size - 1]].node : 0;
-	unsigned i;
 
-	for (i = 0; i < size; ++i) {
+	for (unsigned i = 0; i < size; ++i) {
 		if (node != &obj[order[i]].node || node->prev != prev || node->data != &obj[order[i]]) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -3094,12 +2998,7 @@ void test_hashtable_insert_unique(void)
 {
 	struct object_hash obj[257], candidate;
 	tommy_hashtable table;
-	tommy_hashtable_node** bucket;
-	tommy_node saved;
-	tommy_size_t bucket_max, bucket_mask, count;
-
 	const unsigned order[] = { 0, 1, 2, 3, 4, 5 };
-	unsigned i, phase, step;
 
 	tommy_hashtable_init(&table, 16);
 	obj[0].value = 1;
@@ -3113,12 +3012,12 @@ void test_hashtable_insert_unique(void)
 	}
 	tommy_hashtable_remove_existing(&table, &obj[0].node);
 
-	bucket_max = table.bucket_max;
+	tommy_size_t bucket_max = table.bucket_max;
 	obj[0].value = 10;
 	obj[1].value = 20;
 	obj[2].value = 30;
 	obj[3].value = 20;
-	for (i = 0; i < 4; ++i)
+	for (unsigned i = 0; i < 4; ++i)
 		tommy_hashtable_insert(&table, &obj[i].node, &obj[i], i == 0 ? bucket_max : 0);
 
 	/* the first matching duplicate is returned; the rejected candidate stays intact. */
@@ -3127,7 +3026,7 @@ void test_hashtable_insert_unique(void)
 	obj[4].node.prev = &obj[4].node;
 	obj[4].node.data = &obj[4];
 	obj[4].node.index = ~(tommy_hash_t)0;
-	saved = obj[4].node;
+	tommy_node saved = obj[4].node;
 	compare_counter = 0;
 	if (tommy_hashtable_insert_unique(&table, &obj[4].node, &obj[4], search_hash_value_callback, &obj[4].value, 0) != &obj[1]
 		|| compare_counter != 1 || tommy_hashtable_count(&table) != 4
@@ -3176,11 +3075,10 @@ void test_hashtable_insert_unique(void)
 	candidate.node.prev = &candidate.node;
 	candidate.node.data = &candidate;
 	candidate.node.index = ~(tommy_hash_t)0;
-	for (phase = 0; phase < 2; ++phase) {
-		for (step = 0; step < 256; ++step) {
-			tommy_hash_t hash;
-			i = phase == 0 ? step : 255 - step;
-			hash = tommy_inthash_u32(i);
+	for (unsigned phase = 0; phase < 2; ++phase) {
+		for (unsigned step = 0; step < 256; ++step) {
+			unsigned i = phase == 0 ? step : 255 - step;
+			tommy_hash_t hash = tommy_inthash_u32(i);
 			if (phase == 0) {
 				obj[i].value = i;
 				if (tommy_hashtable_insert_unique(&table, &obj[i].node, &obj[i], search_hash_value_callback, &obj[i].value, hash) != &obj[i]
@@ -3193,10 +3091,10 @@ void test_hashtable_insert_unique(void)
 
 			candidate.value = i;
 			saved = obj[i].node;
-			count = tommy_hashtable_count(&table);
+			tommy_size_t count = tommy_hashtable_count(&table);
 			bucket_max = table.bucket_max;
-			bucket_mask = table.bucket_mask;
-			bucket = table.bucket;
+			tommy_size_t bucket_mask = table.bucket_mask;
+			tommy_hashtable_node** bucket = table.bucket;
 			compare_counter = 0;
 			if (tommy_hashtable_insert_unique(&table, &candidate.node, &candidate, search_hash_value_callback, &candidate.value, hash) != &obj[i]
 				|| compare_counter != 1 || tommy_hashtable_count(&table) != count
@@ -3243,35 +3141,30 @@ void test_hashtable_rehash_existing(void)
 	struct object_hash obj[130];
 	tommy_hash_t hashes[130];
 	tommy_hashtable table;
-	tommy_hashtable_node** bucket;
-	tommy_size_t bucket_max, bucket_mask;
-	unsigned c, target, mode, i, n, source_size;
-	unsigned source[3], destination[2];
 
-	for (c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
-		n = counts[c][1];
-		source_size = n < 3 ? n : 3;
-		for (target = 0; target < source_size; ++target) {
-			for (mode = 0; mode < 4; ++mode) {
-				tommy_hash_t hash;
-				tommy_node saved;
+	for (unsigned c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
+		unsigned n = counts[c][1];
+		unsigned source_size = n < 3 ? n : 3;
+		for (unsigned target = 0; target < source_size; ++target) {
+			for (unsigned mode = 0; mode < 4; ++mode) {
 				unsigned source_count = 0, destination_count = 0;
+				unsigned source[3], destination[2];
 
 				tommy_hashtable_init(&table, 16);
-				for (i = 0; i < counts[c][0]; ++i) {
+				for (unsigned i = 0; i < counts[c][0]; ++i) {
 					obj[i].value = i;
 					hashes[i] = i < 3 ? 0 : i == 3 ? 1 : 2;
 					tommy_hashtable_insert(&table, &obj[i].node, &obj[i], hashes[i]);
 				}
-				for (i = counts[c][0]; i > n; --i)
+				for (unsigned i = counts[c][0]; i > n; --i)
 					tommy_hashtable_remove_existing(&table, &obj[i - 1].node);
 
-				bucket_max = table.bucket_max;
-				bucket_mask = table.bucket_mask;
-				bucket = table.bucket;
+				tommy_size_t bucket_max = table.bucket_max;
+				tommy_size_t bucket_mask = table.bucket_mask;
+				tommy_hashtable_node** bucket = table.bucket;
 				/* exercise unchanged hash, same bucket, occupied bucket and empty bucket. */
-				hash = mode == 0 ? 0 : mode == 1 ? bucket_max : mode == 2 ? 1 : ~(tommy_hash_t)0;
-				saved = obj[target].node;
+				tommy_hash_t hash = mode == 0 ? 0 : mode == 1 ? bucket_max : mode == 2 ? 1 : ~(tommy_hash_t)0;
+				tommy_node saved = obj[target].node;
 				obj[target].value = 1000 + target;
 				tommy_hashtable_rehash_existing(&table, &obj[target].node, hash);
 				hashes[target] = hash;
@@ -3287,7 +3180,7 @@ void test_hashtable_rehash_existing(void)
 					/* LCOV_EXCL_STOP */
 				}
 
-				for (i = 0; i < source_size; ++i)
+				for (unsigned i = 0; i < source_size; ++i)
 					if (mode == 0 || i != target)
 						source[source_count++] = i;
 				if (mode == 1)
@@ -3318,7 +3211,7 @@ void test_hashtable_rehash_existing(void)
 					}
 					tommy_hashtable_rehash_existing(&table, &obj[target].node, hash);
 				}
-				for (i = 0; i < n; ++i)
+				for (unsigned i = 0; i < n; ++i)
 					if (tommy_hashtable_search(&table, search_callback, &obj[i], hashes[i]) != &obj[i]) {
 						/* LCOV_EXCL_START */
 						abort();
@@ -3326,18 +3219,18 @@ void test_hashtable_rehash_existing(void)
 					}
 
 				/* subsequent resizing and removals must use the updated stored hash. */
-				for (i = n; i < 130; ++i) {
+				for (unsigned i = n; i < 130; ++i) {
 					obj[i].value = i;
 					hashes[i] = i < 3 ? 0 : i == 3 ? 1 : 2;
 					tommy_hashtable_insert(&table, &obj[i].node, &obj[i], hashes[i]);
 				}
-				for (i = 0; i < 130; ++i)
+				for (unsigned i = 0; i < 130; ++i)
 					if (tommy_hashtable_search(&table, search_callback, &obj[i], hashes[i]) != &obj[i]) {
 						/* LCOV_EXCL_START */
 						abort();
 						/* LCOV_EXCL_STOP */
 					}
-				for (i = 130; i > 0; --i) {
+				for (unsigned i = 130; i > 0; --i) {
 					void* data;
 					if (i % 2)
 						data = tommy_hashtable_remove_existing(&table, &obj[i - 1].node);
@@ -3361,17 +3254,14 @@ void test_hashtable_to_list(void)
 	struct object_hash obj[130];
 	tommy_node saved[130];
 	tommy_hashtable hashtable;
-	tommy_hashtable_node** bucket;
 	tommy_list list;
-	tommy_size_t bucket_max, bucket_mask;
-	unsigned c, i, prefix, size;
 
-	for (c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
-		for (prefix = 0; prefix <= 2; prefix += 2) {
-			size = prefix + counts[c];
+	for (unsigned c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
+		for (unsigned prefix = 0; prefix <= 2; prefix += 2) {
+			unsigned size = prefix + counts[c];
 			tommy_hashtable_init(&hashtable, counts[c] + 1);
 			tommy_list_init(&list);
-			for (i = 0; i < size; ++i) {
+			for (unsigned i = 0; i < size; ++i) {
 				obj[i].value = i / 2;
 				obj[i].node.index = tommy_inthash_u32(obj[i].value);
 				if (i < prefix)
@@ -3379,11 +3269,11 @@ void test_hashtable_to_list(void)
 				else
 					tommy_hashtable_insert(&hashtable, &obj[i].node, &obj[i], obj[i].node.index);
 			}
-			for (i = 0; i < size; ++i)
+			for (unsigned i = 0; i < size; ++i)
 				saved[i] = obj[i].node;
-			bucket = hashtable.bucket;
-			bucket_max = hashtable.bucket_max;
-			bucket_mask = hashtable.bucket_mask;
+			tommy_hashtable_node** bucket = hashtable.bucket;
+			tommy_size_t bucket_max = hashtable.bucket_max;
+			tommy_size_t bucket_mask = hashtable.bucket_mask;
 
 			tommy_hashtable_to_list(&hashtable, &list);
 			test_hash_list(&list, obj, saved, size, prefix);
@@ -3394,7 +3284,7 @@ void test_hashtable_to_list(void)
 				abort();
 				/* LCOV_EXCL_STOP */
 			}
-			for (i = 0; i < bucket_max; ++i)
+			for (unsigned i = 0; i < bucket_max; ++i)
 				if (tommy_hashtable_bucket(&hashtable, i) != 0) {
 					/* LCOV_EXCL_START */
 					abort();
@@ -3407,7 +3297,7 @@ void test_hashtable_to_list(void)
 				abort();
 				/* LCOV_EXCL_STOP */
 			}
-			for (i = prefix; i < size; ++i)
+			for (unsigned i = prefix; i < size; ++i)
 				if (tommy_hashtable_search(&hashtable, search_callback, &obj[i], obj[i].node.index) != 0) {
 					/* LCOV_EXCL_START */
 					abort();
@@ -3415,7 +3305,7 @@ void test_hashtable_to_list(void)
 				}
 
 			/* a repeated call on the empty table must preserve the complete list order. */
-			for (i = 0; i < size; ++i)
+			for (unsigned i = 0; i < size; ++i)
 				saved[i] = obj[i].node;
 			tommy_hashtable_to_list(&hashtable, &list);
 			test_hash_list(&list, obj, saved, size, prefix);
@@ -3430,7 +3320,7 @@ void test_hashtable_to_list(void)
 				abort();
 				/* LCOV_EXCL_STOP */
 			}
-			for (i = 0; i < size; ++i)
+			for (unsigned i = 0; i < size; ++i)
 				if (tommy_hashtable_search(&hashtable, search_callback, &obj[i], obj[i].node.index) != &obj[i]
 					|| tommy_hashtable_remove_existing(&hashtable, &obj[i].node) != &obj[i]
 					|| tommy_hashtable_count(&hashtable) != size - i - 1) {
@@ -3448,27 +3338,24 @@ void test_hashtable_clear(void)
 	const unsigned counts[] = { 0, 1, 8, 32, 128 };
 	struct object_hash obj[128];
 	tommy_hashtable hashtable;
-	tommy_hashtable_node** bucket;
-	tommy_size_t bucket_max, bucket_mask, memory_usage;
-	unsigned c, i, j, n;
 
-	for (c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
-		n = counts[c];
+	for (unsigned c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
+		unsigned n = counts[c];
 		tommy_hashtable_init(&hashtable, n + 1);
 
 		/* include duplicates and different hashes sharing a bucket. */
-		for (i = 0; i < n; ++i) {
+		for (unsigned i = 0; i < n; ++i) {
 			obj[i].value = i / 2;
 			tommy_hashtable_insert(&hashtable, &obj[i].node, &obj[i], tommy_inthash_u32(obj[i].value));
 		}
 
-		bucket = hashtable.bucket;
-		bucket_max = hashtable.bucket_max;
-		bucket_mask = hashtable.bucket_mask;
-		memory_usage = tommy_hashtable_memory_usage(&hashtable) - n * sizeof(tommy_hashtable_node);
+		tommy_hashtable_node** bucket = hashtable.bucket;
+		tommy_size_t bucket_max = hashtable.bucket_max;
+		tommy_size_t bucket_mask = hashtable.bucket_mask;
+		tommy_size_t memory_usage = tommy_hashtable_memory_usage(&hashtable) - n * sizeof(tommy_hashtable_node);
 
 		/* clearing an empty table again must preserve its capacity too. */
-		for (j = 0; j < 2; ++j) {
+		for (unsigned j = 0; j < 2; ++j) {
 			tommy_hashtable_clear(&hashtable);
 			if (tommy_hashtable_count(&hashtable) != 0
 				|| hashtable.bucket != bucket || hashtable.bucket_max != bucket_max
@@ -3479,7 +3366,7 @@ void test_hashtable_clear(void)
 				/* LCOV_EXCL_STOP */
 			}
 
-			for (i = 0; i < bucket_max; ++i)
+			for (unsigned i = 0; i < bucket_max; ++i)
 				if (tommy_hashtable_bucket(&hashtable, i) != 0) {
 					/* LCOV_EXCL_START */
 					abort();
@@ -3495,7 +3382,7 @@ void test_hashtable_clear(void)
 				/* LCOV_EXCL_STOP */
 			}
 
-			for (i = 0; i < n; ++i) {
+			for (unsigned i = 0; i < n; ++i) {
 				tommy_hash_t hash = tommy_inthash_u32(obj[i].value);
 				if (obj[i].value != (int)(i / 2)
 					|| obj[i].node.data != &obj[i] || obj[i].node.index != hash
@@ -3509,7 +3396,7 @@ void test_hashtable_clear(void)
 		}
 
 		/* reuse the same nodes without initializing their old links. */
-		for (i = 0; i < 128; ++i) {
+		for (unsigned i = 0; i < 128; ++i) {
 			obj[i].value = i / 2;
 			tommy_hashtable_insert(&hashtable, &obj[i].node, &obj[i], tommy_inthash_u32(obj[i].value));
 		}
@@ -3519,14 +3406,14 @@ void test_hashtable_clear(void)
 			/* LCOV_EXCL_STOP */
 		}
 
-		for (i = 0; i < 128; ++i)
+		for (unsigned i = 0; i < 128; ++i)
 			if (tommy_hashtable_search(&hashtable, search_callback, &obj[i], tommy_inthash_u32(obj[i].value)) != &obj[i]) {
 				/* LCOV_EXCL_START */
 				abort();
 				/* LCOV_EXCL_STOP */
 			}
 
-		for (i = 128; i > 0; --i) {
+		for (unsigned i = 128; i > 0; --i) {
 			void* data;
 			if (i % 2)
 				data = tommy_hashtable_remove_existing(&hashtable, &obj[i - 1].node);
@@ -3543,7 +3430,7 @@ void test_hashtable_clear(void)
 
 	/* clear must not access objects already freed by foreach. */
 	tommy_hashtable_init(&hashtable, 128);
-	for (i = 0; i < 128; ++i) {
+	for (unsigned i = 0; i < 128; ++i) {
 		struct object_hash* allocated = malloc(sizeof(struct object_hash));
 		allocated->value = i;
 		tommy_hashtable_insert(&hashtable, &allocated->node, allocated, tommy_inthash_u32(i));
@@ -3564,9 +3451,6 @@ void test_hashtable_clear(void)
 void test_hashtable(void)
 {
 	tommy_hashtable hashtable;
-	struct object_hash* HASH;
-	unsigned i, j, n;
-	unsigned limit;
 	const unsigned size = TOMMY_SIZE;
 	const unsigned module = TOMMY_SIZE / 4;
 
@@ -3575,9 +3459,9 @@ void test_hashtable(void)
 	test_hashtable_rehash_existing();
 	test_hashtable_to_list();
 
-	HASH = malloc(size * sizeof(struct object_hash));
+	struct object_hash* HASH = malloc(size * sizeof(struct object_hash));
 
-	for (i = 0; i < size; ++i)
+	for (unsigned i = 0; i < size; ++i)
 		HASH[i].value = i % module;
 
 	/* initialize a very small hashtable */
@@ -3594,8 +3478,8 @@ void test_hashtable(void)
 	tommy_hashtable_done(&hashtable);
 
 	START("hashtable stack");
-	limit = 5 * isqrt(size);
-	for (n = 0; n <= limit; ++n) {
+	unsigned limit = 5 * isqrt(size);
+	for (unsigned n = 0; n <= limit; ++n) {
 		/* last iteration is full size */
 		if (n == limit)
 			n = limit = size;
@@ -3603,7 +3487,7 @@ void test_hashtable(void)
 		tommy_hashtable_init(&hashtable, limit / 2);
 
 		/* insert */
-		for (i = 0; i < n; ++i)
+		for (unsigned i = 0; i < n; ++i)
 			tommy_hashtable_insert(&hashtable, &HASH[i].node, &HASH[i], HASH[i].value);
 
 		if (tommy_hashtable_memory_usage(&hashtable) < n * sizeof(void*)) {
@@ -3627,11 +3511,11 @@ void test_hashtable(void)
 		}
 
 		/* remove in backward order */
-		for (i = 0; i < n / 2; ++i)
+		for (unsigned i = 0; i < n / 2; ++i)
 			tommy_hashtable_remove_existing(&hashtable, &HASH[n - i - 1].node);
 
 		/* remove missing */
-		for (i = 0; i < n / 2; ++i)
+		for (unsigned i = 0; i < n / 2; ++i)
 			if (tommy_hashtable_remove(&hashtable, search_callback, &HASH[n - i - 1], HASH[n - i - 1].value) != 0) {
 				/* LCOV_EXCL_START */
 				abort();
@@ -3639,7 +3523,7 @@ void test_hashtable(void)
 			}
 
 		/* remove search */
-		for (i = 0; i < n / 2; ++i)
+		for (unsigned i = 0; i < n / 2; ++i)
 			if (tommy_hashtable_remove(&hashtable, search_callback, &HASH[n / 2 - i - 1], HASH[n / 2 - i - 1].value) == 0) {
 				/* LCOV_EXCL_START */
 				abort();
@@ -3652,7 +3536,7 @@ void test_hashtable(void)
 
 	START("hashtable queue");
 	limit = isqrt(size) / 16;
-	for (n = 0; n <= limit; ++n) {
+	for (unsigned n = 0; n <= limit; ++n) {
 		/* last iteration is full size */
 		if (n == limit)
 			n = limit = size;
@@ -3660,7 +3544,8 @@ void test_hashtable(void)
 		tommy_hashtable_init(&hashtable, limit / 2);
 
 		/* insert first run */
-		for (j = 0, i = 0; i < n; ++i)
+		unsigned j = 0, i = 0;
+		for (; i < n; ++i)
 			tommy_hashtable_insert(&hashtable, &HASH[i].node, &HASH[i], HASH[i].value);
 
 		the_count = 0;
@@ -3701,25 +3586,22 @@ void test_hashdyn_shrink(void)
 	};
 	struct object_hash obj[130];
 	tommy_node saved[130];
-	tommy_hashdyn table;
-	tommy_hashdyn_node** bucket;
-	tommy_list list;
-	unsigned c, reserved, i, n;
 
-	for (c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
-		for (reserved = 0; reserved < 2; ++reserved) {
-			n = counts[c][0];
+	for (unsigned c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
+		for (unsigned reserved = 0; reserved < 2; ++reserved) {
+			unsigned n = counts[c][0];
+			tommy_hashdyn table;
 			tommy_hashdyn_init(&table);
 			/* reserve far beyond the contents to exercise multi-bit contractions. */
 			if (reserved)
 				tommy_hashdyn_reserve(&table, 1024);
-			for (i = 0; i < n; ++i) {
+			for (unsigned i = 0; i < n; ++i) {
 				obj[i].value = i / 2;
 				tommy_hashdyn_insert(&table, &obj[i].node, &obj[i], tommy_inthash_u32(obj[i].value));
 			}
-			for (i = 0; i < n; ++i)
+			for (unsigned i = 0; i < n; ++i)
 				saved[i] = obj[i].node;
-			bucket = table.bucket;
+			tommy_hashdyn_node** bucket = table.bucket;
 			tommy_hashdyn_shrink(&table);
 			if (tommy_hashdyn_bucket_count(&table) != counts[c][1]
 				|| table.bucket_mask != counts[c][1] - 1
@@ -3740,7 +3622,7 @@ void test_hashdyn_shrink(void)
 				abort();
 				/* LCOV_EXCL_STOP */
 			}
-			for (i = 0; i < n; ++i) {
+			for (unsigned i = 0; i < n; ++i) {
 				if (obj[i].node.index != saved[i].index || obj[i].node.data != saved[i].data
 					|| obj[i].value != (int)(i / 2)
 					|| tommy_hashdyn_search(&table, search_callback, &obj[i], saved[i].index) != &obj[i]
@@ -3752,6 +3634,7 @@ void test_hashdyn_shrink(void)
 			}
 
 			/* check all links and original bucket ordering, then shrink the drained table. */
+			tommy_list list;
 			tommy_list_init(&list);
 			tommy_hashdyn_to_list(&table, &list);
 			tommy_hashdyn_shrink(&table);
@@ -3767,7 +3650,7 @@ void test_hashdyn_shrink(void)
 				struct object_hash* data = tommy_list_remove_head(&list);
 				tommy_hashdyn_insert(&table, &data->node, data, data->node.index);
 			}
-			for (i = n; i < 130; ++i) {
+			for (unsigned i = n; i < 130; ++i) {
 				obj[i].value = i / 2;
 				tommy_hashdyn_insert(&table, &obj[i].node, &obj[i], tommy_inthash_u32(obj[i].value));
 			}
@@ -3776,7 +3659,7 @@ void test_hashdyn_shrink(void)
 				abort();
 				/* LCOV_EXCL_STOP */
 			}
-			for (i = 0; i < 130; ++i)
+			for (unsigned i = 0; i < 130; ++i)
 				if (tommy_hashdyn_remove(&table, search_hash_value_callback, &obj[i].value, obj[i].node.index) != &obj[i]
 					|| tommy_hashdyn_count(&table) != 129 - i) {
 					/* LCOV_EXCL_START */
@@ -3790,14 +3673,9 @@ void test_hashdyn_shrink(void)
 
 void test_hashdyn_insert_unique(void)
 {
-	struct object_hash obj[257], candidate;
+	struct object_hash obj[257];
 	tommy_hashdyn table;
-	tommy_hashdyn_node** bucket;
-	tommy_node saved;
-	tommy_size_t bucket_max, bucket_mask, count;
-	tommy_uint_t bucket_bit;
 	const unsigned order[] = { 0, 1, 2, 3, 4, 5 };
-	unsigned i, phase, step;
 
 	tommy_hashdyn_init(&table);
 	obj[0].value = 1;
@@ -3811,12 +3689,12 @@ void test_hashdyn_insert_unique(void)
 	}
 	tommy_hashdyn_remove_existing(&table, &obj[0].node);
 
-	bucket_max = table.bucket_max;
+	tommy_size_t bucket_max = table.bucket_max;
 	obj[0].value = 10;
 	obj[1].value = 20;
 	obj[2].value = 30;
 	obj[3].value = 20;
-	for (i = 0; i < 4; ++i)
+	for (unsigned i = 0; i < 4; ++i)
 		tommy_hashdyn_insert(&table, &obj[i].node, &obj[i], i == 0 ? bucket_max : 0);
 
 	/* the first matching duplicate is returned; the rejected candidate stays intact. */
@@ -3825,7 +3703,7 @@ void test_hashdyn_insert_unique(void)
 	obj[4].node.prev = &obj[4].node;
 	obj[4].node.data = &obj[4];
 	obj[4].node.index = ~(tommy_hash_t)0;
-	saved = obj[4].node;
+	tommy_node saved = obj[4].node;
 	compare_counter = 0;
 	if (tommy_hashdyn_insert_unique(&table, &obj[4].node, &obj[4], search_hash_value_callback, &obj[4].value, 0) != &obj[1]
 		|| compare_counter != 1 || tommy_hashdyn_count(&table) != 4
@@ -3870,15 +3748,15 @@ void test_hashdyn_insert_unique(void)
 
 	/* insert unique keys, reject duplicates, then repeat during contraction. */
 	tommy_hashdyn_init(&table);
+	struct object_hash candidate;
 	candidate.node.next = &candidate.node;
 	candidate.node.prev = &candidate.node;
 	candidate.node.data = &candidate;
 	candidate.node.index = ~(tommy_hash_t)0;
-	for (phase = 0; phase < 2; ++phase) {
-		for (step = 0; step < 256; ++step) {
-			tommy_hash_t hash;
-			i = phase == 0 ? step : 255 - step;
-			hash = tommy_inthash_u32(i);
+	for (unsigned phase = 0; phase < 2; ++phase) {
+		for (unsigned step = 0; step < 256; ++step) {
+			unsigned i = phase == 0 ? step : 255 - step;
+			tommy_hash_t hash = tommy_inthash_u32(i);
 			if (phase == 0) {
 				obj[i].value = i;
 				if (tommy_hashdyn_insert_unique(&table, &obj[i].node, &obj[i], search_hash_value_callback, &obj[i].value, hash) != &obj[i]
@@ -3891,11 +3769,11 @@ void test_hashdyn_insert_unique(void)
 
 			candidate.value = i;
 			saved = obj[i].node;
-			count = tommy_hashdyn_count(&table);
+			tommy_size_t count = tommy_hashdyn_count(&table);
 			bucket_max = table.bucket_max;
-			bucket_mask = table.bucket_mask;
-			bucket = table.bucket;
-			bucket_bit = table.bucket_bit;
+			tommy_size_t bucket_mask = table.bucket_mask;
+			tommy_hashdyn_node** bucket = table.bucket;
+			tommy_uint_t bucket_bit = table.bucket_bit;
 			compare_counter = 0;
 			if (tommy_hashdyn_insert_unique(&table, &candidate.node, &candidate, search_hash_value_callback, &candidate.value, hash) != &obj[i]
 				|| compare_counter != 1 || tommy_hashdyn_count(&table) != count
@@ -3942,39 +3820,33 @@ void test_hashdyn_rehash_existing(void)
 	struct object_hash obj[130];
 	tommy_hash_t hashes[130];
 	tommy_hashdyn table;
-	tommy_hashdyn_node** bucket;
-	tommy_uint_t bucket_bit;
-	tommy_size_t bucket_max, bucket_mask;
-	unsigned c, target, mode, i, n, source_size;
-	unsigned source[3], destination[2];
 
-	for (c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
-		n = counts[c][1];
-		source_size = n < 3 ? n : 3;
-		for (target = 0; target < source_size; ++target) {
-			for (mode = 0; mode < 4; ++mode) {
-				tommy_hash_t hash;
-				tommy_node saved;
+	for (unsigned c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
+		unsigned n = counts[c][1];
+		unsigned source_size = n < 3 ? n : 3;
+		for (unsigned target = 0; target < source_size; ++target) {
+			for (unsigned mode = 0; mode < 4; ++mode) {
+				unsigned source[3], destination[2];
 				unsigned source_count = 0, destination_count = 0;
 
 				tommy_hashdyn_init(&table);
 				if (n == 4)
 					tommy_hashdyn_reserve(&table, 128);
-				for (i = 0; i < counts[c][0]; ++i) {
+				for (unsigned i = 0; i < counts[c][0]; ++i) {
 					obj[i].value = i;
 					hashes[i] = i < 3 ? 0 : i == 3 ? 1 : 2;
 					tommy_hashdyn_insert(&table, &obj[i].node, &obj[i], hashes[i]);
 				}
-				for (i = counts[c][0]; i > n; --i)
+				for (unsigned i = counts[c][0]; i > n; --i)
 					tommy_hashdyn_remove_existing(&table, &obj[i - 1].node);
 
-				bucket_max = table.bucket_max;
-				bucket_mask = table.bucket_mask;
-				bucket = table.bucket;
-				bucket_bit = table.bucket_bit;
+				tommy_size_t bucket_max = table.bucket_max;
+				tommy_size_t bucket_mask = table.bucket_mask;
+				tommy_hashdyn_node** bucket = table.bucket;
+				tommy_uint_t bucket_bit = table.bucket_bit;
 				/* exercise unchanged hash, same bucket, occupied bucket and empty bucket. */
-				hash = mode == 0 ? 0 : mode == 1 ? bucket_max : mode == 2 ? 1 : ~(tommy_hash_t)0;
-				saved = obj[target].node;
+				tommy_hash_t hash = mode == 0 ? 0 : mode == 1 ? bucket_max : mode == 2 ? 1 : ~(tommy_hash_t)0;
+				tommy_node saved = obj[target].node;
 				obj[target].value = 1000 + target;
 				tommy_hashdyn_rehash_existing(&table, &obj[target].node, hash);
 				hashes[target] = hash;
@@ -3990,7 +3862,7 @@ void test_hashdyn_rehash_existing(void)
 					/* LCOV_EXCL_STOP */
 				}
 
-				for (i = 0; i < source_size; ++i)
+				for (unsigned i = 0; i < source_size; ++i)
 					if (mode == 0 || i != target)
 						source[source_count++] = i;
 				if (mode == 1)
@@ -4021,7 +3893,7 @@ void test_hashdyn_rehash_existing(void)
 					}
 					tommy_hashdyn_rehash_existing(&table, &obj[target].node, hash);
 				}
-				for (i = 0; i < n; ++i)
+				for (unsigned i = 0; i < n; ++i)
 					if (tommy_hashdyn_search(&table, search_callback, &obj[i], hashes[i]) != &obj[i]) {
 						/* LCOV_EXCL_START */
 						abort();
@@ -4029,18 +3901,18 @@ void test_hashdyn_rehash_existing(void)
 					}
 
 				/* subsequent resizing and removals must use the updated stored hash. */
-				for (i = n; i < 130; ++i) {
+				for (unsigned i = n; i < 130; ++i) {
 					obj[i].value = i;
 					hashes[i] = i < 3 ? 0 : i == 3 ? 1 : 2;
 					tommy_hashdyn_insert(&table, &obj[i].node, &obj[i], hashes[i]);
 				}
-				for (i = 0; i < 130; ++i)
+				for (unsigned i = 0; i < 130; ++i)
 					if (tommy_hashdyn_search(&table, search_callback, &obj[i], hashes[i]) != &obj[i]) {
 						/* LCOV_EXCL_START */
 						abort();
 						/* LCOV_EXCL_STOP */
 					}
-				for (i = 130; i > 0; --i) {
+				for (unsigned i = 130; i > 0; --i) {
 					void* data;
 					if (i % 2)
 						data = tommy_hashdyn_remove_existing(&table, &obj[i - 1].node);
@@ -4063,23 +3935,19 @@ void test_hashdyn_to_list(void)
 	const unsigned counts[] = { 0, 1, 8, 128 };
 	struct object_hash obj[130];
 	tommy_node saved[130];
-	tommy_hashdyn hashdyn;
-	tommy_hashdyn_node** bucket;
-	tommy_list list;
-	tommy_size_t bucket_max, bucket_mask;
-	tommy_uint_t bucket_bit;
-	unsigned c, i, prefix, reserved, size;
 
-	for (c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
-		for (reserved = 0; reserved < 2; ++reserved) {
-			for (prefix = 0; prefix <= 2; prefix += 2) {
-				size = prefix + counts[c];
+	for (unsigned c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
+		for (unsigned reserved = 0; reserved < 2; ++reserved) {
+			for (unsigned prefix = 0; prefix <= 2; prefix += 2) {
+				unsigned size = prefix + counts[c];
+				tommy_hashdyn hashdyn;
 				tommy_hashdyn_init(&hashdyn);
 				/* include sparse tables with capacity reserved beyond their contents. */
 				if (reserved)
 					tommy_hashdyn_reserve(&hashdyn, 512);
+				tommy_list list;
 				tommy_list_init(&list);
-				for (i = 0; i < size; ++i) {
+				for (unsigned i = 0; i < size; ++i) {
 					obj[i].value = i / 2;
 					obj[i].node.index = tommy_inthash_u32(obj[i].value);
 					if (i < prefix)
@@ -4087,12 +3955,12 @@ void test_hashdyn_to_list(void)
 					else
 						tommy_hashdyn_insert(&hashdyn, &obj[i].node, &obj[i], obj[i].node.index);
 				}
-				for (i = 0; i < size; ++i)
+				for (unsigned i = 0; i < size; ++i)
 					saved[i] = obj[i].node;
-				bucket = hashdyn.bucket;
-				bucket_max = hashdyn.bucket_max;
-				bucket_mask = hashdyn.bucket_mask;
-				bucket_bit = hashdyn.bucket_bit;
+				tommy_hashdyn_node** bucket = hashdyn.bucket;
+				tommy_size_t bucket_max = hashdyn.bucket_max;
+				tommy_size_t bucket_mask = hashdyn.bucket_mask;
+				tommy_uint_t bucket_bit = hashdyn.bucket_bit;
 
 				tommy_hashdyn_to_list(&hashdyn, &list);
 				test_hash_list(&list, obj, saved, size, prefix);
@@ -4104,7 +3972,7 @@ void test_hashdyn_to_list(void)
 					abort();
 					/* LCOV_EXCL_STOP */
 				}
-				for (i = 0; i < bucket_max; ++i)
+				for (unsigned i = 0; i < bucket_max; ++i)
 					if (tommy_hashdyn_bucket(&hashdyn, i) != 0) {
 						/* LCOV_EXCL_START */
 						abort();
@@ -4117,14 +3985,14 @@ void test_hashdyn_to_list(void)
 					abort();
 					/* LCOV_EXCL_STOP */
 				}
-				for (i = prefix; i < size; ++i)
+				for (unsigned i = prefix; i < size; ++i)
 					if (tommy_hashdyn_search(&hashdyn, search_callback, &obj[i], obj[i].node.index) != 0) {
 						/* LCOV_EXCL_START */
 						abort();
 						/* LCOV_EXCL_STOP */
 					}
 
-				for (i = 0; i < size; ++i)
+				for (unsigned i = 0; i < size; ++i)
 					saved[i] = obj[i].node;
 				tommy_hashdyn_to_list(&hashdyn, &list);
 				test_hash_list(&list, obj, saved, size, prefix);
@@ -4139,7 +4007,7 @@ void test_hashdyn_to_list(void)
 					abort();
 					/* LCOV_EXCL_STOP */
 				}
-				for (i = 0; i < size; ++i)
+				for (unsigned i = 0; i < size; ++i)
 					if (tommy_hashdyn_search(&hashdyn, search_callback, &obj[i], obj[i].node.index) != &obj[i]
 						|| tommy_hashdyn_remove_existing(&hashdyn, &obj[i].node) != &obj[i]
 						|| tommy_hashdyn_count(&hashdyn) != size - i - 1) {
@@ -4157,31 +4025,27 @@ void test_hashdyn_clear(void)
 {
 	const unsigned counts[] = { 0, 1, 8, 32, 128 };
 	struct object_hash obj[128];
-	tommy_hashdyn hashdyn;
-	tommy_hashdyn_node** bucket;
-	tommy_size_t bucket_max, bucket_mask, memory_usage;
-	tommy_uint_t bucket_bit;
-	unsigned c, i, j, n;
 
-	for (c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
-		n = counts[c];
+	for (unsigned c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
+		unsigned n = counts[c];
+		tommy_hashdyn hashdyn;
 		tommy_hashdyn_init(&hashdyn);
 		/* also exercise an empty table with reserved capacity. */
 		if (n == 0)
 			tommy_hashdyn_reserve(&hashdyn, 128);
 
-		for (i = 0; i < n; ++i) {
+		for (unsigned i = 0; i < n; ++i) {
 			obj[i].value = i / 2;
 			tommy_hashdyn_insert(&hashdyn, &obj[i].node, &obj[i], tommy_inthash_u32(obj[i].value));
 		}
 
-		bucket = hashdyn.bucket;
-		bucket_max = hashdyn.bucket_max;
-		bucket_mask = hashdyn.bucket_mask;
-		bucket_bit = hashdyn.bucket_bit;
-		memory_usage = tommy_hashdyn_memory_usage(&hashdyn) - n * sizeof(tommy_hashdyn_node);
+		tommy_hashdyn_node** bucket = hashdyn.bucket;
+		tommy_size_t bucket_max = hashdyn.bucket_max;
+		tommy_size_t bucket_mask = hashdyn.bucket_mask;
+		tommy_uint_t bucket_bit = hashdyn.bucket_bit;
+		tommy_size_t memory_usage = tommy_hashdyn_memory_usage(&hashdyn) - n * sizeof(tommy_hashdyn_node);
 
-		for (j = 0; j < 2; ++j) {
+		for (unsigned j = 0; j < 2; ++j) {
 			tommy_hashdyn_clear(&hashdyn);
 			if (tommy_hashdyn_count(&hashdyn) != 0
 				|| hashdyn.bucket != bucket || hashdyn.bucket_max != bucket_max
@@ -4192,7 +4056,7 @@ void test_hashdyn_clear(void)
 				/* LCOV_EXCL_STOP */
 			}
 
-			for (i = 0; i < bucket_max; ++i)
+			for (unsigned i = 0; i < bucket_max; ++i)
 				if (tommy_hashdyn_bucket(&hashdyn, i) != 0) {
 					/* LCOV_EXCL_START */
 					abort();
@@ -4208,7 +4072,7 @@ void test_hashdyn_clear(void)
 				/* LCOV_EXCL_STOP */
 			}
 
-			for (i = 0; i < n; ++i) {
+			for (unsigned i = 0; i < n; ++i) {
 				tommy_hash_t hash = tommy_inthash_u32(obj[i].value);
 				if (obj[i].value != (int)(i / 2)
 					|| obj[i].node.data != &obj[i] || obj[i].node.index != hash
@@ -4222,7 +4086,7 @@ void test_hashdyn_clear(void)
 		}
 
 		/* reinsert old nodes and exercise growth after clear. */
-		for (i = 0; i < 128; ++i) {
+		for (unsigned i = 0; i < 128; ++i) {
 			obj[i].value = i / 2;
 			tommy_hashdyn_insert(&hashdyn, &obj[i].node, &obj[i], tommy_inthash_u32(obj[i].value));
 		}
@@ -4232,7 +4096,7 @@ void test_hashdyn_clear(void)
 			/* LCOV_EXCL_STOP */
 		}
 
-		for (i = 0; i < 128; ++i)
+		for (unsigned i = 0; i < 128; ++i)
 			if (tommy_hashdyn_search(&hashdyn, search_callback, &obj[i], tommy_inthash_u32(obj[i].value)) != &obj[i]) {
 				/* LCOV_EXCL_START */
 				abort();
@@ -4240,7 +4104,7 @@ void test_hashdyn_clear(void)
 			}
 
 		/* both removal paths must still work across shrink thresholds. */
-		for (i = 128; i > 0; --i) {
+		for (unsigned i = 128; i > 0; --i) {
 			void* data;
 			if (i % 2)
 				data = tommy_hashdyn_remove_existing(&hashdyn, &obj[i - 1].node);
@@ -4256,8 +4120,9 @@ void test_hashdyn_clear(void)
 	}
 
 	/* clear must not access objects already freed by foreach. */
+	tommy_hashdyn hashdyn;
 	tommy_hashdyn_init(&hashdyn);
-	for (i = 0; i < 128; ++i) {
+	for (unsigned i = 0; i < 128; ++i) {
 		struct object_hash* allocated = malloc(sizeof(struct object_hash));
 		allocated->value = i;
 		tommy_hashdyn_insert(&hashdyn, &allocated->node, allocated, tommy_inthash_u32(i));
@@ -4277,10 +4142,6 @@ void test_hashdyn_clear(void)
 
 void test_hashdyn(void)
 {
-	tommy_hashdyn hashdyn;
-	struct object_hash* HASH;
-	unsigned i, j, n;
-	unsigned limit;
 	const unsigned size = TOMMY_SIZE;
 	const unsigned module = TOMMY_SIZE / 4;
 
@@ -4290,22 +4151,23 @@ void test_hashdyn(void)
 	test_hashdyn_rehash_existing();
 	test_hashdyn_to_list();
 
-	HASH = malloc(size * sizeof(struct object_hash));
+	struct object_hash* HASH = malloc(size * sizeof(struct object_hash));
 
-	for (i = 0; i < size; ++i)
+	for (unsigned i = 0; i < size; ++i)
 		HASH[i].value = i % module;
 
 	START("hashdyn stack");
-	limit = 5 * isqrt(size);
-	for (n = 0; n <= limit; ++n) {
+	unsigned limit = 5 * isqrt(size);
+	for (unsigned n = 0; n <= limit; ++n) {
 		/* last iteration is full size */
 		if (n == limit)
 			n = limit = size;
 
+		tommy_hashdyn hashdyn;
 		tommy_hashdyn_init(&hashdyn);
 
 		/* insert */
-		for (i = 0; i < n; ++i)
+		for (unsigned i = 0; i < n; ++i)
 			tommy_hashdyn_insert(&hashdyn, &HASH[i].node, &HASH[i], HASH[i].value);
 
 		if (tommy_hashdyn_memory_usage(&hashdyn) < n * sizeof(void*)) {
@@ -4329,11 +4191,11 @@ void test_hashdyn(void)
 		}
 
 		/* remove in backward order */
-		for (i = 0; i < n / 2; ++i)
+		for (unsigned i = 0; i < n / 2; ++i)
 			tommy_hashdyn_remove_existing(&hashdyn, &HASH[n - i - 1].node);
 
 		/* remove missing */
-		for (i = 0; i < n / 2; ++i)
+		for (unsigned i = 0; i < n / 2; ++i)
 			if (tommy_hashdyn_remove(&hashdyn, search_callback, &HASH[n - i - 1], HASH[n - i - 1].value) != 0) {
 				/* LCOV_EXCL_START */
 				abort();
@@ -4341,7 +4203,7 @@ void test_hashdyn(void)
 			}
 
 		/* remove search */
-		for (i = 0; i < n / 2; ++i)
+		for (unsigned i = 0; i < n / 2; ++i)
 			if (tommy_hashdyn_remove(&hashdyn, search_callback, &HASH[n / 2 - i - 1], HASH[n / 2 - i - 1].value) == 0) {
 				/* LCOV_EXCL_START */
 				abort();
@@ -4354,15 +4216,18 @@ void test_hashdyn(void)
 
 	START("hashdyn queue");
 	limit = isqrt(size) / 16;
-	for (n = 0; n <= limit; ++n) {
+	for (unsigned n = 0; n <= limit; ++n) {
 		/* last iteration is full size */
 		if (n == limit)
 			n = limit = size;
 
+		tommy_hashdyn hashdyn;
 		tommy_hashdyn_init(&hashdyn);
 
 		/* insert first run */
-		for (j = 0, i = 0; i < n; ++i)
+		unsigned j = 0;
+		unsigned i = 0;
+		for (; i < n; ++i)
 			tommy_hashdyn_insert(&hashdyn, &HASH[i].node, &HASH[i], HASH[i].value);
 
 		the_count = 0;
@@ -4396,15 +4261,9 @@ void test_hashdyn(void)
 
 void test_hashlin_insert_unique(void)
 {
-	struct object_hash obj[257], candidate;
+	struct object_hash obj[257];
 	tommy_hashlin table;
-	tommy_hashlin_node** bucket;
-	tommy_node saved;
-	tommy_size_t bucket_max, bucket_mask, count;
-	tommy_uint_t bucket_bit, state;
-	tommy_size_t low_max, low_mask, split;
 	const unsigned order[] = { 0, 1, 2, 3, 4, 5 };
-	unsigned i, phase, step;
 
 	tommy_hashlin_init(&table);
 	obj[0].value = 1;
@@ -4418,12 +4277,12 @@ void test_hashlin_insert_unique(void)
 	}
 	tommy_hashlin_remove_existing(&table, &obj[0].node);
 
-	bucket_max = table.bucket_max;
+	tommy_size_t bucket_max = table.bucket_max;
 	obj[0].value = 10;
 	obj[1].value = 20;
 	obj[2].value = 30;
 	obj[3].value = 20;
-	for (i = 0; i < 4; ++i)
+	for (unsigned i = 0; i < 4; ++i)
 		tommy_hashlin_insert(&table, &obj[i].node, &obj[i], i == 0 ? bucket_max : 0);
 
 	/* the first matching duplicate is returned; the rejected candidate stays intact. */
@@ -4432,7 +4291,7 @@ void test_hashlin_insert_unique(void)
 	obj[4].node.prev = &obj[4].node;
 	obj[4].node.data = &obj[4];
 	obj[4].node.index = ~(tommy_hash_t)0;
-	saved = obj[4].node;
+	tommy_node saved = obj[4].node;
 	compare_counter = 0;
 	if (tommy_hashlin_insert_unique(&table, &obj[4].node, &obj[4], search_hash_value_callback, &obj[4].value, 0) != &obj[1]
 		|| compare_counter != 1 || tommy_hashlin_count(&table) != 4
@@ -4477,15 +4336,15 @@ void test_hashlin_insert_unique(void)
 
 	/* insert unique keys, reject duplicates, then repeat during contraction. */
 	tommy_hashlin_init(&table);
+	struct object_hash candidate;
 	candidate.node.next = &candidate.node;
 	candidate.node.prev = &candidate.node;
 	candidate.node.data = &candidate;
 	candidate.node.index = ~(tommy_hash_t)0;
-	for (phase = 0; phase < 2; ++phase) {
-		for (step = 0; step < 256; ++step) {
-			tommy_hash_t hash;
-			i = phase == 0 ? step : 255 - step;
-			hash = tommy_inthash_u32(i);
+	for (unsigned phase = 0; phase < 2; ++phase) {
+		for (unsigned step = 0; step < 256; ++step) {
+			unsigned i = phase == 0 ? step : 255 - step;
+			tommy_hash_t hash = tommy_inthash_u32(i);
 			if (phase == 0) {
 				obj[i].value = i;
 				if (tommy_hashlin_insert_unique(&table, &obj[i].node, &obj[i], search_hash_value_callback, &obj[i].value, hash) != &obj[i]
@@ -4498,15 +4357,15 @@ void test_hashlin_insert_unique(void)
 
 			candidate.value = i;
 			saved = obj[i].node;
-			count = tommy_hashlin_count(&table);
+			tommy_size_t count = tommy_hashlin_count(&table);
 			bucket_max = table.bucket_max;
-			bucket_mask = table.bucket_mask;
-			bucket = table.bucket[0];
-			bucket_bit = table.bucket_bit;
-			state = table.state;
-			low_max = table.low_max;
-			low_mask = table.low_mask;
-			split = table.split;
+			tommy_size_t bucket_mask = table.bucket_mask;
+			tommy_hashlin_node** bucket = table.bucket[0];
+			tommy_uint_t bucket_bit = table.bucket_bit;
+			tommy_uint_t state = table.state;
+			tommy_size_t low_max = table.low_max;
+			tommy_size_t low_mask = table.low_mask;
+			tommy_size_t split = table.split;
 			compare_counter = 0;
 			if (tommy_hashlin_insert_unique(&table, &candidate.node, &candidate, search_hash_value_callback, &candidate.value, hash) != &obj[i]
 				|| compare_counter != 1 || tommy_hashlin_count(&table) != count
@@ -4556,43 +4415,37 @@ void test_hashlin_rehash_existing(void)
 	struct object_hash obj[130];
 	tommy_hash_t hashes[130];
 	tommy_hashlin table;
-	tommy_hashlin_node** segments[TOMMY_SIZE_BIT];
-	tommy_uint_t bucket_bit, state;
-	tommy_size_t low_max, low_mask, split;
-	tommy_size_t bucket_max, bucket_mask;
-	unsigned c, target, mode, i, n, source_size;
-	unsigned source[3], destination[2];
 
-	for (c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
-		n = counts[c][1];
-		source_size = n < 3 ? n : 3;
-		for (target = 0; target < source_size; ++target) {
-			for (mode = 0; mode < 4; ++mode) {
-				tommy_hash_t hash;
-				tommy_node saved;
+	for (unsigned c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
+		unsigned n = counts[c][1];
+		unsigned source_size = n < 3 ? n : 3;
+		for (unsigned target = 0; target < source_size; ++target) {
+			for (unsigned mode = 0; mode < 4; ++mode) {
+				unsigned source[3], destination[2];
 				unsigned source_count = 0, destination_count = 0;
 
 				tommy_hashlin_init(&table);
-				for (i = 0; i < counts[c][0]; ++i) {
+				for (unsigned i = 0; i < counts[c][0]; ++i) {
 					obj[i].value = i;
 					hashes[i] = i < 3 ? 0 : i == 3 ? 1 : 2;
 					tommy_hashlin_insert(&table, &obj[i].node, &obj[i], hashes[i]);
 				}
-				for (i = counts[c][0]; i > n; --i)
+				for (unsigned i = counts[c][0]; i > n; --i)
 					tommy_hashlin_remove_existing(&table, &obj[i - 1].node);
 
-				bucket_max = table.bucket_max;
-				bucket_mask = table.bucket_mask;
-				bucket_bit = table.bucket_bit;
-				state = table.state;
-				low_max = table.low_max;
-				low_mask = table.low_mask;
-				split = table.split;
-				for (i = 0; i < bucket_bit; ++i)
+				tommy_size_t bucket_max = table.bucket_max;
+				tommy_size_t bucket_mask = table.bucket_mask;
+				tommy_uint_t bucket_bit = table.bucket_bit;
+				tommy_uint_t state = table.state;
+				tommy_size_t low_max = table.low_max;
+				tommy_size_t low_mask = table.low_mask;
+				tommy_size_t split = table.split;
+				tommy_hashlin_node** segments[TOMMY_SIZE_BIT];
+				for (unsigned i = 0; i < bucket_bit; ++i)
 					segments[i] = table.bucket[i];
 				/* exercise unchanged hash, same bucket, occupied bucket and empty bucket. */
-				hash = mode == 0 ? 0 : mode == 1 ? bucket_max : mode == 2 ? 1 : ~(tommy_hash_t)0;
-				saved = obj[target].node;
+				tommy_hash_t hash = mode == 0 ? 0 : mode == 1 ? bucket_max : mode == 2 ? 1 : ~(tommy_hash_t)0;
+				tommy_node saved = obj[target].node;
 				obj[target].value = 1000 + target;
 				tommy_hashlin_rehash_existing(&table, &obj[target].node, hash);
 				hashes[target] = hash;
@@ -4608,14 +4461,14 @@ void test_hashlin_rehash_existing(void)
 					abort();
 					/* LCOV_EXCL_STOP */
 				}
-				for (i = 0; i < bucket_bit; ++i)
+				for (unsigned i = 0; i < bucket_bit; ++i)
 					if (table.bucket[i] != segments[i]) {
 						/* LCOV_EXCL_START */
 						abort();
 						/* LCOV_EXCL_STOP */
 					}
 
-				for (i = 0; i < source_size; ++i)
+				for (unsigned i = 0; i < source_size; ++i)
 					if (mode == 0 || i != target)
 						source[source_count++] = i;
 				if (mode == 1)
@@ -4646,7 +4499,7 @@ void test_hashlin_rehash_existing(void)
 					}
 					tommy_hashlin_rehash_existing(&table, &obj[target].node, hash);
 				}
-				for (i = 0; i < n; ++i)
+				for (unsigned i = 0; i < n; ++i)
 					if (tommy_hashlin_search(&table, search_callback, &obj[i], hashes[i]) != &obj[i]) {
 						/* LCOV_EXCL_START */
 						abort();
@@ -4654,18 +4507,18 @@ void test_hashlin_rehash_existing(void)
 					}
 
 				/* subsequent resizing and removals must use the updated stored hash. */
-				for (i = n; i < 130; ++i) {
+				for (unsigned i = n; i < 130; ++i) {
 					obj[i].value = i;
 					hashes[i] = i < 3 ? 0 : i == 3 ? 1 : 2;
 					tommy_hashlin_insert(&table, &obj[i].node, &obj[i], hashes[i]);
 				}
-				for (i = 0; i < 130; ++i)
+				for (unsigned i = 0; i < 130; ++i)
 					if (tommy_hashlin_search(&table, search_callback, &obj[i], hashes[i]) != &obj[i]) {
 						/* LCOV_EXCL_START */
 						abort();
 						/* LCOV_EXCL_STOP */
 					}
-				for (i = 130; i > 0; --i) {
+				for (unsigned i = 130; i > 0; --i) {
 					void* data;
 					if (i % 2)
 						data = tommy_hashlin_remove_existing(&table, &obj[i - 1].node);
@@ -4692,20 +4545,16 @@ void test_hashlin_to_list(void)
 	};
 	struct object_hash obj[130];
 	tommy_node saved[130];
-	tommy_hashlin hashlin;
-	tommy_hashlin_node** segments[TOMMY_SIZE_BIT];
-	tommy_list list;
-	tommy_size_t bucket_max, bucket_mask;
-	tommy_uint_t bucket_bit, stable_state;
-	unsigned c, i, prefix, size;
 
-	for (c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
-		for (prefix = 0; prefix <= 2; prefix += 2) {
-			size = prefix + counts[c][1];
+	for (unsigned c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
+		for (unsigned prefix = 0; prefix <= 2; prefix += 2) {
+			unsigned size = prefix + counts[c][1];
+			tommy_hashlin hashlin;
 			tommy_hashlin_init(&hashlin);
-			stable_state = hashlin.state;
+			tommy_uint_t stable_state = hashlin.state;
+			tommy_list list;
 			tommy_list_init(&list);
-			for (i = 0; i < prefix + counts[c][0]; ++i) {
+			for (unsigned i = 0; i < prefix + counts[c][0]; ++i) {
 				obj[i].value = i / 2;
 				obj[i].node.index = tommy_inthash_u32(obj[i].value);
 				if (i < prefix)
@@ -4713,18 +4562,19 @@ void test_hashlin_to_list(void)
 				else
 					tommy_hashlin_insert(&hashlin, &obj[i].node, &obj[i], obj[i].node.index);
 			}
-			for (i = prefix + counts[c][0]; i > size; --i)
+			for (unsigned i = prefix + counts[c][0]; i > size; --i)
 				tommy_hashlin_remove_existing(&hashlin, &obj[i - 1].node);
-			for (i = 0; i < size; ++i)
+			for (unsigned i = 0; i < size; ++i)
 				saved[i] = obj[i].node;
-			bucket_max = hashlin.bucket_max;
-			bucket_mask = hashlin.bucket_mask;
-			bucket_bit = hashlin.bucket_bit;
-			for (i = 0; i < bucket_bit; ++i)
+			tommy_size_t bucket_max = hashlin.bucket_max;
+			tommy_size_t bucket_mask = hashlin.bucket_mask;
+			tommy_uint_t bucket_bit = hashlin.bucket_bit;
+			tommy_hashlin_node** segments[TOMMY_SIZE_BIT];
+			for (unsigned i = 0; i < bucket_bit; ++i)
 				segments[i] = hashlin.bucket[i];
 
 			/* inactive slots must never be transferred, including stale shrink pointers. */
-			for (i = hashlin.low_max + hashlin.split; i < bucket_max; ++i)
+			for (unsigned i = hashlin.low_max + hashlin.split; i < bucket_max; ++i)
 				*tommy_hashlin_pos(&hashlin, i) = &obj[prefix].node;
 
 			tommy_hashlin_to_list(&hashlin, &list);
@@ -4738,13 +4588,13 @@ void test_hashlin_to_list(void)
 				abort();
 				/* LCOV_EXCL_STOP */
 			}
-			for (i = 0; i < bucket_bit; ++i)
+			for (unsigned i = 0; i < bucket_bit; ++i)
 				if (hashlin.bucket[i] != segments[i]) {
 					/* LCOV_EXCL_START */
 					abort();
 					/* LCOV_EXCL_STOP */
 				}
-			for (i = 0; i < bucket_max; ++i)
+			for (unsigned i = 0; i < bucket_max; ++i)
 				if (tommy_hashlin_bucket(&hashlin, i) != 0) {
 					/* LCOV_EXCL_START */
 					abort();
@@ -4757,14 +4607,14 @@ void test_hashlin_to_list(void)
 				abort();
 				/* LCOV_EXCL_STOP */
 			}
-			for (i = prefix; i < size; ++i)
+			for (unsigned i = prefix; i < size; ++i)
 				if (tommy_hashlin_search(&hashlin, search_callback, &obj[i], obj[i].node.index) != 0) {
 					/* LCOV_EXCL_START */
 					abort();
 					/* LCOV_EXCL_STOP */
 				}
 
-			for (i = 0; i < size; ++i)
+			for (unsigned i = 0; i < size; ++i)
 				saved[i] = obj[i].node;
 			tommy_hashlin_to_list(&hashlin, &list);
 			test_hash_list(&list, obj, saved, size, prefix);
@@ -4774,7 +4624,7 @@ void test_hashlin_to_list(void)
 				struct object_hash* data = tommy_list_remove_head(&list);
 				tommy_hashlin_insert(&hashlin, &data->node, data, data->node.index);
 			}
-			for (i = size; i < 130; ++i) {
+			for (unsigned i = size; i < 130; ++i) {
 				obj[i].value = i / 2;
 				tommy_hashlin_insert(&hashlin, &obj[i].node, &obj[i], tommy_inthash_u32(obj[i].value));
 			}
@@ -4783,7 +4633,7 @@ void test_hashlin_to_list(void)
 				abort();
 				/* LCOV_EXCL_STOP */
 			}
-			for (i = 0; i < 130; ++i)
+			for (unsigned i = 0; i < 130; ++i)
 				if (tommy_hashlin_search(&hashlin, search_callback, &obj[i], obj[i].node.index) != &obj[i]
 					|| tommy_hashlin_remove_existing(&hashlin, &obj[i].node) != &obj[i]
 					|| tommy_hashlin_count(&hashlin) != 130 - i - 1) {
@@ -4811,25 +4661,21 @@ void test_hashlin_clear(void)
 		{ 128, 15 }, { 128, 12 }, { 128, 9 }, { 128, 8 }
 	};
 	struct object_hash obj[256];
-	tommy_hashlin hashlin;
-	tommy_hashlin_node** bucket[TOMMY_SIZE_BIT];
-	tommy_size_t bucket_max, bucket_mask, memory_usage;
-	tommy_uint_t bucket_bit, stable_state;
-	unsigned c, i, j, n, retained;
 	unsigned stable = 0, grow = 0, shrink = 0;
 
-	for (c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
-		n = counts[c][0];
-		retained = counts[c][1];
+	for (unsigned c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
+		unsigned n = counts[c][0];
+		unsigned retained = counts[c][1];
+		tommy_hashlin hashlin;
 		tommy_hashlin_init(&hashlin);
-		stable_state = hashlin.state;
+		tommy_uint_t stable_state = hashlin.state;
 
-		for (i = 0; i < n; ++i) {
+		for (unsigned i = 0; i < n; ++i) {
 			obj[i].value = i / 2;
 			tommy_hashlin_insert(&hashlin, &obj[i].node, &obj[i], tommy_inthash_u32(obj[i].value));
 		}
 		/* stop at different points of a progressive shrink. */
-		for (i = n; i > retained; --i)
+		for (unsigned i = n; i > retained; --i)
 			tommy_hashlin_remove_existing(&hashlin, &obj[i - 1].node);
 
 		if (hashlin.state == stable_state)
@@ -4839,18 +4685,19 @@ void test_hashlin_clear(void)
 		else
 			++shrink;
 
-		bucket_max = hashlin.bucket_max;
-		bucket_mask = hashlin.bucket_mask;
-		bucket_bit = hashlin.bucket_bit;
-		for (i = 0; i < bucket_bit; ++i)
+		tommy_size_t bucket_max = hashlin.bucket_max;
+		tommy_size_t bucket_mask = hashlin.bucket_mask;
+		tommy_uint_t bucket_bit = hashlin.bucket_bit;
+		tommy_hashlin_node** bucket[TOMMY_SIZE_BIT];
+		for (unsigned i = 0; i < bucket_bit; ++i)
 			bucket[i] = hashlin.bucket[i];
-		memory_usage = tommy_hashlin_memory_usage(&hashlin) - retained * sizeof(tommy_hashlin_node);
+		tommy_size_t memory_usage = tommy_hashlin_memory_usage(&hashlin) - retained * sizeof(tommy_hashlin_node);
 
 		/* inactive slots may contain arbitrary values or stale node pointers. */
-		for (i = hashlin.low_max + hashlin.split; i < bucket_max; ++i)
+		for (unsigned i = hashlin.low_max + hashlin.split; i < bucket_max; ++i)
 			*tommy_hashlin_pos(&hashlin, i) = &obj[0].node;
 
-		for (j = 0; j < 2; ++j) {
+		for (unsigned j = 0; j < 2; ++j) {
 			tommy_hashlin_clear(&hashlin);
 			if (tommy_hashlin_count(&hashlin) != 0
 				|| hashlin.bucket_max != bucket_max || hashlin.bucket_mask != bucket_mask
@@ -4862,14 +4709,14 @@ void test_hashlin_clear(void)
 				/* LCOV_EXCL_STOP */
 			}
 
-			for (i = 0; i < bucket_bit; ++i)
+			for (unsigned i = 0; i < bucket_bit; ++i)
 				if (hashlin.bucket[i] != bucket[i]) {
 					/* LCOV_EXCL_START */
 					abort();
 					/* LCOV_EXCL_STOP */
 				}
 
-			for (i = 0; i < bucket_max; ++i)
+			for (unsigned i = 0; i < bucket_max; ++i)
 				if (tommy_hashlin_bucket(&hashlin, i) != 0) {
 					/* LCOV_EXCL_START */
 					abort();
@@ -4885,7 +4732,7 @@ void test_hashlin_clear(void)
 				/* LCOV_EXCL_STOP */
 			}
 
-			for (i = 0; i < retained; ++i) {
+			for (unsigned i = 0; i < retained; ++i) {
 				tommy_hash_t hash = tommy_inthash_u32(obj[i].value);
 				if (obj[i].value != (int)(i / 2)
 					|| obj[i].node.data != &obj[i] || obj[i].node.index != hash
@@ -4899,7 +4746,7 @@ void test_hashlin_clear(void)
 		}
 
 		/* reuse old nodes and grow beyond the preserved capacity. */
-		for (i = 0; i < 256; ++i) {
+		for (unsigned i = 0; i < 256; ++i) {
 			obj[i].value = i / 2;
 			tommy_hashlin_insert(&hashlin, &obj[i].node, &obj[i], tommy_inthash_u32(obj[i].value));
 			if (tommy_hashlin_count(&hashlin) != i + 1) {
@@ -4914,7 +4761,7 @@ void test_hashlin_clear(void)
 			/* LCOV_EXCL_STOP */
 		}
 
-		for (i = 0; i < 256; ++i)
+		for (unsigned i = 0; i < 256; ++i)
 			if (tommy_hashlin_search(&hashlin, search_callback, &obj[i], tommy_inthash_u32(obj[i].value)) != &obj[i]) {
 				/* LCOV_EXCL_START */
 				abort();
@@ -4922,7 +4769,7 @@ void test_hashlin_clear(void)
 			}
 
 		/* verify both removal paths while the table shrinks again. */
-		for (i = 256; i > 0; --i) {
+		for (unsigned i = 256; i > 0; --i) {
 			void* data;
 			if (i % 2)
 				data = tommy_hashlin_remove_existing(&hashlin, &obj[i - 1].node);
@@ -4949,17 +4796,18 @@ void test_hashlin_clear(void)
 	}
 
 	/* free objects during a partial grow or shrink, then clear and reuse. */
-	for (c = 0; c < 2; ++c) {
+	for (unsigned c = 0; c < 2; ++c) {
 		struct object_hash* allocated[128];
-		n = c == 0 ? 33 : 128;
-		retained = c == 0 ? 33 : 24;
+		unsigned n = c == 0 ? 33 : 128;
+		unsigned retained = c == 0 ? 33 : 24;
+		tommy_hashlin hashlin;
 		tommy_hashlin_init(&hashlin);
-		for (i = 0; i < n; ++i) {
+		for (unsigned i = 0; i < n; ++i) {
 			allocated[i] = malloc(sizeof(struct object_hash));
 			allocated[i]->value = i;
 			tommy_hashlin_insert(&hashlin, &allocated[i]->node, allocated[i], tommy_inthash_u32(i));
 		}
-		for (i = n; i > retained; --i)
+		for (unsigned i = n; i > retained; --i)
 			free(tommy_hashlin_remove_existing(&hashlin, &allocated[i - 1]->node));
 		tommy_hashlin_foreach(&hashlin, free);
 		tommy_hashlin_clear(&hashlin);
@@ -4977,32 +4825,28 @@ void test_hashlin_clear(void)
 
 void test_hashlin(void)
 {
-	tommy_hashlin hashlin;
-	struct object_hash* HASH;
-	unsigned i, j, n;
-	unsigned limit;
 	const unsigned size = TOMMY_SIZE;
 	const unsigned module = TOMMY_SIZE / 4;
-	tommy_hashlin_node* bucket;
 
 	test_hashlin_clear();
 	test_hashlin_insert_unique();
 	test_hashlin_rehash_existing();
 	test_hashlin_to_list();
 
-	HASH = malloc(size * sizeof(struct object_hash));
+	struct object_hash* HASH = malloc(size * sizeof(struct object_hash));
 
-	for (i = 0; i < size; ++i)
+	for (unsigned i = 0; i < size; ++i)
 		HASH[i].value = i % module;
 
+	tommy_hashlin hashlin;
 	tommy_hashlin_init(&hashlin);
 
 	/* insert */
-	for (i = 0; i < size; ++i)
+	for (unsigned i = 0; i < size; ++i)
 		tommy_hashlin_insert(&hashlin, &HASH[i].node, &HASH[i], HASH[i].value);
 
 	/* get the bucket of the last element */
-	bucket = tommy_hashlin_bucket(&hashlin, module - 1);
+	tommy_hashlin_node* bucket = tommy_hashlin_bucket(&hashlin, module - 1);
 	if (bucket == 0) {
 		/* LCOV_EXCL_START */
 		abort();
@@ -5013,8 +4857,8 @@ void test_hashlin(void)
 	tommy_hashlin_done(&hashlin);
 
 	START("hashlin stack");
-	limit = 5 * isqrt(size);
-	for (n = 0; n <= limit; ++n) {
+	unsigned limit = 5 * isqrt(size);
+	for (unsigned n = 0; n <= limit; ++n) {
 		/* last iteration is full size */
 		if (n == limit)
 			n = limit = size;
@@ -5022,7 +4866,7 @@ void test_hashlin(void)
 		tommy_hashlin_init(&hashlin);
 
 		/* insert */
-		for (i = 0; i < n; ++i)
+		for (unsigned i = 0; i < n; ++i)
 			tommy_hashlin_insert(&hashlin, &HASH[i].node, &HASH[i], HASH[i].value);
 
 		if (tommy_hashlin_memory_usage(&hashlin) < n * sizeof(void*)) {
@@ -5046,11 +4890,11 @@ void test_hashlin(void)
 		}
 
 		/* remove in backward order */
-		for (i = 0; i < n / 2; ++i)
+		for (unsigned i = 0; i < n / 2; ++i)
 			tommy_hashlin_remove_existing(&hashlin, &HASH[n - i - 1].node);
 
 		/* remove missing */
-		for (i = 0; i < n / 2; ++i)
+		for (unsigned i = 0; i < n / 2; ++i)
 			if (tommy_hashlin_remove(&hashlin, search_callback, &HASH[n - i - 1], HASH[n - i - 1].value) != 0) {
 				/* LCOV_EXCL_START */
 				abort();
@@ -5058,7 +4902,7 @@ void test_hashlin(void)
 			}
 
 		/* remove search */
-		for (i = 0; i < n / 2; ++i)
+		for (unsigned i = 0; i < n / 2; ++i)
 			if (tommy_hashlin_remove(&hashlin, search_callback, &HASH[n / 2 - i - 1], HASH[n / 2 - i - 1].value) == 0) {
 				/* LCOV_EXCL_START */
 				abort();
@@ -5071,7 +4915,7 @@ void test_hashlin(void)
 
 	START("hashlin queue");
 	limit = isqrt(size) / 16;
-	for (n = 0; n <= limit; ++n) {
+	for (unsigned n = 0; n <= limit; ++n) {
 		/* last iteration is full size */
 		if (n == limit)
 			n = limit = size;
@@ -5079,7 +4923,9 @@ void test_hashlin(void)
 		tommy_hashlin_init(&hashlin);
 
 		/* insert first run */
-		for (j = 0, i = 0; i < n; ++i)
+		unsigned j = 0;
+		unsigned i = 0;
+		for (; i < n; ++i)
 			tommy_hashlin_insert(&hashlin, &HASH[i].node, &HASH[i], HASH[i].value);
 
 		the_count = 0;
@@ -5113,24 +4959,21 @@ void test_hashlin(void)
 
 void test_trie(void)
 {
-	tommy_trie trie;
-	tommy_allocator alloc;
-	struct object_trie* OBJ;
-	struct object_trie DUP[2];
-	unsigned i;
 	const unsigned size = TOMMY_SIZE * 4;
 
-	OBJ = malloc(size * sizeof(struct object_trie));
+	struct object_trie* OBJ = malloc(size * sizeof(struct object_trie));
 
-	for (i = 0; i < size; ++i)
+	for (unsigned i = 0; i < size; ++i)
 		OBJ[i].value = i;
 
 	START("trie");
+	tommy_allocator alloc;
 	tommy_allocator_init(&alloc, TOMMY_TRIE_BLOCK_SIZE, TOMMY_TRIE_BLOCK_SIZE);
+	tommy_trie trie;
 	tommy_trie_init(&trie, &alloc);
 
 	/* insert */
-	for (i = 0; i < size; ++i)
+	for (unsigned i = 0; i < size; ++i)
 		tommy_trie_insert(&trie, &OBJ[i].node, &OBJ[i], OBJ[i].value);
 
 	if (tommy_trie_memory_usage(&trie) < size * sizeof(tommy_trie_node)) {
@@ -5152,13 +4995,14 @@ void test_trie(void)
 	}
 
 	/* insert duplicate */
-	for (i = 0; i < 2; ++i) {
+	struct object_trie DUP[2];
+	for (unsigned i = 0; i < 2; ++i) {
 		DUP[i].value = 0;
 		tommy_trie_insert(&trie, &DUP[i].node, &DUP[i], DUP[i].value);
 	}
 
 	/* search present */
-	for (i = 0; i < size / 2; ++i)
+	for (unsigned i = 0; i < size / 2; ++i)
 		if (tommy_trie_search(&trie, OBJ[i].value) == 0) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -5169,7 +5013,7 @@ void test_trie(void)
 	tommy_trie_remove_existing(&trie, &DUP[0].node);
 
 	/* remove existing */
-	for (i = 0; i < size / 2; ++i)
+	for (unsigned i = 0; i < size / 2; ++i)
 		tommy_trie_remove_existing(&trie, &OBJ[i].node);
 
 	/* remove missing using the same bucket of the duplicate */
@@ -5190,7 +5034,7 @@ void test_trie(void)
 	tommy_trie_remove_existing(&trie, &DUP[1].node);
 
 	/* remove missing */
-	for (i = 0; i < size / 2; ++i)
+	for (unsigned i = 0; i < size / 2; ++i)
 		if (tommy_trie_remove(&trie, OBJ[i].value) != 0) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -5198,7 +5042,7 @@ void test_trie(void)
 		}
 
 	/* search missing */
-	for (i = 0; i < size / 2; ++i)
+	for (unsigned i = 0; i < size / 2; ++i)
 		if (tommy_trie_search(&trie, OBJ[i].value) != 0) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -5206,7 +5050,7 @@ void test_trie(void)
 		}
 
 	/* remove present */
-	for (i = 0; i < size / 2; ++i)
+	for (unsigned i = 0; i < size / 2; ++i)
 		if (tommy_trie_remove(&trie, OBJ[size / 2 + i].value) == 0) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -5219,22 +5063,19 @@ void test_trie(void)
 
 void test_trie_inplace(void)
 {
-	tommy_trie_inplace trie_inplace;
-	struct object_trie_inplace* OBJ;
-	struct object_trie_inplace DUP[2];
-	unsigned i;
 	const unsigned size = TOMMY_SIZE * 4;
 
-	OBJ = malloc(size * sizeof(struct object_trie_inplace));
+	struct object_trie_inplace* OBJ = malloc(size * sizeof(struct object_trie_inplace));
 
-	for (i = 0; i < size; ++i)
+	for (unsigned i = 0; i < size; ++i)
 		OBJ[i].value = i;
 
 	START("trie_inplace");
+	tommy_trie_inplace trie_inplace;
 	tommy_trie_inplace_init(&trie_inplace);
 
 	/* insert */
-	for (i = 0; i < size; ++i)
+	for (unsigned i = 0; i < size; ++i)
 		tommy_trie_inplace_insert(&trie_inplace, &OBJ[i].node, &OBJ[i], OBJ[i].value);
 
 	if (tommy_trie_inplace_memory_usage(&trie_inplace) < size * sizeof(tommy_trie_inplace_node)) {
@@ -5250,13 +5091,14 @@ void test_trie_inplace(void)
 	}
 
 	/* insert duplicates */
-	for (i = 0; i < 2; ++i) {
+	struct object_trie_inplace DUP[2];
+	for (unsigned i = 0; i < 2; ++i) {
 		DUP[i].value = 0;
 		tommy_trie_inplace_insert(&trie_inplace, &DUP[i].node, &DUP[i], DUP[i].value);
 	}
 
 	/* search present */
-	for (i = 0; i < size / 2; ++i)
+	for (unsigned i = 0; i < size / 2; ++i)
 		if (tommy_trie_inplace_search(&trie_inplace, OBJ[i].value) == 0) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -5267,14 +5109,14 @@ void test_trie_inplace(void)
 	tommy_trie_inplace_remove_existing(&trie_inplace, &DUP[0].node);
 
 	/* remove existing */
-	for (i = 0; i < size / 2; ++i)
+	for (unsigned i = 0; i < size / 2; ++i)
 		tommy_trie_inplace_remove_existing(&trie_inplace, &OBJ[i].node);
 
 	/* remove second duplicate */
 	tommy_trie_inplace_remove_existing(&trie_inplace, &DUP[1].node);
 
 	/* remove missing */
-	for (i = 0; i < size / 2; ++i)
+	for (unsigned i = 0; i < size / 2; ++i)
 		if (tommy_trie_inplace_remove(&trie_inplace, OBJ[i].value) != 0) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -5282,7 +5124,7 @@ void test_trie_inplace(void)
 		}
 
 	/* search missing */
-	for (i = 0; i < size / 2; ++i)
+	for (unsigned i = 0; i < size / 2; ++i)
 		if (tommy_trie_inplace_search(&trie_inplace, OBJ[i].value) != 0) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -5290,7 +5132,7 @@ void test_trie_inplace(void)
 		}
 
 	/* remove present */
-	for (i = 0; i < size / 2; ++i)
+	for (unsigned i = 0; i < size / 2; ++i)
 		if (tommy_trie_inplace_remove(&trie_inplace, OBJ[size / 2 + i].value) == 0) {
 			/* LCOV_EXCL_START */
 			abort();

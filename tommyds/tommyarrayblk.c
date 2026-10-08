@@ -19,9 +19,7 @@ TOMMY_API void tommy_arrayblk_init(tommy_arrayblk* array)
 
 TOMMY_API void tommy_arrayblk_done(tommy_arrayblk* array)
 {
-	tommy_size_t i;
-
-	for (i = 0; i < array->block_count; ++i)
+	for (tommy_size_t i = 0; i < array->block_count; ++i)
 		tommy_free(array->block[i]);
 
 	tommy_free(array->block);
@@ -29,16 +27,14 @@ TOMMY_API void tommy_arrayblk_done(tommy_arrayblk* array)
 
 TOMMY_API void tommy_arrayblk_reserve(tommy_arrayblk* array, tommy_size_t size)
 {
-	tommy_size_t block_max;
-	tommy_size_t capacity;
-
 	if (size <= array->block_count * TOMMY_ARRAYBLK_SIZE)
 		return;
-	block_max = (size - 1) / TOMMY_ARRAYBLK_SIZE + 1;
+
+	tommy_size_t block_max = (size - 1) / TOMMY_ARRAYBLK_SIZE + 1;
 
 	if (array->block_capacity < block_max) {
 		/* only the directory moves; addresses inside existing blocks stay valid */
-		capacity = array->block_capacity;
+		tommy_size_t capacity = array->block_capacity;
 		while (capacity < block_max)
 			capacity *= 2;
 		array->block = tommy_cast(void***, tommy_realloc(array->block, capacity * sizeof(array->block[0])));
@@ -56,15 +52,13 @@ TOMMY_API void tommy_arrayblk_reserve(tommy_arrayblk* array, tommy_size_t size)
 
 TOMMY_API void tommy_arrayblk_resize(tommy_arrayblk* array, tommy_size_t size)
 {
-	tommy_size_t pos;
-
 	if (size >= array->count) {
 		tommy_arrayblk_grow(array, size);
 		return;
 	}
 
 	/* clear the unused elements to maintain the invariant that unused slots are zero */
-	pos = size;
+	tommy_size_t pos = size;
 	while (pos < array->count) {
 		tommy_size_t blk_idx = pos / TOMMY_ARRAYBLK_SIZE;
 		tommy_size_t blk_offset = pos % TOMMY_ARRAYBLK_SIZE;
@@ -81,22 +75,15 @@ TOMMY_API void tommy_arrayblk_resize(tommy_arrayblk* array, tommy_size_t size)
 
 TOMMY_API void tommy_arrayblk_shrink(tommy_arrayblk* array)
 {
-	tommy_size_t block_max;
-	tommy_size_t min_capacity;
-	tommy_size_t capacity;
-
-	if (array->count == 0)
-		block_max = 0;
-	else
-		block_max = (array->count - 1) / TOMMY_ARRAYBLK_SIZE + 1;
+	tommy_size_t block_max = (array->count == 0) ? 0 : ((array->count - 1) / TOMMY_ARRAYBLK_SIZE + 1);
 
 	while (array->block_count > block_max) {
 		--array->block_count;
 		tommy_free(array->block[array->block_count]);
 	}
 
-	min_capacity = (tommy_size_t)1 << TOMMY_ARRAY_BIT;
-	capacity = min_capacity;
+	tommy_size_t min_capacity = (tommy_size_t)1 << TOMMY_ARRAY_BIT;
+	tommy_size_t capacity = min_capacity;
 	while (capacity < block_max)
 		capacity *= 2;
 	if (capacity < array->block_capacity) {
@@ -113,12 +100,11 @@ TOMMY_API void tommy_arrayblk_foreach(tommy_arrayblk* array, tommy_foreach_func*
 		tommy_size_t blk_idx = pos / TOMMY_ARRAYBLK_SIZE;
 		tommy_size_t chunk = array->count - pos;
 		void** ptr = array->block[blk_idx];
-		tommy_size_t i;
 
 		if (chunk > TOMMY_ARRAYBLK_SIZE)
 			chunk = TOMMY_ARRAYBLK_SIZE;
 
-		for (i = 0; i < chunk; ++i)
+		for (tommy_size_t i = 0; i < chunk; ++i)
 			func(ptr[i]);
 
 		pos += chunk;
@@ -133,12 +119,11 @@ TOMMY_API void tommy_arrayblk_foreach_arg(tommy_arrayblk* array, tommy_foreach_a
 		tommy_size_t blk_idx = pos / TOMMY_ARRAYBLK_SIZE;
 		tommy_size_t chunk = array->count - pos;
 		void** ptr = array->block[blk_idx];
-		tommy_size_t i;
 
 		if (chunk > TOMMY_ARRAYBLK_SIZE)
 			chunk = TOMMY_ARRAYBLK_SIZE;
 
-		for (i = 0; i < chunk; ++i)
+		for (tommy_size_t i = 0; i < chunk; ++i)
 			func(arg, ptr[i]);
 
 		pos += chunk;
