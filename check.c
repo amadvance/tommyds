@@ -86,6 +86,18 @@ struct object_tree {
 	char payload[PAYLOAD];
 };
 
+int compare_tree_reverse(const void* void_a, const void* void_b)
+{
+	const struct object_tree* a = void_a;
+	const struct object_tree* b = void_b;
+
+	if (a->value > b->value)
+		return -1;
+	if (a->value < b->value)
+		return 1;
+	return 0;
+}
+
 int compare_tree_group(const void* void_a, const void* void_b)
 {
 	const struct object_tree* a = void_a;
@@ -1621,6 +1633,66 @@ void test_tree(void)
 	STOP();
 }
 
+void test_tree_swap(void)
+{
+	tommy_tree first;
+	tommy_tree second;
+	tommy_tree empty;
+	struct object_tree objects[5];
+	tommy_tree_node* first_root;
+	tommy_tree_node* second_root;
+	const int values[] = { 1, 3, 5, 4, 2 };
+
+	tommy_tree_init(&first, &compare);
+	tommy_tree_init(&second, &compare_tree_reverse);
+	tommy_tree_init(&empty, &compare);
+	for (unsigned i = 0; i < 5; ++i)
+		objects[i].value = values[i];
+	for (unsigned i = 0; i < 3; ++i)
+		tommy_tree_insert(&first, &objects[i].node, &objects[i]);
+	for (unsigned i = 3; i < 5; ++i)
+		tommy_tree_insert(&second, &objects[i].node, &objects[i]);
+	first_root = first.root;
+	second_root = second.root;
+
+	tommy_tree_swap(&first, &second);
+	if (first.root != second_root || first.cmp != &compare_tree_reverse || tommy_tree_count(&first) != 2
+		|| second.root != first_root || second.cmp != &compare || tommy_tree_count(&second) != 3
+		|| tommy_tree_head(&first) != &objects[3].node
+		|| tommy_tree_next(tommy_tree_head(&first)) != &objects[4].node
+		|| tommy_tree_search(&first, &objects[2]) != 0
+		|| tommy_tree_search_greater(&first, &objects[1]) != &objects[4]
+		|| tommy_tree_search_less(&first, &objects[1]) != &objects[3]
+		|| tommy_tree_head(&second) != &objects[0].node
+		|| tommy_tree_next(tommy_tree_head(&second)) != &objects[1].node
+		|| tommy_tree_tail(&second) != &objects[2].node) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	tommy_tree_swap(&first, &first);
+	if (first.root != second_root || first.cmp != &compare_tree_reverse || tommy_tree_count(&first) != 2) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	if (tommy_tree_remove(&first, &objects[4]) != &objects[4]
+		|| tommy_tree_remove(&second, &objects[2]) != &objects[2]) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	tommy_tree_swap(&first, &empty);
+	if (!tommy_tree_empty(&first) || first.cmp != &compare || tommy_tree_count(&first) != 0
+		|| empty.root != second_root || empty.cmp != &compare_tree_reverse || tommy_tree_count(&empty) != 1
+		|| tommy_tree_head(&empty) != &objects[3].node) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+}
+
 void test_tree_duplicates(void)
 {
 	tommy_tree tree;
@@ -1657,8 +1729,9 @@ void test_tree_duplicates(void)
 	}
 
 	for (unsigned group = 0; group < 4; ++group) {
-		struct object_tree key;
-		key.value = group;
+		const struct object_tree key = { .value = group };
+		void* greater = group < 3 ? &objects[group + 1] : 0;
+		void* less = group ? &objects[91 + group] : 0;
 		if (tommy_tree_search(&tree, &key) != &objects[group]) {
 			/* LCOV_EXCL_START */
 			abort();
@@ -1689,15 +1762,36 @@ void test_tree_duplicates(void)
 			abort();
 			/* LCOV_EXCL_STOP */
 		}
+		if (tommy_tree_search_greater(&tree, &key) != greater
+			|| tommy_tree_search_greater_compare(&tree, &compare, &key) != greater
+			|| tommy_tree_search_less(&tree, &key) != less
+			|| tommy_tree_search_less_compare(&tree, &compare, &key) != less) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
 	}
 
 	struct object_tree key;
-	key.value = 2;
-	if (tommy_tree_search_node_compare(&tree, &compare_tree_group, &key) != &objects[2].node) {
+	key.value = -1;
+	if (tommy_tree_search_greater(&tree, &key) != &objects[0]
+		|| tommy_tree_search_greater_compare(&tree, &compare, &key) != &objects[0]
+		|| tommy_tree_search_less(&tree, &key) != 0
+		|| tommy_tree_search_less_compare(&tree, &compare, &key) != 0) {
 		/* LCOV_EXCL_START */
 		abort();
 		/* LCOV_EXCL_STOP */
 	}
+	key.value = 4;
+	if (tommy_tree_search_greater(&tree, &key) != 0
+		|| tommy_tree_search_greater_compare(&tree, &compare, &key) != 0
+		|| tommy_tree_search_less(&tree, &key) != &objects[95]
+		|| tommy_tree_search_less_compare(&tree, &compare, &key) != &objects[95]) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	key.value = 2;
 	if (tommy_tree_search_compare(&tree, &compare_tree_group, &key) != &objects[2]) {
 		/* LCOV_EXCL_START */
 		abort();
@@ -1709,6 +1803,26 @@ void test_tree_duplicates(void)
 		/* LCOV_EXCL_STOP */
 	}
 	if (tommy_tree_search_less_equal_compare(&tree, &compare_tree_group, &key) != &objects[95]) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	if (tommy_tree_search_greater_compare(&tree, &compare_tree_group, &key) != 0
+		|| tommy_tree_search_less_compare(&tree, &compare_tree_group, &key) != &objects[93]) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	key.value = 0;
+	if (tommy_tree_search_greater_compare(&tree, &compare_tree_group, &key) != &objects[2]
+		|| tommy_tree_search_less_compare(&tree, &compare_tree_group, &key) != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	int value = 2;
+	if (tommy_tree_search_greater_compare(&tree, &compare_tree_int, &value) != &objects[3]
+		|| tommy_tree_search_less_compare(&tree, &compare_tree_int, &value) != &objects[93]) {
 		/* LCOV_EXCL_START */
 		abort();
 		/* LCOV_EXCL_STOP */
@@ -1764,7 +1878,7 @@ void test_tree_duplicates(void)
 		abort();
 		/* LCOV_EXCL_STOP */
 	}
-	if (tommy_tree_search_node_compare(&tree, &compare_tree_group, &candidate) != 0) {
+	if (tommy_tree_search_compare(&tree, &compare_tree_group, &candidate) != 0) {
 		/* LCOV_EXCL_START */
 		abort();
 		/* LCOV_EXCL_STOP */
@@ -1800,7 +1914,7 @@ void test_tree_duplicates(void)
 		/* LCOV_EXCL_STOP */
 	}
 
-	int value = 4;
+	value = 4;
 	if (tommy_tree_remove_compare(&tree, &compare_tree_int, &value) != &candidate) {
 		/* LCOV_EXCL_START */
 		abort();
@@ -1891,6 +2005,14 @@ void test_tree_clear(void)
 		/* LCOV_EXCL_STOP */
 	}
 	if (tommy_tree_head(&tree) != 0 || tommy_tree_tail(&tree) != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	if (tommy_tree_search_greater(&tree, &objects[0]) != 0
+		|| tommy_tree_search_greater_compare(&tree, &compare, &objects[0]) != 0
+		|| tommy_tree_search_less(&tree, &objects[0]) != 0
+		|| tommy_tree_search_less_compare(&tree, &compare, &objects[0]) != 0) {
 		/* LCOV_EXCL_START */
 		abort();
 		/* LCOV_EXCL_STOP */
@@ -5554,6 +5676,7 @@ int main()
 	test_alloc();
 	test_list();
 	test_tree();
+	test_tree_swap();
 	test_tree_duplicates();
 	test_tree_foreach();
 	test_tree_clear();

@@ -49,6 +49,8 @@ TommyDS HISTORY
    tommy_tree_remove_head() and tommy_tree_remove_tail().
    These navigate the tree and its key order, test for emptiness, and remove
    its smallest or greatest element.
+ * Added tommy_tree_swap() to exchange two trees, including their comparison
+   functions, in constant time.
  * Added tommy_tree_search_greater_equal(),
    tommy_tree_search_greater_equal_compare(),
    tommy_tree_search_less_equal(),
@@ -57,6 +59,9 @@ TommyDS HISTORY
    These find inclusive key bounds, keep unique insertion available, remove
    using a custom comparison, clear for reuse, and drain nodes to a list in
    tree order.
+ * Added tommy_tree_search_greater(), tommy_tree_search_greater_compare(),
+   tommy_tree_search_less() and tommy_tree_search_less_compare() to find
+   exclusive key bounds, skipping all elements equivalent to the search key.
  * Added tommy_array_reserve(), tommy_arrayof_reserve(),
    tommy_arrayblk_reserve() and tommy_arrayblkof_reserve().
    These preallocate capacity to accommodate elements without increasing the
