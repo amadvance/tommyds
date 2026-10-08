@@ -73,6 +73,9 @@ TOMMY_API void* tommy_allocator_alloc(tommy_allocator* alloc)
 		alloc->used_segment = segment;
 		data += sizeof(tommy_allocator_entry);
 
+		/* exclude the header so every free block fits within the segment */
+		size -= sizeof(tommy_allocator_entry);
+
 		/* align if not aligned */
 		tommy_uintptr_t off = (tommy_uintptr_t)data;
 		tommy_uintptr_t mis = off % alloc->align_size;

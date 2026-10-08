@@ -35,7 +35,6 @@ TommyDS HISTORY
    accessing, appending, and removing tail elements, querying state,
    constant-time array swapping, and iterating across initialized elements.
 
-
 3.0 2025/11
 ===========
  * Added support for 64-bit platforms and 64-bit integers. When building on

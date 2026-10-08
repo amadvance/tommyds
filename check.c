@@ -925,6 +925,40 @@ void test_alloc(void)
 	}
 	tommy_allocator_done(&alloc);
 
+	/* check every generated block against the segment bounds */
+	const tommy_size_t cases[][2] = {
+		{ sizeof(void*), 1 },
+		{ sizeof(void*) - 1, sizeof(void*) },
+		{ 32, sizeof(void*) },
+		{ 64, 64 },
+		{ 4096 - 64 - sizeof(tommy_allocator_entry), sizeof(void*) },
+		{ 4096 - 64, sizeof(void*) },
+		{ 128000, 64 },
+		{ 64, 8192 }
+	};
+	for (unsigned i = 0; i < sizeof(cases) / sizeof(cases[0]); ++i) {
+		tommy_allocator_init(&alloc, cases[i][0], cases[i][1]);
+		void* ptr = tommy_allocator_alloc(&alloc);
+		tommy_allocator_free(&alloc, ptr);
+
+		/* match the segment allocation size in tommy_allocator_alloc() */
+		tommy_size_t segment_size = 4096 - 64;
+		if (segment_size < sizeof(tommy_allocator_entry) + alloc.align_size + alloc.block_size)
+			segment_size = sizeof(tommy_allocator_entry) + alloc.align_size + alloc.block_size;
+
+		for (tommy_allocator_entry* block = alloc.free_block; block; block = block->next) {
+			tommy_uintptr_t address = (tommy_uintptr_t)block;
+			tommy_uintptr_t offset = address - (tommy_uintptr_t)alloc.used_segment;
+			if (offset < sizeof(tommy_allocator_entry) || offset > segment_size - alloc.block_size
+				|| address % alloc.align_size != 0) {
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+			}
+		}
+		tommy_allocator_done(&alloc);
+	}
+
 	/* check big blocks */
 	tommy_allocator_init(&alloc, 128000, 64);
 	if (tommy_allocator_alloc(&alloc) == 0) {
