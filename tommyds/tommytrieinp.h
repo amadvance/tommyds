@@ -95,6 +95,8 @@
 
 #include "tommytypes.h"
 
+#include <assert.h> /* for assert */
+
 /******************************************************************************/
 /* trie_inplace */
 
@@ -132,6 +134,23 @@
  * It's like an inner branch, but bigger to get any remainder bits.
  */
 #define TOMMY_TRIE_INPLACE_BUCKET_MAX (1 << TOMMY_TRIE_INPLACE_BUCKET_BIT)
+
+/** \internal
+ * Mask for the inner branches.
+ */
+#define TOMMY_TRIE_INPLACE_TREE_MASK (TOMMY_TRIE_INPLACE_TREE_MAX - 1)
+
+/** \internal
+ * Shift for the first level of branches.
+ */
+#define TOMMY_TRIE_INPLACE_BUCKET_SHIFT (TOMMY_TRIE_INPLACE_BIT - TOMMY_TRIE_INPLACE_BUCKET_BIT)
+
+/** \internal
+ * Shift for the first internal level, skipping bits already used by the bucket.
+ * Traversal shifts are signed because the last descent consumes all key bits;
+ * the resulting negative shift is never used on a leaf or empty child.
+ */
+#define TOMMY_TRIE_INPLACE_TREE_SHIFT (TOMMY_TRIE_INPLACE_BUCKET_SHIFT - TOMMY_TRIE_INPLACE_TREE_BIT)
 
 /**
  * Trie node.
@@ -219,7 +238,21 @@ TOMMY_API void* tommy_trie_inplace_remove(tommy_trie_inplace* trie_inplace, tomm
  * \param key Key of the element to find.
  * \return The head of the bucket, or 0 if empty.
  */
-TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_bucket(tommy_trie_inplace* trie_inplace, tommy_key_t key);
+tommy_inline tommy_trie_inplace_node* tommy_trie_inplace_bucket(tommy_trie_inplace* trie_inplace, tommy_key_t key)
+{
+	/* ensure that the element is not too big */
+	assert(key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT < TOMMY_TRIE_INPLACE_BUCKET_MAX);
+
+	tommy_trie_inplace_node* node = trie_inplace->bucket[key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT];
+	int shift = TOMMY_TRIE_INPLACE_TREE_SHIFT;
+
+	while (node && node->key != key) {
+		node = node->map[(key >> shift) & TOMMY_TRIE_INPLACE_TREE_MASK];
+		shift -= TOMMY_TRIE_INPLACE_TREE_BIT;
+	}
+
+	return node;
+}
 
 /**
  * Searches an element in the trie.

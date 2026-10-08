@@ -9,23 +9,6 @@
 /* trie_inplace */
 
 /**
- * Mask for the inner branches.
- */
-#define TOMMY_TRIE_INPLACE_TREE_MASK (TOMMY_TRIE_INPLACE_TREE_MAX - 1)
-
-/**
- * Shift for the first level of branches.
- */
-#define TOMMY_TRIE_INPLACE_BUCKET_SHIFT (TOMMY_TRIE_INPLACE_BIT - TOMMY_TRIE_INPLACE_BUCKET_BIT)
-
-/**
- * Shift for the first internal level, skipping bits already used by the bucket.
- * Traversal shifts are signed because the last descent consumes all key bits;
- * the resulting negative shift is never used on a leaf or empty child.
- */
-#define TOMMY_TRIE_INPLACE_TREE_SHIFT (TOMMY_TRIE_INPLACE_BUCKET_SHIFT - TOMMY_TRIE_INPLACE_TREE_BIT)
-
-/**
  * Create a new list with a single element.
  */
 tommy_inline tommy_trie_inplace_node* tommy_trie_inplace_list_insert_first(tommy_trie_inplace_node* node)
@@ -253,22 +236,6 @@ TOMMY_API void* tommy_trie_inplace_remove_existing(tommy_trie_inplace* trie_inpl
 	--trie_inplace->count;
 
 	return ret->data;
-}
-
-TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_bucket(tommy_trie_inplace* trie_inplace, tommy_key_t key)
-{
-	/* ensure that the element is not too big */
-	assert(key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT < TOMMY_TRIE_INPLACE_BUCKET_MAX);
-
-	tommy_trie_inplace_node* node = trie_inplace->bucket[key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT];
-	int shift = TOMMY_TRIE_INPLACE_TREE_SHIFT;
-
-	while (node && node->key != key) {
-		node = node->map[(key >> shift) & TOMMY_TRIE_INPLACE_TREE_MASK];
-		shift -= TOMMY_TRIE_INPLACE_TREE_BIT;
-	}
-
-	return node;
 }
 
 TOMMY_API tommy_size_t tommy_trie_inplace_memory_usage(const tommy_trie_inplace* trie_inplace)
