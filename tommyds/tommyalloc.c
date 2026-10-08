@@ -3,6 +3,8 @@
 
 #include "tommyalloc.h"
 
+#include <assert.h> /* for assert */
+
 /******************************************************************************/
 /* allocator */
 
@@ -18,6 +20,9 @@ TOMMY_API void tommy_allocator_init(tommy_allocator* alloc, tommy_size_t block_s
 	/* setup the minimal alignment */
 	if (align_size < sizeof(void*))
 		align_size = sizeof(void*);
+
+	/* blocks store free-list pointers and must preserve their alignment */
+	assert(align_size % sizeof(void*) == 0);
 
 	/* ensure that the block_size keeps the alignment */
 	if (block_size % align_size != 0)

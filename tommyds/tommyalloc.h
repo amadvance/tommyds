@@ -36,7 +36,9 @@ typedef struct tommy_allocator_struct {
  * Initializes the allocator.
  * \param alloc Allocator to initialize.
  * \param block_size Size of the block to allocate.
- * \param align_size Minimum alignment requirement. No less than sizeof(void*).
+ * \param align_size Minimum alignment requirement. Values smaller than sizeof(void*)
+ * are raised to sizeof(void*). After this adjustment, align_size must be a multiple
+ * of sizeof(void*) because allocator blocks store free-list pointers.
  */
 TOMMY_API void tommy_allocator_init(tommy_allocator* alloc, tommy_size_t block_size, tommy_size_t align_size);
 
