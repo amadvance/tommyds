@@ -122,6 +122,37 @@ TOMMY_API void tommy_trie_inplace_insert(tommy_trie_inplace* trie_inplace, tommy
 	++trie_inplace->count;
 }
 
+TOMMY_API void* tommy_trie_inplace_insert_unique(tommy_trie_inplace* trie_inplace, tommy_trie_inplace_node* node, void* data, tommy_key_t key)
+{
+	/* ensure that the element is not too big */
+	assert(key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT < TOMMY_TRIE_INPLACE_BUCKET_MAX);
+
+	tommy_trie_inplace_node** let_ptr = &trie_inplace->bucket[key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT];
+	tommy_trie_inplace_node* existing = *let_ptr;
+	int shift = TOMMY_TRIE_INPLACE_TREE_SHIFT;
+
+	while (existing && existing->key != key) {
+		let_ptr = &existing->map[(key >> shift) & TOMMY_TRIE_INPLACE_TREE_MASK];
+		existing = *let_ptr;
+		shift -= TOMMY_TRIE_INPLACE_TREE_BIT;
+	}
+
+	/* delay candidate initialization so rejected child pointers remain unchanged */
+	if (existing)
+		return existing->data;
+
+	node->data = data;
+	node->key = key;
+	for (tommy_uint_t i = 0; i < TOMMY_TRIE_INPLACE_TREE_MAX; ++i)
+		node->map[i] = 0;
+
+	/* use the empty child pointer found by the search without traversing again */
+	*let_ptr = tommy_trie_inplace_list_insert_first(node);
+	++trie_inplace->count;
+
+	return data;
+}
+
 static tommy_trie_inplace_node* trie_inplace_bucket_remove(int shift, tommy_trie_inplace_node** let_ptr, tommy_trie_inplace_node* remove, tommy_key_t key)
 {
 	tommy_trie_inplace_node* node = *let_ptr;

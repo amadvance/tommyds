@@ -146,6 +146,34 @@ TOMMY_API void tommy_trie_insert(tommy_trie* trie, tommy_trie_node* node, void* 
 	++trie->count;
 }
 
+TOMMY_API void* tommy_trie_insert_unique(tommy_trie* trie, tommy_trie_node* node, void* data, tommy_key_t key)
+{
+	/* ensure that the element is not too big */
+	assert(key >> TOMMY_TRIE_BUCKET_SHIFT < TOMMY_TRIE_BUCKET_MAX);
+
+	tommy_trie_node** let_ptr = &trie->bucket[key >> TOMMY_TRIE_BUCKET_SHIFT];
+	int shift = TOMMY_TRIE_TREE_SHIFT;
+
+	while (*let_ptr && trie_get_type(*let_ptr) == TOMMY_TRIE_TYPE_TREE) {
+		let_ptr = &trie_get_tree(*let_ptr)->map[(key >> shift) & TOMMY_TRIE_TREE_MASK];
+		shift -= TOMMY_TRIE_TREE_BIT;
+	}
+
+	/* delay candidate initialization and allocation until duplicates have been excluded */
+	tommy_trie_node* existing = *let_ptr;
+	if (existing && existing->index == key)
+		return existing->data;
+
+	node->data = data;
+	node->index = key;
+
+	/* continue insertion at the position and key bits already reached by the search */
+	trie_bucket_insert(trie, shift, let_ptr, node, key);
+	++trie->count;
+
+	return data;
+}
+
 static tommy_trie_node* trie_bucket_remove_existing(tommy_trie* trie, int shift, tommy_trie_node** let_ptr, tommy_trie_node* remove, tommy_key_t key)
 {
 	tommy_trie_node* node;

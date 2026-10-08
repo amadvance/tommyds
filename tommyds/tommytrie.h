@@ -190,6 +190,19 @@ TOMMY_API void tommy_trie_init(tommy_trie* trie, tommy_allocator* alloc);
 TOMMY_API void tommy_trie_insert(tommy_trie* trie, tommy_trie_node* node, void* data, tommy_key_t key);
 
 /**
+ * Inserts an element only if no element with the same numeric key is already contained.
+ * If found, the first element with that key in insertion order is returned.
+ * The candidate node and trie, including its allocator, are left unchanged, and no memory is allocated.
+ * Otherwise, the candidate is inserted using the normal insertion policy and its data field is returned.
+ * \param trie The trie.
+ * \param node The candidate node. It must not belong to any container.
+ * \param data Pointer to the object to insert.
+ * \param key Numeric key, which must fit within ::TOMMY_TRIE_BIT bits.
+ * \return The first matching element's data field, or data if the candidate was inserted.
+ */
+TOMMY_API void* tommy_trie_insert_unique(tommy_trie* trie, tommy_trie_node* node, void* data, tommy_key_t key);
+
+/**
  * Searches and removes the first element with the specified key.
  * If the element is not found, 0 is returned.
  * If more equal elements are present, the first one is removed.
@@ -243,6 +256,15 @@ TOMMY_API void* tommy_trie_remove_existing(tommy_trie* trie, tommy_trie_node* no
 tommy_inline tommy_size_t tommy_trie_count(tommy_trie* trie)
 {
 	return trie->count;
+}
+
+/**
+ * Checks if empty in O(1) time.
+ * \return If the trie contains no elements.
+ */
+tommy_inline tommy_bool_t tommy_trie_empty(tommy_trie* trie)
+{
+	return trie->count == 0;
 }
 
 /**

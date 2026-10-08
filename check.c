@@ -5540,6 +5540,82 @@ void test_trie(void)
 	tommy_trie trie;
 	tommy_trie_init(&trie, &alloc);
 
+	if (!tommy_trie_empty(&trie)) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	/* unique insertion uses the numeric key and preserves normal duplicate order */
+	if (tommy_trie_insert_unique(&trie, &OBJ[0].node, &OBJ[0], 0) != &OBJ[0]
+		|| tommy_trie_insert_unique(&trie, &OBJ[1].node, &OBJ[1], 1) != &OBJ[1]
+		|| tommy_trie_count(&trie) != 2 || tommy_trie_empty(&trie)
+		|| tommy_trie_search(&trie, 0) != &OBJ[0] || tommy_trie_search(&trie, 1) != &OBJ[1]) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	struct object_trie duplicate;
+	tommy_trie_insert(&trie, &duplicate.node, &duplicate, 0);
+
+	/* rejection must not modify any candidate bytes, trie state, or allocator state */
+	struct object_trie candidate;
+	memset(&candidate.node, 0xa5, sizeof(candidate.node));
+	unsigned char node_before[sizeof(candidate.node)];
+	unsigned char trie_before[sizeof(trie)];
+	unsigned char alloc_before[sizeof(alloc)];
+	memcpy(node_before, &candidate.node, sizeof(node_before));
+	memcpy(trie_before, &trie, sizeof(trie_before));
+	memcpy(alloc_before, &alloc, sizeof(alloc_before));
+	for (unsigned i = 0; i < 2; ++i) {
+		if (tommy_trie_insert_unique(&trie, &candidate.node, &candidate, i) != &OBJ[i]
+			|| tommy_trie_count(&trie) != 3 || tommy_trie_empty(&trie)
+			|| memcmp(node_before, &candidate.node, sizeof(node_before)) != 0
+			|| memcmp(trie_before, &trie, sizeof(trie_before)) != 0
+			|| memcmp(alloc_before, &alloc, sizeof(alloc_before)) != 0
+			|| tommy_trie_search(&trie, i) != &OBJ[i]) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
+	/* continue unique insertion from empty child pointers and colliding leaves */
+	const unsigned keys[] = { 2, 2 * TOMMY_TRIE_TREE_MAX, 2 * TOMMY_TRIE_TREE_MAX + 1 };
+	for (unsigned i = 0; i < sizeof(keys) / sizeof(keys[0]); ++i) {
+		unsigned key = keys[i];
+		if (tommy_trie_insert_unique(&trie, &OBJ[key].node, &OBJ[key], key) != &OBJ[key]
+			|| tommy_trie_count(&trie) != i + 4 || tommy_trie_search(&trie, key) != &OBJ[key]) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
+	/* drain through both removal paths, preserving the newly inserted branches */
+	if (tommy_trie_remove(&trie, 0) != &OBJ[0] || tommy_trie_search(&trie, 0) != &duplicate
+		|| tommy_trie_remove_existing(&trie, &duplicate.node) != &duplicate || tommy_trie_search(&trie, 0) != 0
+		|| tommy_trie_empty(&trie) || tommy_trie_search(&trie, 1) != &OBJ[1]
+		|| tommy_trie_remove_existing(&trie, &OBJ[1].node) != &OBJ[1] || tommy_trie_search(&trie, 1) != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	for (unsigned i = 0; i < sizeof(keys) / sizeof(keys[0]); ++i) {
+		unsigned key = keys[i];
+		if (tommy_trie_search(&trie, key) != &OBJ[key] || tommy_trie_remove(&trie, key) != &OBJ[key]
+			|| tommy_trie_search(&trie, key) != 0) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+	if (!tommy_trie_empty(&trie) || tommy_trie_count(&trie) != 0 || trie.node_count != 0 || alloc.count != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
 	/* insert */
 	for (unsigned i = 0; i < size; ++i)
 		tommy_trie_insert(&trie, &OBJ[i].node, &OBJ[i], OBJ[i].value);
@@ -5641,6 +5717,79 @@ void test_trie_inplace(void)
 	START("trie_inplace");
 	tommy_trie_inplace trie_inplace;
 	tommy_trie_inplace_init(&trie_inplace);
+
+	if (!tommy_trie_inplace_empty(&trie_inplace)) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	/* unique insertion uses the numeric key and preserves normal duplicate order */
+	if (tommy_trie_inplace_insert_unique(&trie_inplace, &OBJ[0].node, &OBJ[0], 0) != &OBJ[0]
+		|| tommy_trie_inplace_insert_unique(&trie_inplace, &OBJ[1].node, &OBJ[1], 1) != &OBJ[1]
+		|| tommy_trie_inplace_count(&trie_inplace) != 2 || tommy_trie_inplace_empty(&trie_inplace)
+		|| tommy_trie_inplace_search(&trie_inplace, 0) != &OBJ[0] || tommy_trie_inplace_search(&trie_inplace, 1) != &OBJ[1]) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	struct object_trie_inplace duplicate;
+	tommy_trie_inplace_insert(&trie_inplace, &duplicate.node, &duplicate, 0);
+
+	/* rejection must preserve every candidate field, including its child pointers */
+	struct object_trie_inplace candidate;
+	memset(&candidate.node, 0xa5, sizeof(candidate.node));
+	unsigned char node_before[sizeof(candidate.node)];
+	unsigned char trie_before[sizeof(trie_inplace)];
+	memcpy(node_before, &candidate.node, sizeof(node_before));
+	memcpy(trie_before, &trie_inplace, sizeof(trie_before));
+	for (unsigned i = 0; i < 2; ++i) {
+		if (tommy_trie_inplace_insert_unique(&trie_inplace, &candidate.node, &candidate, i) != &OBJ[i]
+			|| tommy_trie_inplace_count(&trie_inplace) != 3 || tommy_trie_inplace_empty(&trie_inplace)
+			|| memcmp(node_before, &candidate.node, sizeof(node_before)) != 0
+			|| memcmp(trie_before, &trie_inplace, sizeof(trie_before)) != 0
+			|| tommy_trie_inplace_search(&trie_inplace, i) != &OBJ[i]) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
+	/* continue unique insertion from child pointers reached during the search */
+	const unsigned keys[] = { 2, 8, 9 };
+	for (unsigned i = 0; i < sizeof(keys) / sizeof(keys[0]); ++i) {
+		unsigned key = keys[i];
+		if (tommy_trie_inplace_insert_unique(&trie_inplace, &OBJ[key].node, &OBJ[key], key) != &OBJ[key]
+			|| tommy_trie_inplace_count(&trie_inplace) != i + 4 || tommy_trie_inplace_search(&trie_inplace, key) != &OBJ[key]) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
+	/* drain through both removal paths, including duplicate and child replacement */
+	if (tommy_trie_inplace_remove(&trie_inplace, 0) != &OBJ[0] || tommy_trie_inplace_search(&trie_inplace, 0) != &duplicate
+		|| tommy_trie_inplace_remove_existing(&trie_inplace, &duplicate.node) != &duplicate || tommy_trie_inplace_search(&trie_inplace, 0) != 0
+		|| tommy_trie_inplace_empty(&trie_inplace) || tommy_trie_inplace_search(&trie_inplace, 1) != &OBJ[1]
+		|| tommy_trie_inplace_remove_existing(&trie_inplace, &OBJ[1].node) != &OBJ[1] || tommy_trie_inplace_search(&trie_inplace, 1) != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	for (unsigned i = 0; i < sizeof(keys) / sizeof(keys[0]); ++i) {
+		unsigned key = keys[i];
+		if (tommy_trie_inplace_search(&trie_inplace, key) != &OBJ[key] || tommy_trie_inplace_remove(&trie_inplace, key) != &OBJ[key]
+			|| tommy_trie_inplace_search(&trie_inplace, key) != 0) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+	if (!tommy_trie_inplace_empty(&trie_inplace) || tommy_trie_inplace_count(&trie_inplace) != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
 
 	/* insert */
 	for (unsigned i = 0; i < size; ++i)
