@@ -849,6 +849,11 @@
 
 /** \file
  * All-in-one include for Tommy.
+ *
+ * This header can also be included from C++ code, providing C linkage
+ * for all the functions declared by the library.
+ *
+ * When using C++, include this header instead of the individual headers.
  */
 
 #ifdef __cplusplus
@@ -873,4 +878,3 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
