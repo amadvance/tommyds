@@ -21,7 +21,7 @@
  * \param init_val Initialization value.
  * Using a different initialization value, you can generate a completely different set of hash values.
  * Use 0 if not relevant.
- * \param void_key Pointer to the data to hash.
+ * \param void_key Pointer to the data to hash. Must not be NULL, even if key_len is 0.
  * \param key_len Size of the data to hash.
  * \note
  * This function is endianness independent and alignment independent.
@@ -41,7 +41,7 @@ TOMMY_API tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* voi
  * \param init_val Initialization value.
  * Using a different initialization value, you can generate a completely different set of hash values.
  * Use 0 if not relevant.
- * \param void_key Pointer to the data to hash.
+ * \param void_key Pointer to the data to hash. Must not be NULL, even if key_len is 0.
  * \param key_len Size of the data to hash.
  * \note
  * This function is endianness independent and alignment independent.

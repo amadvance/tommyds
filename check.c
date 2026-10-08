@@ -790,13 +790,13 @@ void test_hash(void)
 	test_strhash_alignment();
 	test_strhash_u64_alignment();
 
-	if (tommy_hash_u32(0xa766795d, 0, 0) != 0x3ba63d24) {
+	if (tommy_hash_u32(0xa766795d, "", 0) != 0x3ba63d24) {
 		/* LCOV_EXCL_START */
 		abort();
 		/* LCOV_EXCL_STOP */
 	}
 
-	if (tommy_hash_u64(0x2f022773a766795dULL, 0, 0) != 0xf1999eea212f89e6ULL) {
+	if (tommy_hash_u64(0x2f022773a766795dULL, "", 0) != 0xf1999eea212f89e6ULL) {
 		/* LCOV_EXCL_START */
 		abort();
 		/* LCOV_EXCL_STOP */
