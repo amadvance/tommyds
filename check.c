@@ -3569,6 +3569,80 @@ void test_hash_bucket(tommy_node* node, struct object_hash* obj, const unsigned*
 	}
 }
 
+void test_hashtable_swap(void)
+{
+	for (unsigned first_count = 0; first_count <= 3; first_count += 3) {
+		for (unsigned second_count = 0; second_count <= 2; second_count += 2) {
+			tommy_hashtable first, second;
+			struct object_hash obj[7], before[7];
+			memset(obj, 0, sizeof(obj));
+			tommy_hashtable_init(&first, 16);
+			tommy_hashtable_init(&second, 128);
+			for (unsigned i = 0; i < 7; ++i)
+				obj[i].value = i;
+			for (unsigned i = 0; i < first_count; ++i)
+				tommy_hashtable_insert(&first, &obj[i].node, &obj[i], tommy_inthash_u32(i));
+			for (unsigned i = 0; i < second_count; ++i)
+				tommy_hashtable_insert(&second, &obj[3 + i].node, &obj[3 + i], tommy_inthash_u32(3 + i));
+			tommy_hashtable saved_first = first, saved_second = second;
+			memcpy(before, obj, sizeof(before));
+
+			tommy_hashtable_swap(&first, &second);
+			for (unsigned phase = 0; phase < 2; ++phase) {
+				if (phase) {
+					tommy_hashtable_swap(&first, &first);
+					tommy_hashtable_swap(&second, &second);
+				}
+				if (first.bucket != saved_second.bucket || first.bucket_max != saved_second.bucket_max
+					|| first.bucket_mask != saved_second.bucket_mask || first.count != second_count
+					|| second.bucket != saved_first.bucket || second.bucket_max != saved_first.bucket_max
+					|| second.bucket_mask != saved_first.bucket_mask || second.count != first_count
+					|| memcmp(before, obj, sizeof(before)) != 0) {
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+				}
+				for (unsigned i = 0; i < 5; ++i) {
+					if (tommy_hashtable_search(&first, search_hash_value_callback, &obj[i].value, tommy_inthash_u32(i)) != (i >= 3 && i < 3 + second_count ? &obj[i] : 0)
+						|| tommy_hashtable_search(&second, search_hash_value_callback, &obj[i].value, tommy_inthash_u32(i)) != (i < first_count ? &obj[i] : 0)) {
+						/* LCOV_EXCL_START */
+						abort();
+						/* LCOV_EXCL_STOP */
+					}
+				}
+			}
+
+			/* both containers accept new nodes after the exchange, including empty ones */
+			tommy_hashtable_insert(&first, &obj[5].node, &obj[5], tommy_inthash_u32(5));
+			tommy_hashtable_insert(&second, &obj[6].node, &obj[6], tommy_inthash_u32(6));
+			if (tommy_hashtable_remove_existing(&first, &obj[5].node) != &obj[5]
+				|| tommy_hashtable_remove_existing(&second, &obj[6].node) != &obj[6]) {
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+			}
+			for (unsigned i = 0; i < 5; ++i) {
+				if (i < first_count || (i >= 3 && i < 3 + second_count)) {
+					tommy_hashtable* table = i < 3 ? &second : &first;
+					void* removed = i % 2 ? tommy_hashtable_remove(table, search_hash_value_callback, &obj[i].value, tommy_inthash_u32(i)) : tommy_hashtable_remove_existing(table, &obj[i].node);
+					if (removed != &obj[i] || tommy_hashtable_search(table, search_hash_value_callback, &obj[i].value, tommy_inthash_u32(i)) != 0) {
+						/* LCOV_EXCL_START */
+						abort();
+						/* LCOV_EXCL_STOP */
+					}
+				}
+			}
+			if (!tommy_hashtable_empty(&first) || !tommy_hashtable_empty(&second)) {
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+			}
+			tommy_hashtable_done(&first);
+			tommy_hashtable_done(&second);
+		}
+	}
+}
+
 void test_hashtable_insert_unique(void)
 {
 	struct object_hash obj[257], candidate;
@@ -4031,6 +4105,7 @@ void test_hashtable(void)
 
 	test_hashtable_clear();
 	test_hashtable_insert_unique();
+	test_hashtable_swap();
 	test_hashtable_rehash_existing();
 	test_hashtable_to_list();
 
@@ -4245,6 +4320,80 @@ void test_hashdyn_shrink(void)
 					/* LCOV_EXCL_STOP */
 				}
 			tommy_hashdyn_done(&table);
+		}
+	}
+}
+
+void test_hashdyn_swap(void)
+{
+	for (unsigned first_count = 0; first_count <= 3; first_count += 3) {
+		for (unsigned second_count = 0; second_count <= 2; second_count += 2) {
+			tommy_hashdyn first, second;
+			struct object_hash obj[7], before[7];
+			memset(obj, 0, sizeof(obj));
+			tommy_hashdyn_init(&first);
+			tommy_hashdyn_init(&second);
+			tommy_hashdyn_reserve(&first, 128);
+			for (unsigned i = 0; i < 7; ++i)
+				obj[i].value = i;
+			for (unsigned i = 0; i < first_count; ++i)
+				tommy_hashdyn_insert(&first, &obj[i].node, &obj[i], tommy_inthash_u32(i));
+			for (unsigned i = 0; i < second_count; ++i)
+				tommy_hashdyn_insert(&second, &obj[3 + i].node, &obj[3 + i], tommy_inthash_u32(3 + i));
+			tommy_hashdyn saved_first = first, saved_second = second;
+			memcpy(before, obj, sizeof(before));
+
+			tommy_hashdyn_swap(&first, &second);
+			for (unsigned phase = 0; phase < 2; ++phase) {
+				if (phase) {
+					tommy_hashdyn_swap(&first, &first);
+					tommy_hashdyn_swap(&second, &second);
+				}
+				if (first.bucket != saved_second.bucket || first.bucket_max != saved_second.bucket_max
+					|| first.bucket_mask != saved_second.bucket_mask || first.bucket_bit != saved_second.bucket_bit || first.count != second_count
+					|| second.bucket != saved_first.bucket || second.bucket_max != saved_first.bucket_max
+					|| second.bucket_mask != saved_first.bucket_mask || second.bucket_bit != saved_first.bucket_bit || second.count != first_count
+					|| memcmp(before, obj, sizeof(before)) != 0) {
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+				}
+				for (unsigned i = 0; i < 5; ++i) {
+					if (tommy_hashdyn_search(&first, search_hash_value_callback, &obj[i].value, tommy_inthash_u32(i)) != (i >= 3 && i < 3 + second_count ? &obj[i] : 0)
+						|| tommy_hashdyn_search(&second, search_hash_value_callback, &obj[i].value, tommy_inthash_u32(i)) != (i < first_count ? &obj[i] : 0)) {
+						/* LCOV_EXCL_START */
+						abort();
+						/* LCOV_EXCL_STOP */
+					}
+				}
+			}
+
+			tommy_hashdyn_insert(&first, &obj[5].node, &obj[5], tommy_inthash_u32(5));
+			tommy_hashdyn_insert(&second, &obj[6].node, &obj[6], tommy_inthash_u32(6));
+			if (tommy_hashdyn_remove_existing(&first, &obj[5].node) != &obj[5]
+				|| tommy_hashdyn_remove_existing(&second, &obj[6].node) != &obj[6]) {
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+			}
+			for (unsigned i = 0; i < 5; ++i) {
+				if (i < first_count || (i >= 3 && i < 3 + second_count)) {
+					tommy_hashdyn* table = i < 3 ? &second : &first;
+					void* removed = i % 2 ? tommy_hashdyn_remove(table, search_hash_value_callback, &obj[i].value, tommy_inthash_u32(i)) : tommy_hashdyn_remove_existing(table, &obj[i].node);
+					if (removed != &obj[i] || tommy_hashdyn_search(table, search_hash_value_callback, &obj[i].value, tommy_inthash_u32(i)) != 0) {
+						/* LCOV_EXCL_START */
+						abort();
+						/* LCOV_EXCL_STOP */
+					}
+				}
+			}
+			if (!tommy_hashdyn_empty(&first) || !tommy_hashdyn_empty(&second)) {
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+			}
+			tommy_hashdyn_done(&first);
+			tommy_hashdyn_done(&second);
 		}
 	}
 }
@@ -4726,6 +4875,7 @@ void test_hashdyn(void)
 	test_hashdyn_clear();
 	test_hashdyn_shrink();
 	test_hashdyn_insert_unique();
+	test_hashdyn_swap();
 	test_hashdyn_rehash_existing();
 	test_hashdyn_to_list();
 
@@ -4835,6 +4985,122 @@ void test_hashdyn(void)
 		tommy_hashdyn_done(&hashdyn);
 	}
 	STOP();
+}
+
+void test_hashlin_swap(void)
+{
+	const unsigned counts[][2] = { { 0, 0 }, { 33, 33 }, { 48, 48 }, { 128, 24 }, { 128, 17 } };
+	unsigned grow = 0, shrink = 0;
+	for (unsigned c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
+		for (unsigned second_count = 0; second_count <= 3; second_count += 3) {
+			tommy_hashlin first, second;
+			struct object_hash obj[132], before[132];
+			memset(obj, 0, sizeof(obj));
+			tommy_hashlin_init(&first);
+			tommy_hashlin_init(&second);
+			for (unsigned i = 0; i < 132; ++i)
+				obj[i].value = i;
+			for (unsigned i = 0; i < counts[c][0]; ++i)
+				tommy_hashlin_insert(&first, &obj[i].node, &obj[i], tommy_inthash_u32(i));
+			for (unsigned i = counts[c][0]; i > counts[c][1]; --i)
+				tommy_hashlin_remove_existing(&first, &obj[i - 1].node);
+			for (unsigned i = 0; i < second_count; ++i)
+				tommy_hashlin_insert(&second, &obj[128 + i].node, &obj[128 + i], tommy_inthash_u32(128 + i));
+
+			/* exercise partially split and partially merged bucket segments */
+			if (c != 0) {
+				if (first.state == second.state || first.split == 0 || first.split >= first.low_max) {
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+				}
+				if (counts[c][0] == counts[c][1])
+					++grow;
+				else
+					++shrink;
+			}
+			tommy_hashlin saved_first = first, saved_second = second;
+			memcpy(before, obj, sizeof(before));
+			tommy_hashlin_swap(&first, &second);
+			for (unsigned phase = 0; phase < 2; ++phase) {
+				if (phase) {
+					tommy_hashlin_swap(&first, &first);
+					tommy_hashlin_swap(&second, &second);
+				}
+				for (unsigned side = 0; side < 2; ++side) {
+					tommy_hashlin* table = side ? &second : &first;
+					const tommy_hashlin* saved = side ? &saved_first : &saved_second;
+					if (table->bucket_max != saved->bucket_max || table->bucket_mask != saved->bucket_mask
+						|| table->low_max != saved->low_max || table->low_mask != saved->low_mask
+						|| table->split != saved->split || table->count != saved->count
+						|| table->bucket_bit != saved->bucket_bit || table->state != saved->state) {
+						/* LCOV_EXCL_START */
+						abort();
+						/* LCOV_EXCL_STOP */
+					}
+					for (unsigned i = 0; i < saved->bucket_bit; ++i)
+						if (table->bucket[i] != saved->bucket[i]) {
+							/* LCOV_EXCL_START */
+							abort();
+							/* LCOV_EXCL_STOP */
+						}
+				}
+				if (memcmp(before, obj, sizeof(before)) != 0) {
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+				}
+				for (unsigned i = 0; i < 131; ++i) {
+					if (tommy_hashlin_search(&first, search_hash_value_callback, &obj[i].value, tommy_inthash_u32(i)) != (i >= 128 && i < 128 + second_count ? &obj[i] : 0)
+						|| tommy_hashlin_search(&second, search_hash_value_callback, &obj[i].value, tommy_inthash_u32(i)) != (i < counts[c][1] ? &obj[i] : 0)) {
+						/* LCOV_EXCL_START */
+						abort();
+						/* LCOV_EXCL_STOP */
+					}
+				}
+			}
+
+			/* subsequent mutations must continue the resize using the moved state */
+			for (unsigned side = 0; side < 2; ++side) {
+				tommy_hashlin* table = side ? &second : &first;
+				tommy_hashlin_insert(table, &obj[131].node, &obj[131], tommy_inthash_u32(131));
+				if (tommy_hashlin_search(table, search_hash_value_callback, &obj[131].value, tommy_inthash_u32(131)) != &obj[131]
+					|| tommy_hashlin_remove_existing(table, &obj[131].node) != &obj[131]) {
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+				}
+			}
+			for (unsigned i = 0; i < 131; ++i) {
+				if (i < counts[c][1] || (i >= 128 && i < 128 + second_count)) {
+					tommy_hashlin* table = i < 128 ? &second : &first;
+					if (tommy_hashlin_search(table, search_hash_value_callback, &obj[i].value, tommy_inthash_u32(i)) != &obj[i]) {
+						/* LCOV_EXCL_START */
+						abort();
+						/* LCOV_EXCL_STOP */
+					}
+					void* removed = i % 2 ? tommy_hashlin_remove(table, search_hash_value_callback, &obj[i].value, tommy_inthash_u32(i)) : tommy_hashlin_remove_existing(table, &obj[i].node);
+					if (removed != &obj[i] || tommy_hashlin_search(table, search_hash_value_callback, &obj[i].value, tommy_inthash_u32(i)) != 0) {
+						/* LCOV_EXCL_START */
+						abort();
+						/* LCOV_EXCL_STOP */
+					}
+				}
+			}
+			if (!tommy_hashlin_empty(&first) || !tommy_hashlin_empty(&second)) {
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+			}
+			tommy_hashlin_done(&first);
+			tommy_hashlin_done(&second);
+		}
+	}
+	if (!grow || !shrink) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
 }
 
 void test_hashlin_insert_unique(void)
@@ -5408,6 +5674,7 @@ void test_hashlin(void)
 
 	test_hashlin_clear();
 	test_hashlin_insert_unique();
+	test_hashlin_swap();
 	test_hashlin_rehash_existing();
 	test_hashlin_to_list();
 
@@ -5533,6 +5800,173 @@ void test_hashlin(void)
 		tommy_hashlin_done(&hashlin);
 	}
 	STOP();
+}
+
+void test_trie_swap(void)
+{
+	for (unsigned first_count = 0; first_count <= 3; first_count += 3) {
+		for (unsigned second_count = 0; second_count <= 2; second_count += 2) {
+			tommy_allocator first_alloc, second_alloc;
+			tommy_trie first, second;
+			struct object_trie obj[9], before[9];
+			memset(obj, 0, sizeof(obj));
+			tommy_allocator_init(&first_alloc, TOMMY_TRIE_BLOCK_SIZE, TOMMY_TRIE_BLOCK_SIZE);
+			tommy_allocator_init(&second_alloc, TOMMY_TRIE_BLOCK_SIZE, TOMMY_TRIE_BLOCK_SIZE);
+			tommy_trie_init(&first, &first_alloc);
+			tommy_trie_init(&second, &second_alloc);
+			for (unsigned i = 0; i < 9; ++i)
+				obj[i].value = i;
+			for (unsigned i = 0; i < first_count; ++i)
+				tommy_trie_insert(&first, &obj[i].node, &obj[i], i);
+			for (unsigned i = 0; i < second_count; ++i)
+				tommy_trie_insert(&second, &obj[3 + i].node, &obj[3 + i], 3 + i);
+			tommy_trie saved_first = first, saved_second = second;
+			memcpy(before, obj, sizeof(before));
+
+			tommy_trie_swap(&first, &second);
+			for (unsigned phase = 0; phase < 2; ++phase) {
+				if (phase) {
+					tommy_trie_swap(&first, &first);
+					tommy_trie_swap(&second, &second);
+				}
+				if (first.alloc != &second_alloc || second.alloc != &first_alloc
+					|| first.count != second_count || second.count != first_count
+					|| first.node_count != saved_second.node_count || second.node_count != saved_first.node_count
+					|| first_alloc.count != saved_first.node_count || second_alloc.count != saved_second.node_count
+					|| memcmp(before, obj, sizeof(before)) != 0) {
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+				}
+				for (unsigned i = 0; i < TOMMY_TRIE_BUCKET_MAX; ++i)
+					if (first.bucket[i] != saved_second.bucket[i] || second.bucket[i] != saved_first.bucket[i]) {
+						/* LCOV_EXCL_START */
+						abort();
+						/* LCOV_EXCL_STOP */
+					}
+				for (unsigned i = 0; i < 5; ++i) {
+					if (tommy_trie_search(&first, i) != (i >= 3 && i < 3 + second_count ? &obj[i] : 0)
+						|| tommy_trie_search(&second, i) != (i < first_count ? &obj[i] : 0)) {
+						/* LCOV_EXCL_START */
+						abort();
+						/* LCOV_EXCL_STOP */
+					}
+				}
+			}
+
+			/* expansion and reduction must use the allocator that moved with the roots */
+			tommy_key_t key = 4 * TOMMY_TRIE_TREE_MAX;
+			tommy_trie_insert(&first, &obj[5].node, &obj[5], key);
+			tommy_trie_insert(&first, &obj[6].node, &obj[6], key + 1);
+			tommy_trie_insert(&second, &obj[7].node, &obj[7], key);
+			tommy_trie_insert(&second, &obj[8].node, &obj[8], key + 1);
+			if (first.node_count != second_alloc.count || second.node_count != first_alloc.count
+				|| first.node_count <= saved_second.node_count || second.node_count <= saved_first.node_count
+				|| tommy_trie_search(&first, key) != &obj[5] || tommy_trie_search(&first, key + 1) != &obj[6]
+				|| tommy_trie_search(&second, key) != &obj[7] || tommy_trie_search(&second, key + 1) != &obj[8]
+				|| tommy_trie_remove_existing(&first, &obj[5].node) != &obj[5]
+				|| tommy_trie_remove_existing(&first, &obj[6].node) != &obj[6]
+				|| tommy_trie_remove_existing(&second, &obj[7].node) != &obj[7]
+				|| tommy_trie_remove_existing(&second, &obj[8].node) != &obj[8]) {
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+			}
+			for (unsigned i = 0; i < 5; ++i) {
+				if (i < first_count || (i >= 3 && i < 3 + second_count)) {
+					tommy_trie* trie = i < 3 ? &second : &first;
+					void* removed = i % 2 ? tommy_trie_remove(trie, i) : tommy_trie_remove_existing(trie, &obj[i].node);
+					if (removed != &obj[i] || tommy_trie_search(trie, i) != 0) {
+						/* LCOV_EXCL_START */
+						abort();
+						/* LCOV_EXCL_STOP */
+					}
+				}
+			}
+			if (!tommy_trie_empty(&first) || !tommy_trie_empty(&second)
+				|| first.node_count != 0 || second.node_count != 0 || first_alloc.count != 0 || second_alloc.count != 0) {
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+			}
+			tommy_allocator_done(&first_alloc);
+			tommy_allocator_done(&second_alloc);
+		}
+	}
+}
+
+void test_trie_inplace_swap(void)
+{
+	for (unsigned first_count = 0; first_count <= 3; first_count += 3) {
+		for (unsigned second_count = 0; second_count <= 2; second_count += 2) {
+			tommy_trie_inplace first, second;
+			struct object_trie_inplace obj[7], before[7];
+			memset(obj, 0, sizeof(obj));
+			tommy_trie_inplace_init(&first);
+			tommy_trie_inplace_init(&second);
+			for (unsigned i = 0; i < 7; ++i)
+				obj[i].value = i;
+			for (unsigned i = 0; i < first_count; ++i)
+				tommy_trie_inplace_insert(&first, &obj[i].node, &obj[i], i);
+			for (unsigned i = 0; i < second_count; ++i)
+				tommy_trie_inplace_insert(&second, &obj[3 + i].node, &obj[3 + i], 3 + i);
+			tommy_trie_inplace saved_first = first, saved_second = second;
+			memcpy(before, obj, sizeof(before));
+
+			tommy_trie_inplace_swap(&first, &second);
+			for (unsigned phase = 0; phase < 2; ++phase) {
+				if (phase) {
+					tommy_trie_inplace_swap(&first, &first);
+					tommy_trie_inplace_swap(&second, &second);
+				}
+				if (first.count != second_count || second.count != first_count || memcmp(before, obj, sizeof(before)) != 0) {
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+				}
+				for (unsigned i = 0; i < TOMMY_TRIE_INPLACE_BUCKET_MAX; ++i)
+					if (first.bucket[i] != saved_second.bucket[i] || second.bucket[i] != saved_first.bucket[i]) {
+						/* LCOV_EXCL_START */
+						abort();
+						/* LCOV_EXCL_STOP */
+					}
+				for (unsigned i = 0; i < 5; ++i) {
+					if (tommy_trie_inplace_search(&first, i) != (i >= 3 && i < 3 + second_count ? &obj[i] : 0)
+						|| tommy_trie_inplace_search(&second, i) != (i < first_count ? &obj[i] : 0)) {
+						/* LCOV_EXCL_START */
+						abort();
+						/* LCOV_EXCL_STOP */
+					}
+				}
+			}
+
+			tommy_trie_inplace_insert(&first, &obj[5].node, &obj[5], 5);
+			tommy_trie_inplace_insert(&second, &obj[6].node, &obj[6], 6);
+			if (tommy_trie_inplace_search(&first, 5) != &obj[5] || tommy_trie_inplace_search(&second, 6) != &obj[6]
+				|| tommy_trie_inplace_remove_existing(&first, &obj[5].node) != &obj[5]
+				|| tommy_trie_inplace_remove_existing(&second, &obj[6].node) != &obj[6]) {
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+			}
+			for (unsigned i = 0; i < 5; ++i) {
+				if (i < first_count || (i >= 3 && i < 3 + second_count)) {
+					tommy_trie_inplace* trie = i < 3 ? &second : &first;
+					void* removed = i % 2 ? tommy_trie_inplace_remove(trie, i) : tommy_trie_inplace_remove_existing(trie, &obj[i].node);
+					if (removed != &obj[i] || tommy_trie_inplace_search(trie, i) != 0) {
+						/* LCOV_EXCL_START */
+						abort();
+						/* LCOV_EXCL_STOP */
+					}
+				}
+			}
+			if (!tommy_trie_inplace_empty(&first) || !tommy_trie_inplace_empty(&second)) {
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+			}
+		}
+	}
 }
 
 void test_trie(void)
@@ -5898,7 +6332,9 @@ int main()
 	test_hashdyn();
 	test_hashlin();
 	test_trie();
+	test_trie_swap();
 	test_trie_inplace();
+	test_trie_inplace_swap();
 
 	printf("OK\n");
 

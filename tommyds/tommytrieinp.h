@@ -163,6 +163,22 @@ typedef struct tommy_trie_inplace_struct {
 TOMMY_API void tommy_trie_inplace_init(tommy_trie_inplace* trie_inplace);
 
 /**
+ * Exchanges the complete state of two initialized tries.
+ * The tries must not share nodes. Nodes and objects are not accessed or modified.
+ * Existing node pointers remain valid and belong to the other trie.
+ * Passing the same trie twice has no effect. Both tries remain usable and require no deinitialization.
+ * \param first The first trie.
+ * \param second The second trie.
+ * \note This operation is O(1) with respect to the number of elements.
+ */
+tommy_inline void tommy_trie_inplace_swap(tommy_trie_inplace* first, tommy_trie_inplace* second)
+{
+	tommy_trie_inplace tmp = *first;
+	*first = *second;
+	*second = tmp;
+}
+
+/**
  * Inserts an element in the trie.
  * \param trie_inplace The trie.
  * \param node Pointer to the node embedded into the object to insert.

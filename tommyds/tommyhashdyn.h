@@ -157,6 +157,22 @@ TOMMY_API void tommy_hashdyn_init(tommy_hashdyn* hashdyn);
 TOMMY_API void tommy_hashdyn_done(tommy_hashdyn* hashdyn);
 
 /**
+ * Exchanges the complete state of two initialized hashtables, including bucket allocations.
+ * The hashtables must not share nodes. Nodes and objects are not accessed or modified.
+ * Existing node pointers remain valid and belong to the other hashtable.
+ * Passing the same hashtable twice has no effect. Both hashtables remain usable and deinitializable.
+ * \param first The first hashtable.
+ * \param second The second hashtable.
+ * \note This operation is O(1) with respect to the number of elements.
+ */
+tommy_inline void tommy_hashdyn_swap(tommy_hashdyn* first, tommy_hashdyn* second)
+{
+	tommy_hashdyn tmp = *first;
+	*first = *second;
+	*second = tmp;
+}
+
+/**
  * Removes all elements, preserving the allocated buckets.
  * The hashtable remains initialized and can be reused immediately.
  * Objects are not freed and nodes are not accessed or modified.

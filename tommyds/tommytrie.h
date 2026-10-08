@@ -179,6 +179,23 @@ typedef struct tommy_trie_struct {
 TOMMY_API void tommy_trie_init(tommy_trie* trie, tommy_allocator* alloc);
 
 /**
+ * Exchanges the complete state of two initialized tries, including their allocator references.
+ * Each allocator reference moves with its internal nodes so subsequent operations use the associated allocator.
+ * The tries must not share nodes. Nodes and objects are not accessed or modified.
+ * Existing node pointers remain valid and belong to the other trie. Referenced allocators must remain initialized.
+ * Passing the same trie twice has no effect. Both tries remain usable; their memory is released through their allocators.
+ * \param first The first trie.
+ * \param second The second trie.
+ * \note This operation is O(1) with respect to the number of elements.
+ */
+tommy_inline void tommy_trie_swap(tommy_trie* first, tommy_trie* second)
+{
+	tommy_trie tmp = *first;
+	*first = *second;
+	*second = tmp;
+}
+
+/**
  * Inserts an element in the trie.
  * You have to provide the pointer of the node embedded into the object,
  * the pointer to the object and the key to use.
