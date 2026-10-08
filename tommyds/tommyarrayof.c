@@ -91,7 +91,9 @@ TOMMY_API void tommy_arrayof_foreach(tommy_arrayof* array, tommy_foreach_func* f
 		tommy_uint_t bsr = tommy_ilog2(pos | 1);
 		tommy_size_t seg_end = (bsr < TOMMY_ARRAYOF_BIT) ? ((tommy_size_t)1 << TOMMY_ARRAYOF_BIT) : ((tommy_size_t)1 << (bsr + 1));
 		tommy_size_t chunk_end = array->count < seg_end ? array->count : seg_end;
-		unsigned char* ptr = tommy_cast(unsigned char*, array->bucket[bsr]) + pos * array->element_size;
+		unsigned char* ptr = tommy_cast(unsigned char*, array->bucket[bsr]);
+
+		ptr += pos * array->element_size;
 
 		while (pos < chunk_end) {
 			func(ptr);
@@ -109,7 +111,9 @@ TOMMY_API void tommy_arrayof_foreach_arg(tommy_arrayof* array, tommy_foreach_arg
 		tommy_uint_t bsr = tommy_ilog2(pos | 1);
 		tommy_size_t seg_end = (bsr < TOMMY_ARRAYOF_BIT) ? ((tommy_size_t)1 << TOMMY_ARRAYOF_BIT) : ((tommy_size_t)1 << (bsr + 1));
 		tommy_size_t chunk_end = array->count < seg_end ? array->count : seg_end;
-		unsigned char* ptr = tommy_cast(unsigned char*, array->bucket[bsr]) + pos * array->element_size;
+		unsigned char* ptr = tommy_cast(unsigned char*, array->bucket[bsr]);
+
+		ptr += pos * array->element_size;
 
 		while (pos < chunk_end) {
 			func(arg, ptr);
