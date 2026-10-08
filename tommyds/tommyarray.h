@@ -8,7 +8,7 @@
  *
  * The grow operation involves an allocation of a new array segment, without reallocating
  * the already used memory, and thus **not increasing** the heap fragmentation.
- * This also implies that the address of the stored elements never change.
+ * This also implies that the address of the stored elements never changes.
  *
  * Allocated segments grow in size exponentially.
  */
@@ -95,9 +95,9 @@ tommy_inline void tommy_array_clear(tommy_array* array)
 TOMMY_API void tommy_array_shrink(tommy_array* array);
 
 /**
- * Gets a reference of the element at the specified position.
+ * Gets a reference to the element at the specified position.
  * You must be sure that space for this position is already
- * allocated calling tommy_array_grow().
+ * allocated by calling tommy_array_grow().
  */
 tommy_inline void** tommy_array_ref(tommy_array* array, tommy_size_t pos)
 {
@@ -112,7 +112,7 @@ tommy_inline void** tommy_array_ref(tommy_array* array, tommy_size_t pos)
 /**
  * Sets the element at the specified position.
  * You must be sure that space for this position is already
- * allocated calling tommy_array_grow().
+ * allocated by calling tommy_array_grow().
  */
 tommy_inline void tommy_array_set(tommy_array* array, tommy_size_t pos, void* element)
 {
@@ -122,7 +122,7 @@ tommy_inline void tommy_array_set(tommy_array* array, tommy_size_t pos, void* el
 /**
  * Gets the element at the specified position.
  * You must be sure that space for this position is already
- * allocated calling tommy_array_grow().
+ * allocated by calling tommy_array_grow().
  */
 tommy_inline void* tommy_array_get(tommy_array* array, tommy_size_t pos)
 {

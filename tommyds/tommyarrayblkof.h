@@ -8,7 +8,7 @@
  * The directory of block pointers may be reallocated, but element addresses
  * never change.
  *
- * This is very similar to ::tommy_arrayblk, but it allows to store elements of any
+ * This is very similar to ::tommy_arrayblk, but it allows storing elements of any
  * size and not just pointers.
  *
  * The container allocates space for elements but never copies user data into
@@ -51,7 +51,8 @@ typedef struct tommy_arrayblkof_struct {
 
 /**
  * Initializes the array.
- * \param element_size Size in byte of the element to store in the array.
+ * \param array Array to initialize.
+ * \param element_size Size in bytes of the element to store in the array.
  */
 TOMMY_API void tommy_arrayblkof_init(tommy_arrayblkof* array, tommy_size_t element_size);
 
@@ -104,9 +105,9 @@ tommy_inline void tommy_arrayblkof_clear(tommy_arrayblkof* array)
 TOMMY_API void tommy_arrayblkof_shrink(tommy_arrayblkof* array);
 
 /**
- * Gets a reference of the element at the specified position.
+ * Gets a reference to the element at the specified position.
  * You must be sure that space for this position is already
- * allocated calling tommy_arrayblkof_grow().
+ * allocated by calling tommy_arrayblkof_grow().
  */
 tommy_inline void* tommy_arrayblkof_ref(tommy_arrayblkof* array, tommy_size_t pos)
 {

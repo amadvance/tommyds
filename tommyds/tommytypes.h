@@ -99,7 +99,7 @@ typedef tommy_uint32_t tommy_uint_t;
 #endif
 
 /******************************************************************************/
-/* modificators */
+/* modifiers */
 
 /** \internal
  * Definition of TOMMY_API.
@@ -208,6 +208,7 @@ typedef struct tommy_node_struct {
 	 * Index of the node.
 	 * With tries this field is used to store the key.
 	 * With hashtables this field is used to store the hash value.
+	 * With trees this field is used to store the parent pointer and balance factor.
 	 * With lists this field is not used.
 	 */
 	tommy_size_t index;
@@ -247,12 +248,12 @@ typedef int tommy_compare_func(const void* obj_a, const void* obj_b);
 
 /**
  * Search function for elements.
- * \param arg Pointer to the value to search as passed at the search function.
+ * \param arg Pointer to the value to search as passed to the search function.
  * \param obj Pointer to the object to compare to.
  * \return ==0 if the value matches the element. !=0 if different.
  *
  * The first argument is a pointer to the value to search exactly
- * as it's passed at the search function called.
+ * as it's passed to the search function called.
  * The second argument is a pointer to the object inside the hashtable to compare.
  *
  * The return value has to be 0 if the values are equal. != 0 if they are different.
@@ -316,7 +317,7 @@ typedef void tommy_foreach_arg_func(void* arg, void* obj);
 
 /** \internal
  * Integer log2 for constants.
- * You can use it only for exact power of 2 up to 256.
+ * You can use it only for exact powers of 2 up to 256.
  */
 #define TOMMY_ILOG2(value) ((value) == 256 ? 8 : (value) == 128 ? 7 : (value) == 64 ? 6 : (value) == 32 ? 5 : (value) == 16 ? 4 : (value) == 8 ? 3 : (value) == 4 ? 2 : (value) == 2 ? 1 : 0)
 
@@ -375,6 +376,11 @@ tommy_inline tommy_uint_t tommy_ilog2_u32(tommy_uint32_t value)
 
 /**
  * Bit scan reverse or integer log2 for 64 bits.
+ * Return the bit index of the most significant 1 bit.
+ *
+ * If no bit is set, the result is undefined.
+ * \param value Value to scan. 0 is not allowed.
+ * \return The index of the most significant bit set.
  */
 tommy_inline tommy_uint_t tommy_ilog2_u64(tommy_uint64_t value)
 {
@@ -424,6 +430,11 @@ tommy_inline tommy_uint_t tommy_ctz_u32(tommy_uint32_t value)
 
 /**
  * Bit scan forward or trailing zero count for 64 bits.
+ * Return the bit index of the least significant 1 bit.
+ *
+ * If no bit is set, the result is undefined.
+ * \param value Value to scan. 0 is not allowed.
+ * \return The index of the least significant bit set.
  */
 tommy_inline tommy_uint_t tommy_ctz_u64(tommy_uint64_t value)
 {
@@ -446,6 +457,7 @@ tommy_inline tommy_uint_t tommy_ctz_u64(tommy_uint64_t value)
 /**
  * Rounds up to the next power of 2.
  * For the value 0, the result is undefined.
+ * \param value Value to round up.
  * \return The smallest power of 2 not less than the specified value.
  */
 tommy_inline tommy_uint32_t tommy_roundup_pow2_u32(tommy_uint32_t value)
@@ -466,6 +478,9 @@ tommy_inline tommy_uint32_t tommy_roundup_pow2_u32(tommy_uint32_t value)
 
 /**
  * Rounds up to the next power of 2 for 64 bits.
+ * For the value 0, the result is undefined.
+ * \param value Value to round up.
+ * \return The smallest power of 2 not less than the specified value.
  */
 tommy_inline tommy_uint64_t tommy_roundup_pow2_u64(tommy_uint64_t value)
 {
@@ -482,7 +497,8 @@ tommy_inline tommy_uint64_t tommy_roundup_pow2_u64(tommy_uint64_t value)
 }
 
 /**
- * Check if the specified word has a byte at 0.
+ * Checks if the specified word has a byte at 0.
+ * \param value Value to check.
  * \return 0 or 1.
  */
 tommy_inline int tommy_haszero_u32(tommy_uint32_t value)
@@ -491,7 +507,8 @@ tommy_inline int tommy_haszero_u32(tommy_uint32_t value)
 }
 
 /**
- * Check if the specified 64-bit word has a byte at 0.
+ * Checks if the specified 64-bit word has a byte at 0.
+ * \param value Value to check.
  * \return 0 or 1.
  */
 tommy_inline int tommy_haszero_u64(tommy_uint64_t value)

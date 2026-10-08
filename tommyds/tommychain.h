@@ -99,7 +99,7 @@ tommy_inline void tommy_chain_merge(tommy_chain* first, tommy_chain* second, tom
 }
 
 /**
- * Merges two chains managing special degenerated cases.
+ * Merges two chains managing special degenerate cases.
  * It's functionally equivalent to tommy_chain_merge() but faster with already ordered chains.
  * \param first First chain (will contain the result).
  * \param second Second chain (consumed by the merge; its descriptor is not cleared
@@ -130,7 +130,7 @@ tommy_inline void tommy_chain_merge_degenerated(tommy_chain* first, tommy_chain*
  * Sorts a chain.
  * It's a stable merge sort using power of 2 buckets, with O(N*log(N)) complexity,
  * similar to the one used in the SGI STL libraries and in the Linux Kernel,
- * but faster on degenerated cases like already ordered lists.
+ * but faster on degenerate cases like already ordered lists.
  *
  * SGI STL stl_list.h
  * http://www.sgi.com/tech/stl/stl_list.h

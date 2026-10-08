@@ -5,7 +5,7 @@
  * Double linked list for collisions into hashtables.
  *
  * This list is a **doubly** linked list mainly targeted for handling collisions
- * into an hashtable, but **usable** also as a generic list.
+ * into a hashtable, but **usable** also as a generic list.
  *
  * The main feature of this list is to require only one pointer to represent the
  * list, compared to a classic implementation requiring a head **and** a tail pointers.
@@ -462,8 +462,8 @@ tommy_inline void tommy_list_swap(tommy_list* first, tommy_list* second)
 }
 
 /**
- * Concats two lists.
- * The second list is concatenated at the first list.
+ * Concatenates two lists.
+ * The second list is concatenated to the first list.
  * \param first The first list.
  * \param second The second list. After this call the list content is undefined,
  * and you should not use it anymore.
@@ -494,8 +494,8 @@ tommy_inline void tommy_list_concat(tommy_list* first, tommy_list* second)
 }
 
 /**
- * Prepends two lists.
- * The second list is prepended at the first list.
+ * Prepends a list to another list.
+ * The second list is prepended to the first list.
  * \param first The first list.
  * \param second The second list. After this call the list content is undefined,
  * and you should not use it anymore.
@@ -562,7 +562,8 @@ TOMMY_API void tommy_list_reverse(tommy_list* list);
 /**
  * Sorts a list.
  * It's a stable merge sort with O(N*log(N)) worst complexity.
- * It's faster on degenerated cases like partially ordered lists.
+ * It's faster on degenerate cases like partially ordered lists.
+ * \param list The list to sort.
  * \param cmp Compare function called with two elements.
  * The function should return <0 if the first element is less than the second, ==0 if equal, and >0 if greater.
  */

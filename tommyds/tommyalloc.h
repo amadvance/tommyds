@@ -2,7 +2,7 @@
 // Copyright (C) 2010 Andrea Mazzoleni
 
 /** \file
- * Allocator of fixed size blocks.
+ * Allocator of fixed-size blocks.
  */
 
 #ifndef __TOMMYALLOC_H
@@ -22,7 +22,7 @@ struct tommy_allocator_entry_struct {
 typedef struct tommy_allocator_entry_struct tommy_allocator_entry;
 
 /**
- * Allocator of fixed size blocks.
+ * Allocator of fixed-size blocks.
  */
 typedef struct tommy_allocator_struct {
 	struct tommy_allocator_entry_struct* free_block; /**< List of free blocks. */
@@ -50,6 +50,7 @@ TOMMY_API void tommy_allocator_done(tommy_allocator* alloc);
 /**
  * Allocates a block.
  * \param alloc Allocator to use.
+ * \return Pointer to the allocated block.
  */
 TOMMY_API void* tommy_allocator_alloc(tommy_allocator* alloc);
 
@@ -64,6 +65,7 @@ TOMMY_API void tommy_allocator_free(tommy_allocator* alloc, void* ptr);
 /**
  * Gets the size of allocated memory.
  * \param alloc Allocator to use.
+ * \return Size of allocated memory in bytes.
  */
 TOMMY_API tommy_size_t tommy_allocator_memory_usage(tommy_allocator* alloc);
 

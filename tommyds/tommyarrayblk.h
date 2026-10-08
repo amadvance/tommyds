@@ -98,9 +98,9 @@ tommy_inline void tommy_arrayblk_clear(tommy_arrayblk* array)
 TOMMY_API void tommy_arrayblk_shrink(tommy_arrayblk* array);
 
 /**
- * Gets a reference of the element at the specified position.
+ * Gets a reference to the element at the specified position.
  * You must be sure that space for this position is already
- * allocated calling tommy_arrayblk_grow().
+ * allocated by calling tommy_arrayblk_grow().
  */
 tommy_inline void** tommy_arrayblk_ref(tommy_arrayblk* array, tommy_size_t pos)
 {
@@ -112,7 +112,7 @@ tommy_inline void** tommy_arrayblk_ref(tommy_arrayblk* array, tommy_size_t pos)
 /**
  * Sets the element at the specified position.
  * You must be sure that space for this position is already
- * allocated calling tommy_arrayblk_grow().
+ * allocated by calling tommy_arrayblk_grow().
  */
 tommy_inline void tommy_arrayblk_set(tommy_arrayblk* array, tommy_size_t pos, void* element)
 {
@@ -122,7 +122,7 @@ tommy_inline void tommy_arrayblk_set(tommy_arrayblk* array, tommy_size_t pos, vo
 /**
  * Gets the element at the specified position.
  * You must be sure that space for this position is already
- * allocated calling tommy_arrayblk_grow().
+ * allocated by calling tommy_arrayblk_grow().
  */
 tommy_inline void* tommy_arrayblk_get(tommy_arrayblk* array, tommy_size_t pos)
 {

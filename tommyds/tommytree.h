@@ -137,6 +137,7 @@ typedef struct tommy_tree_struct {
 
 /**
  * Initializes the tree.
+ * \param tree The tree to initialize.
  * \param cmp The comparison function that defines the order in the tree.
  */
 tommy_inline void tommy_tree_init(tommy_tree* tree, tommy_compare_func* cmp)
@@ -181,6 +182,7 @@ tommy_inline void tommy_tree_clear(tommy_tree* tree)
  * Equal elements are visited in insertion order.
  * You have to provide the pointer of the node embedded into the object and
  * the pointer to the object.
+ * \param tree The tree.
  * \param node Pointer to the node embedded into the object to insert.
  * \param data Pointer to the object to insert.
  */
@@ -191,6 +193,7 @@ TOMMY_API void tommy_tree_insert(tommy_tree* tree, tommy_tree_node* node, void* 
  * If found, the first equal element in tree order is returned and the
  * candidate node is left unchanged. Otherwise the candidate is inserted
  * and its data field is returned.
+ * \param tree The tree.
  * \param node Pointer to the node embedded into the object to insert.
  * \param data Pointer to the object to insert.
  * \return The first equal element, or data if the candidate was inserted.
@@ -213,6 +216,8 @@ TOMMY_API void tommy_tree_to_list(tommy_tree* tree, tommy_list* list);
 /**
  * Removes an element from the tree.
  * You must already have the address of the element to remove.
+ * \param tree The tree.
+ * \param node The node to remove.
  * \return The tommy_node::data field of the node removed.
  */
 TOMMY_API void* tommy_tree_remove_existing(tommy_tree* tree, tommy_tree_node* node);
@@ -346,6 +351,10 @@ tommy_inline void* tommy_tree_remove_tail(tommy_tree* tree)
  *
  * The cmp_arg argument will be the first argument of the comparison function,
  * and it can be of a different type than the objects in the tree.
+ * \param tree The tree.
+ * \param cmp Comparison function called with cmp_arg and the object in the tree.
+ * \param cmp_arg Search key, which may have a different type from tree objects.
+ * \return The first equal element in tree order, or 0 if not found.
  */
 tommy_inline void* tommy_tree_search_compare(tommy_tree* tree, tommy_compare_func* cmp, const void* cmp_arg)
 {
@@ -371,6 +380,7 @@ tommy_inline void* tommy_tree_search_compare(tommy_tree* tree, tommy_compare_fun
 /**
  * Searches an element in the tree.
  * If the element is not found, 0 is returned.
+ * \param tree The tree.
  * \param data Element used for comparison.
  * \return The first equal element in tree order, or 0 if none.
  */
@@ -388,6 +398,10 @@ tommy_inline void* tommy_tree_search(tommy_tree* tree, const void* data)
  *
  * The cmp_arg argument will be the first argument of the comparison function,
  * and it can be of a different type than the objects in the tree.
+ * \param tree The tree.
+ * \param cmp Comparison function called with cmp_arg and the object in the tree.
+ * \param cmp_arg Search key, which may have a different type from tree objects.
+ * \return The first element in tree order with key greater or equal, or 0 if none.
  */
 tommy_inline void* tommy_tree_search_greater_equal_compare(tommy_tree* tree, tommy_compare_func* cmp, const void* cmp_arg)
 {
@@ -411,6 +425,7 @@ tommy_inline void* tommy_tree_search_greater_equal_compare(tommy_tree* tree, tom
 /**
  * Searches an element in the tree with key greater or equal than the specified one.
  * If no such element exists, 0 is returned.
+ * \param tree The tree.
  * \param data Element used for comparison.
  * \return The first element in tree order with key greater or equal, or 0 if none.
  */
@@ -423,6 +438,7 @@ tommy_inline void* tommy_tree_search_greater_equal(tommy_tree* tree, const void*
  * Searches the first element in tree order with key strictly greater than the specified one using a specific comparison function.
  * The function must define a suborder of the tree comparison function.
  * Equivalent elements are excluded from the result.
+ * \param tree The tree.
  * \param cmp Comparison function called with cmp_arg and the object in the tree.
  * \param cmp_arg Search key, which may have a different type from tree objects.
  * \return The first strictly greater element, or 0 if none.
@@ -449,6 +465,7 @@ tommy_inline void* tommy_tree_search_greater_compare(tommy_tree* tree, tommy_com
 /**
  * Searches the first element in tree order with key strictly greater than the specified one.
  * If no such element exists, 0 is returned.
+ * \param tree The tree.
  * \param data Element used for comparison.
  * \return The first strictly greater element, or 0 if none.
  */
@@ -466,6 +483,10 @@ tommy_inline void* tommy_tree_search_greater(tommy_tree* tree, const void* data)
  *
  * The cmp_arg argument will be the first argument of the comparison function,
  * and it can be of a different type than the objects in the tree.
+ * \param tree The tree.
+ * \param cmp Comparison function called with cmp_arg and the object in the tree.
+ * \param cmp_arg Search key, which may have a different type from tree objects.
+ * \return The last element in tree order with key less or equal, or 0 if none.
  */
 tommy_inline void* tommy_tree_search_less_equal_compare(tommy_tree* tree, tommy_compare_func* cmp, const void* cmp_arg)
 {
@@ -489,6 +510,7 @@ tommy_inline void* tommy_tree_search_less_equal_compare(tommy_tree* tree, tommy_
 /**
  * Searches an element in the tree with key less or equal than the specified one.
  * If no such element exists, 0 is returned.
+ * \param tree The tree.
  * \param data Element used for comparison.
  * \return The last element in tree order with key less or equal, or 0 if none.
  */
@@ -501,9 +523,10 @@ tommy_inline void* tommy_tree_search_less_equal(tommy_tree* tree, const void* da
  * Searches the last element in tree order with key strictly less than the specified one using a specific comparison function.
  * The function must define a suborder of the tree comparison function.
  * Equivalent elements are excluded from the result.
+ * \param tree The tree.
  * \param cmp Comparison function called with cmp_arg and the object in the tree.
  * \param cmp_arg Search key, which may have a different type from tree objects.
- * \return The last strictly lesser element, or 0 if none.
+ * \return The last strictly less element, or 0 if none.
  */
 tommy_inline void* tommy_tree_search_less_compare(tommy_tree* tree, tommy_compare_func* cmp, const void* cmp_arg)
 {
@@ -527,8 +550,9 @@ tommy_inline void* tommy_tree_search_less_compare(tommy_tree* tree, tommy_compar
 /**
  * Searches the last element in tree order with key strictly less than the specified one.
  * If no such element exists, 0 is returned.
+ * \param tree The tree.
  * \param data Element used for comparison.
- * \return The last strictly lesser element, or 0 if none.
+ * \return The last strictly less element, or 0 if none.
  */
 tommy_inline void* tommy_tree_search_less(tommy_tree* tree, const void* data)
 {
@@ -540,6 +564,7 @@ tommy_inline void* tommy_tree_search_less(tommy_tree* tree, const void* data)
  * The comparison function must define a suborder of the original one.
  * The cmp_arg argument is passed as the first argument of the comparison
  * function and may have a different type than the objects in the tree.
+ * \param tree The tree.
  * \param cmp Comparison function used to find the element.
  * \param cmp_arg Argument passed to the comparison function.
  * \return The first equal element in tree order, or 0 if not found.
@@ -571,6 +596,7 @@ tommy_inline void* tommy_tree_remove_compare(tommy_tree* tree, tommy_compare_fun
 /**
  * Searches and removes an element.
  * If the element is not found, 0 is returned.
+ * \param tree The tree.
  * \param data Element used for comparison.
  * \return The first equal element in tree order, or 0 if not found.
  */

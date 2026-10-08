@@ -32,7 +32,7 @@
  * In the insertion call you have to specify the address of the node, the
  * address of the object, and the key value to use.
  * The address of the object is used to initialize the tommy_node::data field
- * of the node, and the key to initialize the tommy_node::key field.
+ * of the node, and the key to initialize the tommy_node::index field.
  *
  * \code
  * struct object {
@@ -62,7 +62,7 @@
  * \endcode
  *
  * To iterate over all the elements in the trie with the same key, you have to
- * use tommy_trie_bucket() and follow the tommy_node::next pointer until NULL.
+ * use tommy_trie_bucket() and follow the tommy_node::next pointer until 0.
  *
  * \code
  * int value_to_find = 1;
@@ -171,6 +171,7 @@ typedef struct tommy_trie_struct {
  * You can share this allocator with other tries.
  *
  * The trie is completely allocated through the allocator, and it doesn't need to be deinitialized.
+ * \param trie The trie to initialize.
  * \param alloc Allocator initialized with *both* the size and align with TOMMY_TRIE_BLOCK_SIZE.
  */
 TOMMY_API void tommy_trie_init(tommy_trie* trie, tommy_allocator* alloc);
@@ -179,6 +180,7 @@ TOMMY_API void tommy_trie_init(tommy_trie* trie, tommy_allocator* alloc);
  * Inserts an element in the trie.
  * You have to provide the pointer of the node embedded into the object,
  * the pointer to the object and the key to use.
+ * \param trie The trie.
  * \param node Pointer to the node embedded into the object to insert.
  * \param data Pointer to the object to insert.
  * \param key Key to use to insert the object.
@@ -190,6 +192,7 @@ TOMMY_API void tommy_trie_insert(tommy_trie* trie, tommy_trie_node* node, void* 
  * If the element is not found, 0 is returned.
  * If more equal elements are present, the first one is removed.
  * This operation is faster than calling tommy_trie_bucket() and tommy_trie_remove_existing() separately.
+ * \param trie The trie.
  * \param key Key of the element to find and remove.
  * \return The removed element, or 0 if not found.
  */
@@ -198,7 +201,8 @@ TOMMY_API void* tommy_trie_remove(tommy_trie* trie, tommy_key_t key);
 /**
  * Gets the bucket of the specified key.
  * The bucket is guaranteed to contain ALL and ONLY the elements with the specified key.
- * You can access elements in the bucket following the ::next pointer until 0.
+ * You can access elements in the bucket following the tommy_node::next pointer until 0.
+ * \param trie The trie.
  * \param key Key of the element to find.
  * \return The head of the bucket, or 0 if empty.
  */
@@ -208,6 +212,7 @@ TOMMY_API tommy_trie_node* tommy_trie_bucket(tommy_trie* trie, tommy_key_t key);
  * Searches an element in the trie.
  * You have to provide the key of the element you want to find.
  * If more elements with the same key are present, the first one is returned.
+ * \param trie The trie.
  * \param key Key of the element to find.
  * \return The first element found, or 0 if none.
  */
@@ -224,6 +229,8 @@ tommy_inline void* tommy_trie_search(tommy_trie* trie, tommy_key_t key)
 /**
  * Removes an element from the trie.
  * You must already have the address of the element to remove.
+ * \param trie The trie.
+ * \param node The node to remove.
  * \return The tommy_node::data field of the node removed.
  */
 TOMMY_API void* tommy_trie_remove_existing(tommy_trie* trie, tommy_trie_node* node);

@@ -172,6 +172,7 @@ TOMMY_API void tommy_hashdyn_clear(tommy_hashdyn* hashdyn);
  *
  * It ensures that the hashtable has enough buckets allocated to contain
  * the specified number of elements without triggering a dynamic resize.
+ * \param hashdyn Hashtable to reserve space in.
  * \param count Number of elements to reserve space for.
  */
 TOMMY_API void tommy_hashdyn_reserve(tommy_hashdyn* hashdyn, tommy_size_t count);
@@ -200,6 +201,7 @@ TOMMY_API void tommy_hashdyn_insert(tommy_hashdyn* hashdyn, tommy_hashdyn_node* 
  * Otherwise, the candidate is inserted using the normal insertion policy,
  * and its data field is returned.
  * Objects are not freed by this call.
+ * \param hashdyn Hashtable to insert into.
  * \param node The candidate node. It must not belong to any container.
  * \param data The object to insert.
  * \param cmp Compare function called with cmp_arg as first argument and with the element to compare as a second one.
@@ -215,6 +217,7 @@ TOMMY_API void* tommy_hashdyn_insert_unique(tommy_hashdyn* hashdyn, tommy_hashdy
  * You have to provide a compare function and the hash of the element you want to remove.
  * If the element is not found, 0 is returned.
  * If more equal elements are present, the first one is removed.
+ * \param hashdyn Hashtable to remove from.
  * \param cmp Compare function called with cmp_arg as first argument and with the element to compare as a second one.
  * The function should return 0 for equal elements, anything other for different elements.
  * \param cmp_arg Compare argument passed as first argument of the compare function.
@@ -227,7 +230,8 @@ TOMMY_API void* tommy_hashdyn_remove(tommy_hashdyn* hashdyn, tommy_search_func* 
  * Gets the bucket of the specified hash.
  * The bucket is guaranteed to contain ALL the elements with the specified hash,
  * but it can contain also others.
- * You can access elements in the bucket following the ::next pointer until 0.
+ * You can access elements in the bucket following the tommy_node::next pointer until 0.
+ * \param hashdyn Hashtable to query.
  * \param hash Hash of the element to find.
  * \return The head of the bucket, or 0 if empty.
  */
@@ -240,6 +244,7 @@ tommy_inline tommy_hashdyn_node* tommy_hashdyn_bucket(tommy_hashdyn* hashdyn, to
  * Searches an element in the hashtable.
  * You have to provide a compare function and the hash of the element you want to find.
  * If more equal elements are present, the first one is returned.
+ * \param hashdyn Hashtable to search.
  * \param cmp Compare function called with cmp_arg as first argument and with the element to compare as a second one.
  * The function should return 0 for equal elements, anything other for different elements.
  * \param cmp_arg Compare argument passed as first argument of the compare function.
@@ -276,6 +281,7 @@ TOMMY_API void* tommy_hashdyn_remove_existing(tommy_hashdyn* hashdyn, tommy_hash
  * The tommy_node::data field and the number of elements are left unchanged.
  * No memory allocation, deallocation or resize is performed.
  * Equal keys are allowed; no uniqueness check is performed.
+ * \param hashdyn Hashtable containing the node.
  * \param node The node whose hash is updated.
  * \param hash The new hash of the element.
  * \note This operation is O(1).
@@ -355,7 +361,7 @@ tommy_inline tommy_size_t tommy_hashdyn_bucket_count(tommy_hashdyn* hashdyn)
 TOMMY_API tommy_size_t tommy_hashdyn_memory_usage(tommy_hashdyn* hashdyn);
 
 /**
- * \brief Transfers all elements from the hashtable into a tommy_list.
+ * Transfers all elements from the hashtable into a tommy_list.
  *
  * Removes every element from the \p hashdyn hashtable and inserts them
  * into the provided \p list (at the tail), preserving the per-bucket order

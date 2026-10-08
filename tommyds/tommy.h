@@ -22,7 +22,7 @@
  *
  * The data structures provided are:
  *
- * - ::tommy_list - A double linked list.
+ * - ::tommy_list - A doubly linked list.
  * - ::tommy_array, ::tommy_arrayof - A linear array.
  * It doesn't fragment the heap.
  * - ::tommy_arrayblk, ::tommy_arrayblkof - A blocked linear array.
@@ -50,7 +50,7 @@
  *
  * An object, to be inserted into a container, should contain a node of type ::tommy_node.
  * Inside this node is present a pointer to the object itself in the tommy_node::data field,
- * the key used to identify the object in the tommy_node::key field, and other fields used
+ * the key used to identify the object in the tommy_node::index field, and other fields used
  * by the containers.
  *
  * This is a typical object declaration:
@@ -706,12 +706,12 @@
  *     }
  *
  *     // iterates over all files with a specific name, even in different directories
- *     cont char* name_to_find = ...;
+ *     const char* name_to_find = ...;
  *     tommy_node* i = tommy_hashdyn_bucket(&hashtable_by_name, hash_by_name(name_to_find));
  *     while (i) {
  *         struct file* f = i->data; // gets the file pointer
  *
- *         if (strcmp(f->name, name_to_find) == 0) { // the bucket may contain also other names
+ *         if (strcmp(f->name, name_to_find) == 0) { // the bucket may also contain other names
  *             printf("%s/%s\n", f->dir, f->name);
  *         }
  *
@@ -760,7 +760,7 @@
  *
  * \section Limitations
  *
- * Tommy is not thread-safe. You have always to provide thread safety using
+ * Tommy is not thread-safe. You must always provide thread safety using
  * locks before calling any Tommy functions.
  *
  * Tommy doesn't provide iterators for elements stored in a container.
@@ -799,11 +799,11 @@
  * <a href="http://lxr.free-electrons.com/ident?i=container_of">container_of()</a>.
  *
  * \subsection insertion_order Insertion order
- * The list used for collisions is double-linked to allow
+ * The list used for collisions is doubly-linked to allow
  * insertion of elements at the end of the list to keep the
  * insertion order of equal elements.
  *
- * A more memory-conservative approach is to use a single-linked list,
+ * A more memory-conservative approach is to use a singly-linked list,
  * inserting elements only at the start of the list, losing the
  * original insertion order.
  *

@@ -6,7 +6,7 @@
  *
  * This array is able to grow dynamically upon request, without any reallocation.
  *
- * This is very similar to ::tommy_array, but it allows to store elements of any
+ * This is very similar to ::tommy_array, but it allows storing elements of any
  * size and not just pointers.
  *
  * The container allocates space for elements but never copies user data into
@@ -107,9 +107,9 @@ tommy_inline void tommy_arrayof_clear(tommy_arrayof* array)
 TOMMY_API void tommy_arrayof_shrink(tommy_arrayof* array);
 
 /**
- * Gets a reference of the element at the specified position.
+ * Gets a reference to the element at the specified position.
  * You must be sure that space for this position is already
- * allocated calling tommy_arrayof_grow().
+ * allocated by calling tommy_arrayof_grow().
  * \param array Array to reference.
  * \param pos Position of the element.
  */
