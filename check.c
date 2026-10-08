@@ -5380,6 +5380,71 @@ void test_hashlin_rehash_existing(void)
 	}
 }
 
+static struct {
+	void* expected[128];
+	unsigned size;
+	unsigned pos;
+} hashlin_foreach_check;
+
+static void hashlin_foreach_check_arg_callback(void* arg, void* data)
+{
+	unsigned* pos = arg;
+	if (*pos >= hashlin_foreach_check.size || data != hashlin_foreach_check.expected[*pos]) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	++*pos;
+}
+
+static void hashlin_foreach_check_callback(void* data)
+{
+	hashlin_foreach_check_arg_callback(&hashlin_foreach_check.pos, data);
+}
+
+void test_hashlin_foreach(void)
+{
+	const unsigned counts[][2] = {
+		{ 0, 0 }, { 1, 1 }, { 32, 32 }, { 33, 33 }, { 48, 48 }, { 63, 63 },
+		{ 64, 64 }, { 65, 65 }, { 128, 128 }, { 128, 31 }, { 128, 24 },
+		{ 128, 17 }, { 128, 16 }, { 128, 15 }, { 128, 9 }, { 128, 8 }, { 128, 0 }
+	};
+	struct object_hash obj[128];
+
+	for (unsigned c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
+		tommy_hashlin hashlin;
+		tommy_hashlin_init(&hashlin);
+		for (unsigned i = 0; i < counts[c][0]; ++i) {
+			obj[i].value = i / 2;
+			tommy_hashlin_insert(&hashlin, &obj[i].node, &obj[i], tommy_inthash_u32(obj[i].value));
+		}
+		for (unsigned i = counts[c][0]; i > counts[c][1]; --i)
+			tommy_hashlin_remove_existing(&hashlin, &obj[i - 1].node);
+
+		/* preserve the original bucket and chain order as the reference */
+		hashlin_foreach_check.size = 0;
+		tommy_size_t active_max = hashlin.low_max + hashlin.split;
+		for (tommy_size_t pos = 0; pos < active_max; ++pos)
+			for (tommy_hashlin_node* node = *tommy_hashlin_pos(&hashlin, pos); node; node = node->next)
+				hashlin_foreach_check.expected[hashlin_foreach_check.size++] = node->data;
+
+		/* inactive grow and shrink slots must never reach the callback */
+		for (tommy_size_t pos = active_max; pos < hashlin.bucket_max; ++pos)
+			*tommy_hashlin_pos(&hashlin, pos) = &obj[0].node;
+
+		hashlin_foreach_check.pos = 0;
+		tommy_hashlin_foreach(&hashlin, hashlin_foreach_check_callback);
+		unsigned pos = 0;
+		tommy_hashlin_foreach_arg(&hashlin, hashlin_foreach_check_arg_callback, &pos);
+		if (hashlin_foreach_check.size != counts[c][1] || hashlin_foreach_check.pos != counts[c][1] || pos != counts[c][1]) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_hashlin_done(&hashlin);
+	}
+}
+
 void test_hashlin_to_list(void)
 {
 	const unsigned counts[][2] = {
@@ -5676,6 +5741,7 @@ void test_hashlin(void)
 	test_hashlin_insert_unique();
 	test_hashlin_swap();
 	test_hashlin_rehash_existing();
+	test_hashlin_foreach();
 	test_hashlin_to_list();
 
 	struct object_hash* HASH = malloc(size * sizeof(struct object_hash));

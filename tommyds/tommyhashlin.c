@@ -289,14 +289,25 @@ TOMMY_API void tommy_hashlin_foreach(tommy_hashlin* hashlin, tommy_foreach_func*
 {
 	/* number of valid buckets */
 	tommy_size_t bucket_max = hashlin->low_max + hashlin->split;
+	tommy_size_t pos = 0;
 
-	for (tommy_size_t pos = 0; pos < bucket_max; ++pos) {
-		tommy_hashlin_node* node = *tommy_hashlin_pos(hashlin, pos);
+	/* start at the last alias of the initial segment to visit it only once */
+	for (tommy_uint_t i = TOMMY_HASHLIN_BIT - 1; i < hashlin->bucket_bit; ++i) {
+		tommy_hashlin_node** bucket = hashlin->bucket[i];
+		tommy_size_t end = (tommy_size_t)1 << (i + 1);
 
-		while (node) {
-			void* data = node->data;
-			node = node->next;
-			func(data);
+		/* the last segment can contain inactive or uninitialized slots */
+		if (end > bucket_max)
+			end = bucket_max;
+
+		for (; pos < end; ++pos) {
+			tommy_hashlin_node* node = bucket[pos];
+
+			while (node) {
+				void* data = node->data;
+				node = node->next;
+				func(data);
+			}
 		}
 	}
 }
@@ -305,14 +316,25 @@ TOMMY_API void tommy_hashlin_foreach_arg(tommy_hashlin* hashlin, tommy_foreach_a
 {
 	/* number of valid buckets */
 	tommy_size_t bucket_max = hashlin->low_max + hashlin->split;
+	tommy_size_t pos = 0;
 
-	for (tommy_size_t pos = 0; pos < bucket_max; ++pos) {
-		tommy_hashlin_node* node = *tommy_hashlin_pos(hashlin, pos);
+	/* start at the last alias of the initial segment to visit it only once */
+	for (tommy_uint_t i = TOMMY_HASHLIN_BIT - 1; i < hashlin->bucket_bit; ++i) {
+		tommy_hashlin_node** bucket = hashlin->bucket[i];
+		tommy_size_t end = (tommy_size_t)1 << (i + 1);
 
-		while (node) {
-			void* data = node->data;
-			node = node->next;
-			func(arg, data);
+		/* the last segment can contain inactive or uninitialized slots */
+		if (end > bucket_max)
+			end = bucket_max;
+
+		for (; pos < end; ++pos) {
+			tommy_hashlin_node* node = bucket[pos];
+
+			while (node) {
+				void* data = node->data;
+				node = node->next;
+				func(arg, data);
+			}
 		}
 	}
 }
