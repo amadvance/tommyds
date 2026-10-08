@@ -20,7 +20,14 @@
 #define TOMMY_TRIE_BUCKET_SHIFT (TOMMY_TRIE_BIT - TOMMY_TRIE_BUCKET_BIT)
 
 /**
- * Max number of levels.
+ * Shift for the first internal level, skipping bits already used by the bucket.
+ * Traversal shifts are signed because the last descent consumes all key bits;
+ * the resulting negative shift is never used on a leaf or empty child.
+ */
+#define TOMMY_TRIE_TREE_SHIFT (TOMMY_TRIE_BUCKET_SHIFT - TOMMY_TRIE_TREE_BIT)
+
+/**
+ * Max number of internal levels below the initial bucket.
  */
 #define TOMMY_TRIE_LEVEL_MAX ((TOMMY_TRIE_BIT - TOMMY_TRIE_BUCKET_BIT) / TOMMY_TRIE_TREE_BIT)
 
@@ -61,7 +68,7 @@ TOMMY_API void tommy_trie_init(tommy_trie* trie, tommy_allocator* alloc)
 	trie->alloc = alloc;
 }
 
-static void trie_bucket_insert(tommy_trie* trie, tommy_uint_t shift, tommy_trie_node** let_ptr, tommy_trie_node* insert, tommy_key_t key)
+static void trie_bucket_insert(tommy_trie* trie, int shift, tommy_trie_node** let_ptr, tommy_trie_node* insert, tommy_key_t key)
 {
 	tommy_trie_tree* tree;
 	tommy_trie_node* node;
@@ -134,12 +141,12 @@ TOMMY_API void tommy_trie_insert(tommy_trie* trie, tommy_trie_node* node, void* 
 
 	tommy_trie_node** let_ptr = &trie->bucket[key >> TOMMY_TRIE_BUCKET_SHIFT];
 
-	trie_bucket_insert(trie, TOMMY_TRIE_BUCKET_SHIFT, let_ptr, node, key);
+	trie_bucket_insert(trie, TOMMY_TRIE_TREE_SHIFT, let_ptr, node, key);
 
 	++trie->count;
 }
 
-static tommy_trie_node* trie_bucket_remove_existing(tommy_trie* trie, tommy_uint_t shift, tommy_trie_node** let_ptr, tommy_trie_node* remove, tommy_key_t key)
+static tommy_trie_node* trie_bucket_remove_existing(tommy_trie* trie, int shift, tommy_trie_node** let_ptr, tommy_trie_node* remove, tommy_key_t key)
 {
 	tommy_trie_node* node;
 	tommy_trie_tree* tree;
@@ -231,7 +238,7 @@ TOMMY_API void* tommy_trie_remove(tommy_trie* trie, tommy_key_t key)
 
 	tommy_trie_node** let_ptr = &trie->bucket[key >> TOMMY_TRIE_BUCKET_SHIFT];
 
-	tommy_trie_node* ret = trie_bucket_remove_existing(trie, TOMMY_TRIE_BUCKET_SHIFT, let_ptr, 0, key);
+	tommy_trie_node* ret = trie_bucket_remove_existing(trie, TOMMY_TRIE_TREE_SHIFT, let_ptr, 0, key);
 
 	if (!ret)
 		return 0;
@@ -250,7 +257,7 @@ TOMMY_API void* tommy_trie_remove_existing(tommy_trie* trie, tommy_trie_node* no
 
 	tommy_trie_node** let_ptr = &trie->bucket[key >> TOMMY_TRIE_BUCKET_SHIFT];
 
-	tommy_trie_node* ret = trie_bucket_remove_existing(trie, TOMMY_TRIE_BUCKET_SHIFT, let_ptr, node, key);
+	tommy_trie_node* ret = trie_bucket_remove_existing(trie, TOMMY_TRIE_TREE_SHIFT, let_ptr, node, key);
 
 	/* the element removed must match the one passed */
 	assert(ret == node);
@@ -266,7 +273,7 @@ TOMMY_API tommy_trie_node* tommy_trie_bucket(tommy_trie* trie, tommy_key_t key)
 	assert(key >> TOMMY_TRIE_BUCKET_SHIFT < TOMMY_TRIE_BUCKET_MAX);
 
 	void* ptr = trie->bucket[key >> TOMMY_TRIE_BUCKET_SHIFT];
-	tommy_uint_t shift = TOMMY_TRIE_BUCKET_SHIFT;
+	int shift = TOMMY_TRIE_TREE_SHIFT;
 
 	while (1) {
 		if (!ptr)
