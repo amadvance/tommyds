@@ -23,6 +23,7 @@
 #include "tommytypes.h"
 
 #include <assert.h> /* for assert */
+#include <string.h> /* for memset */
 
 /******************************************************************************/
 /* array */
@@ -143,7 +144,13 @@ tommy_inline void* tommy_arrayblkof_insert_tail(tommy_arrayblkof* array)
 tommy_inline void tommy_arrayblkof_remove_tail(tommy_arrayblkof* array)
 {
 	assert(array->count != 0);
-	tommy_arrayblkof_resize(array, array->count - 1);
+
+	tommy_size_t pos = array->count - 1;
+	void* ptr = tommy_arrayblkof_ref(array, pos);
+
+	/* keep unused slots zero so growing within capacity needs no initialization */
+	memset(ptr, 0, array->element_size);
+	array->count = pos;
 }
 
 /**

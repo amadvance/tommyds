@@ -159,8 +159,15 @@ tommy_inline void tommy_array_insert_tail(tommy_array* array, void* element)
 tommy_inline void* tommy_array_remove_tail(tommy_array* array)
 {
 	assert(array->count != 0);
-	void* element = tommy_array_tail(array);
-	tommy_array_resize(array, array->count - 1);
+
+	tommy_size_t pos = array->count - 1;
+	void** ptr = tommy_array_ref(array, pos);
+	void* element = *ptr;
+
+	/* keep unused slots zero so growing within capacity needs no initialization */
+	*ptr = 0;
+	array->count = pos;
+
 	return element;
 }
 
