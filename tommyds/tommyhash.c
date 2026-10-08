@@ -72,9 +72,35 @@ TOMMY_API tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* voi
 	const tommy_uint32_t c2 = 0x1b873593;
 	tommy_uint32_t h = init_val;
 	tommy_size_t nblocks = key_len / 4;
+	const unsigned char* tail = key + nblocks * 4;
 
-	for (tommy_size_t i = 0; i < nblocks; ++i) {
-		tommy_uint32_t k = tommy_le_uint32_read(key + i * 4);
+	while (nblocks >= 2) {
+		tommy_uint32_t k0 = tommy_le_uint32_read(key);
+		tommy_uint32_t k1 = tommy_le_uint32_read(key + 4);
+
+		k0 *= c1;
+		k1 *= c1;
+
+		k0 = tommy_rot(k0, 15);
+		k1 = tommy_rot(k1, 15);
+
+		k0 *= c2;
+		k1 *= c2;
+
+		h ^= k0;
+		h = tommy_rot(h, 13);
+		h = h * 5 + 0xe6546b64;
+
+		h ^= k1;
+		h = tommy_rot(h, 13);
+		h = h * 5 + 0xe6546b64;
+
+		key += 8;
+		nblocks -= 2;
+	}
+
+	if (nblocks) {
+		tommy_uint32_t k = tommy_le_uint32_read(key);
 		k *= c1;
 		k = tommy_rot(k, 15);
 		k *= c2;
@@ -82,9 +108,6 @@ TOMMY_API tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* voi
 		h = tommy_rot(h, 13);
 		h = h * 5 + 0xe6546b64;
 	}
-
-	/* avoid pointer arithmetic on a null buffer for empty input */
-	const unsigned char* tail = key_len ? key + nblocks * 4 : key;
 
 	tommy_uint32_t k = 0;
 	switch (key_len & 3) {
@@ -114,9 +137,35 @@ TOMMY_API tommy_uint64_t tommy_hash_u64(tommy_uint64_t init_val, const void* voi
 	const tommy_uint64_t c2 = 0x4cf5ad432745937fULL;
 	tommy_uint64_t h = init_val;
 	tommy_size_t nblocks = key_len / 8;
+	const unsigned char* tail = key + nblocks * 8;
 
-	for (tommy_size_t i = 0; i < nblocks; ++i) {
-		tommy_uint64_t k = tommy_le_uint64_read(key + i * 8);
+	while (nblocks >= 2) {
+		tommy_uint64_t k0 = tommy_le_uint64_read(key);
+		tommy_uint64_t k1 = tommy_le_uint64_read(key + 8);
+
+		k0 *= c1;
+		k1 *= c1;
+
+		k0 = tommy_rot64(k0, 31);
+		k1 = tommy_rot64(k1, 31);
+
+		k0 *= c2;
+		k1 *= c2;
+
+		h ^= k0;
+		h = tommy_rot64(h, 27);
+		h = h * 5 + 0x52dce729ULL;
+
+		h ^= k1;
+		h = tommy_rot64(h, 27);
+		h = h * 5 + 0x52dce729ULL;
+
+		key += 16;
+		nblocks -= 2;
+	}
+
+	if (nblocks) {
+		tommy_uint64_t k = tommy_le_uint64_read(key);
 		k *= c1;
 		k = tommy_rot64(k, 31);
 		k *= c2;
@@ -124,9 +173,6 @@ TOMMY_API tommy_uint64_t tommy_hash_u64(tommy_uint64_t init_val, const void* voi
 		h = tommy_rot64(h, 27);
 		h = h * 5 + 0x52dce729ULL;
 	}
-
-	/* avoid pointer arithmetic on a null buffer for empty input */
-	const unsigned char* tail = key_len ? key + nblocks * 8 : key;
 
 	tommy_uint64_t k = 0;
 	switch (key_len & 7) {

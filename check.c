@@ -772,8 +772,8 @@ void test_strhash_u64_alignment(void)
 
 void test_hash(void)
 {
-	unsigned char buffer[16];
-	unsigned COUNT = 1024 * 1024 * 16;
+	unsigned char buffer[129];
+	unsigned COUNT = 1024 * 128;
 
 	START("hash_test_vectors");
 
@@ -861,7 +861,8 @@ void test_hash(void)
 	START("hash_u32");
 
 	for (unsigned i = 0; i < COUNT; ++i) {
-		hash32 = tommy_hash_u32(hash32, buffer, sizeof(buffer));
+		for (unsigned j = 0; j < sizeof(buffer); ++j)
+			hash32 = tommy_hash_u32(hash32, buffer, j);
 	}
 
 	STOP();
@@ -869,7 +870,11 @@ void test_hash(void)
 	START("strhash_u32");
 
 	for (unsigned i = 0; i < COUNT; ++i) {
-		hash32 = tommy_strhash_u32(hash32, buffer);
+		for (unsigned j = 0; j < sizeof(buffer); ++j) {
+			buffer[j] = 0;
+			hash32 = tommy_strhash_u32(hash32, buffer);
+			buffer[j] = 0xAA;
+		}
 	}
 
 	STOP();
@@ -877,7 +882,8 @@ void test_hash(void)
 	START("hash_u64");
 
 	for (unsigned i = 0; i < COUNT; ++i) {
-		hash64 = tommy_hash_u64(hash64, buffer, sizeof(buffer));
+		for (unsigned j = 0; j < sizeof(buffer); ++j)
+			hash64 = tommy_hash_u64(hash64, buffer, j);
 	}
 
 	STOP();
@@ -885,7 +891,11 @@ void test_hash(void)
 	START("strhash_u64");
 
 	for (unsigned i = 0; i < COUNT; ++i) {
-		hash64 = tommy_strhash_u64(hash64, buffer);
+		for (unsigned j = 0; j < sizeof(buffer); ++j) {
+			buffer[j] = 0;
+			hash64 = tommy_strhash_u64(hash64, buffer);
+			buffer[j] = 0xAA;
+		}
 	}
 
 	STOP();
