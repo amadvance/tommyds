@@ -2233,6 +2233,325 @@ void test_arrayblkof(void)
 	tommy_arrayblkof_done(&arrayblkof);
 }
 
+void test_array_tail_ops(void)
+{
+	unsigned value = 7;
+
+	{
+		tommy_array array;
+		tommy_array_init(&array);
+		if (!tommy_array_empty(&array)) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		for (tommy_size_t i = 0; i < 65; ++i)
+			tommy_array_insert_tail(&array, &value);
+		if (tommy_array_empty(&array) || tommy_array_size(&array) != 65 || tommy_array_tail(&array) != &value) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		if (tommy_array_remove_tail(&array) != &value || tommy_array_size(&array) != 64) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_array_grow(&array, 65);
+		if (tommy_array_tail(&array) != 0) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_array_clear(&array);
+		if (!tommy_array_empty(&array)) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_array_done(&array);
+	}
+
+	{
+		tommy_arrayof array;
+		tommy_arrayof_init(&array, sizeof(unsigned));
+		if (!tommy_arrayof_empty(&array)) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		for (tommy_size_t i = 0; i < 65; ++i) {
+			unsigned* ref = tommy_arrayof_insert_tail(&array);
+			if (ref != tommy_arrayof_tail(&array) || *ref != 0) {
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+			}
+			*ref = value;
+		}
+		unsigned* tail = tommy_arrayof_tail(&array);
+		if (tommy_arrayof_empty(&array) || tommy_arrayof_size(&array) != 65 || *tail != value) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_arrayof_remove_tail(&array);
+		tail = tommy_arrayof_insert_tail(&array);
+		if (tommy_arrayof_size(&array) != 65 || *tail != 0) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_arrayof_clear(&array);
+		if (!tommy_arrayof_empty(&array)) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_arrayof_done(&array);
+	}
+
+	{
+		tommy_arrayblk array;
+		tommy_arrayblk_init(&array);
+		if (!tommy_arrayblk_empty(&array)) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		for (tommy_size_t i = 0; i < TOMMY_ARRAYBLK_SIZE + 1; ++i)
+			tommy_arrayblk_insert_tail(&array, &value);
+		if (tommy_arrayblk_empty(&array) || tommy_arrayblk_size(&array) != TOMMY_ARRAYBLK_SIZE + 1 || tommy_arrayblk_tail(&array) != &value) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		if (tommy_arrayblk_remove_tail(&array) != &value || tommy_arrayblk_size(&array) != TOMMY_ARRAYBLK_SIZE) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_arrayblk_grow(&array, TOMMY_ARRAYBLK_SIZE + 1);
+		if (tommy_arrayblk_tail(&array) != 0) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_arrayblk_clear(&array);
+		if (!tommy_arrayblk_empty(&array)) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_arrayblk_done(&array);
+	}
+
+	{
+		tommy_arrayblkof array;
+		tommy_arrayblkof_init(&array, sizeof(unsigned));
+		if (!tommy_arrayblkof_empty(&array)) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		for (tommy_size_t i = 0; i < TOMMY_ARRAYBLKOF_SIZE + 1; ++i) {
+			unsigned* ref = tommy_arrayblkof_insert_tail(&array);
+			if (ref != tommy_arrayblkof_tail(&array) || *ref != 0) {
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+			}
+			*ref = value;
+		}
+		unsigned* tail = tommy_arrayblkof_tail(&array);
+		if (tommy_arrayblkof_empty(&array) || tommy_arrayblkof_size(&array) != TOMMY_ARRAYBLKOF_SIZE + 1 || *tail != value) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_arrayblkof_remove_tail(&array);
+		tail = tommy_arrayblkof_insert_tail(&array);
+		if (tommy_arrayblkof_size(&array) != TOMMY_ARRAYBLKOF_SIZE + 1 || *tail != 0) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_arrayblkof_clear(&array);
+		if (!tommy_arrayblkof_empty(&array)) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_arrayblkof_done(&array);
+	}
+}
+
+void test_array_capacity_swap(void)
+{
+	unsigned value = 7;
+
+	{
+		tommy_array first;
+		tommy_array second;
+		tommy_array_init(&first);
+		tommy_array_init(&second);
+		if (tommy_array_capacity(&first) != 64 || tommy_array_capacity(&second) != 64) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_array_reserve(&first, 65);
+		tommy_array_grow(&first, 65);
+		tommy_array_set(&first, 0, &value);
+		tommy_array_set(&first, 64, &value);
+		void** head = tommy_array_ref(&first, 0);
+		void** tail = tommy_array_ref(&first, 64);
+		if (tommy_array_capacity(&first) != 128) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_array_swap(&first, &second);
+		tommy_array_swap(&second, &second);
+		if (tommy_array_size(&first) != 0 || tommy_array_capacity(&first) != 64 || tommy_array_size(&second) != 65 || tommy_array_capacity(&second) != 128 || tommy_array_ref(&second, 0) != head || tommy_array_ref(&second, 64) != tail || tommy_array_get(&second, 64) != &value) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_array_resize(&second, 1);
+		tommy_array_shrink(&second);
+		if (tommy_array_capacity(&second) != 64 || tommy_array_ref(&second, 0) != head || tommy_array_get(&second, 0) != &value) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_array_done(&first);
+		tommy_array_done(&second);
+	}
+
+	{
+		tommy_arrayblk first;
+		tommy_arrayblk second;
+		tommy_arrayblk_init(&first);
+		tommy_arrayblk_init(&second);
+		if (tommy_arrayblk_capacity(&first) != 0 || tommy_arrayblk_capacity(&second) != 0) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_arrayblk_reserve(&first, TOMMY_ARRAYBLK_SIZE + 1);
+		tommy_arrayblk_grow(&first, TOMMY_ARRAYBLK_SIZE + 1);
+		tommy_arrayblk_set(&first, 0, &value);
+		tommy_arrayblk_set(&first, TOMMY_ARRAYBLK_SIZE, &value);
+		void** head = tommy_arrayblk_ref(&first, 0);
+		void** tail = tommy_arrayblk_ref(&first, TOMMY_ARRAYBLK_SIZE);
+		if (tommy_arrayblk_capacity(&first) != 2 * TOMMY_ARRAYBLK_SIZE) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_arrayblk_swap(&first, &second);
+		tommy_arrayblk_swap(&second, &second);
+		if (tommy_arrayblk_size(&first) != 0 || tommy_arrayblk_capacity(&first) != 0 || tommy_arrayblk_size(&second) != TOMMY_ARRAYBLK_SIZE + 1 || tommy_arrayblk_capacity(&second) != 2 * TOMMY_ARRAYBLK_SIZE || tommy_arrayblk_ref(&second, 0) != head || tommy_arrayblk_ref(&second, TOMMY_ARRAYBLK_SIZE) != tail || tommy_arrayblk_get(&second, TOMMY_ARRAYBLK_SIZE) != &value) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_arrayblk_resize(&second, 1);
+		tommy_arrayblk_shrink(&second);
+		if (tommy_arrayblk_capacity(&second) != TOMMY_ARRAYBLK_SIZE || tommy_arrayblk_ref(&second, 0) != head || tommy_arrayblk_get(&second, 0) != &value) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_arrayblk_done(&first);
+		tommy_arrayblk_done(&second);
+	}
+
+	{
+		tommy_arrayof first;
+		tommy_arrayof second;
+		tommy_arrayof_init(&first, sizeof(unsigned));
+		tommy_arrayof_init(&second, 2 * sizeof(unsigned));
+		tommy_arrayof_reserve(&first, 65);
+		tommy_arrayof_grow(&first, 65);
+		tommy_arrayof_grow(&second, 1);
+		unsigned* head = tommy_arrayof_ref(&first, 0);
+		unsigned* tail = tommy_arrayof_ref(&first, 64);
+		unsigned* pair = tommy_arrayof_ref(&second, 0);
+		*head = value;
+		*tail = value + 1;
+		pair[0] = value + 2;
+		pair[1] = value + 3;
+		if (tommy_arrayof_capacity(&first) != 128 || tommy_arrayof_capacity(&second) != 64) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_arrayof_swap(&first, &second);
+		tommy_arrayof_swap(&second, &second);
+		tommy_arrayof_grow(&first, 2);
+		if (tommy_arrayof_size(&first) != 2 || tommy_arrayof_size(&second) != 65 || tommy_arrayof_capacity(&first) != 64 || tommy_arrayof_capacity(&second) != 128 || tommy_arrayof_ref(&first, 0) != pair || tommy_arrayof_ref(&first, 1) != pair + 2 || tommy_arrayof_ref(&second, 64) != tail || pair[0] != value + 2 || pair[1] != value + 3 || *tail != value + 1) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_arrayof_resize(&second, 1);
+		tommy_arrayof_shrink(&second);
+		if (tommy_arrayof_capacity(&second) != 64 || tommy_arrayof_ref(&second, 0) != head || *head != value) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_arrayof_done(&first);
+		tommy_arrayof_done(&second);
+	}
+
+	{
+		tommy_arrayblkof first;
+		tommy_arrayblkof second;
+		tommy_arrayblkof_init(&first, sizeof(unsigned));
+		tommy_arrayblkof_init(&second, 2 * sizeof(unsigned));
+		if (tommy_arrayblkof_capacity(&first) != 0 || tommy_arrayblkof_capacity(&second) != 0) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_arrayblkof_reserve(&first, TOMMY_ARRAYBLKOF_SIZE + 1);
+		tommy_arrayblkof_grow(&first, TOMMY_ARRAYBLKOF_SIZE + 1);
+		tommy_arrayblkof_grow(&second, 1);
+		unsigned* head = tommy_arrayblkof_ref(&first, 0);
+		unsigned* tail = tommy_arrayblkof_ref(&first, TOMMY_ARRAYBLKOF_SIZE);
+		unsigned* pair = tommy_arrayblkof_ref(&second, 0);
+		*head = value;
+		*tail = value + 1;
+		pair[0] = value + 2;
+		pair[1] = value + 3;
+		if (tommy_arrayblkof_capacity(&first) != 2 * TOMMY_ARRAYBLKOF_SIZE || tommy_arrayblkof_capacity(&second) != TOMMY_ARRAYBLKOF_SIZE) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_arrayblkof_swap(&first, &second);
+		tommy_arrayblkof_swap(&second, &second);
+		tommy_arrayblkof_grow(&first, 2);
+		if (tommy_arrayblkof_size(&first) != 2 || tommy_arrayblkof_size(&second) != TOMMY_ARRAYBLKOF_SIZE + 1 || tommy_arrayblkof_capacity(&first) != TOMMY_ARRAYBLKOF_SIZE || tommy_arrayblkof_capacity(&second) != 2 * TOMMY_ARRAYBLKOF_SIZE || tommy_arrayblkof_ref(&first, 0) != pair || tommy_arrayblkof_ref(&first, 1) != pair + 2 || tommy_arrayblkof_ref(&second, TOMMY_ARRAYBLKOF_SIZE) != tail || pair[0] != value + 2 || pair[1] != value + 3 || *tail != value + 1) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_arrayblkof_resize(&second, 1);
+		tommy_arrayblkof_shrink(&second);
+		if (tommy_arrayblkof_capacity(&second) != TOMMY_ARRAYBLKOF_SIZE || tommy_arrayblkof_ref(&second, 0) != head || *head != value) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_arrayblkof_done(&first);
+		tommy_arrayblkof_done(&second);
+	}
+}
+
 void test_array_ops(void)
 {
 	tommy_array array;
@@ -5247,6 +5566,8 @@ int main()
 	test_arrayblk_ops();
 	test_arrayblkof();
 	test_arrayblkof_ops();
+	test_array_tail_ops();
+	test_array_capacity_swap();
 	test_hashtable();
 	test_hashdyn();
 	test_hashlin();

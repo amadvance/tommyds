@@ -7,6 +7,9 @@ TommyDS HISTORY
    keys and has a void return type. Code that used its return
    value to detect duplicates must call the new tommy_tree_insert_unique().
    Tree search and removal select the first equal element in tree order.
+ * BREAKING CHANGE: Renamed tommy_array_insert() to
+   tommy_array_insert_tail() and tommy_arrayblk_insert() to
+   tommy_arrayblk_insert_tail(). Callers must use the new names.
  * BREAKING CHANGE: Reimplemented tommy_hash_u32(), tommy_hash_u64(),
    tommy_strhash_u32(), and added tommy_strhash_u64() using MurmurHash3
    (x86_32 and x64_64) for significantly faster hashing. This is a breaking
@@ -68,6 +71,19 @@ TommyDS HISTORY
    tommy_arrayblk_shrink() and tommy_arrayblkof_shrink().
    These release unused allocated segments or blocks without moving existing
    elements or altering their addresses.
+ * Added tommy_arrayof_insert_tail() and tommy_arrayblkof_insert_tail().
+   These append a zeroed record and return its address for direct access.
+ * Added tommy_array_tail(), tommy_arrayof_tail(), tommy_arrayblk_tail(),
+   tommy_arrayblkof_tail(), tommy_array_remove_tail(),
+   tommy_arrayof_remove_tail(), tommy_arrayblk_remove_tail() and
+   tommy_arrayblkof_remove_tail(). These access or remove the last element.
+ * Added tommy_array_empty(), tommy_arrayof_empty(),
+   tommy_arrayblk_empty(), tommy_arrayblkof_empty(),
+   tommy_array_capacity(), tommy_arrayof_capacity(),
+   tommy_arrayblk_capacity(), tommy_arrayblkof_capacity(),
+   tommy_array_swap(), tommy_arrayof_swap(), tommy_arrayblk_swap() and
+   tommy_arrayblkof_swap(). These query state or exchange whole arrays
+   without moving stored elements.
  * Added tommy_array_foreach(), tommy_array_foreach_arg(),
    tommy_arrayof_foreach(), tommy_arrayof_foreach_arg(),
    tommy_arrayblk_foreach(), tommy_arrayblk_foreach_arg(),

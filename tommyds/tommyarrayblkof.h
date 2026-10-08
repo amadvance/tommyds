@@ -11,9 +11,10 @@
  * This is very similar to ::tommy_arrayblk, but it allows to store elements of any
  * size and not just pointers.
  *
- * Note that in this case tommy_arrayblkof_ref() returns a pointer to the element,
- * that should be used for getting and setting elements in the array,
- * as generic getter and setter are not available.
+ * The container allocates space for elements but never copies user data into
+ * or out of it. tommy_arrayblkof_ref(), tommy_arrayblkof_tail(), and
+ * tommy_arrayblkof_insert_tail() return an element's address so the caller can
+ * read or write it directly.
  */
 
 #ifndef __TOMMYARRAYBLKOF_H
@@ -110,11 +111,70 @@ tommy_inline void* tommy_arrayblkof_ref(tommy_arrayblkof* array, tommy_size_t po
 }
 
 /**
+ * Gets a reference to the last element.
+ * The array must not be empty.
+ */
+tommy_inline void* tommy_arrayblkof_tail(tommy_arrayblkof* array)
+{
+	assert(array->count != 0);
+	return tommy_arrayblkof_ref(array, array->count - 1);
+}
+
+/**
+ * Adds a zero-initialized element and returns its reference.
+ */
+tommy_inline void* tommy_arrayblkof_insert_tail(tommy_arrayblkof* array)
+{
+	tommy_size_t pos = array->count;
+	tommy_arrayblkof_grow(array, pos + 1);
+	return tommy_arrayblkof_ref(array, pos);
+}
+
+/**
+ * Removes the last element without copying it.
+ * The array must not be empty. The removed slot is cleared.
+ */
+tommy_inline void tommy_arrayblkof_remove_tail(tommy_arrayblkof* array)
+{
+	assert(array->count != 0);
+	tommy_arrayblkof_resize(array, array->count - 1);
+}
+
+/**
+ * Checks whether the array is empty.
+ */
+tommy_inline tommy_bool_t tommy_arrayblkof_empty(tommy_arrayblkof* array)
+{
+	return array->count == 0;
+}
+
+/**
  * Gets the initialized size of the array.
  */
 tommy_inline tommy_size_t tommy_arrayblkof_size(tommy_arrayblkof* array)
 {
 	return array->count;
+}
+
+/**
+ * Gets the number of elements that fit without further allocation.
+ */
+tommy_inline tommy_size_t tommy_arrayblkof_capacity(tommy_arrayblkof* array)
+{
+	return array->block_count * TOMMY_ARRAYBLKOF_SIZE;
+}
+
+/**
+ * Exchanges two initialized arrays without copying their elements.
+ * Element references remain valid and belong to the other array.
+ * Passing the same array twice has no effect.
+ */
+tommy_inline void tommy_arrayblkof_swap(tommy_arrayblkof* first, tommy_arrayblkof* second)
+{
+	/* keep record size with the storage it describes */
+	tommy_arrayblkof tmp = *first;
+	*first = *second;
+	*second = tmp;
 }
 
 /**

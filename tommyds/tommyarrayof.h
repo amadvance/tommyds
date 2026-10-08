@@ -9,9 +9,10 @@
  * This is very similar to ::tommy_array, but it allows to store elements of any
  * size and not just pointers.
  *
- * Note that in this case tommy_arrayof_ref() returns a pointer to the element,
- * that should be used for getting and setting elements in the array,
- * as generic getter and setter are not available.
+ * The container allocates space for elements but never copies user data into
+ * or out of it. tommy_arrayof_ref(), tommy_arrayof_tail(), and
+ * tommy_arrayof_insert_tail() return an element's address so the caller can
+ * read or write it directly.
  */
 
 #ifndef __TOMMYARRAYOF_H
@@ -125,12 +126,71 @@ tommy_inline void* tommy_arrayof_ref(tommy_arrayof* array, tommy_size_t pos)
 }
 
 /**
+ * Gets a reference to the last element.
+ * The array must not be empty.
+ */
+tommy_inline void* tommy_arrayof_tail(tommy_arrayof* array)
+{
+	assert(array->count != 0);
+	return tommy_arrayof_ref(array, array->count - 1);
+}
+
+/**
+ * Adds a zero-initialized element and returns its reference.
+ */
+tommy_inline void* tommy_arrayof_insert_tail(tommy_arrayof* array)
+{
+	tommy_size_t pos = array->count;
+	tommy_arrayof_grow(array, pos + 1);
+	return tommy_arrayof_ref(array, pos);
+}
+
+/**
+ * Removes the last element without copying it.
+ * The array must not be empty. The removed slot is cleared.
+ */
+tommy_inline void tommy_arrayof_remove_tail(tommy_arrayof* array)
+{
+	assert(array->count != 0);
+	tommy_arrayof_resize(array, array->count - 1);
+}
+
+/**
+ * Checks whether the array is empty.
+ */
+tommy_inline tommy_bool_t tommy_arrayof_empty(tommy_arrayof* array)
+{
+	return array->count == 0;
+}
+
+/**
  * Gets the initialized size of the array.
  * \param array Array to query.
  */
 tommy_inline tommy_size_t tommy_arrayof_size(tommy_arrayof* array)
 {
 	return array->count;
+}
+
+/**
+ * Gets the number of elements that fit without further allocation.
+ */
+tommy_inline tommy_size_t tommy_arrayof_capacity(tommy_arrayof* array)
+{
+	return array->bucket_max;
+}
+
+/**
+ * Exchanges two initialized arrays without copying their elements.
+ * Element references remain valid and belong to the other array.
+ * Passing the same array twice has no effect.
+ */
+tommy_inline void tommy_arrayof_swap(tommy_arrayof* first, tommy_arrayof* second)
+{
+	/* keep record size with the storage it describes */
+	tommy_arrayof tmp = *first;
+	*first = *second;
+	*second = tmp;
 }
 
 /**

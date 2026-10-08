@@ -125,9 +125,19 @@ tommy_inline void* tommy_arrayblk_get(tommy_arrayblk* array, tommy_size_t pos)
 }
 
 /**
+ * Gets the last element.
+ * The array must not be empty.
+ */
+tommy_inline void* tommy_arrayblk_tail(tommy_arrayblk* array)
+{
+	assert(array->count != 0);
+	return tommy_arrayblk_get(array, array->count - 1);
+}
+
+/**
  * Grows and inserts a new element at the end of the array.
  */
-tommy_inline void tommy_arrayblk_insert(tommy_arrayblk* array, void* element)
+tommy_inline void tommy_arrayblk_insert_tail(tommy_arrayblk* array, void* element)
 {
 	tommy_size_t pos = array->count;
 
@@ -137,11 +147,52 @@ tommy_inline void tommy_arrayblk_insert(tommy_arrayblk* array, void* element)
 }
 
 /**
+ * Removes and returns the last element.
+ * The array must not be empty.
+ * The removed slot is cleared, and allocated capacity is preserved.
+ */
+tommy_inline void* tommy_arrayblk_remove_tail(tommy_arrayblk* array)
+{
+	assert(array->count != 0);
+	void* element = tommy_arrayblk_tail(array);
+	tommy_arrayblk_resize(array, array->count - 1);
+	return element;
+}
+
+/**
+ * Checks whether the array is empty.
+ */
+tommy_inline tommy_bool_t tommy_arrayblk_empty(tommy_arrayblk* array)
+{
+	return array->count == 0;
+}
+
+/**
  * Gets the initialized size of the array.
  */
 tommy_inline tommy_size_t tommy_arrayblk_size(tommy_arrayblk* array)
 {
 	return array->count;
+}
+
+/**
+ * Gets the number of elements that fit without further allocation.
+ */
+tommy_inline tommy_size_t tommy_arrayblk_capacity(tommy_arrayblk* array)
+{
+	return array->block_count * TOMMY_ARRAYBLK_SIZE;
+}
+
+/**
+ * Exchanges two initialized arrays without copying their elements.
+ * Element references remain valid and belong to the other array.
+ * Passing the same array twice has no effect.
+ */
+tommy_inline void tommy_arrayblk_swap(tommy_arrayblk* first, tommy_arrayblk* second)
+{
+	tommy_arrayblk tmp = *first;
+	*first = *second;
+	*second = tmp;
 }
 
 /**
