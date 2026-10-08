@@ -9,6 +9,23 @@
 #define __TOMMYTYPES_H
 
 /******************************************************************************/
+/* memory bounds checking */
+
+/**
+ * Enable bounds-safe implementations when compiling with AddressSanitizer
+ * or Fil-C. These environments detect accesses beyond allocated objects,
+ * including intentional overreads that remain within a readable memory page.
+ * Normal builds retain the faster implementations.
+ */
+#if defined(__SANITIZE_ADDRESS__) || defined(__FILC__)
+#define TOMMY_MEMORY_BOUNDS_CHECK 1
+#elif defined(__has_feature)
+#define TOMMY_MEMORY_BOUNDS_CHECK __has_feature(address_sanitizer)
+#else
+#define TOMMY_MEMORY_BOUNDS_CHECK 0
+#endif
+
+/******************************************************************************/
 /* types */
 
 #include <stddef.h>

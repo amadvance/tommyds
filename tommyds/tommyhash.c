@@ -201,6 +201,9 @@ TOMMY_API tommy_uint64_t tommy_hash_u64(tommy_uint64_t init_val, const void* voi
 
 TOMMY_API tommy_uint32_t tommy_strhash_u32(tommy_uint32_t init_val, const void* void_key)
 {
+#if TOMMY_MEMORY_BOUNDS_CHECK
+	return tommy_hash_u32(init_val, void_key, strlen(tommy_cast(const char*, void_key)));
+#else
 	const unsigned char* p = tommy_cast(const unsigned char*, void_key);
 	const tommy_uint32_t c1 = 0xcc9e2d51;
 	const tommy_uint32_t c2 = 0x1b873593;
@@ -259,10 +262,14 @@ TOMMY_API tommy_uint32_t tommy_strhash_u32(tommy_uint32_t init_val, const void* 
 	h ^= h >> 16;
 
 	return h;
+#endif
 }
 
 TOMMY_API tommy_uint64_t tommy_strhash_u64(tommy_uint64_t init_val, const void* void_key)
 {
+#if TOMMY_MEMORY_BOUNDS_CHECK
+	return tommy_hash_u64(init_val, void_key, strlen(tommy_cast(const char*, void_key)));
+#else
 	const unsigned char* p = tommy_cast(const unsigned char*, void_key);
 	const tommy_uint64_t c1 = 0x87c37b91114253d5ULL;
 	const tommy_uint64_t c2 = 0x4cf5ad432745937fULL;
@@ -321,5 +328,6 @@ TOMMY_API tommy_uint64_t tommy_strhash_u64(tommy_uint64_t init_val, const void* 
 	h ^= h >> 33;
 
 	return h;
+#endif
 }
 
