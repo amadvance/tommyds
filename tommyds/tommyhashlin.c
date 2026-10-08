@@ -325,13 +325,41 @@ TOMMY_API tommy_size_t tommy_hashlin_memory_usage(const tommy_hashlin* hashlin)
 
 TOMMY_API void tommy_hashlin_to_list(tommy_hashlin* hashlin, tommy_list* list)
 {
-	tommy_size_t bucket_max = hashlin->low_max + hashlin->split;
+	tommy_size_t active_max = hashlin->low_max + hashlin->split;
+	tommy_size_t initial_max = (tommy_size_t)1 << TOMMY_HASHLIN_BIT;
+	tommy_hashlin_node** bucket = hashlin->bucket[0];
 
-	/* inactive slots may be uninitialized or refer to nodes already merged. */
-	for (tommy_size_t pos = 0; pos < bucket_max; ++pos)
-		tommy_list_concat(list, tommy_hashlin_pos(hashlin, pos));
+	/*
+	 * Visit the initial segment once, despite its multiple aliases.
+	 *
+	 * This segment starts at zero and is always fully active. Processing it
+	 * separately lets the following loop use active_max - size, since each
+	 * later segment starts at an offset equal to its size.
+	 */
+	for (tommy_size_t pos = 0; pos < initial_max; ++pos) {
+		tommy_list_concat(list, &bucket[pos]);
+		bucket[pos] = 0;
+	}
 
-	/* clear all allocated slots before making the table stable and reusable. */
-	tommy_hashlin_clear(hashlin);
+	for (tommy_uint_t i = TOMMY_HASHLIN_BIT; i < hashlin->bucket_bit; ++i) {
+		tommy_size_t size = (tommy_size_t)1 << i;
+		bucket = &hashlin->bucket[i][size];
+
+		/* only the last allocated segment can be partially active */
+		tommy_size_t active = active_max - size;
+		if (active > size)
+			active = size;
+
+		for (tommy_size_t pos = 0; pos < active; ++pos) {
+			tommy_list_concat(list, &bucket[pos]);
+			bucket[pos] = 0;
+		}
+
+		/* inactive slots must be cleared without reading stale pointers */
+		memset(bucket + active, 0, (size - active) * sizeof(*bucket));
+	}
+
+	hashlin->count = 0;
+	tommy_hashlin_stable(hashlin);
 }
 
