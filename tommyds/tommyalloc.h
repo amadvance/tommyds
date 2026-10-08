@@ -65,9 +65,10 @@ TOMMY_API void* tommy_allocator_alloc(tommy_allocator* alloc);
 TOMMY_API void tommy_allocator_free(tommy_allocator* alloc, void* ptr);
 
 /**
- * Gets the size of allocated memory.
+ * Gets the total size of allocated blocks currently in use.
+ * Excludes free blocks retained by the allocator and segment overhead.
  * \param alloc Allocator to use.
- * \return Size of allocated memory in bytes.
+ * \return Size of active blocks in bytes.
  */
 TOMMY_API tommy_size_t tommy_allocator_memory_usage(const tommy_allocator* alloc);
 
