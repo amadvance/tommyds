@@ -925,10 +925,20 @@ void test_alloc(void)
 	}
 	tommy_allocator_done(&alloc);
 
+	/* round a non-multiple block size up to the next alignment boundary */
+	tommy_allocator_init(&alloc, sizeof(void*) + 1, sizeof(void*));
+	if (alloc.block_size != 2 * sizeof(void*)) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	tommy_allocator_done(&alloc);
+
 	/* check every generated block against the segment bounds */
 	const tommy_size_t cases[][2] = {
 		{ sizeof(void*), 1 },
 		{ sizeof(void*) - 1, sizeof(void*) },
+		{ sizeof(void*) + 1, sizeof(void*) },
 		{ 32, sizeof(void*) },
 		{ 64, 64 },
 		{ 4096 - 64 - sizeof(tommy_allocator_entry), sizeof(void*) },

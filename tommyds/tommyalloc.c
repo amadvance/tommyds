@@ -24,8 +24,10 @@ TOMMY_API void tommy_allocator_init(tommy_allocator* alloc, tommy_size_t block_s
 	/* blocks store free-list pointers and must preserve their alignment */
 	assert(align_size % sizeof(void*) == 0);
 
-	/* ensure that the block_size keeps the alignment */
-	if (block_size % align_size != 0)
+	/* ensure the minimum block size and alignment */
+	if (block_size < align_size)
+		block_size = align_size;
+	else if (block_size % align_size != 0)
 		block_size += align_size - block_size % align_size;
 
 	alloc->block_size = block_size;
