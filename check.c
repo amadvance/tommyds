@@ -765,6 +765,16 @@ void test_hash(void)
 
 	START("hash_test_vectors");
 
+	/* test approximation retry in rnd() */
+	tommy_uint64_t saved_seed = SEED;
+	SEED = 0x1865d6a7bc16fecbULL;
+	if (rnd(7) >= 7) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	SEED = saved_seed;
+
 	test_strhash_alignment();
 	test_strhash_u64_alignment();
 
@@ -1000,6 +1010,23 @@ void test_list_build(tommy_list* list, struct object* obj, unsigned start, unsig
 	for (unsigned i = start; i < start + size; ++i) {
 		obj[i].node.index = i + 1;
 		tommy_list_insert_tail(list, &obj[i].node, &obj[i]);
+	}
+}
+
+void test_list_insert_head(void)
+{
+	struct object obj[8];
+	unsigned order[8] = { 0 };
+	tommy_list list;
+
+	for (unsigned n = 0; n <= 4; ++n) {
+		tommy_list_init(&list);
+		for (unsigned i = 0; i < n; ++i) {
+			obj[i].node.index = i + 1;
+			tommy_list_insert_head(&list, &obj[i].node, &obj[i]);
+			order[n - 1 - i] = i;
+		}
+		test_list_sequence(&list, obj, order, n);
 	}
 }
 
@@ -1322,6 +1349,7 @@ void test_list(void)
 	const unsigned size = TOMMY_SIZE;
 	tommy_node* list;
 
+	test_list_insert_head();
 	test_list_merge();
 	test_list_split();
 	test_list_splice();
@@ -1754,8 +1782,13 @@ void test_tree_duplicates(void)
 		/* LCOV_EXCL_STOP */
 	}
 
-	key.value = -1;
+	key.value = -2;
 	if (tommy_tree_search_less_equal(&tree, &key) != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	if (tommy_tree_search_compare(&tree, &compare_tree_group, &key) != 0) {
 		/* LCOV_EXCL_START */
 		abort();
 		/* LCOV_EXCL_STOP */
@@ -1774,6 +1807,12 @@ void test_tree_duplicates(void)
 		/* LCOV_EXCL_STOP */
 	}
 	if (tommy_tree_remove_compare(&tree, &compare_tree_int, &value) != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	int val_neg = -1;
+	if (tommy_tree_remove_compare(&tree, &compare_tree_int, &val_neg) != 0) {
 		/* LCOV_EXCL_START */
 		abort();
 		/* LCOV_EXCL_STOP */
@@ -2679,6 +2718,25 @@ void test_arrayblk_ops(void)
 		}
 	}
 
+	/* shrink with directory reduction while capacity > min_capacity */
+	tommy_arrayblk_reserve(&arrayblk, 200 * TOMMY_ARRAYBLK_SIZE);
+	tommy_arrayblk_resize(&arrayblk, 70 * TOMMY_ARRAYBLK_SIZE);
+	for (tommy_uintptr_t i = 0; i < 70 * TOMMY_ARRAYBLK_SIZE; ++i)
+		tommy_arrayblk_set(&arrayblk, i, (void*)(i + 1));
+	tommy_arrayblk_shrink(&arrayblk);
+	if (tommy_arrayblk_size(&arrayblk) != 70 * TOMMY_ARRAYBLK_SIZE || arrayblk.block_count != 70 || arrayblk.block_capacity != 128) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	for (tommy_uintptr_t i = 0; i < 70 * TOMMY_ARRAYBLK_SIZE; ++i) {
+		if (tommy_arrayblk_get(&arrayblk, i) != (void*)(i + 1)) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
 	/* shrink to empty */
 	tommy_arrayblk_clear(&arrayblk);
 	tommy_arrayblk_shrink(&arrayblk);
@@ -2857,6 +2915,28 @@ void test_arrayblkof_ops(void)
 		/* LCOV_EXCL_STOP */
 	}
 	for (unsigned i = 0; i < TOMMY_ARRAYBLKOF_SIZE + 10; ++i) {
+		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
+		if (*ref != i + 1) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
+	/* shrink with directory reduction while capacity > min_capacity */
+	tommy_arrayblkof_reserve(&arrayblkof, 200 * TOMMY_ARRAYBLKOF_SIZE);
+	tommy_arrayblkof_resize(&arrayblkof, 70 * TOMMY_ARRAYBLKOF_SIZE);
+	for (unsigned i = 0; i < 70 * TOMMY_ARRAYBLKOF_SIZE; ++i) {
+		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
+		*ref = i + 1;
+	}
+	tommy_arrayblkof_shrink(&arrayblkof);
+	if (tommy_arrayblkof_size(&arrayblkof) != 70 * TOMMY_ARRAYBLKOF_SIZE || arrayblkof.block_count != 70 || arrayblkof.block_capacity != 128) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	for (unsigned i = 0; i < 70 * TOMMY_ARRAYBLKOF_SIZE; ++i) {
 		unsigned* ref = tommy_arrayblkof_ref(&arrayblkof, i);
 		if (*ref != i + 1) {
 			/* LCOV_EXCL_START */
@@ -3137,7 +3217,7 @@ void test_hashtable_insert_unique(void)
 
 void test_hashtable_rehash_existing(void)
 {
-	const unsigned counts[][2] = { { 1, 1 }, { 4, 4 }, { 128, 128 } };
+	const unsigned counts[][2] = { { 1, 1 }, { 4, 4 }, { 128, 128 }, { 128, 31 } };
 	struct object_hash obj[130];
 	tommy_hash_t hashes[130];
 	tommy_hashtable table;
@@ -3588,17 +3668,20 @@ void test_hashdyn_shrink(void)
 	tommy_node saved[130];
 
 	for (unsigned c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
-		for (unsigned reserved = 0; reserved < 2; ++reserved) {
+		for (unsigned reserved = 0; reserved < 3; ++reserved) {
 			unsigned n = counts[c][0];
 			tommy_hashdyn table;
 			tommy_hashdyn_init(&table);
+			tommy_hashdyn_reserve(&table, 0);
 			/* reserve far beyond the contents to exercise multi-bit contractions. */
-			if (reserved)
+			if (reserved == 1)
 				tommy_hashdyn_reserve(&table, 1024);
 			for (unsigned i = 0; i < n; ++i) {
 				obj[i].value = i / 2;
 				tommy_hashdyn_insert(&table, &obj[i].node, &obj[i], tommy_inthash_u32(obj[i].value));
 			}
+			if (reserved == 2)
+				tommy_hashdyn_reserve(&table, 1024);
 			for (unsigned i = 0; i < n; ++i)
 				saved[i] = obj[i].node;
 			tommy_hashdyn_node** bucket = table.bucket;
@@ -3816,7 +3899,7 @@ void test_hashdyn_insert_unique(void)
 
 void test_hashdyn_rehash_existing(void)
 {
-	const unsigned counts[][2] = { { 1, 1 }, { 4, 4 }, { 128, 128 } };
+	const unsigned counts[][2] = { { 1, 1 }, { 4, 4 }, { 128, 128 }, { 128, 31 } };
 	struct object_hash obj[130];
 	tommy_hash_t hashes[130];
 	tommy_hashdyn table;
