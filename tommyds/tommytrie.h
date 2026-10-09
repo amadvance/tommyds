@@ -104,6 +104,7 @@
 
 #include "tommytypes.h"
 #include "tommyalloc.h"
+#include "tommylist.h"
 
 /******************************************************************************/
 /* trie */
@@ -267,6 +268,21 @@ tommy_inline void* tommy_trie_search(tommy_trie* trie, tommy_key_t key)
  * \return The tommy_node::data field of the node removed.
  */
 TOMMY_API void* tommy_trie_remove_existing(tommy_trie* trie, tommy_trie_node* node);
+
+/**
+ * Transfers all elements from the trie to the tail of a list by increasing numeric key.
+ * Elements with equal keys retain their insertion order. Existing list elements
+ * remain before the transferred elements; an initially empty list is therefore sorted.
+ * The list must be initialized and must not share nodes with the trie.
+ * Objects are not freed, and the node data and index fields are left unchanged.
+ * Internal nodes are returned to the allocator, leaving the trie empty and
+ * reusable with the same allocator. Other tries sharing the allocator are unaffected.
+ * No memory is allocated; free blocks remain available for reuse in the allocator.
+ * \param trie The trie to drain.
+ * \param list The destination list.
+ * \note This operation is O(n), with recursion depth bounded by the number of key bits.
+ */
+TOMMY_API void tommy_trie_to_list(tommy_trie* trie, tommy_list* list);
 
 /**
  * Calls the specified function for each element in the trie.

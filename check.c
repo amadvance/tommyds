@@ -6061,6 +6061,146 @@ static int trie_foreach_compare(const void* void_a, const void* void_b)
 	return (a->value > b->value) - (a->value < b->value);
 }
 
+void test_trie_to_list(void)
+{
+	const unsigned counts[] = { 0, 1, 2 * TOMMY_TRIE_BIT, 128 };
+	tommy_key_t high = 1;
+	high <<= TOMMY_TRIE_BIT - 1;
+	tommy_key_t max = high | (high - 1);
+
+	for (unsigned c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
+		for (unsigned shape = 0; shape < 4; ++shape) {
+			for (unsigned prefix = 0; prefix <= 2; prefix += 2) {
+				struct object_trie obj[130], shared_obj[2];
+				void* expected[130];
+				tommy_key_t saved_key[130];
+				tommy_allocator alloc;
+				tommy_trie trie, shared;
+				tommy_list list;
+				unsigned size = prefix + counts[c];
+				tommy_allocator_init(&alloc, TOMMY_TRIE_BLOCK_SIZE, TOMMY_TRIE_BLOCK_SIZE);
+				tommy_trie_init(&trie, &alloc);
+				tommy_trie_init(&shared, &alloc);
+				tommy_list_init(&list);
+				for (unsigned i = 0; i < 2; ++i)
+					tommy_trie_insert(&shared, &shared_obj[i].node, &shared_obj[i], i);
+
+				for (unsigned i = 0; i < size; ++i) {
+					obj[i].value = i;
+					expected[i] = &obj[i];
+					if (i < prefix) {
+						obj[i].node.index = max;
+						tommy_list_insert_tail(&list, &obj[i].node, &obj[i]);
+					} else {
+						unsigned pos = i - prefix;
+						tommy_key_t key;
+						if (shape == 0)
+							key = pos / 2;
+						else if (shape == 1)
+							key = max - pos / 2;
+						else if (shape == 2)
+							key = pos < 2 ? (pos ? max : 0) : tommy_inthash_u32(pos / 2) & max;
+						else
+							key = max;
+						tommy_trie_insert(&trie, &obj[i].node, &obj[i], key);
+					}
+					saved_key[i] = obj[i].node.index;
+				}
+				/* the oracle sorts by key and original insertion position, excluding the existing prefix. */
+				qsort(expected + prefix, counts[c], sizeof(expected[0]), trie_foreach_compare);
+
+				for (unsigned repeat = 0; repeat < 2; ++repeat) {
+					tommy_trie_to_list(&trie, &list);
+					if (!tommy_trie_empty(&trie) || tommy_trie_count(&trie) != 0 || trie.node_count != 0
+						|| trie.alloc != &alloc || tommy_trie_memory_usage(&trie) != 0
+						|| alloc.count != shared.node_count || tommy_trie_count(&shared) != 2
+						|| tommy_trie_search(&shared, 0) != &shared_obj[0] || tommy_trie_search(&shared, 1) != &shared_obj[1]
+						|| tommy_list_count(&list) != size) {
+						/* LCOV_EXCL_START */
+						abort();
+						/* LCOV_EXCL_STOP */
+					}
+					for (unsigned i = 0; i < TOMMY_TRIE_BUCKET_MAX; ++i) {
+						if (trie.bucket[i] != 0) {
+							/* LCOV_EXCL_START */
+							abort();
+							/* LCOV_EXCL_STOP */
+						}
+					}
+					tommy_node* node = tommy_list_head(&list);
+					struct object_trie* tail = size ? expected[size - 1] : 0;
+					tommy_node* prev = tail ? &tail->node : 0;
+					for (unsigned i = 0; i < size; ++i) {
+						struct object_trie* object = expected[i];
+						if (node != &object->node || node->prev != prev
+							|| node->data != object || node->index != saved_key[object->value]) {
+							/* LCOV_EXCL_START */
+							abort();
+							/* LCOV_EXCL_STOP */
+						}
+						prev = node;
+						node = node->next;
+					}
+					if (node != 0 || tommy_list_tail(&list) != prev) {
+						/* LCOV_EXCL_START */
+						abort();
+						/* LCOV_EXCL_STOP */
+					}
+					node = tommy_list_tail(&list);
+					for (unsigned i = size; i > 0; --i) {
+						struct object_trie* object = expected[i - 1];
+						if (node != &object->node) {
+							/* LCOV_EXCL_START */
+							abort();
+							/* LCOV_EXCL_STOP */
+						}
+						node = tommy_list_prev(&list, node);
+					}
+					if (node != 0) {
+						/* LCOV_EXCL_START */
+						abort();
+						/* LCOV_EXCL_STOP */
+					}
+				}
+
+				/* reinsert the transferred nodes into the drained trie and exercise both removal paths. */
+				while (!tommy_list_empty(&list)) {
+					struct object_trie* data = tommy_list_remove_head(&list);
+					tommy_trie_insert(&trie, &data->node, data, data->node.index);
+					if (tommy_trie_search(&trie, data->node.index) == 0) {
+						/* LCOV_EXCL_START */
+						abort();
+						/* LCOV_EXCL_STOP */
+					}
+				}
+				for (unsigned i = 0; i < size; ++i) {
+					struct object_trie* object = expected[i];
+					void* data = i % 2 ? tommy_trie_remove_existing(&trie, &object->node)
+						: tommy_trie_remove(&trie, object->node.index);
+					if (data != expected[i]) {
+						/* LCOV_EXCL_START */
+						abort();
+						/* LCOV_EXCL_STOP */
+					}
+				}
+				if (!tommy_trie_empty(&trie) || trie.node_count != 0 || alloc.count != shared.node_count) {
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+				}
+				for (unsigned i = 0; i < 2; ++i)
+					tommy_trie_remove_existing(&shared, &shared_obj[i].node);
+				if (alloc.count != 0) {
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+				}
+				tommy_allocator_done(&alloc);
+			}
+		}
+	}
+}
+
 void test_trie_foreach_order(void)
 {
 	const unsigned size = 128;
@@ -6854,6 +6994,7 @@ int main()
 	test_hashdyn();
 	test_hashlin();
 	test_trie();
+	test_trie_to_list();
 	test_trie_foreach();
 	test_trie_foreach_order();
 	test_trie_foreach_depth();

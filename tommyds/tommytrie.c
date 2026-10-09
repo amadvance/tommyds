@@ -325,6 +325,33 @@ TOMMY_API tommy_trie_node* tommy_trie_bucket(tommy_trie* trie, tommy_key_t key)
 	}
 }
 
+static void trie_to_list_node(tommy_trie* trie, tommy_trie_node* node, tommy_list* list)
+{
+	if (!node)
+		return;
+
+	if (trie_get_type(node) == TOMMY_TRIE_TYPE_TREE) {
+		tommy_trie_tree* tree = trie_get_tree(node);
+		for (tommy_uint_t i = 0; i < TOMMY_TRIE_TREE_MAX; ++i)
+			trie_to_list_node(trie, tree->map[i], list);
+		/* freeing the parent overwrites its branches, so transfer all children first */
+		tommy_allocator_free(trie->alloc, tree);
+	} else {
+		/* each leaf is already a list of equal keys in insertion order */
+		tommy_list_concat(list, &node);
+	}
+}
+
+TOMMY_API void tommy_trie_to_list(tommy_trie* trie, tommy_list* list)
+{
+	for (tommy_uint_t i = 0; i < TOMMY_TRIE_BUCKET_MAX; ++i) {
+		trie_to_list_node(trie, trie->bucket[i], list);
+		trie->bucket[i] = 0;
+	}
+	trie->count = 0;
+	trie->node_count = 0;
+}
+
 static void trie_foreach_node(tommy_trie_node* node, tommy_foreach_func* func)
 {
 	if (!node)
