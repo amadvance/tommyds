@@ -3,14 +3,14 @@
 
 /** \mainpage
  * \section Introduction
- * Tommy is a C library of array, **hashtable** and trie data structures,
+ * Tommy is a C library of array, hashtable, trie, and tree data structures,
  * designed for high performance and providing an easy-to-use interface.
  *
  * It's **faster** than all the similar libraries like
  * <a href="http://www.canonware.com/rb/">rbtree</a>,
  * <a href="http://www.nedprod.com/programs/portable/nedtries/">nedtrie</a>,
  * <a href="https://github.com/attractivechaos/klib/blob/master/khash.h">khash</a>,
- * <a href="http://uthash.sourceforge.net/">uthash</a>,
+ * <a href="https://troydhanson.github.io/uthash/">uthash</a>,
  * <a href="http://judy.sourceforge.net/">judy</a>,
  * <a href="https://code.google.com/archive/p/judyarray/">judyarray</a>,
  * <a href="https://github.com/sparsehash/sparsehash">googledensehash</a>,
@@ -42,74 +42,255 @@
  *
  * \section Use
  *
- * All the Tommy containers are used to store pointers to generic objects, associated with an
- * integer value, that could be a key or a hash value.
+ * Tommy provides two main categories of data structures:
+ * - **Sequential containers and arrays**: ::tommy_array, ::tommy_arrayof, ::tommy_arrayblk,
+ * ::tommy_arrayblkof and ::tommy_list.
+ * - **Associative containers**: hashtables (::tommy_hashtable, ::tommy_hashdyn, ::tommy_hashlin),
+ * numeric tries (::tommy_trie, ::tommy_trie_inplace), and ordered trees (::tommy_tree).
  *
- * They are semantically equivalent to the C++ <a href="http://www.cplusplus.com/reference/map/multimap/">multimap\<unsigned,void*\></a>
- * and <a href="http://www.cplusplus.com/reference/unordered_map/unordered_multimap/">unordered_multimap\<unsigned,void*\></a>.
+ * \subsection use_selection Container Selection Guide
  *
- * An object, to be inserted into a container, should contain a node of type ::tommy_node.
- * Inside this node is present a pointer to the object itself in the tommy_node::data field,
- * the key used to identify the object in the tommy_node::index field, and other fields used
- * by the containers.
+ * | Data Structure | Best Used For | Key Characteristic |
+ * |---|---|---|
+ * | ::tommy_array, ::tommy_arrayof | Dynamic arrays indexed by position | No heap fragmentation; stores pointers or values directly |
+ * | ::tommy_arrayblk, ::tommy_arrayblkof | Blocked dynamic arrays | Minimizes memory overhead and address-space usage |
+ * | ::tommy_list | Doubly linked lists | Intrusive node; O(1) insert/remove at ends; supports sorting |
+ * | ::tommy_hashdyn | Dynamic hashtable (strings, generic keys) | Fast O(1) average lookup; doubles size dynamically |
+ * | ::tommy_hashlin | Real-time / low-latency hashtable | Incremental resizing avoids latency spikes and heap fragmentation |
+ * | ::tommy_hashtable | Fixed-capacity hashtable | Constant bucket allocation without resizing overhead |
+ * | ::tommy_trie | Integer keys: 32-bit by default, configurable to 64-bit | Cache-optimized trie; uses an external block allocator |
+ * | ::tommy_trie_inplace | Integer keys: 32-bit by default, configurable to 64-bit | In-place node; requires no external allocator |
+ * | ::tommy_tree | Ordered collections, range queries | AVL tree ordered by a comparison callback |
  *
- * This is a typical object declaration:
+ * Tommy containers do not manage the lifetime of stored objects. Memory allocation (e.g. via `malloc()`)
+ * and deallocation (e.g. via `free()`) remain the caller's responsibility. Container deinitialization
+ * functions (`*_done()`) release internal container buffers without freeing stored objects.
+ *
+ * \subsection use_seq Sequential Containers and Arrays
+ *
+ * Dynamic arrays (::tommy_array, ::tommy_arrayof, ::tommy_arrayblk, ::tommy_arrayblkof) store
+ * elements indexed by position (from 0 to size - 1). They grow dynamically without heap
+ * fragmentation and do **not** require any embedded node inside stored objects.
+ * ::tommy_array and ::tommy_arrayblk store pointers to objects (`void*`), while ::tommy_arrayof
+ * and ::tommy_arrayblkof store element values directly.
+ *
  * \code
- * struct object {
+ * tommy_array array;
+ *
+ * tommy_array_init(&array); // initializes the array
+ *
+ * tommy_array_grow(&array, 10); // grows size to at least 10 elements
+ *
+ * struct object* obj = malloc(sizeof(struct object));
+ * obj->value = 42;
+ *
+ * tommy_array_set(&array, 0, obj); // stores a pointer at index 0
+ *
+ * struct object* obj0 = tommy_array_get(&array, 0); // retrieves pointer at index 0
+ *
+ * tommy_array_done(&array); // deinitializes the array
+ * \endcode
+ *
+ * \code
+ * struct value_object {
+ *     int value;
+ * };
+ *
+ * tommy_arrayof arrayof;
+ * tommy_arrayof_init(&arrayof, sizeof(struct value_object)); // sets element size
+ *
+ * tommy_arrayof_grow(&arrayof, 10); // grows size to at least 10 elements
+ *
+ * struct value_object* val0 = tommy_arrayof_ref(&arrayof, 0); // gets pointer to element at index 0
+ * val0->value = 42;
+ *
+ * tommy_arrayof_done(&arrayof); // deinitializes the array
+ * \endcode
+ *
+ * Doubly linked lists (::tommy_list) store pointers to objects sequentially (at head or tail).
+ * An object inserted into a list must contain an embedded ::tommy_node, but elements are not
+ * indexed by key.
+ *
+ * \code
+ * struct list_object {
+ *     int value;
  *     // other fields
  *     tommy_node node;
  * };
+ *
+ * tommy_list list;
+ * tommy_list_init(&list);
+ *
+ * struct list_object* obj = malloc(sizeof(struct list_object));
+ * obj->value = 42;
+ *
+ * tommy_list_insert_tail(&list, &obj->node, obj); // inserts at tail
  * \endcode
  *
- * To insert an object into a container, you have to provide the address of the embedded node,
- * the address of the object and the value of the key.
- * The object pointer must not be 0. It is stored in tommy_node::data.
- * \code
- * int key_to_insert = 1;
- * struct object* obj = malloc(sizeof(struct object));
- * ...
- * tommy_trie_insert(..., &obj->node, obj, key_to_insert);
- * \endcode
+ * \subsection use_assoc Associative Containers
  *
- * To search for an object you have to provide the key and call the search function.
+ * Tommy associative containers store pointers to generic objects and provide fast search by key,
+ * hash value, or comparison callback. They support multiple elements with the same key, preserving
+ * the insertion order of duplicates (semantically equivalent to C++ `multimap` and `unordered_multimap`).
+ *
+ * Tommy relies on two different callback signatures depending on the container:
+ * - **Equality callback (::tommy_search_func)**: used by hashtables. It takes `(const void* arg, const void* obj)`
+ * and returns `0` if the element matches the search argument, or non-zero (`!= 0`) if different.
+ * - **Three-way comparison callback (::tommy_compare_func)**: used by trees and list sorting. It takes
+ * `(const void* obj_a, const void* obj_b)` and returns `< 0` if `a < b`, `0` if `a == b`, and `> 0` if `a > b`.
+ *
+ * - **Hashtables** (::tommy_hashtable, ::tommy_hashdyn, ::tommy_hashlin): objects embed a ::tommy_node.
+ * Insertion takes the hash of the key (type ::tommy_hash_t, e.g. computed via ::tommy_inthash_u32(),
+ * ::tommy_strhash_u32(), or ::tommy_hash_u32()). Search and remove take an equality callback function
+ * (::tommy_search_func) returning 0 on match to differentiate objects with matching hash values.
+ * ::tommy_hashlin shares the same API pattern as ::tommy_hashdyn while resizing incrementally.
+ *
  * \code
- * int key_to_find = 1;
- * struct object* obj = tommy_trie_search(..., key_to_find);
- * if (obj) {
+ * struct hash_object {
+ *     int value;
+ *     // other fields
+ *     tommy_node node;
+ * };
+ *
+ * int hash_compare(const void* arg, const void* obj)
+ * {
+ *     return *(const int*)arg != ((const struct hash_object*)obj)->value;
+ * }
+ *
+ * tommy_hashdyn hashdyn;
+ * tommy_hashdyn_init(&hashdyn);
+ *
+ * struct hash_object* obj = malloc(sizeof(struct hash_object));
+ * obj->value = 1;
+ *
+ * tommy_hashdyn_insert(&hashdyn, &obj->node, obj, tommy_inthash_u32(obj->value));
+ *
+ * int value_to_find = 1;
+ * struct hash_object* found = tommy_hashdyn_search(&hashdyn, hash_compare, &value_to_find, tommy_inthash_u32(value_to_find));
+ * if (found) {
  *     // found
  * }
+ *
+ * tommy_hashdyn_done(&hashdyn);
  * \endcode
  *
- * To access all the objects with the same key, you have to iterate over the bucket
- * assigned at the specified key.
+ * - **Numeric Tries** (::tommy_trie, ::tommy_trie_inplace): index objects directly by an integer key
+ * (::tommy_key_t). ::tommy_trie uses an embedded ::tommy_node and requires an external ::tommy_allocator.
+ * ::tommy_trie_inplace uses an embedded ::tommy_trie_inplace_node directly without an external allocator.
+ * Both support 32-bit keys by default, configurable to 64-bit by increasing ::TOMMY_TRIE_BIT
+ * or ::TOMMY_TRIE_INPLACE_BIT, respectively, provided ::tommy_key_t is wide enough.
+ * All keys must fit within the configured number of bits, even if ::tommy_key_t is wider.
+ * This requirement is checked with assert() when assertions are enabled.
+ *
  * \code
- * int key_to_find = 1;
- * tommy_trie_node* i = tommy_trie_bucket(..., key_to_find);
+ * struct trie_object {
+ *     tommy_key_t key;
+ *     // other fields
+ *     tommy_node node;
+ * };
  *
- * while (i) {
- *     struct object* obj = i->data; // gets the object pointer
+ * tommy_allocator alloc;
+ * tommy_trie trie;
  *
- *     printf("%d\n", obj->value); // process the object
+ * tommy_allocator_init(&alloc, TOMMY_TRIE_BLOCK_SIZE, TOMMY_TRIE_BLOCK_SIZE);
+ * tommy_trie_init(&trie, &alloc);
  *
- *     i = i->next; // goes to the next element
- * }
+ * struct trie_object* obj = malloc(sizeof(struct trie_object));
+ * obj->key = 1;
+ *
+ * tommy_trie_insert(&trie, &obj->node, obj, obj->key);
+ *
+ * struct trie_object* found = tommy_trie_search(&trie, 1);
+ *
+ * tommy_trie_done(&trie);
+ * tommy_allocator_done(&alloc);
  * \endcode
  *
- * To remove an object you have to provide the key and call the remove function.
  * \code
- * int key_to_remove = 1;
- * struct object* obj = tommy_trie_remove(..., key_to_remove);
- * if (obj) {
- *     // found
- *     free(obj); // frees the allocated object memory
- * }
+ * struct trie_inplace_object {
+ *     tommy_key_t key;
+ *     // other fields
+ *     tommy_trie_inplace_node node;
+ * };
+ *
+ * tommy_trie_inplace trie_inplace;
+ * tommy_trie_inplace_init(&trie_inplace);
+ *
+ * struct trie_inplace_object* obj = malloc(sizeof(struct trie_inplace_object));
+ * obj->key = 1;
+ *
+ * tommy_trie_inplace_insert(&trie_inplace, &obj->node, obj, obj->key);
+ *
+ * struct trie_inplace_object* found = tommy_trie_inplace_search(&trie_inplace, 1);
  * \endcode
  *
- * Dealing with hashtables, instead of the key, you have to provide the hash
- * value of the object, and a compare function able to differentiate objects with
- * the same hash value.
- * To compute the hash value, you can use the generic tommy_hash_u32() function,
- * or the specialized integer hash function tommy_inthash_u32().
+ * - **Ordered Trees** (::tommy_tree): AVL tree keeping elements in the order defined by a 3-way comparison
+ * callback (::tommy_compare_func). Objects embed a ::tommy_tree_node.
+ *
+ * \code
+ * struct tree_object {
+ *     int value;
+ *     // other fields
+ *     tommy_tree_node node;
+ * };
+ *
+ * int tree_compare(const void* obj_a, const void* obj_b)
+ * {
+ *     const struct tree_object* a = obj_a;
+ *     const struct tree_object* b = obj_b;
+ *
+ *     if (a->value < b->value)
+ *         return -1;
+ *     if (a->value > b->value)
+ *         return 1;
+ *     return 0;
+ * }
+ *
+ * tommy_tree tree;
+ * tommy_tree_init(&tree, tree_compare);
+ *
+ * struct tree_object* obj = malloc(sizeof(struct tree_object));
+ * obj->value = 1;
+ *
+ * tommy_tree_insert(&tree, &obj->node, obj);
+ *
+ * // search using a reference object
+ * struct tree_object value_to_find = { 1 };
+ * struct tree_object* found = tommy_tree_search(&tree, &value_to_find);
+ * \endcode
+ *
+ * To search with an arbitrary search key type rather than a full object, use tommy_tree_search_compare().
+ *
+ * \subsection use_traversal Traversal and Iteration
+ *
+ * Tommy provides two mechanisms to traverse container elements:
+ *
+ * - **Callback traversal (foreach)**: almost all containers (lists, hashtables, tries, and trees)
+ * provide `foreach()` and `foreach_arg()` functions (such as tommy_hashdyn_foreach(), tommy_list_foreach(),
+ * tommy_trie_foreach(), and tommy_tree_foreach()) to iterate over all stored elements using a callback function.
+ * The callback may safely deallocate the current element (e.g. calling free()), but adding or removing
+ * elements from inside the callback is not allowed.
+ *
+ * \code
+ * void print_object(void* arg, void* obj)
+ * {
+ *     struct hash_object* o = obj;
+ *     printf("%s: %d\n", (const char*)arg, o->value);
+ * }
+ *
+ * tommy_hashdyn_foreach_arg(&hashdyn, print_object, "Item");
+ * \endcode
+ *
+ * - **Explicit iteration**:
+ *   - Lists: traverse forward using tommy_list_head() and following `tommy_node::next`, or backward using
+ * tommy_list_tail() and tommy_list_prev().
+ *   - Trees: traverse in order using tommy_tree_head() and tommy_tree_next(), or in reverse using
+ * tommy_tree_tail() and tommy_tree_prev().
+ *   - Arrays: access elements in an explicit `for` loop by index from 0 to tommy_array_size(&array) - 1.
+ *   - Hashtables and tries: iterate over elements with the same key/bucket using `tommy_*_bucket()`
+ * and following `->next`.
+ *   - To iterate explicitly over all elements across hashtables or tries in insertion order, you can
+ * insert objects into both an associative container and a ::tommy_list (see \ref multiindex).
  *
  * \section Features
  *
@@ -117,9 +298,9 @@
  *
  * Tommy is portable to all platforms and operating systems.
  *
- * Tommy containers support multiple elements with the same key.
+ * Tommy associative containers support multiple elements with the same key.
  *
- * Tommy containers keep the original insertion order of elements with equal keys.
+ * Tommy associative containers keep the original insertion order of elements with equal keys.
  *
  * Tommy is released with the \ref license "2-clause BSD license".
  *
@@ -157,14 +338,14 @@
  * - <a href="http://www.canonware.com/rb/">rbtree</a> - Red-black tree by Jason Evans.
  * - <a href="http://www.nedprod.com/programs/portable/nedtries/">nedtrie</a> - Binary trie inplace by Niall Douglas.
  * - <a href="https://github.com/attractivechaos/klib/blob/master/khash.h">khash</a> - Dynamic open addressing hashtable by Attractive Chaos.
- * - <a href="http://uthash.sourceforge.net/">uthash</a> - Dynamic chaining hashtable by Troy D. Hanson.
+ * - <a href="https://troydhanson.github.io/uthash/">uthash</a> - Dynamic chaining hashtable by Troy D. Hanson.
  * - <a href="http://judy.sourceforge.net/">judy</a> - Burst trie (JudyL) by Doug Baskins.
  * - <a href="https://code.google.com/archive/p/judyarray/">judyarray</a> - Burst trie by Karl Malbrain.
  * - <a href="https://github.com/sparsehash/sparsehash">googledensehash</a> - Dynamic open addressing hashtable by Craig Silverstein at Google (2.0.4).
  * - <a href="http://code.google.com/p/cpp-btree/">googlebtree</a> - B-tree by Google.
  * - <a href="http://panthema.net/2007/stx-btree/">stxbtree</a> - STX B-tree by Timo Bingmann.
- * - <a href="http://www.cplusplus.com/reference/unordered_map/unordered_map/">c++unordered_map</a> - C++ STL unordered_map<> template.
- * - <a href="http://www.cplusplus.com/reference/map/map/">c++map</a> - C++ STL map<> template.
+ * - <a href="https://cplusplus.com/reference/unordered_map/unordered_map/">c++unordered_map</a> - C++ STL unordered_map<> template.
+ * - <a href="https://cplusplus.com/reference/map/map/">c++map</a> - C++ STL map<> template.
  * - <a href="https://sites.google.com/site/binarysearchcube/">tesseract</a> - Binary Search Tesseract by Gregorius van den Hoven.
  * - <a href="https://github.com/sparsehash/sparsehash/tree/master/experimental">googlelibchash</a> - LibCHash by Craig Silverstein at Google.
  * - <a href="https://github.com/fredrikwidlund/libdynamic">libdynamic</a> - Hash set by Fredrik Widlund.
@@ -559,11 +740,14 @@
  * have a single object, but link it into several different data structures
  * simultaneously, each using a different field of the object as the search key.
  *
- * Note that TommyDS provides only partial iterator support through its
- * simple `"foreach"` functions. If your application needs full, flexible
- * iterators (meaning the ability to walk through all objects in the collection
- * easily) or if you need to preserve the original insertion order of the
- * objects, you must also insert all the objects into a separate ::tommy_list.
+ * Note that TommyDS does not provide a uniform iterator interface across all
+ * containers. While containers like ::tommy_list and ::tommy_tree allow explicit
+ * traversal using dedicated node functions, and other containers provide
+ * callback traversal through `"foreach"` functions, if your application needs
+ * an explicit external iterator across hashtables (meaning the ability to walk
+ * through all objects in the collection in an explicit loop) or if you need to
+ * preserve the original insertion order of the objects across multiple hash
+ * tables, you can also insert all the objects into a separate ::tommy_list.
  *
  * You can then use the ::tommy_list structure as your primary iterator. This
  * gives you the best of both worlds: fast search via the indexed structures,
@@ -606,19 +790,19 @@
  * }
  *
  * // compute the hash of a inode
- * tommy_uint32 hash_by_inode(const char* dir, inode_t inode)
+ * tommy_hash_t hash_by_inode(inode_t inode)
  * {
- *     return tommy_inthash_u64(inode); // truncate to 32 bits
+ *     return tommy_inthash_u64(inode);
  * }
  *
  * // compute the hash of a name
- * tommy_uint32 hash_by_name(const char* name)
+ * tommy_hash_t hash_by_name(const char* name)
  * {
  *     return tommy_strhash_u32(0, name);
  * }
  *
  * // compute the hash of a dir
- * tommy_uint32 hash_by_dir(const char* dir)
+ * tommy_hash_t hash_by_dir(const char* dir)
  * {
  *     return tommy_strhash_u32(0, dir);
  * }
@@ -637,7 +821,7 @@
  * }
  *
  * // compute the hash of a path as combination of a dir and a name
- * tommy_uint32 hash_by_path(const char* dir, const char* name)
+ * tommy_hash_t hash_by_path(const char* dir, const char* name)
  * {
  *     return tommy_strhash_u32(tommy_strhash_u32(0, dir), name);
  * }
@@ -666,14 +850,14 @@
  *     // creates an object
  *     struct file* f = malloc(sizeof(struct file));
  *     strcpy(f->dir, ...);
- *     strcpt(f->name, ...);
+ *     strcpy(f->name, ...);
  *     f->inode = ...;
  *
  *     // inserts into the list and hash tables
  *     tommy_list_insert_tail(&list, &f->node, f);
- *     tommy_hashdyn_insert(&hashtable_by_dir, &f->node_by_dir, f, hash_by_dir(f->dir);
+ *     tommy_hashdyn_insert(&hashtable_by_dir, &f->node_by_dir, f, hash_by_dir(f->dir));
  *     tommy_hashdyn_insert(&hashtable_by_name, &f->node_by_name, f, hash_by_name(f->name));
- *     tommy_hashdyn_insert(&hashtable_by_path, &f->node_by_path, f, hash_by_path(f->dir, f>name));
+ *     tommy_hashdyn_insert(&hashtable_by_path, &f->node_by_path, f, hash_by_path(f->dir, f->name));
  *     tommy_hashdyn_insert(&hashtable_by_inode, &f->node_by_inode, f, hash_by_inode(f->inode));
  * \endcode
  *
@@ -720,7 +904,7 @@
  *
  *     // iterates over all files
  *     i = tommy_list_head(&list);
- *     while (i != 0) {
+ *     while (i) {
  *         struct file* found = i->data; // gets the file pointer
  *
  *         printf("%s/%s %lu\n", found->dir, found->name, found->inode);
@@ -751,8 +935,8 @@
  *
  * \section testing Testing
  *
- * Extensive and automated tests with the runtime checker <a href="http://valgrind.org/">valgrind</a>
- * and the static analyzer <a href="http://clang-analyzer.llvm.org/">clang</a>
+ * Extensive and automated tests with the runtime checker <a href="https://valgrind.org/">valgrind</a>
+ * and the static analyzer <a href="https://clang-analyzer.llvm.org/">clang</a>
  * are done to ensure the correctness of the library.
  *
  * The test has a <a href="https://www.tommyds.it/cov/tommyds/tommyds">code coverage of 100%</a>,
@@ -763,9 +947,14 @@
  * Tommy is not thread-safe. You must always provide thread safety using
  * locks before calling any Tommy functions.
  *
- * Tommy doesn't provide iterators for elements stored in a container.
- * To iterate on elements you must insert them also into a ::tommy_list,
- * and use the list as an iterator. See the \ref multiindex example for more details.
+ * Tommy does not provide a uniform iterator interface across all containers.
+ * While individual containers provide callback-based traversal (`foreach`) and
+ * explicit iteration (such as node-based traversal in ::tommy_list and ::tommy_tree,
+ * or index-based access in arrays), Tommy does not provide standalone bidirectional
+ * or complex cursor iterators for hashtables. To iterate over elements with an
+ * explicit loop while preserving insertion order across hashtables, you can
+ * insert objects also into a ::tommy_list and use the list as an iterator.
+ * See the \ref multiindex example for more details.
  *
  * Tommy doesn't provide an error reporting mechanism for a malloc() failure.
  * You have to provide it by redefining malloc() if you expect it to fail.
@@ -779,27 +968,29 @@
  * The following is a list of such decisions.
  *
  * \subsection multi_key Multi key
- * All the Tommy containers support the insertion of multiple elements with
- * the same key, adding in each node a list of equal elements.
+ * All the Tommy associative containers (hashtables, tries and trees) support the
+ * insertion of multiple elements with the same key, adding in each node a list
+ * of equal elements.
  *
- * They are the equivalent of the C++ associative containers <a href="http://www.cplusplus.com/reference/map/multimap/">multimap\<unsigned,void*\></a>
- * and <a href="http://www.cplusplus.com/reference/unordered_map/unordered_multimap/">unordered_multimap\<unsigned,void*\></a>
+ * They are the equivalent of the C++ associative containers <a href="https://cplusplus.com/reference/map/multimap/">multimap\<unsigned,void*\></a>
+ * and <a href="https://cplusplus.com/reference/unordered_map/unordered_multimap/">unordered_multimap\<unsigned,void*\></a>
  * that allow duplicates of the same key.
  *
  * A more memory-conservative approach is to not allow duplicated elements,
  * removing the need for this list.
  *
  * \subsection data_pointer Data pointer
- * The tommy_node::data field is present to allow search and remove functions to return
+ * The node data pointer field (tommy_node::data, tommy_trie_inplace_node::data,
+ * and tommy_tree_node::data) is present to allow search and remove functions to return
  * directly a pointer to the element stored in the container.
  *
  * A more memory-conservative approach is to require the user to compute
  * the element pointer from the embedded node with a fixed displacement.
  * For an example, see the Linux Kernel declaration of
- * <a href="http://lxr.free-electrons.com/ident?i=container_of">container_of()</a>.
+ * <a href="https://elixir.bootlin.com/linux/latest/ident/container_of">container_of()</a>.
  *
  * \subsection insertion_order Insertion order
- * The list used for collisions is doubly-linked to allow
+ * In associative containers, the list used for collisions is doubly-linked to allow
  * insertion of elements at the end of the list to keep the
  * insertion order of equal elements.
  *
@@ -810,7 +1001,7 @@
  * \subsection zero_list Zero terminated list
  * The 0-terminated format of tommy_node::next is present to provide a forward
  * iterator terminating in 0. This allows the user to write a simple iteration
- * loop over the list of elements in the same bucket.
+ * loop over a list or over elements in the same collision bucket.
  *
  * A more efficient approach is to use a circular list, because operating on nodes
  * in a circular list doesn't require managing the special terminating case when
@@ -883,3 +1074,4 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
