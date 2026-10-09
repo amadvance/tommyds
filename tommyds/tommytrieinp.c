@@ -79,6 +79,10 @@ static void trie_inplace_bucket_insert(int shift, tommy_trie_inplace_node** let_
 
 	/* if null, just insert the node */
 	if (!node) {
+		/* only the head uses child pointers; promotion copies them to a duplicate */
+		for (tommy_uint_t i = 0; i < TOMMY_TRIE_INPLACE_TREE_MAX; ++i)
+			insert->map[i] = 0;
+
 		/* setup the node as a list */
 		*let_ptr = tommy_trie_inplace_list_insert_first(insert);
 	} else {
@@ -94,9 +98,6 @@ TOMMY_API void tommy_trie_inplace_insert(tommy_trie_inplace* trie_inplace, tommy
 
 	node->data = data;
 	node->key = key;
-	/* clear the child pointers */
-	for (tommy_uint_t i = 0; i < TOMMY_TRIE_INPLACE_TREE_MAX; ++i)
-		node->map[i] = 0;
 
 	tommy_trie_inplace_node** let_ptr = &trie_inplace->bucket[key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT];
 
