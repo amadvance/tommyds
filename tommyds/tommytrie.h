@@ -198,6 +198,20 @@ tommy_inline void tommy_trie_swap(tommy_trie* first, tommy_trie* second)
 }
 
 /**
+ * Removes all elements, preserving the allocator reference.
+ * The trie remains initialized and can be reused immediately with the same allocator.
+ * Objects are not freed and nodes are not accessed or modified.
+ * Their links must not be used to traverse the previous contents.
+ * You can call this function after tommy_trie_foreach() has freed the objects.
+ * Internal nodes are returned to the allocator, leaving the trie empty.
+ * Other tries sharing the allocator are unaffected.
+ * No memory is allocated; free blocks remain available for reuse in the allocator.
+ * \param trie The trie to clear.
+ * \note This operation is O(n), with recursion depth bounded by the number of key bits.
+ */
+TOMMY_API void tommy_trie_clear(tommy_trie* trie);
+
+/**
  * Inserts an element in the trie.
  * You have to provide the pointer of the node embedded into the object,
  * the pointer to the object and the key to use.

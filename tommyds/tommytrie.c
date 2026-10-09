@@ -68,6 +68,30 @@ TOMMY_API void tommy_trie_init(tommy_trie* trie, tommy_allocator* alloc)
 	trie->alloc = alloc;
 }
 
+static void trie_clear_node(tommy_trie* trie, tommy_trie_node* node)
+{
+	if (!node)
+		return;
+
+	if (trie_get_type(node) == TOMMY_TRIE_TYPE_TREE) {
+		tommy_trie_tree* tree = trie_get_tree(node);
+		for (tommy_uint_t i = 0; i < TOMMY_TRIE_TREE_MAX; ++i)
+			trie_clear_node(trie, tree->map[i]);
+		/* freeing the parent overwrites its branches, so transfer all children first */
+		tommy_allocator_free(trie->alloc, tree);
+	}
+}
+
+TOMMY_API void tommy_trie_clear(tommy_trie* trie)
+{
+	for (tommy_uint_t i = 0; i < TOMMY_TRIE_BUCKET_MAX; ++i) {
+		trie_clear_node(trie, trie->bucket[i]);
+		trie->bucket[i] = 0;
+	}
+	trie->count = 0;
+	trie->node_count = 0;
+}
+
 static void trie_bucket_insert(tommy_trie* trie, int shift, tommy_trie_node** let_ptr, tommy_trie_node* insert, tommy_key_t key)
 {
 	tommy_trie_tree* tree;
