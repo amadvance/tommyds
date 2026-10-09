@@ -351,7 +351,13 @@ tommy_inline void* tommy_list_remove_head(tommy_list* list)
 	if (!node)
 		return 0;
 
-	return tommy_list_remove_existing(list, node);
+	/* the new head must retain the tail pointer in the "circular" prev list */
+	if (node->next)
+		node->next->prev = node->prev;
+
+	*list = node->next;
+
+	return node->data;
 }
 
 /**
@@ -363,12 +369,22 @@ tommy_inline void* tommy_list_remove_head(tommy_list* list)
  */
 tommy_inline void* tommy_list_remove_tail(tommy_list* list)
 {
-	tommy_node* node = tommy_list_tail(list);
+	tommy_node* head = tommy_list_head(list);
 
-	if (!node)
+	if (!head)
 		return 0;
 
-	return tommy_list_remove_existing(list, node);
+	tommy_node* node = head->prev;
+
+	/* a single node is also the head, and its links must remain unchanged */
+	if (node == head) {
+		*list = 0;
+	} else {
+		head->prev = node->prev;
+		node->prev->next = 0;
+	}
+
+	return node->data;
 }
 
 /**
