@@ -1200,13 +1200,13 @@ void test_list_merge(void)
 
 void test_list_sort(void)
 {
-	struct object obj[7];
-	unsigned order[7];
-	const unsigned combinations[] = { 1, 3, 9, 27, 81, 243, 729, 2187 };
+	struct object obj[9];
+	unsigned order[9];
+	const unsigned combinations[] = { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683 };
 	tommy_list list;
 
 	/* exhaust small inputs, checking stability and links across carry propagation and final merges. */
-	for (unsigned n = 0; n <= 7; ++n) {
+	for (unsigned n = 0; n <= 9; ++n) {
 		for (unsigned a = 0; a < combinations[n]; ++a) {
 			unsigned code = a;
 			for (unsigned i = 0; i < n; ++i) {

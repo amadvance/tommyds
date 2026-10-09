@@ -167,7 +167,8 @@ tommy_inline void tommy_chain_mergesort(tommy_chain* chain, tommy_compare_func* 
 {
 	/*
 	 * Bit buckets of chains.
-	 * Each bucket contains 2^i nodes or it's empty.
+	 * Each bucket contains 2^(i+1) nodes or it's empty.
+	 * The bucket containing an unpaired final node has one node less.
 	 * The chain at address TOMMY_BIT_MAX is an independent variable operating as "carry".
 	 * We keep it in the same "bit" vector to avoid reports from the valgrind tool sgcheck.
 	 */
@@ -188,17 +189,18 @@ tommy_inline void tommy_chain_mergesort(tommy_chain* chain, tommy_compare_func* 
 		bit[TOMMY_SIZE_BIT].tail = node;
 		tommy_node* next = node->next;
 
+		/* start with a sorted pair to halve the number of bucket insertions */
+		if (node != tail) {
+			node = next;
+			/* save the next input node before merging can change the links */
+			next = node->next;
+			tommy_chain second = { node, node };
+			tommy_chain_merge_singleton(last, &second, cmp);
+		}
+
 		/* add the bit, propagating the carry */
 		tommy_size_t i = 0;
 		tommy_size_t mask = counter;
-
-		/* both chains at bit zero are singletons, so no general merge traversal is needed */
-		if ((mask & 1) != 0) {
-			tommy_chain_merge_singleton(&bit[0], last, cmp);
-			mask >>= 1;
-			last = &bit[0];
-			++i;
-		}
 
 		while ((mask & 1) != 0) {
 			tommy_chain_merge_degenerated(&bit[i], last, cmp);
