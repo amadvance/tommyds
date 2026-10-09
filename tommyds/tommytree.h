@@ -68,6 +68,20 @@
  * }
  * \endcode
  *
+ * \anchor tommy_tree_iterator_validity
+ * Iterators are pointers to nodes contained in the tree.
+ * Inserting elements or removing other nodes between iterator calls does not
+ * invalidate pointers to nodes that remain in the tree.
+ * Subsequent next/prev calls use the current contents and ordering;
+ * inserted elements may become visible and removed elements are skipped.
+ *
+ * Removing the pointed node invalidates its use as an iterator, even if
+ * its storage has not been freed. To continue traversal after removing
+ * the current node, obtain the next or previous node before removal.
+ *
+ * Keys and fields used for ordering must not be modified while contained.
+ * Concurrent traversal and modification require external synchronization.
+ *
  * To remove the first element with a given key in tree order, call
  * tommy_tree_remove() providing the key to search and remove.
  *
@@ -234,6 +248,7 @@ tommy_inline tommy_tree_node* tommy_tree_parent(tommy_tree_node* node)
 
 /**
  * Gets the node following the specified one in tree order.
+ * See \ref tommy_tree_iterator_validity for iterator validity across insertions and removals.
  * \param node Node contained in the tree.
  * \return The following node. For the tail node 0 is returned.
  */
@@ -257,6 +272,7 @@ tommy_inline tommy_tree_node* tommy_tree_next(tommy_tree_node* node)
 
 /**
  * Gets the node preceding the specified one in tree order.
+ * See \ref tommy_tree_iterator_validity for iterator validity across insertions and removals.
  * \param node Node contained in the tree.
  * \return The preceding node. For the head node 0 is returned.
  */

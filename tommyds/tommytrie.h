@@ -76,6 +76,36 @@
  * }
  * \endcode
  *
+ * To iterate over all elements by increasing key, start with tommy_trie_head()
+ * and advance with tommy_trie_next(). Equal keys are visited in insertion order.
+ * Use tommy_trie_tail() and tommy_trie_prev() for the reverse order.
+ *
+ * \code
+ * tommy_trie_node* i = tommy_trie_head(&trie);
+ * while (i) {
+ *     struct object* obj = i->data;
+ *     printf("%d\n", obj->value);
+ *     i = tommy_trie_next(&trie, i);
+ * }
+ * \endcode
+ *
+ * \anchor tommy_trie_iterator_validity
+ * Iterators are pointers to nodes contained in the trie.
+ * Inserting elements or removing other nodes between iterator calls does not
+ * invalidate pointers to nodes that remain in the trie.
+ * Subsequent next/prev calls use the current contents and ordering;
+ * inserted elements may become visible and removed elements are skipped.
+ *
+ * Removing the pointed node invalidates its use as an iterator, even if
+ * its storage has not been freed. To continue traversal after removing
+ * the current node, obtain the next or previous node before removal.
+ *
+ * Keys and fields used for ordering must not be modified while contained.
+ * Concurrent traversal and modification require external synchronization.
+ *
+ * The container passed to next/prev must currently contain the node.
+ * After swapping containers, use the container that now owns the node.
+ *
  * To remove an element from the trie you have to call tommy_trie_remove()
  * providing the key to search and remove.
  *
@@ -282,6 +312,52 @@ tommy_inline void* tommy_trie_search(tommy_trie* trie, tommy_key_t key)
  * \return The tommy_node::data field of the node removed.
  */
 TOMMY_API void* tommy_trie_remove_existing(tommy_trie* trie, tommy_trie_node* node);
+
+/**
+ * Gets the head (smallest key) node in the trie.
+ * If multiple elements have the smallest key, the first in insertion order is returned.
+ * No memory is allocated or modified; auxiliary space is O(1).
+ * \param trie The trie.
+ * \return The head node, or 0 if the trie is empty.
+ * \note Traversal is bounded by the number of key bits and branches per level.
+ */
+TOMMY_API tommy_trie_node* tommy_trie_head(tommy_trie* trie);
+
+/**
+ * Gets the tail (greatest key) node in the trie.
+ * If multiple elements have the greatest key, the last in insertion order is returned.
+ * No memory is allocated or modified; auxiliary space is O(1).
+ * \param trie The trie.
+ * \return The tail node, or 0 if the trie is empty.
+ * \note Traversal is bounded by the number of key bits and branches per level.
+ */
+TOMMY_API tommy_trie_node* tommy_trie_tail(tommy_trie* trie);
+
+/**
+ * Gets the node following the specified one by increasing numeric key.
+ * Elements with equal keys are visited in insertion order.
+ * No memory is allocated or modified; auxiliary space is O(1).
+ * See \ref tommy_trie_iterator_validity for iterator validity across insertions and removals.
+ * \param trie The trie containing the node.
+ * \param node Node currently contained in the trie. It must not be 0.
+ * \return The following node, or 0 for the tail node.
+ * \note Moving within duplicates is O(1). Moving to another key traverses
+ * the trie from the root, bounded by the number of key bits and branches per level.
+ */
+TOMMY_API tommy_trie_node* tommy_trie_next(tommy_trie* trie, tommy_trie_node* node);
+
+/**
+ * Gets the node preceding the specified one by increasing numeric key.
+ * Elements with equal keys are visited in reverse insertion order.
+ * No memory is allocated or modified; auxiliary space is O(1).
+ * See \ref tommy_trie_iterator_validity for iterator validity across insertions and removals.
+ * \param trie The trie containing the node.
+ * \param node Node currently contained in the trie. It must not be 0.
+ * \return The preceding node, or 0 for the head node.
+ * \note Moving within duplicates is O(1). Moving to another key traverses
+ * the trie from the root, bounded by the number of key bits and branches per level.
+ */
+TOMMY_API tommy_trie_node* tommy_trie_prev(tommy_trie* trie, tommy_trie_node* node);
 
 /**
  * Transfers all elements from the trie to the tail of a list by increasing numeric key.

@@ -239,6 +239,152 @@ TOMMY_API void* tommy_trie_inplace_remove_existing(tommy_trie_inplace* trie_inpl
 	return ret->data;
 }
 
+static tommy_trie_inplace_node* trie_inplace_head_node(tommy_trie_inplace_node* node)
+{
+	tommy_trie_inplace_node* candidate = node;
+	while (1) {
+		/* internal nodes also hold keys, which can precede all their children */
+		if (node->key < candidate->key)
+			candidate = node;
+
+		tommy_uint_t i = 0;
+		while (i < TOMMY_TRIE_INPLACE_TREE_MAX && !node->map[i])
+			++i;
+		if (i == TOMMY_TRIE_INPLACE_TREE_MAX)
+			return candidate;
+		node = node->map[i];
+	}
+}
+
+static tommy_trie_inplace_node* trie_inplace_tail_node(tommy_trie_inplace_node* node)
+{
+	tommy_trie_inplace_node* candidate = node;
+	while (1) {
+		/* internal nodes also hold keys, which can follow all their children */
+		if (node->key > candidate->key)
+			candidate = node;
+
+		tommy_uint_t i = TOMMY_TRIE_INPLACE_TREE_MAX;
+		while (i != 0 && !node->map[i - 1])
+			--i;
+		if (i == 0)
+			return candidate->prev;
+		node = node->map[i - 1];
+	}
+}
+
+TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_head(tommy_trie_inplace* trie_inplace)
+{
+	for (tommy_uint_t i = 0; i < TOMMY_TRIE_INPLACE_BUCKET_MAX; ++i)
+		if (trie_inplace->bucket[i])
+			return trie_inplace_head_node(trie_inplace->bucket[i]);
+
+	return 0;
+}
+
+TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_tail(tommy_trie_inplace* trie_inplace)
+{
+	for (tommy_uint_t i = TOMMY_TRIE_INPLACE_BUCKET_MAX; i != 0; ) {
+		--i;
+		if (trie_inplace->bucket[i])
+			return trie_inplace_tail_node(trie_inplace->bucket[i]);
+	}
+
+	return 0;
+}
+
+TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_next(tommy_trie_inplace* trie_inplace, tommy_trie_inplace_node* node)
+{
+	if (node->next)
+		return node->next;
+
+	tommy_key_t key = node->key;
+	tommy_trie_inplace_node* candidate = 0;
+	tommy_trie_inplace_node* branch = 0;
+	tommy_trie_inplace_node** map = trie_inplace->bucket;
+	tommy_uint_t size = TOMMY_TRIE_INPLACE_BUCKET_MAX;
+	tommy_uint_t pos = key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT;
+	int shift = TOMMY_TRIE_INPLACE_TREE_SHIFT;
+
+	while (1) {
+		/* a larger sibling deeper on the key path is closer than any earlier branch */
+		for (tommy_uint_t i = pos + 1; i < size; ++i) {
+			if (map[i]) {
+				branch = map[i];
+				break;
+			}
+		}
+
+		node = map[pos];
+		if (!node)
+			break;
+		/* keys on the path are not ordered and compete with the saved branch */
+		if (node->key > key && (!candidate || node->key < candidate->key))
+			candidate = node;
+
+		/* continue below the matching node, but never shift after consuming all key bits */
+		if (shift < 0)
+			break;
+		map = node->map;
+		size = TOMMY_TRIE_INPLACE_TREE_MAX;
+		pos = (key >> shift) & TOMMY_TRIE_INPLACE_TREE_MASK;
+		shift -= TOMMY_TRIE_INPLACE_TREE_BIT;
+	}
+
+	if (branch) {
+		node = trie_inplace_head_node(branch);
+		if (!candidate || node->key < candidate->key)
+			candidate = node;
+	}
+	return candidate;
+}
+
+TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_prev(tommy_trie_inplace* trie_inplace, tommy_trie_inplace_node* node)
+{
+	/* only the first duplicate has prev pointing to the null-terminated tail */
+	if (node->prev->next)
+		return node->prev;
+
+	tommy_key_t key = node->key;
+	tommy_trie_inplace_node* candidate = 0;
+	tommy_trie_inplace_node* branch = 0;
+	tommy_trie_inplace_node** map = trie_inplace->bucket;
+	tommy_uint_t pos = key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT;
+	int shift = TOMMY_TRIE_INPLACE_TREE_SHIFT;
+
+	while (1) {
+		/* a smaller sibling deeper on the key path is closer than any earlier branch */
+		for (tommy_uint_t i = pos; i != 0; ) {
+			--i;
+			if (map[i]) {
+				branch = map[i];
+				break;
+			}
+		}
+
+		node = map[pos];
+		if (!node)
+			break;
+		/* select the last duplicate when a key on the path is the best predecessor */
+		if (node->key < key && (!candidate || node->key > candidate->key))
+			candidate = node->prev;
+
+		/* continue below the matching node, but never shift after consuming all key bits */
+		if (shift < 0)
+			break;
+		map = node->map;
+		pos = (key >> shift) & TOMMY_TRIE_INPLACE_TREE_MASK;
+		shift -= TOMMY_TRIE_INPLACE_TREE_BIT;
+	}
+
+	if (branch) {
+		node = trie_inplace_tail_node(branch);
+		if (!candidate || node->key > candidate->key)
+			candidate = node;
+	}
+	return candidate;
+}
+
 /**
  * Iterator frame merging a node's bucket with its ordered child buckets.
  */

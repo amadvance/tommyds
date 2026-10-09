@@ -6094,6 +6094,111 @@ static int trie_foreach_compare(const void* void_a, const void* void_b)
 	return (a->value > b->value) - (a->value < b->value);
 }
 
+static void trie_iteration_check(tommy_trie* trie, void** expected, unsigned size)
+{
+	tommy_trie_node* node = tommy_trie_head(trie);
+	for (unsigned i = 0; i < size; ++i) {
+		struct object_trie* obj = expected[i];
+		if (node != &obj->node) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		node = tommy_trie_next(trie, node);
+	}
+	if (node != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	node = tommy_trie_tail(trie);
+	for (unsigned i = size; i != 0; ) {
+		struct object_trie* obj = expected[--i];
+		if (node != &obj->node) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		node = tommy_trie_prev(trie, node);
+	}
+	if (node != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+}
+
+void test_trie_iteration(void)
+{
+	const unsigned sizes[] = { 0, 1, 2, 3, 128 };
+	tommy_key_t high = 1;
+	high <<= TOMMY_TRIE_BIT - 1;
+	tommy_key_t max = high | (high - 1);
+
+	for (unsigned s = 0; s < sizeof(sizes) / sizeof(sizes[0]); ++s) {
+		for (unsigned shape = 0; shape < 6; ++shape) {
+			tommy_allocator alloc;
+			tommy_trie trie;
+			struct object_trie obj[128];
+			void* expected[128];
+			memset(obj, 0, sizeof(obj));
+			tommy_allocator_init(&alloc, TOMMY_TRIE_BLOCK_SIZE, TOMMY_TRIE_BLOCK_SIZE);
+			tommy_trie_init(&trie, &alloc);
+			for (unsigned i = 0; i < sizes[s]; ++i) {
+				tommy_key_t key;
+				if (shape == 0)
+					key = i;
+				else if (shape == 1)
+					key = max - i;
+				else if (shape == 2)
+					key = i < 2 ? (i ? max : 0) : tommy_inthash_u32(i) & max;
+				else if (shape == 3)
+					key = i < 6 ? (i % 2 ? max : 0) : tommy_inthash_u32(i / 3) & max;
+				else if (shape == 4)
+					key = max;
+				else {
+					/* sparse branches at every depth exercise replacement and retention of candidates */
+					key = 1;
+					key <<= (i / 2) % TOMMY_TRIE_BIT;
+					if (i % 2)
+						key ^= max;
+				}
+				obj[i].value = i;
+				tommy_trie_insert(&trie, &obj[i].node, &obj[i], key);
+			}
+
+			for (unsigned round = 0; round < 4; ++round) {
+				/* remove duplicate heads, middle nodes and tails, and collapse internal branches */
+				if (round)
+					for (unsigned i = round - 1; i < sizes[s]; i += 3)
+						tommy_trie_remove_existing(&trie, &obj[i].node);
+				unsigned count = 0;
+				for (unsigned i = 0; i < sizes[s]; ++i)
+					if (i % 3 >= round)
+						expected[count++] = &obj[i];
+				/* sort independently by numeric key and insertion position */
+				qsort(expected, count, sizeof(expected[0]), trie_foreach_compare);
+
+				unsigned char saved_trie[sizeof(trie)], saved_alloc[sizeof(alloc)], saved_obj[sizeof(obj)];
+				memcpy(saved_trie, &trie, sizeof(trie));
+				memcpy(saved_alloc, &alloc, sizeof(alloc));
+				memcpy(saved_obj, obj, sizeof(obj));
+				trie_iteration_check(&trie, expected, count);
+				if (tommy_trie_count(&trie) != count
+					|| memcmp(saved_trie, &trie, sizeof(trie)) != 0
+					|| memcmp(saved_alloc, &alloc, sizeof(alloc)) != 0
+					|| memcmp(saved_obj, obj, sizeof(obj)) != 0) {
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+				}
+			}
+			tommy_allocator_done(&alloc);
+		}
+	}
+}
+
 void test_trie_clear(void)
 {
 	const unsigned counts[] = { 0, 1, 2 * TOMMY_TRIE_BIT, 128 };
@@ -6483,6 +6588,111 @@ static int trie_inplace_foreach_compare(const void* void_a, const void* void_b)
 	if (a->node.key > b->node.key)
 		return 1;
 	return (a->value > b->value) - (a->value < b->value);
+}
+
+static void trie_inplace_iteration_check(tommy_trie_inplace* trie, void** expected, unsigned size)
+{
+	tommy_trie_inplace_node* node = tommy_trie_inplace_head(trie);
+	for (unsigned i = 0; i < size; ++i) {
+		struct object_trie_inplace* obj = expected[i];
+		if (node != &obj->node) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		node = tommy_trie_inplace_next(trie, node);
+	}
+	if (node != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	node = tommy_trie_inplace_tail(trie);
+	for (unsigned i = size; i != 0; ) {
+		struct object_trie_inplace* obj = expected[--i];
+		if (node != &obj->node) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		node = tommy_trie_inplace_prev(trie, node);
+	}
+	if (node != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+}
+
+void test_trie_inplace_iteration(void)
+{
+	const unsigned sizes[] = { 0, 1, 2, 3, 128 };
+	tommy_key_t high = 1;
+	high <<= TOMMY_TRIE_INPLACE_BIT - 1;
+	tommy_key_t max = high | (high - 1);
+
+	for (unsigned s = 0; s < sizeof(sizes) / sizeof(sizes[0]); ++s) {
+		for (unsigned shape = 0; shape < 8; ++shape) {
+			tommy_trie_inplace trie;
+			struct object_trie_inplace obj[128];
+			void* expected[128];
+			memset(obj, 0, sizeof(obj));
+			tommy_trie_inplace_init(&trie);
+			for (unsigned i = 0; i < sizes[s]; ++i) {
+				tommy_key_t key;
+				if (shape == 0)
+					key = i;
+				else if (shape == 1)
+					key = max - i;
+				else if (shape == 2)
+					key = i < 2 ? (i ? max : 0) : tommy_inthash_u32(i) & max;
+				else if (shape == 3)
+					key = i < 6 ? (i % 2 ? max : 0) : tommy_inthash_u32(i / 3) & max;
+				else if (shape == 4)
+					key = max;
+				else if (shape == 6) {
+					const tommy_key_t example[] = { 5, 10, 2 };
+					key = example[i % 3];
+				} else if (shape == 7)
+					key = tommy_inthash_u32(i) % 64;
+				else {
+					/* sparse branches at every depth exercise replacement and retention of candidates */
+					key = 1;
+					key <<= (i / 2) % TOMMY_TRIE_INPLACE_BIT;
+					if (i % 2)
+						key ^= max;
+				}
+				obj[i].value = i;
+				tommy_trie_inplace_insert(&trie, &obj[i].node, &obj[i], key);
+			}
+
+			for (unsigned round = 0; round < 4; ++round) {
+				/* remove duplicate heads, middle nodes and tails, and replace internal nodes */
+				if (round)
+					for (unsigned i = round - 1; i < sizes[s]; i += 3)
+						tommy_trie_inplace_remove_existing(&trie, &obj[i].node);
+				unsigned count = 0;
+				for (unsigned i = 0; i < sizes[s]; ++i)
+					if (i % 3 >= round)
+						expected[count++] = &obj[i];
+				/* sort independently by numeric key and insertion position */
+				qsort(expected, count, sizeof(expected[0]), trie_inplace_foreach_compare);
+
+				unsigned char saved_trie[sizeof(trie)], saved_obj[sizeof(obj)];
+				memcpy(saved_trie, &trie, sizeof(trie));
+				memcpy(saved_obj, obj, sizeof(obj));
+				trie_inplace_iteration_check(&trie, expected, count);
+				if (tommy_trie_inplace_count(&trie) != count
+					|| memcmp(saved_trie, &trie, sizeof(trie)) != 0
+					|| memcmp(saved_obj, obj, sizeof(obj)) != 0) {
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+				}
+			}
+		}
+	}
 }
 
 void test_trie_inplace_foreach_order(void)
@@ -7136,6 +7346,7 @@ int main()
 	test_hashdyn();
 	test_hashlin();
 	test_trie();
+	test_trie_iteration();
 	test_trie_clear();
 	test_trie_to_list();
 	test_trie_foreach();
@@ -7143,6 +7354,7 @@ int main()
 	test_trie_foreach_depth();
 	test_trie_swap();
 	test_trie_inplace();
+	test_trie_inplace_iteration();
 	test_trie_inplace_foreach();
 	test_trie_inplace_foreach_order();
 	test_trie_inplace_foreach_depth();
