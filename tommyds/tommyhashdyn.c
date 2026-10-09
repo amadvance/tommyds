@@ -55,6 +55,11 @@ static void tommy_hashdyn_resize(tommy_hashdyn* hashdyn, tommy_uint_t new_bucket
 				new_bucket[i + bucket_max] = 0;
 
 				tommy_hashdyn_node* j = hashdyn->bucket[i];
+				if (j && !j->next) {
+					/* growth keeps old buckets separate, and singleton links are already valid */
+					new_bucket[j->index & new_bucket_mask] = j;
+					continue;
+				}
 				while (j) {
 					tommy_hashdyn_node* j_next = j->next;
 					tommy_size_t pos = j->index & new_bucket_mask;
@@ -72,6 +77,11 @@ static void tommy_hashdyn_resize(tommy_hashdyn* hashdyn, tommy_uint_t new_bucket
 			for (tommy_size_t i = 0; i < bucket_max; ++i) {
 				tommy_hashdyn_node* j = hashdyn->bucket[i];
 
+				if (j && !j->next) {
+					/* growth keeps old buckets separate, and singleton links are already valid */
+					new_bucket[j->index & new_bucket_mask] = j;
+					continue;
+				}
 				while (j) {
 					tommy_hashdyn_node* j_next = j->next;
 					tommy_size_t pos = j->index & new_bucket_mask;

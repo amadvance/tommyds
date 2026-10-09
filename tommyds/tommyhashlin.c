@@ -133,14 +133,19 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 			tommy_size_t mask = hashlin->low_max;
 
 			/* flush the bucket */
-			while (j) {
-				tommy_hashlin_node* j_next = j->next;
-				tommy_size_t pos = (j->index & mask) != 0;
-				if (*split[pos])
-					tommy_list_insert_tail_not_empty(*split[pos], j);
-				else
-					tommy_list_insert_first(split[pos], j);
-				j = j_next;
+			if (j && !j->next) {
+				/* both destinations are empty, and singleton links are already valid */
+				*split[(j->index & mask) != 0] = j;
+			} else {
+				while (j) {
+					tommy_hashlin_node* j_next = j->next;
+					tommy_size_t pos = (j->index & mask) != 0;
+					if (*split[pos])
+						tommy_list_insert_tail_not_empty(*split[pos], j);
+					else
+						tommy_list_insert_first(split[pos], j);
+					j = j_next;
+				}
 			}
 
 			/* go forward */
