@@ -99,6 +99,28 @@ tommy_inline void tommy_chain_merge(tommy_chain* first, tommy_chain* second, tom
 }
 
 /**
+ * Merges two chains containing one node each.
+ * \param first First singleton chain (will contain the result).
+ * \param second Second singleton chain (consumed by the merge; its descriptor is not cleared
+ * and must not be used as an independent chain afterward).
+ * \param cmp Comparison function.
+ */
+tommy_inline void tommy_chain_merge_singleton(tommy_chain* first, tommy_chain* second, tommy_compare_func* cmp)
+{
+	tommy_node* first_node = first->head;
+	tommy_node* second_node = second->head;
+
+	/* keep equal elements in their original order for a stable sort */
+	if (cmp(first_node->data, second_node->data) <= 0) {
+		tommy_chain_concat(first_node, second_node);
+		first->tail = second_node;
+	} else {
+		tommy_chain_concat(second_node, first_node);
+		first->head = second_node;
+	}
+}
+
+/**
  * Merges two chains managing special degenerate cases.
  * It's functionally equivalent to tommy_chain_merge() but faster with already ordered chains.
  * \param first First chain (will contain the result).
@@ -169,6 +191,15 @@ tommy_inline void tommy_chain_mergesort(tommy_chain* chain, tommy_compare_func* 
 		/* add the bit, propagating the carry */
 		tommy_size_t i = 0;
 		tommy_size_t mask = counter;
+
+		/* both chains at bit zero are singletons, so no general merge traversal is needed */
+		if ((mask & 1) != 0) {
+			tommy_chain_merge_singleton(&bit[0], last, cmp);
+			mask >>= 1;
+			last = &bit[0];
+			++i;
+		}
+
 		while ((mask & 1) != 0) {
 			tommy_chain_merge_degenerated(&bit[i], last, cmp);
 			mask >>= 1;

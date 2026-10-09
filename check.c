@@ -1198,6 +1198,41 @@ void test_list_merge(void)
 	}
 }
 
+void test_list_sort(void)
+{
+	struct object obj[7];
+	unsigned order[7];
+	const unsigned combinations[] = { 1, 3, 9, 27, 81, 243, 729, 2187 };
+	tommy_list list;
+
+	/* exhaust small inputs, checking stability and links across carry propagation and final merges. */
+	for (unsigned n = 0; n <= 7; ++n) {
+		for (unsigned a = 0; a < combinations[n]; ++a) {
+			unsigned code = a;
+			for (unsigned i = 0; i < n; ++i) {
+				obj[i].value = code % 3;
+				code /= 3;
+			}
+			test_list_build(&list, obj, 0, n);
+			unsigned size = 0;
+			for (unsigned key = 0; key < 3; ++key)
+				for (unsigned i = 0; i < n; ++i)
+					if (obj[i].value == (int)key)
+						order[size++] = i;
+
+			compare_counter = 0;
+			tommy_list_sort(&list, compare);
+			/* a singleton pair needs one comparison in either order, including equal keys. */
+			if (n <= 2 && compare_counter != (n == 2)) {
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+			}
+			test_list_sequence(&list, obj, order, size);
+		}
+	}
+}
+
 void test_list_split(void)
 {
 	struct object obj[6];
@@ -1469,6 +1504,7 @@ void test_list(void)
 
 	test_list_insert_head();
 	test_list_merge();
+	test_list_sort();
 	test_list_split();
 	test_list_splice();
 	test_list_concat();
