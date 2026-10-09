@@ -6,8 +6,9 @@
  *
  * This trie is an inplace implementation not needing any external allocation.
  *
- * Elements are not stored in order, like ::tommy_trie, because some elements
- * should be used to represent the inner nodes in the trie.
+ * Unlike ::tommy_trie, elements also represent the inner nodes and are not
+ * stored in key order. Ordered traversal merges each node's elements with
+ * its child subtrees.
  *
  * You can control the number of branches of each node using the ::TOMMY_TRIE_INPLACE_TREE_MAX define.
  * More branches imply more speed, but a bigger memory occupation.
@@ -82,12 +83,16 @@
  * }
  * \endcode
  *
- * To destroy the trie you have only to remove all the elements, as the trie is
- * completely inplace and it doesn't allocate memory.
+ * To visit all the elements use tommy_trie_inplace_foreach() or
+ * tommy_trie_inplace_foreach_arg(). Elements are visited by increasing key,
+ * with equal keys in insertion order.
  *
- * Note that you cannot iterate over all the elements in the trie using the
- * trie itself. You have to insert all the elements also in a ::tommy_list,
- * and use the list to iterate. See the \ref multiindex example for more detail.
+ * To destroy the trie you can deallocate all the objects with
+ * tommy_trie_inplace_foreach(), as the trie doesn't allocate memory.
+ *
+ * \code
+ * tommy_trie_inplace_foreach(&trie_inplace, free);
+ * \endcode
  */
 
 #ifndef __TOMMYTRIEINP_H
@@ -280,6 +285,30 @@ tommy_inline void* tommy_trie_inplace_search(tommy_trie_inplace* trie_inplace, t
  * \return The tommy_trie_inplace_node::data field of the node removed.
  */
 TOMMY_API void* tommy_trie_inplace_remove_existing(tommy_trie_inplace* trie_inplace, tommy_trie_inplace_node* node);
+
+/**
+ * Calls the specified function for each element in the trie.
+ * Elements are visited by increasing key, with equal keys in insertion order.
+ * The callback receives the data field of each node.
+ * An empty trie does not invoke the callback.
+ *
+ * The callback may deallocate the current object, including its embedded node.
+ * It must not add or remove elements, modify keys or node links, or deallocate
+ * other elements or the trie.
+ * This operation does not remove elements or update the count.
+ * After deallocating objects, discard or reinitialize the trie before using it again.
+ *
+ * No memory is allocated. Stack space and recursion depth are bounded by the
+ * number of key bits.
+ */
+TOMMY_API void tommy_trie_inplace_foreach(tommy_trie_inplace* trie_inplace, tommy_foreach_func* func);
+
+/**
+ * Calls the specified function with an argument for each element in the trie.
+ * The iteration order and callback rules are the same as tommy_trie_inplace_foreach().
+ * The callback receives arg followed by the data field of each node.
+ */
+TOMMY_API void tommy_trie_inplace_foreach_arg(tommy_trie_inplace* trie_inplace, tommy_foreach_arg_func* func, void* arg);
 
 /**
  * Gets the number of elements.

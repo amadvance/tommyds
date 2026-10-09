@@ -86,16 +86,17 @@
  * }
  * \endcode
  *
- * To destroy the trie you have to remove all the elements, and deinitialize
- * the allocator using tommy_allocator_done().
+ * To visit all the elements use tommy_trie_foreach() or tommy_trie_foreach_arg().
+ * Elements are visited by increasing key, with equal keys in insertion order.
+ *
+ * To destroy the trie you can deallocate all the objects with
+ * tommy_trie_foreach(), and deinitialize the allocator using tommy_allocator_done().
+ * The allocator must no longer be used by other tries.
  *
  * \code
+ * tommy_trie_foreach(&trie, free);
  * tommy_allocator_done(&alloc);
  * \endcode
- *
- * Note that you cannot iterate over all the elements in the trie using the
- * trie itself. You have to insert all the elements also in a ::tommy_list,
- * and use the list to iterate. See the \ref multiindex example for more detail.
  */
 
 #ifndef __TOMMYTRIE_H
@@ -266,6 +267,30 @@ tommy_inline void* tommy_trie_search(tommy_trie* trie, tommy_key_t key)
  * \return The tommy_node::data field of the node removed.
  */
 TOMMY_API void* tommy_trie_remove_existing(tommy_trie* trie, tommy_trie_node* node);
+
+/**
+ * Calls the specified function for each element in the trie.
+ * Elements are visited by increasing key, with equal keys in insertion order.
+ * The callback receives the data field of each node.
+ * An empty trie does not invoke the callback.
+ *
+ * The callback may deallocate the current object, including its embedded node.
+ * It must not add or remove elements, modify keys or node links, or deallocate
+ * other elements, the trie, or its allocator.
+ * This operation does not remove elements or update the count.
+ * After deallocating objects, discard or reinitialize the trie before using it again.
+ * Internal nodes remain allocated until released through the allocator.
+ *
+ * No memory is allocated. Recursion depth is bounded by the number of key bits.
+ */
+TOMMY_API void tommy_trie_foreach(tommy_trie* trie, tommy_foreach_func* func);
+
+/**
+ * Calls the specified function with an argument for each element in the trie.
+ * The iteration order and callback rules are the same as tommy_trie_foreach().
+ * The callback receives arg followed by the data field of each node.
+ */
+TOMMY_API void tommy_trie_foreach_arg(tommy_trie* trie, tommy_foreach_arg_func* func, void* arg);
 
 /**
  * Gets the number of elements.

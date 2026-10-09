@@ -238,6 +238,99 @@ TOMMY_API void* tommy_trie_inplace_remove_existing(tommy_trie_inplace* trie_inpl
 	return ret->data;
 }
 
+/**
+ * Iterator frame merging a node's bucket with its ordered child buckets.
+ */
+typedef struct trie_inplace_iterator_struct {
+	tommy_trie_inplace_node* map[TOMMY_TRIE_INPLACE_TREE_MAX];
+	tommy_trie_inplace_node* node;
+	tommy_trie_inplace_node* next;
+	tommy_uint_t branch;
+	tommy_bool_t active;
+} trie_inplace_iterator;
+
+/**
+ * Maximum number of edges below the initial bucket.
+ */
+#define TOMMY_TRIE_INPLACE_LEVEL_MAX ((TOMMY_TRIE_INPLACE_BIT - TOMMY_TRIE_INPLACE_BUCKET_BIT) / TOMMY_TRIE_INPLACE_TREE_BIT)
+
+static void trie_inplace_iterator_init(trie_inplace_iterator* iterator, tommy_trie_inplace_node* node)
+{
+	/* callbacks can free the node before all its children have been visited */
+	for (tommy_uint_t i = 0; i < TOMMY_TRIE_INPLACE_TREE_MAX; ++i)
+		iterator->map[i] = node->map[i];
+	iterator->node = node;
+	iterator->next = 0;
+	iterator->branch = 0;
+	iterator->active = 0;
+}
+
+static tommy_trie_inplace_node* trie_inplace_iterator_next(trie_inplace_iterator* iterator)
+{
+	/* child branches cover disjoint key ranges in increasing order */
+	while (!iterator->next && (iterator->active || iterator->branch < TOMMY_TRIE_INPLACE_TREE_MAX)) {
+		if (!iterator->active) {
+			tommy_trie_inplace_node* child = iterator->map[iterator->branch];
+			++iterator->branch;
+			if (!child)
+				continue;
+			trie_inplace_iterator_init(iterator + 1, child);
+			iterator->active = 1;
+		}
+		iterator->next = trie_inplace_iterator_next(iterator + 1);
+		if (!iterator->next)
+			iterator->active = 0;
+	}
+
+	/* retain the next child bucket while inserting the parent's bucket before it */
+	if (iterator->node && (!iterator->next || iterator->node->key < iterator->next->key)) {
+		tommy_trie_inplace_node* node = iterator->node;
+		iterator->node = 0;
+		return node;
+	}
+	tommy_trie_inplace_node* node = iterator->next;
+	iterator->next = 0;
+	return node;
+}
+
+TOMMY_API void tommy_trie_inplace_foreach(tommy_trie_inplace* trie_inplace, tommy_foreach_func* func)
+{
+	trie_inplace_iterator stack[TOMMY_TRIE_INPLACE_LEVEL_MAX + 1];
+	for (tommy_uint_t i = 0; i < TOMMY_TRIE_INPLACE_BUCKET_MAX; ++i) {
+		if (!trie_inplace->bucket[i])
+			continue;
+		trie_inplace_iterator_init(stack, trie_inplace->bucket[i]);
+		tommy_trie_inplace_node* node;
+		while ((node = trie_inplace_iterator_next(stack)) != 0) {
+			while (node) {
+				void* data = node->data;
+				/* save the next duplicate before the callback can free this node */
+				node = node->next;
+				func(data);
+			}
+		}
+	}
+}
+
+TOMMY_API void tommy_trie_inplace_foreach_arg(tommy_trie_inplace* trie_inplace, tommy_foreach_arg_func* func, void* arg)
+{
+	trie_inplace_iterator stack[TOMMY_TRIE_INPLACE_LEVEL_MAX + 1];
+	for (tommy_uint_t i = 0; i < TOMMY_TRIE_INPLACE_BUCKET_MAX; ++i) {
+		if (!trie_inplace->bucket[i])
+			continue;
+		trie_inplace_iterator_init(stack, trie_inplace->bucket[i]);
+		tommy_trie_inplace_node* node;
+		while ((node = trie_inplace_iterator_next(stack)) != 0) {
+			while (node) {
+				void* data = node->data;
+				/* save the next duplicate before the callback can free this node */
+				node = node->next;
+				func(arg, data);
+			}
+		}
+	}
+}
+
 TOMMY_API tommy_size_t tommy_trie_inplace_memory_usage(const tommy_trie_inplace* trie_inplace)
 {
 	return tommy_trie_inplace_count(trie_inplace) * (tommy_size_t)sizeof(tommy_trie_inplace_node);

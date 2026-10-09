@@ -325,6 +325,48 @@ TOMMY_API tommy_trie_node* tommy_trie_bucket(tommy_trie* trie, tommy_key_t key)
 	}
 }
 
+static void trie_foreach_node(tommy_trie_node* node, tommy_foreach_func* func)
+{
+	if (!node)
+		return;
+
+	if (trie_get_type(node) == TOMMY_TRIE_TYPE_TREE) {
+		tommy_trie_tree* tree = trie_get_tree(node);
+		for (tommy_uint_t i = 0; i < TOMMY_TRIE_TREE_MAX; ++i)
+			trie_foreach_node(tree->map[i], func);
+	} else {
+		/* list traversal saves the next node before the callback can free it */
+		tommy_list_foreach(&node, func);
+	}
+}
+
+TOMMY_API void tommy_trie_foreach(tommy_trie* trie, tommy_foreach_func* func)
+{
+	for (tommy_uint_t i = 0; i < TOMMY_TRIE_BUCKET_MAX; ++i)
+		trie_foreach_node(trie->bucket[i], func);
+}
+
+static void trie_foreach_arg_node(tommy_trie_node* node, tommy_foreach_arg_func* func, void* arg)
+{
+	if (!node)
+		return;
+
+	if (trie_get_type(node) == TOMMY_TRIE_TYPE_TREE) {
+		tommy_trie_tree* tree = trie_get_tree(node);
+		for (tommy_uint_t i = 0; i < TOMMY_TRIE_TREE_MAX; ++i)
+			trie_foreach_arg_node(tree->map[i], func, arg);
+	} else {
+		/* list traversal saves the next node before the callback can free it */
+		tommy_list_foreach_arg(&node, func, arg);
+	}
+}
+
+TOMMY_API void tommy_trie_foreach_arg(tommy_trie* trie, tommy_foreach_arg_func* func, void* arg)
+{
+	for (tommy_uint_t i = 0; i < TOMMY_TRIE_BUCKET_MAX; ++i)
+		trie_foreach_arg_node(trie->bucket[i], func, arg);
+}
+
 TOMMY_API tommy_size_t tommy_trie_memory_usage(const tommy_trie* trie)
 {
 	return tommy_trie_count(trie) * (tommy_size_t)sizeof(tommy_trie_node)
