@@ -5535,13 +5535,16 @@ void test_hashlin_foreach(void)
 
 void test_hashlin_to_list(void)
 {
+	const tommy_size_t initial_max = (tommy_size_t)1 << TOMMY_HASHLIN_BIT;
 	const unsigned counts[][2] = {
 		{ 0, 0 }, { 1, 1 }, { 33, 33 }, { 48, 48 }, { 63, 63 }, { 64, 64 },
 		{ 65, 65 }, { 128, 128 }, { 128, 31 }, { 128, 24 }, { 128, 17 },
-		{ 128, 16 }, { 128, 15 }, { 128, 9 }, { 128, 8 }
+		{ 128, 16 }, { 128, 15 }, { 128, 9 }, { 128, 8 }, { 128, 0 }
 	};
 	struct object_hash obj[130];
 	tommy_node saved[130];
+	tommy_node* expected[130];
+	unsigned stable = 0, grow = 0, shrink = 0;
 
 	for (unsigned c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
 		for (unsigned prefix = 0; prefix <= 2; prefix += 2) {
@@ -5564,11 +5567,26 @@ void test_hashlin_to_list(void)
 			for (unsigned i = 0; i < size; ++i)
 				saved[i] = obj[i].node;
 			tommy_size_t bucket_max = hashlin.bucket_max;
-			tommy_size_t bucket_mask = hashlin.bucket_mask;
-			tommy_uint_t bucket_bit = hashlin.bucket_bit;
-			tommy_hashlin_node** segments[TOMMY_SIZE_BIT];
-			for (unsigned i = 0; i < bucket_bit; ++i)
-				segments[i] = hashlin.bucket[i];
+			tommy_hashlin_node** initial_bucket = hashlin.bucket[0];
+			if (hashlin.state == stable_state)
+				++stable;
+			else if (counts[c][0] == counts[c][1])
+				++grow;
+			else
+				++shrink;
+
+			/* preserve the prefix and exact ascending active-bucket order before any links change. */
+			unsigned expected_size = prefix;
+			for (unsigned i = 0; i < prefix; ++i)
+				expected[i] = &obj[i].node;
+			for (tommy_size_t pos = 0; pos < hashlin.low_max + hashlin.split; ++pos)
+				for (tommy_node* node = *tommy_hashlin_pos(&hashlin, pos); node; node = node->next)
+					expected[expected_size++] = node;
+			if (expected_size != size) {
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+			}
 
 			/* inactive slots must never be transferred, including stale shrink pointers. */
 			for (unsigned i = hashlin.low_max + hashlin.split; i < bucket_max; ++i)
@@ -5576,21 +5594,30 @@ void test_hashlin_to_list(void)
 
 			tommy_hashlin_to_list(&hashlin, &list);
 			test_hash_list(&list, obj, saved, size, prefix);
-			if (tommy_hashlin_count(&hashlin) != 0 || hashlin.bucket_max != bucket_max
-				|| hashlin.bucket_mask != bucket_mask || hashlin.bucket_bit != bucket_bit
-				|| hashlin.state != stable_state || hashlin.low_max != bucket_max
-				|| hashlin.low_mask != bucket_mask || hashlin.split != 0
-				|| tommy_hashlin_memory_usage(&hashlin) != bucket_max * sizeof(tommy_hashlin_node*)) {
+			if (tommy_hashlin_count(&hashlin) != 0 || hashlin.bucket_max != initial_max
+				|| hashlin.bucket_mask != initial_max - 1 || hashlin.bucket_bit != TOMMY_HASHLIN_BIT
+				|| hashlin.state != stable_state || hashlin.low_max != initial_max
+				|| hashlin.low_mask != initial_max - 1 || hashlin.split != 0
+				|| tommy_hashlin_memory_usage(&hashlin) != initial_max * sizeof(tommy_hashlin_node*)) {
 				/* LCOV_EXCL_START */
 				abort();
 				/* LCOV_EXCL_STOP */
 			}
-			for (unsigned i = 0; i < bucket_bit; ++i)
-				if (hashlin.bucket[i] != segments[i]) {
+			for (unsigned i = 0; i < TOMMY_HASHLIN_BIT; ++i)
+				if (hashlin.bucket[i] != initial_bucket) {
 					/* LCOV_EXCL_START */
 					abort();
 					/* LCOV_EXCL_STOP */
 				}
+			tommy_node* node = tommy_list_head(&list);
+			for (unsigned i = 0; i < size; ++i) {
+				if (node != expected[i]) {
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+				}
+				node = node->next;
+			}
 			for (unsigned i = 0; i < bucket_max; ++i)
 				if (tommy_hashlin_bucket(&hashlin, i) != 0) {
 					/* LCOV_EXCL_START */
@@ -5616,7 +5643,7 @@ void test_hashlin_to_list(void)
 			tommy_hashlin_to_list(&hashlin, &list);
 			test_hash_list(&list, obj, saved, size, prefix);
 
-			/* reinsert all transferred nodes, then grow beyond the retained capacity. */
+			/* reinsert all transferred nodes, then grow again from the minimum capacity. */
 			while (!tommy_list_empty(&list)) {
 				struct object_hash* data = tommy_list_remove_head(&list);
 				tommy_hashlin_insert(&hashlin, &data->node, data, data->node.index);
@@ -5625,7 +5652,8 @@ void test_hashlin_to_list(void)
 				obj[i].value = i / 2;
 				tommy_hashlin_insert(&hashlin, &obj[i].node, &obj[i], tommy_inthash_u32(obj[i].value));
 			}
-			if (tommy_hashlin_count(&hashlin) != 130 || hashlin.bucket_max <= bucket_max) {
+			if (tommy_hashlin_count(&hashlin) != 130 || hashlin.bucket_max <= initial_max
+				|| hashlin.bucket[0] != initial_bucket) {
 				/* LCOV_EXCL_START */
 				abort();
 				/* LCOV_EXCL_STOP */
@@ -5646,18 +5674,25 @@ void test_hashlin_to_list(void)
 			tommy_hashlin_done(&hashlin);
 		}
 	}
+	if (stable == 0 || grow == 0 || shrink == 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
 }
 
 void test_hashlin_clear(void)
 {
+	const tommy_size_t initial_max = (tommy_size_t)1 << TOMMY_HASHLIN_BIT;
 	const unsigned counts[][2] = {
 		{ 0, 0 }, { 1, 1 }, { 32, 32 },
 		{ 33, 33 }, { 48, 48 }, { 63, 63 }, { 64, 64 },
 		{ 65, 65 }, { 96, 96 }, { 127, 127 }, { 128, 128 },
 		{ 128, 31 }, { 128, 24 }, { 128, 17 }, { 128, 16 },
-		{ 128, 15 }, { 128, 12 }, { 128, 9 }, { 128, 8 }
+		{ 128, 15 }, { 128, 12 }, { 128, 9 }, { 128, 8 }, { 128, 0 }
 	};
 	struct object_hash obj[256];
+	tommy_node saved[128];
 	unsigned stable = 0, grow = 0, shrink = 0;
 
 	for (unsigned c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
@@ -5683,12 +5718,9 @@ void test_hashlin_clear(void)
 			++shrink;
 
 		tommy_size_t bucket_max = hashlin.bucket_max;
-		tommy_size_t bucket_mask = hashlin.bucket_mask;
-		tommy_uint_t bucket_bit = hashlin.bucket_bit;
-		tommy_hashlin_node** bucket[TOMMY_SIZE_BIT];
-		for (unsigned i = 0; i < bucket_bit; ++i)
-			bucket[i] = hashlin.bucket[i];
-		tommy_size_t memory_usage = tommy_hashlin_memory_usage(&hashlin) - retained * sizeof(tommy_hashlin_node);
+		tommy_hashlin_node** initial_bucket = hashlin.bucket[0];
+		for (unsigned i = 0; i < retained; ++i)
+			memcpy(&saved[i], &obj[i].node, sizeof(saved[i]));
 
 		/* inactive slots may contain arbitrary values or stale node pointers. */
 		for (unsigned i = hashlin.low_max + hashlin.split; i < bucket_max; ++i)
@@ -5697,17 +5729,17 @@ void test_hashlin_clear(void)
 		for (unsigned j = 0; j < 2; ++j) {
 			tommy_hashlin_clear(&hashlin);
 			if (tommy_hashlin_count(&hashlin) != 0
-				|| hashlin.bucket_max != bucket_max || hashlin.bucket_mask != bucket_mask
-				|| hashlin.bucket_bit != bucket_bit || hashlin.state != stable_state
-				|| hashlin.low_max != bucket_max || hashlin.low_mask != bucket_mask
-				|| hashlin.split != 0 || tommy_hashlin_memory_usage(&hashlin) != memory_usage) {
+				|| hashlin.bucket_max != initial_max || hashlin.bucket_mask != initial_max - 1
+				|| hashlin.bucket_bit != TOMMY_HASHLIN_BIT || hashlin.state != stable_state
+				|| hashlin.low_max != initial_max || hashlin.low_mask != initial_max - 1
+				|| hashlin.split != 0 || tommy_hashlin_memory_usage(&hashlin) != initial_max * sizeof(tommy_hashlin_node*)) {
 				/* LCOV_EXCL_START */
 				abort();
 				/* LCOV_EXCL_STOP */
 			}
 
-			for (unsigned i = 0; i < bucket_bit; ++i)
-				if (hashlin.bucket[i] != bucket[i]) {
+			for (unsigned i = 0; i < TOMMY_HASHLIN_BIT; ++i)
+				if (hashlin.bucket[i] != initial_bucket) {
 					/* LCOV_EXCL_START */
 					abort();
 					/* LCOV_EXCL_STOP */
@@ -5732,6 +5764,7 @@ void test_hashlin_clear(void)
 			for (unsigned i = 0; i < retained; ++i) {
 				tommy_hash_t hash = tommy_inthash_u32(obj[i].value);
 				if (obj[i].value != (int)(i / 2)
+					|| memcmp(&saved[i], &obj[i].node, sizeof(saved[i])) != 0
 					|| obj[i].node.data != &obj[i] || obj[i].node.index != hash
 					|| tommy_hashlin_search(&hashlin, search_callback, &obj[i], hash) != 0
 					|| tommy_hashlin_remove(&hashlin, search_callback, &obj[i], hash) != 0) {
@@ -5742,7 +5775,7 @@ void test_hashlin_clear(void)
 			}
 		}
 
-		/* reuse old nodes and grow beyond the preserved capacity. */
+		/* reuse old nodes and grow again from the minimum capacity. */
 		for (unsigned i = 0; i < 256; ++i) {
 			obj[i].value = i / 2;
 			tommy_hashlin_insert(&hashlin, &obj[i].node, &obj[i], tommy_inthash_u32(obj[i].value));
@@ -5752,7 +5785,7 @@ void test_hashlin_clear(void)
 				/* LCOV_EXCL_STOP */
 			}
 		}
-		if (hashlin.bucket_max <= bucket_max) {
+		if (hashlin.bucket_max <= initial_max || hashlin.bucket[0] != initial_bucket) {
 			/* LCOV_EXCL_START */
 			abort();
 			/* LCOV_EXCL_STOP */

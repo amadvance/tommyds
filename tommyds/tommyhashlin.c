@@ -62,11 +62,12 @@ TOMMY_API void tommy_hashlin_clear(tommy_hashlin* hashlin)
 	memset(hashlin->bucket[0], 0, ((tommy_size_t)1 << TOMMY_HASHLIN_BIT) * sizeof(tommy_hashlin_node*));
 	for (tommy_uint_t i = TOMMY_HASHLIN_BIT; i < hashlin->bucket_bit; ++i) {
 		tommy_hashlin_node** segment = hashlin->bucket[i];
-
-		/* clear also the slots not yet initialized by a progressive grow. */
-		memset(&segment[(tommy_ptrdiff_t)1 << i], 0, ((tommy_size_t)1 << i) * sizeof(tommy_hashlin_node*));
+		tommy_free(&segment[(tommy_ptrdiff_t)1 << i]);
 	}
 
+	hashlin->bucket_bit = TOMMY_HASHLIN_BIT;
+	hashlin->bucket_max = (tommy_size_t)1 << hashlin->bucket_bit;
+	hashlin->bucket_mask = hashlin->bucket_max - 1;
 	hashlin->count = 0;
 	tommy_hashlin_stable(hashlin);
 }
@@ -386,15 +387,16 @@ TOMMY_API void tommy_hashlin_to_list(tommy_hashlin* hashlin, tommy_list* list)
 		if (active > size)
 			active = size;
 
-		for (tommy_size_t pos = 0; pos < active; ++pos) {
+		for (tommy_size_t pos = 0; pos < active; ++pos)
 			tommy_list_concat(list, &bucket[pos]);
-			bucket[pos] = 0;
-		}
 
-		/* inactive slots must be cleared without reading stale pointers */
-		memset(bucket + active, 0, (size - active) * sizeof(*bucket));
+		/* free only after transferring active buckets; inactive slots may be uninitialized or stale */
+		tommy_free(bucket);
 	}
 
+	hashlin->bucket_bit = TOMMY_HASHLIN_BIT;
+	hashlin->bucket_max = initial_max;
+	hashlin->bucket_mask = initial_max - 1;
 	hashlin->count = 0;
 	tommy_hashlin_stable(hashlin);
 }

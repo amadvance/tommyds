@@ -101,8 +101,10 @@
  * }
  * \endcode
  *
- * To destroy the hashtable you have to remove all the elements, and deinitialize
- * the hashtable calling tommy_hashlin_done().
+ * To destroy the hashtable you have to deinitialize it calling tommy_hashlin_done().
+ * Elements can still be contained when calling this function, but their memory
+ * is not freed by it and must be managed separately (for example, freed with
+ * tommy_hashlin_foreach()).
  *
  * \code
  * tommy_hashlin_done(&hashlin);
@@ -182,14 +184,18 @@ tommy_inline void tommy_hashlin_swap(tommy_hashlin* first, tommy_hashlin* second
 }
 
 /**
- * Removes all elements, preserving the allocated bucket segments.
- * The hashtable remains initialized and can be reused immediately.
- * Any pending resize is ended at the currently allocated size.
+ * Removes all elements and resets the hashtable to its initial state,
+ * as after tommy_hashlin_init(). It can be reused immediately.
+ * Resetting the hashtable is intentional. Keeping a large empty table
+ * would make subsequent removals expensive, as progressive shrinking could
+ * require scanning many empty buckets.
+ * Any pending resize is canceled. No new memory is allocated.
  * Objects are not freed and nodes are not accessed or modified.
  * Their links must not be used to traverse the previous contents.
  * You can call this function after tommy_hashlin_foreach() has freed the objects.
  * Subsequent insertions and removals retain the normal resizing policy.
- * \note This operation is O(b), where b is the number of allocated buckets.
+ * \note This operation is O(m + log b), where m is the initial number of buckets
+ * and b is the number of allocated buckets before the call. Nodes are not traversed.
  */
 TOMMY_API void tommy_hashlin_clear(tommy_hashlin* hashlin);
 
@@ -411,9 +417,10 @@ TOMMY_API tommy_size_t tommy_hashlin_memory_usage(const tommy_hashlin* hashlin);
  * Removes every element from the \p hashlin hashtable and inserts them
  * into the provided \p list (at the tail), preserving the per-bucket order
  * but not guaranteeing any particular global order.
+ * Buckets are visited by increasing active bucket index.
  *
  * After the call:
- * - the hashtable is left empty and initialized, preserving its allocated buckets
+ * - the hashtable is left in the same state as after tommy_hashlin_init()
  * - the target list contains all the elements that were previously in the hashtable
  *
  * The tommy_node::data and tommy_node::index fields are left unchanged.
@@ -424,9 +431,9 @@ TOMMY_API tommy_size_t tommy_hashlin_memory_usage(const tommy_hashlin* hashlin);
  * - prepare for a full clear + re-insertion with different hash/ordering
  * - move ownership of the nodes to a list-based container
  *
- * \note The operation is O(b) where b is the number of allocated buckets.
- * \note No memory allocation or deallocation is performed.
- * \note Any pending resize is ended at the currently allocated size.
+ * \note The operation is O(b) where b is the number of active buckets before the call.
+ * \note No new memory is allocated.
+ * \note Any pending resize is canceled. The hashtable and list can be reused immediately.
  * \note The relative order of elements that were in the same bucket is preserved,
  *       but the order among different buckets is bucket-order dependent.
  *
