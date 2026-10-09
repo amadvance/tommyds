@@ -396,7 +396,7 @@ tommy_inline void tommy_list_move_head(tommy_list* list, tommy_node* node)
  */
 tommy_inline void tommy_list_move_tail(tommy_list* list, tommy_node* node)
 {
-	if (node == tommy_list_tail(list))
+	if (node->next == 0)
 		return;
 
 	tommy_list_remove_existing(list, node);
