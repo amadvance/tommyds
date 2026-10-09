@@ -4,6 +4,7 @@
 #include "tommyhashtbl.h"
 #include "tommylist.h"
 
+#include <assert.h> /* for assert */
 #include <string.h> /* for memset */
 
 /******************************************************************************/
@@ -15,6 +16,9 @@ TOMMY_API void tommy_hashtable_init(tommy_hashtable* hashtable, tommy_size_t buc
 		bucket_max = 16;
 	else
 		bucket_max = tommy_roundup_pow2(bucket_max);
+
+	/* ensure bucket rounding and allocation size cannot overflow */
+	assert(bucket_max != 0 && bucket_max <= TOMMY_SIZE_MAX / sizeof(tommy_hashtable_node*));
 
 	hashtable->bucket_max = bucket_max;
 	hashtable->bucket_mask = hashtable->bucket_max - 1;

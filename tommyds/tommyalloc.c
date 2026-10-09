@@ -24,6 +24,10 @@ TOMMY_API void tommy_allocator_init(tommy_allocator* alloc, tommy_size_t block_s
 	/* blocks store free-list pointers and must preserve their alignment */
 	assert(align_size % sizeof(void*) == 0);
 
+	/* ensure block rounding and segment allocation cannot overflow */
+	assert(align_size <= (TOMMY_SIZE_MAX - sizeof(tommy_allocator_entry)) / 2);
+	assert(block_size <= ((TOMMY_SIZE_MAX - sizeof(tommy_allocator_entry) - align_size) / align_size) * align_size);
+
 	/* ensure the minimum block size and alignment */
 	if (block_size < align_size)
 		block_size = align_size;
