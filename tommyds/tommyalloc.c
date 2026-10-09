@@ -38,10 +38,7 @@ TOMMY_API void tommy_allocator_init(tommy_allocator* alloc, tommy_size_t block_s
 	alloc->used_segment = 0;
 }
 
-/**
- * Reset the allocator and free all.
- */
-static void allocator_reset(tommy_allocator* alloc)
+TOMMY_API void tommy_allocator_done(tommy_allocator* alloc)
 {
 	tommy_allocator_entry* block = alloc->used_segment;
 
@@ -50,15 +47,15 @@ static void allocator_reset(tommy_allocator* alloc)
 		tommy_free(block);
 		block = block_next;
 	}
+}
+
+TOMMY_API void tommy_allocator_clear(tommy_allocator* alloc)
+{
+	tommy_allocator_done(alloc);
 
 	alloc->count = 0;
 	alloc->free_block = 0;
 	alloc->used_segment = 0;
-}
-
-TOMMY_API void tommy_allocator_done(tommy_allocator* alloc)
-{
-	allocator_reset(alloc);
 }
 
 TOMMY_API void* tommy_allocator_alloc(tommy_allocator* alloc)

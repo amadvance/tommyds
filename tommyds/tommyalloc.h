@@ -50,6 +50,16 @@ TOMMY_API void tommy_allocator_init(tommy_allocator* alloc, tommy_size_t block_s
 TOMMY_API void tommy_allocator_done(tommy_allocator* alloc);
 
 /**
+ * Releases all the allocated memory to the heap, including blocks still in use.
+ * All previously allocated block pointers become invalid and must not be used or freed.
+ * The allocator remains initialized and can be reused immediately with the same
+ * block size and alignment. Its memory usage becomes zero.
+ * Calling this function on an empty allocator has no effect.
+ * \param alloc Allocator to clear.
+ */
+TOMMY_API void tommy_allocator_clear(tommy_allocator* alloc);
+
+/**
  * Allocates a block.
  * \param alloc Allocator to use.
  * \return Pointer to the allocated block.

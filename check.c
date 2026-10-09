@@ -901,6 +901,58 @@ void test_hash(void)
 	STOP();
 }
 
+void test_alloc_clear(void)
+{
+	const tommy_size_t cases[][2] = {
+		{ sizeof(void*) + 1, sizeof(void*) },
+		{ 64, 64 },
+		{ 128000, 64 }
+	};
+	void* ptr[128];
+
+	for (unsigned i = 0; i < sizeof(cases) / sizeof(cases[0]); ++i) {
+		tommy_allocator alloc;
+		tommy_allocator_init(&alloc, cases[i][0], cases[i][1]);
+		tommy_size_t block_size = alloc.block_size;
+		tommy_size_t align_size = alloc.align_size;
+
+		for (unsigned cycle = 0; cycle < 3; ++cycle) {
+			/* clear empty and populated allocators, then reuse without initialization */
+			tommy_allocator_clear(&alloc);
+			tommy_allocator_clear(&alloc);
+			if (alloc.free_block != 0 || alloc.used_segment != 0 || alloc.count != 0
+				|| tommy_allocator_memory_usage(&alloc) != 0
+				|| alloc.block_size != block_size || alloc.align_size != align_size) {
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+			}
+
+			for (unsigned j = 0; j < sizeof(ptr) / sizeof(ptr[0]); ++j) {
+				ptr[j] = tommy_allocator_alloc(&alloc);
+				if ((tommy_uintptr_t)ptr[j] % align_size != 0) {
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+				}
+				memset(ptr[j], 0xAA, block_size);
+			}
+
+			/* retain both active and freed blocks across multiple segments */
+			for (unsigned j = 0; j < sizeof(ptr) / sizeof(ptr[0]) / 2; ++j)
+				tommy_allocator_free(&alloc, ptr[j]);
+			if (tommy_allocator_memory_usage(&alloc) != sizeof(ptr) / sizeof(ptr[0]) / 2 * block_size) {
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+			}
+		}
+
+		tommy_allocator_clear(&alloc);
+		tommy_allocator_done(&alloc);
+	}
+}
+
 void test_alloc(void)
 {
 	const unsigned size = 10 * TOMMY_SIZE;
@@ -6744,6 +6796,7 @@ int main()
 
 	test_hash();
 	test_alloc();
+	test_alloc_clear();
 	test_list();
 	test_tree();
 	test_tree_swap();
