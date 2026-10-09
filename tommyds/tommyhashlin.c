@@ -115,12 +115,15 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 		/* compute the split target required to finish the reallocation before the next resize */
 		tommy_size_t split_target = 2 * hashlin->count;
 
+		/* high buckets share the last segment and low_max offset, both fixed between iterations */
+		tommy_hashlin_node** high = &hashlin->bucket[hashlin->bucket_bit - 1][hashlin->low_max];
+
 		/* reallocate buckets until the split target */
 		while (hashlin->split + hashlin->low_max < split_target) {
 			/* get the low and high buckets */
 			tommy_hashlin_node** split[2];
 			split[0] = tommy_hashlin_pos(hashlin, hashlin->split);
-			split[1] = tommy_hashlin_pos(hashlin, hashlin->split + hashlin->low_max);
+			split[1] = &high[hashlin->split];
 
 			/* save the low bucket */
 			tommy_hashlin_node* j = *split[0];
@@ -194,6 +197,9 @@ tommy_inline void hashlin_shrink_step(tommy_hashlin* hashlin)
 		/* compute the split target required to finish the reallocation before the next resize */
 		tommy_size_t split_target = 8 * hashlin->count;
 
+		/* high buckets share the last segment and low_max offset, both fixed between iterations */
+		tommy_hashlin_node** high = &hashlin->bucket[hashlin->bucket_bit - 1][hashlin->low_max];
+
 		/* reallocate buckets until the split target */
 		while (hashlin->split + hashlin->low_max > split_target) {
 			/* go backward position */
@@ -202,7 +208,7 @@ tommy_inline void hashlin_shrink_step(tommy_hashlin* hashlin)
 			/* get the low and high buckets */
 			tommy_hashlin_node** split[2];
 			split[0] = tommy_hashlin_pos(hashlin, hashlin->split);
-			split[1] = tommy_hashlin_pos(hashlin, hashlin->split + hashlin->low_max);
+			split[1] = &high[hashlin->split];
 
 			/* concat the high bucket into the low one */
 			tommy_list_concat(split[0], split[1]);
