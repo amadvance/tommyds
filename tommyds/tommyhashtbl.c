@@ -53,11 +53,22 @@ TOMMY_API void tommy_hashtable_insert(tommy_hashtable* hashtable, tommy_hashtabl
 
 TOMMY_API void* tommy_hashtable_insert_unique(tommy_hashtable* hashtable, tommy_hashtable_node* node, void* data, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)
 {
-	void* existing = tommy_hashtable_search(hashtable, cmp, cmp_arg, hash);
-	if (existing)
-		return existing;
+	tommy_hashtable_node** bucket = &hashtable->bucket[hash & hashtable->bucket_mask];
+	tommy_hashtable_node* i = *bucket;
 
-	tommy_hashtable_insert(hashtable, node, data, hash);
+	while (i) {
+		/* compare keys only for matching full hashes, as the bucket may contain different hashes */
+		if (i->index == hash && cmp(cmp_arg, i->data) == 0)
+			return i->data;
+		i = i->next;
+	}
+
+	tommy_list_insert_tail(bucket, node, data);
+
+	node->index = hash;
+
+	++hashtable->count;
+
 	return data;
 }
 

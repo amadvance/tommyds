@@ -174,11 +174,25 @@ TOMMY_API void tommy_hashdyn_insert(tommy_hashdyn* hashdyn, tommy_hashdyn_node* 
 
 TOMMY_API void* tommy_hashdyn_insert_unique(tommy_hashdyn* hashdyn, tommy_hashdyn_node* node, void* data, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)
 {
-	void* existing = tommy_hashdyn_search(hashdyn, cmp, cmp_arg, hash);
-	if (existing)
-		return existing;
+	tommy_hashdyn_node** bucket = &hashdyn->bucket[hash & hashdyn->bucket_mask];
+	tommy_hashdyn_node* i = *bucket;
 
-	tommy_hashdyn_insert(hashdyn, node, data, hash);
+	while (i) {
+		/* compare keys only for matching full hashes, as the bucket may contain different hashes */
+		if (i->index == hash && cmp(cmp_arg, i->data) == 0)
+			return i->data;
+		i = i->next;
+	}
+
+	/* insert before resizing, while the bucket selected for the search is still valid */
+	tommy_list_insert_tail(bucket, node, data);
+
+	node->index = hash;
+
+	++hashdyn->count;
+
+	hashdyn_grow_step(hashdyn);
+
 	return data;
 }
 

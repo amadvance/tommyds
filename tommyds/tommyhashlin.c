@@ -233,11 +233,25 @@ TOMMY_API void tommy_hashlin_insert(tommy_hashlin* hashlin, tommy_hashlin_node* 
 
 TOMMY_API void* tommy_hashlin_insert_unique(tommy_hashlin* hashlin, tommy_hashlin_node* node, void* data, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)
 {
-	void* existing = tommy_hashlin_search(hashlin, cmp, cmp_arg, hash);
-	if (existing)
-		return existing;
+	tommy_hashlin_node** bucket = tommy_hashlin_bucket_ref(hashlin, hash);
+	tommy_hashlin_node* i = *bucket;
 
-	tommy_hashlin_insert(hashlin, node, data, hash);
+	while (i) {
+		/* compare keys only for matching full hashes, as the bucket may contain different hashes */
+		if (i->index == hash && cmp(cmp_arg, i->data) == 0)
+			return i->data;
+		i = i->next;
+	}
+
+	/* insert before resizing, while the bucket selected for the search is still valid */
+	tommy_list_insert_tail(bucket, node, data);
+
+	node->index = hash;
+
+	++hashlin->count;
+
+	hashlin_grow_step(hashlin);
+
 	return data;
 }
 
