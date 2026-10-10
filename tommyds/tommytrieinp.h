@@ -464,9 +464,12 @@ TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_prev(tommy_trie_inplace* t
  * It must not add or remove elements, modify keys or node links, or deallocate
  * other elements or the trie.
  * This operation does not remove elements or update the count.
- * After deallocating objects, discard or reinitialize the trie before using it again.
  *
  * No memory is allocated. Stack space is bounded by the number of key bits.
+ *
+ * If the callback frees the objects, the trie retains dangling node
+ * pointers. Call tommy_trie_inplace_init() before reusing it. The trie has
+ * no storage to release.
  */
 TOMMY_API void tommy_trie_inplace_foreach(tommy_trie_inplace* trie_inplace, tommy_foreach_func* func);
 

@@ -368,6 +368,10 @@ TOMMY_API void tommy_hashlin_rehash_existing(tommy_hashlin* hashlin, tommy_hashl
  * // deallocates the hashtable
  * tommy_hashlin_done(&hashlin);
  * \endcode
+ *
+ * If the callback frees the objects, the hashtable retains dangling
+ * node pointers. Call tommy_hashlin_clear() before reusing it, or
+ * tommy_hashlin_done() to release its storage.
  */
 TOMMY_API void tommy_hashlin_foreach(tommy_hashlin* hashlin, tommy_foreach_func* func);
 

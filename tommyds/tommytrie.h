@@ -476,10 +476,13 @@ TOMMY_API void tommy_trie_to_list(tommy_trie* trie, tommy_list* list);
  * It must not add or remove elements, modify keys or node links, or deallocate
  * other elements, the trie, or its allocator.
  * This operation does not remove elements or update the count.
- * After deallocating objects, discard or reinitialize the trie before using it again.
- * Internal nodes remain allocated until released through the allocator.
  *
  * No memory is allocated. Stack space is bounded by the number of key bits.
+ *
+ * If the callback frees the objects, the trie retains dangling node
+ * pointers. Call tommy_trie_clear() before reusing it to release its
+ * internal nodes to the allocator, or tommy_allocator_done() to release
+ * its storage.
  */
 TOMMY_API void tommy_trie_foreach(tommy_trie* trie, tommy_foreach_func* func);
 

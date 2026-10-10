@@ -216,6 +216,10 @@ tommy_inline void tommy_arrayblk_swap(tommy_arrayblk* first, tommy_arrayblk* sec
  *
  * \param array Array to iterate.
  * \param func Function to call with each element.
+ *
+ * If the callback frees the objects, the array retains dangling
+ * pointers. Call tommy_arrayblk_clear() before reusing it, or
+ * tommy_arrayblk_done() to release its storage.
  */
 TOMMY_API void tommy_arrayblk_foreach(tommy_arrayblk* array, tommy_foreach_func* func);
 

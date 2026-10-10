@@ -705,7 +705,12 @@ tommy_inline tommy_size_t tommy_list_count(const tommy_list* list)
  *
  * // deallocates all the objects iterating the list
  * tommy_list_foreach(&list, free);
+ * tommy_list_init(&list); // resets the list before reuse
  * \endcode
+ *
+ * If the callback frees the objects, the list retains dangling node
+ * pointers. Call tommy_list_init() before reusing it. The list has
+ * no storage to release.
  */
 tommy_inline void tommy_list_foreach(tommy_list* list, tommy_foreach_func* func)
 {

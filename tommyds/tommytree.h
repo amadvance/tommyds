@@ -659,7 +659,12 @@ tommy_inline void* tommy_tree_remove(tommy_tree* tree, const void* data)
  *
  * // deallocates all the objects iterating the tree
  * tommy_tree_foreach(&tree, free);
+ * tommy_tree_clear(&tree); // resets the tree before reuse
  * \endcode
+ *
+ * If the callback frees the objects, the tree retains dangling node
+ * pointers. Call tommy_tree_clear() or tommy_tree_init() before reusing it.
+ * The tree has no storage to release.
  */
 TOMMY_API void tommy_tree_foreach(tommy_tree* tree, tommy_foreach_func* func);
 

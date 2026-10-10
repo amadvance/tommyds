@@ -215,6 +215,11 @@ tommy_inline void tommy_arrayof_swap(tommy_arrayof* first, tommy_arrayof* second
  *
  * \param array Array to iterate.
  * \param func Function to call with each element.
+ *
+ * Elements are stored inside the array: passing free() as the callback
+ * is invalid. A callback may release resources owned by each element,
+ * but must not free the element itself. Call tommy_arrayof_clear() before
+ * reusing it, or tommy_arrayof_done() to release its storage.
  */
 TOMMY_API void tommy_arrayof_foreach(tommy_arrayof* array, tommy_foreach_func* func);
 

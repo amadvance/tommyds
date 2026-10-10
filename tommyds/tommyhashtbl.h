@@ -297,6 +297,10 @@ TOMMY_API void tommy_hashtable_rehash_existing(tommy_hashtable* hashtable, tommy
  * // deallocates the hashtable
  * tommy_hashtable_done(&hashtable);
  * \endcode
+ *
+ * If the callback frees the objects, the hashtable retains dangling
+ * node pointers. Call tommy_hashtable_clear() before reusing it, or
+ * tommy_hashtable_done() to release its storage.
  */
 TOMMY_API void tommy_hashtable_foreach(tommy_hashtable* hashtable, tommy_foreach_func* func);
 
