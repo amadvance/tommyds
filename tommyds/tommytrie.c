@@ -68,24 +68,59 @@ TOMMY_API void tommy_trie_init(tommy_trie* trie, tommy_allocator* alloc)
 	trie->alloc = alloc;
 }
 
-static void trie_clear_node(tommy_trie* trie, tommy_trie_node* node)
-{
-	if (!node)
-		return;
+/**
+ * Iterator frame visiting leaves by increasing key and internal nodes
+ * after their children, allowing completed internal nodes to be freed.
+ * The stack holds at most TOMMY_TRIE_LEVEL_MAX internal nodes and one leaf.
+ */
+typedef struct trie_subtree_iterator_struct {
+	tommy_trie_node* node;
+	tommy_uint_t branch;
+} trie_subtree_iterator;
 
-	if (trie_get_type(node) == TOMMY_TRIE_TYPE_TREE) {
-		tommy_trie_tree* tree = trie_get_tree(node);
-		for (tommy_uint_t i = 0; i < TOMMY_TRIE_TREE_MAX; ++i)
-			trie_clear_node(trie, tree->map[i]);
-		/* freeing the parent overwrites its branches, so transfer all children first */
-		tommy_allocator_free(trie->alloc, tree);
+tommy_inline void trie_subtree_iterator_init(trie_subtree_iterator* iterator, tommy_trie_node* node)
+{
+	iterator->node = node;
+	iterator->branch = 0;
+}
+
+tommy_inline tommy_trie_node* trie_subtree_iterator_next(trie_subtree_iterator* stack, tommy_uint_t* depth)
+{
+	while (*depth) {
+		trie_subtree_iterator* iterator = &stack[*depth - 1];
+		tommy_trie_node* node = iterator->node;
+
+		if (node && trie_get_type(node) == TOMMY_TRIE_TYPE_TREE
+			&& iterator->branch < TOMMY_TRIE_TREE_MAX) {
+			tommy_trie_node* child = trie_get_tree(node)->map[iterator->branch];
+			++iterator->branch;
+			if (child) {
+				trie_subtree_iterator_init(&stack[*depth], child);
+				++*depth;
+			}
+			continue;
+		}
+
+		/* pop before returning: callers may free leaves and completed internal nodes */
+		--*depth;
+		if (node)
+			return node;
 	}
+	return 0;
 }
 
 TOMMY_API void tommy_trie_clear(tommy_trie* trie)
 {
+	trie_subtree_iterator stack[TOMMY_TRIE_LEVEL_MAX + 1];
 	for (tommy_uint_t i = 0; i < TOMMY_TRIE_BUCKET_MAX; ++i) {
-		trie_clear_node(trie, trie->bucket[i]);
+		trie_subtree_iterator_init(stack, trie->bucket[i]);
+		tommy_uint_t depth = 1;
+		tommy_trie_node* node;
+		while ((node = trie_subtree_iterator_next(stack, &depth)) != 0) {
+			/* postorder releases parents only after their child maps are no longer needed */
+			if (trie_get_type(node) == TOMMY_TRIE_TYPE_TREE)
+				tommy_allocator_free(trie->alloc, trie_get_tree(node));
+		}
 		trie->bucket[i] = 0;
 	}
 	trie->count = 0;
@@ -559,32 +594,26 @@ TOMMY_API tommy_trie_node* tommy_trie_prev(tommy_trie* trie, tommy_trie_node* no
 	return candidate ? trie_tail_node(candidate) : 0;
 }
 
-static tommy_node* trie_to_list_node(tommy_trie* trie, tommy_trie_node* node, tommy_node* tail)
-{
-	if (!node)
-		return tail;
-
-	if (trie_get_type(node) == TOMMY_TRIE_TYPE_TREE) {
-		tommy_trie_tree* tree = trie_get_tree(node);
-		for (tommy_uint_t i = 0; i < TOMMY_TRIE_TREE_MAX; ++i)
-			tail = trie_to_list_node(trie, tree->map[i], tail);
-		/* freeing the parent overwrites its branches, so transfer all children first */
-		tommy_allocator_free(trie->alloc, tree);
-	} else {
-		/* each leaf is already a list of equal keys in insertion order */
-		tommy_node* last = node->prev;
-		tail = tommy_builder_concat(tail, node, last);
-	}
-	return tail;
-}
-
 TOMMY_API void tommy_trie_to_list(tommy_trie* trie, tommy_list* list)
 {
+	trie_subtree_iterator stack[TOMMY_TRIE_LEVEL_MAX + 1];
 	tommy_builder builder;
 	tommy_node* builder_tail = tommy_builder_init(&builder);
 
 	for (tommy_uint_t i = 0; i < TOMMY_TRIE_BUCKET_MAX; ++i) {
-		builder_tail = trie_to_list_node(trie, trie->bucket[i], builder_tail);
+		trie_subtree_iterator_init(stack, trie->bucket[i]);
+		tommy_uint_t depth = 1;
+		tommy_trie_node* node;
+		while ((node = trie_subtree_iterator_next(stack, &depth)) != 0) {
+			if (trie_get_type(node) == TOMMY_TRIE_TYPE_TREE) {
+				/* all children have been transferred before the allocator overwrites the map */
+				tommy_allocator_free(trie->alloc, trie_get_tree(node));
+			} else {
+				/* each leaf is already a list of equal keys in insertion order */
+				tommy_node* last = node->prev;
+				builder_tail = tommy_builder_concat(builder_tail, node, last);
+			}
+		}
 		trie->bucket[i] = 0;
 	}
 	tommy_list_concat_builder(list, &builder, builder_tail);
@@ -592,46 +621,34 @@ TOMMY_API void tommy_trie_to_list(tommy_trie* trie, tommy_list* list)
 	trie->node_count = 0;
 }
 
-static void trie_foreach_node(tommy_trie_node* node, tommy_foreach_func* func)
-{
-	if (!node)
-		return;
-
-	if (trie_get_type(node) == TOMMY_TRIE_TYPE_TREE) {
-		tommy_trie_tree* tree = trie_get_tree(node);
-		for (tommy_uint_t i = 0; i < TOMMY_TRIE_TREE_MAX; ++i)
-			trie_foreach_node(tree->map[i], func);
-	} else {
-		/* list traversal saves the next node before the callback can free it */
-		tommy_list_foreach(&node, func);
-	}
-}
-
 TOMMY_API void tommy_trie_foreach(tommy_trie* trie, tommy_foreach_func* func)
 {
-	for (tommy_uint_t i = 0; i < TOMMY_TRIE_BUCKET_MAX; ++i)
-		trie_foreach_node(trie->bucket[i], func);
-}
-
-static void trie_foreach_arg_node(tommy_trie_node* node, tommy_foreach_arg_func* func, void* arg)
-{
-	if (!node)
-		return;
-
-	if (trie_get_type(node) == TOMMY_TRIE_TYPE_TREE) {
-		tommy_trie_tree* tree = trie_get_tree(node);
-		for (tommy_uint_t i = 0; i < TOMMY_TRIE_TREE_MAX; ++i)
-			trie_foreach_arg_node(tree->map[i], func, arg);
-	} else {
-		/* list traversal saves the next node before the callback can free it */
-		tommy_list_foreach_arg(&node, func, arg);
+	trie_subtree_iterator stack[TOMMY_TRIE_LEVEL_MAX + 1];
+	for (tommy_uint_t i = 0; i < TOMMY_TRIE_BUCKET_MAX; ++i) {
+		trie_subtree_iterator_init(stack, trie->bucket[i]);
+		tommy_uint_t depth = 1;
+		tommy_trie_node* node;
+		while ((node = trie_subtree_iterator_next(stack, &depth)) != 0) {
+			/* list traversal saves the next node before the callback can free it */
+			if (trie_get_type(node) == TOMMY_TRIE_TYPE_NODE)
+				tommy_list_foreach(&node, func);
+		}
 	}
 }
 
 TOMMY_API void tommy_trie_foreach_arg(tommy_trie* trie, tommy_foreach_arg_func* func, void* arg)
 {
-	for (tommy_uint_t i = 0; i < TOMMY_TRIE_BUCKET_MAX; ++i)
-		trie_foreach_arg_node(trie->bucket[i], func, arg);
+	trie_subtree_iterator stack[TOMMY_TRIE_LEVEL_MAX + 1];
+	for (tommy_uint_t i = 0; i < TOMMY_TRIE_BUCKET_MAX; ++i) {
+		trie_subtree_iterator_init(stack, trie->bucket[i]);
+		tommy_uint_t depth = 1;
+		tommy_trie_node* node;
+		while ((node = trie_subtree_iterator_next(stack, &depth)) != 0) {
+			/* list traversal saves the next node before the callback can free it */
+			if (trie_get_type(node) == TOMMY_TRIE_TYPE_NODE)
+				tommy_list_foreach_arg(&node, func, arg);
+		}
+	}
 }
 
 TOMMY_API tommy_size_t tommy_trie_memory_usage(const tommy_trie* trie)

@@ -466,8 +466,7 @@ TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_prev(tommy_trie_inplace* t
  * This operation does not remove elements or update the count.
  * After deallocating objects, discard or reinitialize the trie before using it again.
  *
- * No memory is allocated. Stack space and recursion depth are bounded by the
- * number of key bits.
+ * No memory is allocated. Stack space is bounded by the number of key bits.
  */
 TOMMY_API void tommy_trie_inplace_foreach(tommy_trie_inplace* trie_inplace, tommy_foreach_func* func);
 

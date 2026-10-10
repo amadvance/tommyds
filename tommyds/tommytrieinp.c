@@ -499,20 +499,20 @@ TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_prev(tommy_trie_inplace* t
 /**
  * Iterator frame merging a node's bucket with its ordered child buckets.
  */
-typedef struct trie_inplace_iterator_struct {
+typedef struct trie_inplace_subtree_iterator_struct {
 	tommy_trie_inplace_node* map[TOMMY_TRIE_INPLACE_TREE_MAX];
 	tommy_trie_inplace_node* node;
 	tommy_trie_inplace_node* next;
 	tommy_uint_t branch;
 	tommy_bool_t active;
-} trie_inplace_iterator;
+} trie_inplace_subtree_iterator;
 
 /**
  * Maximum number of edges below the initial bucket.
  */
 #define TOMMY_TRIE_INPLACE_LEVEL_MAX ((TOMMY_TRIE_INPLACE_BIT - TOMMY_TRIE_INPLACE_BUCKET_BIT) / TOMMY_TRIE_INPLACE_TREE_BIT)
 
-static void trie_inplace_iterator_init(trie_inplace_iterator* iterator, tommy_trie_inplace_node* node)
+tommy_inline void trie_inplace_subtree_iterator_init(trie_inplace_subtree_iterator* iterator, tommy_trie_inplace_node* node)
 {
 	/* callbacks can free the node before all its children have been visited */
 	for (tommy_uint_t i = 0; i < TOMMY_TRIE_INPLACE_TREE_MAX; ++i)
@@ -523,43 +523,53 @@ static void trie_inplace_iterator_init(trie_inplace_iterator* iterator, tommy_tr
 	iterator->active = 0;
 }
 
-static tommy_trie_inplace_node* trie_inplace_iterator_next(trie_inplace_iterator* iterator)
+tommy_inline tommy_trie_inplace_node* trie_inplace_subtree_iterator_next(trie_inplace_subtree_iterator* stack)
 {
-	/* child branches cover disjoint key ranges in increasing order */
-	while (!iterator->next && (iterator->active || iterator->branch < TOMMY_TRIE_INPLACE_TREE_MAX)) {
-		if (!iterator->active) {
-			tommy_trie_inplace_node* child = iterator->map[iterator->branch];
-			++iterator->branch;
-			if (!child)
-				continue;
-			trie_inplace_iterator_init(iterator + 1, child);
-			iterator->active = 1;
+	trie_inplace_subtree_iterator* iterator = stack;
+	while (1) {
+		/* child branches cover disjoint key ranges in increasing order */
+		if (!iterator->next && (iterator->active || iterator->branch < TOMMY_TRIE_INPLACE_TREE_MAX)) {
+			if (!iterator->active) {
+				tommy_trie_inplace_node* child = iterator->map[iterator->branch];
+				++iterator->branch;
+				if (!child)
+					continue;
+				trie_inplace_subtree_iterator_init(iterator + 1, child);
+				iterator->active = 1;
+			}
+			++iterator;
+			continue;
 		}
-		iterator->next = trie_inplace_iterator_next(iterator + 1);
-		if (!iterator->next)
+
+		/* retain the next child bucket while inserting the parent's bucket before it */
+		tommy_trie_inplace_node* node;
+		if (iterator->node && (!iterator->next || iterator->node->key < iterator->next->key)) {
+			node = iterator->node;
+			iterator->node = 0;
+		} else {
+			node = iterator->next;
+			iterator->next = 0;
+		}
+		if (iterator == stack)
+			return node;
+
+		/* propagate the child's result to its parent without a recursive return */
+		--iterator;
+		iterator->next = node;
+		if (!node)
 			iterator->active = 0;
 	}
-
-	/* retain the next child bucket while inserting the parent's bucket before it */
-	if (iterator->node && (!iterator->next || iterator->node->key < iterator->next->key)) {
-		tommy_trie_inplace_node* node = iterator->node;
-		iterator->node = 0;
-		return node;
-	}
-	tommy_trie_inplace_node* node = iterator->next;
-	iterator->next = 0;
-	return node;
 }
 
 TOMMY_API void tommy_trie_inplace_foreach(tommy_trie_inplace* trie_inplace, tommy_foreach_func* func)
 {
-	trie_inplace_iterator stack[TOMMY_TRIE_INPLACE_LEVEL_MAX + 1];
+	trie_inplace_subtree_iterator stack[TOMMY_TRIE_INPLACE_LEVEL_MAX + 1];
 	for (tommy_uint_t i = 0; i < TOMMY_TRIE_INPLACE_BUCKET_MAX; ++i) {
 		if (!trie_inplace->bucket[i])
 			continue;
-		trie_inplace_iterator_init(stack, trie_inplace->bucket[i]);
+		trie_inplace_subtree_iterator_init(stack, trie_inplace->bucket[i]);
 		tommy_trie_inplace_node* node;
-		while ((node = trie_inplace_iterator_next(stack)) != 0) {
+		while ((node = trie_inplace_subtree_iterator_next(stack)) != 0) {
 			while (node) {
 				void* data = node->data;
 				/* save the next duplicate before the callback can free this node */
@@ -572,13 +582,13 @@ TOMMY_API void tommy_trie_inplace_foreach(tommy_trie_inplace* trie_inplace, tomm
 
 TOMMY_API void tommy_trie_inplace_foreach_arg(tommy_trie_inplace* trie_inplace, tommy_foreach_arg_func* func, void* arg)
 {
-	trie_inplace_iterator stack[TOMMY_TRIE_INPLACE_LEVEL_MAX + 1];
+	trie_inplace_subtree_iterator stack[TOMMY_TRIE_INPLACE_LEVEL_MAX + 1];
 	for (tommy_uint_t i = 0; i < TOMMY_TRIE_INPLACE_BUCKET_MAX; ++i) {
 		if (!trie_inplace->bucket[i])
 			continue;
-		trie_inplace_iterator_init(stack, trie_inplace->bucket[i]);
+		trie_inplace_subtree_iterator_init(stack, trie_inplace->bucket[i]);
 		tommy_trie_inplace_node* node;
-		while ((node = trie_inplace_iterator_next(stack)) != 0) {
+		while ((node = trie_inplace_subtree_iterator_next(stack)) != 0) {
 			while (node) {
 				void* data = node->data;
 				/* save the next duplicate before the callback can free this node */

@@ -249,7 +249,7 @@ tommy_inline void tommy_trie_swap(tommy_trie* first, tommy_trie* second)
  * Other tries sharing the allocator are unaffected.
  * No memory is allocated; free blocks remain available for reuse in the allocator.
  * \param trie The trie to clear.
- * \note This operation is O(n), with recursion depth bounded by the number of key bits.
+ * \note This operation is O(n), with stack space bounded by the number of key bits.
  */
 TOMMY_API void tommy_trie_clear(tommy_trie* trie);
 
@@ -462,7 +462,7 @@ TOMMY_API tommy_trie_node* tommy_trie_prev(tommy_trie* trie, tommy_trie_node* no
  * No memory is allocated; free blocks remain available for reuse in the allocator.
  * \param trie The trie to drain.
  * \param list The destination list.
- * \note This operation is O(n), with recursion depth bounded by the number of key bits.
+ * \note This operation is O(n), with stack space bounded by the number of key bits.
  */
 TOMMY_API void tommy_trie_to_list(tommy_trie* trie, tommy_list* list);
 
@@ -479,7 +479,7 @@ TOMMY_API void tommy_trie_to_list(tommy_trie* trie, tommy_list* list);
  * After deallocating objects, discard or reinitialize the trie before using it again.
  * Internal nodes remain allocated until released through the allocator.
  *
- * No memory is allocated. Recursion depth is bounded by the number of key bits.
+ * No memory is allocated. Stack space is bounded by the number of key bits.
  */
 TOMMY_API void tommy_trie_foreach(tommy_trie* trie, tommy_foreach_func* func);
 
