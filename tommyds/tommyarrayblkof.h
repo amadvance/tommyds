@@ -15,6 +15,12 @@
  * or out of it. tommy_arrayblkof_ref(), tommy_arrayblkof_tail(), and
  * tommy_arrayblkof_insert_tail() return an element's address so the caller can
  * read or write it directly.
+ *
+ * \note Only types with fundamental alignment requirements are supported.
+ * Storage is allocated using calloc(), which does not guarantee the alignment
+ * required by over-aligned types (e.g. _Alignas(32) or _Alignas(64)).
+ * When storing typed elements, use sizeof(type) as the element size to
+ * preserve alignment for every element.
  */
 
 #ifndef __TOMMYARRAYBLKOF_H
