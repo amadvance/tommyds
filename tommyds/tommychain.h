@@ -69,7 +69,7 @@ tommy_inline void tommy_chain_concat(tommy_node* first_tail, tommy_node* second_
  * and must not be used as an independent chain afterward).
  * \param cmp Comparison function.
  */
-tommy_inline void tommy_chain_merge(tommy_chain* first, tommy_chain* second, tommy_compare_func* cmp)
+tommy_inline void tommy_chain_merge(tommy_chain* tommy_restrict first, tommy_chain* tommy_restrict second, tommy_compare_func* cmp)
 {
 	tommy_node* first_i = first->head;
 	tommy_node* second_i = second->head;
@@ -105,7 +105,7 @@ tommy_inline void tommy_chain_merge(tommy_chain* first, tommy_chain* second, tom
  * and must not be used as an independent chain afterward).
  * \param cmp Comparison function.
  */
-tommy_inline void tommy_chain_merge_singleton(tommy_chain* first, tommy_chain* second, tommy_compare_func* cmp)
+tommy_inline void tommy_chain_merge_singleton(tommy_chain* tommy_restrict first, tommy_chain* tommy_restrict second, tommy_compare_func* cmp)
 {
 	tommy_node* first_node = first->head;
 	tommy_node* second_node = second->head;
@@ -128,7 +128,7 @@ tommy_inline void tommy_chain_merge_singleton(tommy_chain* first, tommy_chain* s
  * and must not be used as an independent chain afterward).
  * \param cmp Comparison function.
  */
-tommy_inline void tommy_chain_merge_degenerated(tommy_chain* first, tommy_chain* second, tommy_compare_func* cmp)
+tommy_inline void tommy_chain_merge_degenerated(tommy_chain* tommy_restrict first, tommy_chain* tommy_restrict second, tommy_compare_func* cmp)
 {
 	/* identify the condition first <= second */
 	if (cmp(first->tail->data, second->head->data) <= 0) {
