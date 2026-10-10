@@ -7,7 +7,7 @@
 /** \internal
  * Setup a list.
  */
-tommy_inline void tommy_list_set(tommy_list* list, tommy_node* head, tommy_node* tail)
+tommy_inline void tommy_imp_list_set(tommy_list* list, tommy_node* head, tommy_node* tail)
 {
 	head->prev = tail;
 	tail->next = 0;
@@ -71,7 +71,7 @@ TOMMY_API void tommy_list_merge(tommy_list* first, tommy_list* second, tommy_com
 	tommy_chain_merge_degenerated(&first_chain, &second_chain, cmp);
 
 	/* restore the destination list */
-	tommy_list_set(first, first_chain.head, first_chain.tail);
+	tommy_imp_list_set(first, first_chain.head, first_chain.tail);
 }
 
 TOMMY_API void tommy_list_reverse(tommy_list* list)
@@ -92,7 +92,7 @@ TOMMY_API void tommy_list_reverse(tommy_list* list)
 	}
 
 	/* the old head is the new tail */
-	tommy_list_set(list, prev, head);
+	tommy_imp_list_set(list, prev, head);
 }
 
 TOMMY_API void tommy_list_sort(tommy_list* list, tommy_compare_func* cmp)
@@ -110,6 +110,6 @@ TOMMY_API void tommy_list_sort(tommy_list* list, tommy_compare_func* cmp)
 	tommy_chain_mergesort(&chain, cmp);
 
 	/* restore the list */
-	tommy_list_set(list, chain.head, chain.tail);
+	tommy_imp_list_set(list, chain.head, chain.tail);
 }
 

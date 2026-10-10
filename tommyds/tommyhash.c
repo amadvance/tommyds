@@ -13,10 +13,10 @@
  * They are needed only if BigEndian.
  */
 #if defined(__GNUC__)
-#define tommy_swap32(x) __builtin_bswap32(x)
-#define tommy_swap64(x) __builtin_bswap64(x)
+#define tommy_imp_hash_swap32(x) __builtin_bswap32(x)
+#define tommy_imp_hash_swap64(x) __builtin_bswap64(x)
 #else
-tommy_inline tommy_uint32_t tommy_swap32(tommy_uint32_t v)
+tommy_inline tommy_uint32_t tommy_imp_hash_swap32(tommy_uint32_t v)
 {
 	return ((v & 0xFF000000) >> 24) |
 	       ((v & 0x00FF0000) >> 8) |
@@ -24,7 +24,7 @@ tommy_inline tommy_uint32_t tommy_swap32(tommy_uint32_t v)
 	       ((v & 0x000000FF) << 24);
 }
 
-tommy_inline tommy_uint64_t tommy_swap64(tommy_uint64_t v)
+tommy_inline tommy_uint64_t tommy_imp_hash_swap64(tommy_uint64_t v)
 {
 	return ((v & 0xFF00000000000000ULL) >> 56) |
 	       ((v & 0x00FF000000000000ULL) >> 40) |
@@ -37,24 +37,24 @@ tommy_inline tommy_uint64_t tommy_swap64(tommy_uint64_t v)
 }
 #endif
 
-tommy_inline tommy_uint32_t tommy_le_uint32_read(const void* ptr)
+tommy_inline tommy_uint32_t tommy_imp_hash_le_uint32_read(const void* ptr)
 {
 	tommy_uint32_t v;
 	memcpy(&v, ptr, sizeof(v));
 #if defined(WORDS_BIGENDIAN) || defined(__BIG_ENDIAN__) || \
 	(defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
-	v = tommy_swap32(v);
+	v = tommy_imp_hash_swap32(v);
 #endif
 	return v;
 }
 
-tommy_inline tommy_uint64_t tommy_le_uint64_read(const void* ptr)
+tommy_inline tommy_uint64_t tommy_imp_hash_le_uint64_read(const void* ptr)
 {
 	tommy_uint64_t v;
 	memcpy(&v, ptr, sizeof(v));
 #if defined(WORDS_BIGENDIAN) || defined(__BIG_ENDIAN__) || \
 	(defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
-	v = tommy_swap64(v);
+	v = tommy_imp_hash_swap64(v);
 #endif
 	return v;
 }
@@ -75,8 +75,8 @@ TOMMY_API tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* voi
 	const unsigned char* tail = key + nblocks * 4;
 
 	while (nblocks >= 2) {
-		tommy_uint32_t k0 = tommy_le_uint32_read(key);
-		tommy_uint32_t k1 = tommy_le_uint32_read(key + 4);
+		tommy_uint32_t k0 = tommy_imp_hash_le_uint32_read(key);
+		tommy_uint32_t k1 = tommy_imp_hash_le_uint32_read(key + 4);
 
 		k0 *= c1;
 		k1 *= c1;
@@ -100,7 +100,7 @@ TOMMY_API tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* voi
 	}
 
 	if (nblocks) {
-		tommy_uint32_t k = tommy_le_uint32_read(key);
+		tommy_uint32_t k = tommy_imp_hash_le_uint32_read(key);
 		k *= c1;
 		k = tommy_rot(k, 15);
 		k *= c2;
@@ -140,8 +140,8 @@ TOMMY_API tommy_uint64_t tommy_hash_u64(tommy_uint64_t init_val, const void* voi
 	const unsigned char* tail = key + nblocks * 8;
 
 	while (nblocks >= 2) {
-		tommy_uint64_t k0 = tommy_le_uint64_read(key);
-		tommy_uint64_t k1 = tommy_le_uint64_read(key + 8);
+		tommy_uint64_t k0 = tommy_imp_hash_le_uint64_read(key);
+		tommy_uint64_t k1 = tommy_imp_hash_le_uint64_read(key + 8);
 
 		k0 *= c1;
 		k1 *= c1;
@@ -165,7 +165,7 @@ TOMMY_API tommy_uint64_t tommy_hash_u64(tommy_uint64_t init_val, const void* voi
 	}
 
 	if (nblocks) {
-		tommy_uint64_t k = tommy_le_uint64_read(key);
+		tommy_uint64_t k = tommy_imp_hash_le_uint64_read(key);
 		k *= c1;
 		k = tommy_rot64(k, 31);
 		k *= c2;
@@ -224,7 +224,7 @@ TOMMY_API tommy_uint32_t tommy_strhash_u32(tommy_uint32_t init_val, const void* 
 	 * tolerate these overreads.
 	 */
 	while (1) {
-		tommy_uint32_t v = tommy_le_uint32_read(p);
+		tommy_uint32_t v = tommy_imp_hash_le_uint32_read(p);
 
 		if (tommy_haszero_u32(v)) {
 			tommy_uint32_t z = (v - 0x01010101) & ~v & 0x80808080;
@@ -290,7 +290,7 @@ TOMMY_API tommy_uint64_t tommy_strhash_u64(tommy_uint64_t init_val, const void* 
 	 * tolerate these overreads.
 	 */
 	while (1) {
-		tommy_uint64_t v = tommy_le_uint64_read(p);
+		tommy_uint64_t v = tommy_imp_hash_le_uint64_read(p);
 
 		if (tommy_haszero_u64(v)) {
 			tommy_uint64_t z = (v - 0x0101010101010101ULL) & ~v & 0x8080808080808080ULL;

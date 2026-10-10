@@ -14,7 +14,7 @@
 #define TOMMY_TREE_BALANCE_LEFT ((tommy_size_t)1)
 #define TOMMY_TREE_BALANCE_RIGHT ((tommy_size_t)2)
 
-tommy_inline int tommy_tree_balance_get(tommy_tree_node* node)
+tommy_inline int tommy_imp_tree_balance_get(tommy_tree_node* node)
 {
 	tommy_size_t balance = node->index & TOMMY_TREE_BALANCE_MASK;
 
@@ -25,7 +25,7 @@ tommy_inline int tommy_tree_balance_get(tommy_tree_node* node)
 	return 0;
 }
 
-tommy_inline void tommy_tree_balance_set(tommy_tree_node* node, int balance)
+tommy_inline void tommy_imp_tree_balance_set(tommy_tree_node* node, int balance)
 {
 	tommy_size_t value = 0;
 
@@ -37,12 +37,12 @@ tommy_inline void tommy_tree_balance_set(tommy_tree_node* node, int balance)
 	node->index = (node->index & ~TOMMY_TREE_BALANCE_MASK) | value;
 }
 
-tommy_inline void tommy_tree_parent_set(tommy_tree_node* node, tommy_tree_node* parent)
+tommy_inline void tommy_imp_tree_parent_set(tommy_tree_node* node, tommy_tree_node* parent)
 {
 	node->index = (tommy_size_t)(tommy_uintptr_t)parent | (node->index & TOMMY_TREE_BALANCE_MASK);
 }
 
-tommy_inline void tommy_tree_replace(tommy_tree* tree, tommy_tree_node* root, tommy_tree_node* node)
+tommy_inline void tommy_imp_tree_replace(tommy_tree* tree, tommy_tree_node* root, tommy_tree_node* node)
 {
 	tommy_tree_node* parent = tommy_tree_parent(root);
 
@@ -55,45 +55,45 @@ tommy_inline void tommy_tree_replace(tommy_tree* tree, tommy_tree_node* root, to
 	}
 
 	if (node)
-		tommy_tree_parent_set(node, parent);
+		tommy_imp_tree_parent_set(node, parent);
 }
 
-tommy_inline tommy_tree_node* tommy_tree_rotate_left(tommy_tree* tree, tommy_tree_node* root)
+tommy_inline tommy_tree_node* tommy_imp_tree_rotate_left(tommy_tree* tree, tommy_tree_node* root)
 {
 	tommy_tree_node* next = root->next;
 
-	tommy_tree_replace(tree, root, next);
+	tommy_imp_tree_replace(tree, root, next);
 	root->next = next->prev;
 	if (root->next)
-		tommy_tree_parent_set(root->next, root);
+		tommy_imp_tree_parent_set(root->next, root);
 
 	next->prev = root;
-	tommy_tree_parent_set(root, next);
+	tommy_imp_tree_parent_set(root, next);
 
 	return next;
 }
 
-tommy_inline tommy_tree_node* tommy_tree_rotate_right(tommy_tree* tree, tommy_tree_node* root)
+tommy_inline tommy_tree_node* tommy_imp_tree_rotate_right(tommy_tree* tree, tommy_tree_node* root)
 {
 	tommy_tree_node* prev = root->prev;
 
-	tommy_tree_replace(tree, root, prev);
+	tommy_imp_tree_replace(tree, root, prev);
 	root->prev = prev->next;
 	if (root->prev)
-		tommy_tree_parent_set(root->prev, root);
+		tommy_imp_tree_parent_set(root->prev, root);
 
 	prev->next = root;
-	tommy_tree_parent_set(root, prev);
+	tommy_imp_tree_parent_set(root, prev);
 
 	return prev;
 }
 
-tommy_inline void tommy_tree_insert_balance(tommy_tree* tree, tommy_tree_node* node)
+tommy_inline void tommy_imp_tree_insert_balance(tommy_tree* tree, tommy_tree_node* node)
 {
 	tommy_tree_node* parent = tommy_tree_parent(node);
 
 	while (parent) {
-		int balance = tommy_tree_balance_get(parent);
+		int balance = tommy_imp_tree_balance_get(parent);
 
 		if (node == parent->prev)
 			--balance;
@@ -102,12 +102,12 @@ tommy_inline void tommy_tree_insert_balance(tommy_tree* tree, tommy_tree_node* n
 		}
 
 		if (balance == 0) {
-			tommy_tree_balance_set(parent, balance);
+			tommy_imp_tree_balance_set(parent, balance);
 			return;
 		}
 
 		if (balance >= -1 && balance <= 1) {
-			tommy_tree_balance_set(parent, balance);
+			tommy_imp_tree_balance_set(parent, balance);
 			node = parent;
 			parent = tommy_tree_parent(parent);
 			continue;
@@ -115,39 +115,39 @@ tommy_inline void tommy_tree_insert_balance(tommy_tree* tree, tommy_tree_node* n
 
 		if (balance == -2) {
 			tommy_tree_node* left = parent->prev;
-			int left_balance = tommy_tree_balance_get(left);
+			int left_balance = tommy_imp_tree_balance_get(left);
 
 			if (left_balance < 0) {
-				tommy_tree_rotate_right(tree, parent);
-				tommy_tree_balance_set(parent, 0);
-				tommy_tree_balance_set(left, 0);
+				tommy_imp_tree_rotate_right(tree, parent);
+				tommy_imp_tree_balance_set(parent, 0);
+				tommy_imp_tree_balance_set(left, 0);
 			} else {
 				tommy_tree_node* middle = left->next;
-				int middle_balance = tommy_tree_balance_get(middle);
+				int middle_balance = tommy_imp_tree_balance_get(middle);
 
-				tommy_tree_rotate_left(tree, left);
-				tommy_tree_rotate_right(tree, parent);
-				tommy_tree_balance_set(parent, middle_balance < 0 ? 1 : 0);
-				tommy_tree_balance_set(left, middle_balance > 0 ? -1 : 0);
-				tommy_tree_balance_set(middle, 0);
+				tommy_imp_tree_rotate_left(tree, left);
+				tommy_imp_tree_rotate_right(tree, parent);
+				tommy_imp_tree_balance_set(parent, middle_balance < 0 ? 1 : 0);
+				tommy_imp_tree_balance_set(left, middle_balance > 0 ? -1 : 0);
+				tommy_imp_tree_balance_set(middle, 0);
 			}
 		} else {
 			tommy_tree_node* right = parent->next;
-			int right_balance = tommy_tree_balance_get(right);
+			int right_balance = tommy_imp_tree_balance_get(right);
 
 			if (right_balance > 0) {
-				tommy_tree_rotate_left(tree, parent);
-				tommy_tree_balance_set(parent, 0);
-				tommy_tree_balance_set(right, 0);
+				tommy_imp_tree_rotate_left(tree, parent);
+				tommy_imp_tree_balance_set(parent, 0);
+				tommy_imp_tree_balance_set(right, 0);
 			} else {
 				tommy_tree_node* middle = right->prev;
-				int middle_balance = tommy_tree_balance_get(middle);
+				int middle_balance = tommy_imp_tree_balance_get(middle);
 
-				tommy_tree_rotate_right(tree, right);
-				tommy_tree_rotate_left(tree, parent);
-				tommy_tree_balance_set(parent, middle_balance > 0 ? -1 : 0);
-				tommy_tree_balance_set(right, middle_balance < 0 ? 1 : 0);
-				tommy_tree_balance_set(middle, 0);
+				tommy_imp_tree_rotate_right(tree, right);
+				tommy_imp_tree_rotate_left(tree, parent);
+				tommy_imp_tree_balance_set(parent, middle_balance > 0 ? -1 : 0);
+				tommy_imp_tree_balance_set(right, middle_balance < 0 ? 1 : 0);
+				tommy_imp_tree_balance_set(middle, 0);
 			}
 		}
 
@@ -155,7 +155,7 @@ tommy_inline void tommy_tree_insert_balance(tommy_tree* tree, tommy_tree_node* n
 	}
 }
 
-tommy_inline void* tommy_tree_insert_impl(tommy_tree* tree, tommy_tree_node* node, void* data, tommy_bool_t unique)
+tommy_inline void* tommy_imp_tree_insert(tommy_tree* tree, tommy_tree_node* node, void* data, tommy_bool_t unique)
 {
 	tommy_tree_node* parent = 0;
 	tommy_tree_node* existing = 0;
@@ -186,25 +186,25 @@ tommy_inline void* tommy_tree_insert_impl(tommy_tree* tree, tommy_tree_node* nod
 	*link = node;
 	++tree->count;
 
-	tommy_tree_insert_balance(tree, node);
+	tommy_imp_tree_insert_balance(tree, node);
 
 	return node->data;
 }
 
 TOMMY_API void tommy_tree_insert(tommy_tree* tree, tommy_tree_node* node, void* data)
 {
-	tommy_tree_insert_impl(tree, node, data, 0);
+	tommy_imp_tree_insert(tree, node, data, 0);
 }
 
 TOMMY_API void* tommy_tree_insert_unique(tommy_tree* tree, tommy_tree_node* node, void* data)
 {
-	return tommy_tree_insert_impl(tree, node, data, 1);
+	return tommy_imp_tree_insert(tree, node, data, 1);
 }
 
-tommy_inline void tommy_tree_remove_balance(tommy_tree* tree, tommy_tree_node* node, tommy_bool_t left_shrunk)
+tommy_inline void tommy_imp_tree_remove_balance(tommy_tree* tree, tommy_tree_node* node, tommy_bool_t left_shrunk)
 {
 	while (node) {
-		int balance = tommy_tree_balance_get(node);
+		int balance = tommy_imp_tree_balance_get(node);
 
 		if (left_shrunk)
 			++balance;
@@ -212,12 +212,12 @@ tommy_inline void tommy_tree_remove_balance(tommy_tree* tree, tommy_tree_node* n
 			--balance;
 
 		if (balance == -1 || balance == 1) {
-			tommy_tree_balance_set(node, balance);
+			tommy_imp_tree_balance_set(node, balance);
 			return;
 		}
 
 		if (balance == 0) {
-			tommy_tree_balance_set(node, balance);
+			tommy_imp_tree_balance_set(node, balance);
 			tommy_tree_node* parent = tommy_tree_parent(node);
 			if (!parent)
 				return;
@@ -228,27 +228,27 @@ tommy_inline void tommy_tree_remove_balance(tommy_tree* tree, tommy_tree_node* n
 
 		if (balance == -2) {
 			tommy_tree_node* left = node->prev;
-			int left_balance = tommy_tree_balance_get(left);
+			int left_balance = tommy_imp_tree_balance_get(left);
 			tommy_tree_node* root;
 
 			if (left_balance <= 0) {
-				root = tommy_tree_rotate_right(tree, node);
+				root = tommy_imp_tree_rotate_right(tree, node);
 				if (left_balance == 0) {
-					tommy_tree_balance_set(node, -1);
-					tommy_tree_balance_set(left, 1);
+					tommy_imp_tree_balance_set(node, -1);
+					tommy_imp_tree_balance_set(left, 1);
 					return;
 				}
-				tommy_tree_balance_set(node, 0);
-				tommy_tree_balance_set(left, 0);
+				tommy_imp_tree_balance_set(node, 0);
+				tommy_imp_tree_balance_set(left, 0);
 			} else {
 				tommy_tree_node* middle = left->next;
-				int middle_balance = tommy_tree_balance_get(middle);
+				int middle_balance = tommy_imp_tree_balance_get(middle);
 
-				tommy_tree_rotate_left(tree, left);
-				root = tommy_tree_rotate_right(tree, node);
-				tommy_tree_balance_set(node, middle_balance < 0 ? 1 : 0);
-				tommy_tree_balance_set(left, middle_balance > 0 ? -1 : 0);
-				tommy_tree_balance_set(middle, 0);
+				tommy_imp_tree_rotate_left(tree, left);
+				root = tommy_imp_tree_rotate_right(tree, node);
+				tommy_imp_tree_balance_set(node, middle_balance < 0 ? 1 : 0);
+				tommy_imp_tree_balance_set(left, middle_balance > 0 ? -1 : 0);
+				tommy_imp_tree_balance_set(middle, 0);
 			}
 
 			node = tommy_tree_parent(root);
@@ -260,27 +260,27 @@ tommy_inline void tommy_tree_remove_balance(tommy_tree* tree, tommy_tree_node* n
 
 		{
 			tommy_tree_node* right = node->next;
-			int right_balance = tommy_tree_balance_get(right);
+			int right_balance = tommy_imp_tree_balance_get(right);
 			tommy_tree_node* root;
 
 			if (right_balance >= 0) {
-				root = tommy_tree_rotate_left(tree, node);
+				root = tommy_imp_tree_rotate_left(tree, node);
 				if (right_balance == 0) {
-					tommy_tree_balance_set(node, 1);
-					tommy_tree_balance_set(right, -1);
+					tommy_imp_tree_balance_set(node, 1);
+					tommy_imp_tree_balance_set(right, -1);
 					return;
 				}
-				tommy_tree_balance_set(node, 0);
-				tommy_tree_balance_set(right, 0);
+				tommy_imp_tree_balance_set(node, 0);
+				tommy_imp_tree_balance_set(right, 0);
 			} else {
 				tommy_tree_node* middle = right->prev;
-				int middle_balance = tommy_tree_balance_get(middle);
+				int middle_balance = tommy_imp_tree_balance_get(middle);
 
-				tommy_tree_rotate_right(tree, right);
-				root = tommy_tree_rotate_left(tree, node);
-				tommy_tree_balance_set(node, middle_balance > 0 ? -1 : 0);
-				tommy_tree_balance_set(right, middle_balance < 0 ? 1 : 0);
-				tommy_tree_balance_set(middle, 0);
+				tommy_imp_tree_rotate_right(tree, right);
+				root = tommy_imp_tree_rotate_left(tree, node);
+				tommy_imp_tree_balance_set(node, middle_balance > 0 ? -1 : 0);
+				tommy_imp_tree_balance_set(right, middle_balance < 0 ? 1 : 0);
+				tommy_imp_tree_balance_set(middle, 0);
 			}
 
 			node = tommy_tree_parent(root);
@@ -302,7 +302,7 @@ TOMMY_API void* tommy_tree_remove_existing(tommy_tree* tree, tommy_tree_node* no
 
 		parent = tommy_tree_parent(node);
 		left_shrunk = parent && node == parent->prev;
-		tommy_tree_replace(tree, node, child);
+		tommy_imp_tree_replace(tree, node, child);
 	} else {
 		tommy_tree_node* next = node->next;
 
@@ -311,30 +311,30 @@ TOMMY_API void* tommy_tree_remove_existing(tommy_tree* tree, tommy_tree_node* no
 
 		parent = tommy_tree_parent(next);
 		if (parent == node) {
-			tommy_tree_replace(tree, node, next);
+			tommy_imp_tree_replace(tree, node, next);
 			next->prev = node->prev;
-			tommy_tree_parent_set(next->prev, next);
-			tommy_tree_balance_set(next, tommy_tree_balance_get(node));
+			tommy_imp_tree_parent_set(next->prev, next);
+			tommy_imp_tree_balance_set(next, tommy_imp_tree_balance_get(node));
 			parent = next;
 			left_shrunk = 0;
 		} else {
 			parent->prev = next->next;
 			if (parent->prev)
-				tommy_tree_parent_set(parent->prev, parent);
+				tommy_imp_tree_parent_set(parent->prev, parent);
 
-			tommy_tree_replace(tree, node, next);
+			tommy_imp_tree_replace(tree, node, next);
 			next->prev = node->prev;
 			next->next = node->next;
-			tommy_tree_parent_set(next->prev, next);
-			tommy_tree_parent_set(next->next, next);
-			tommy_tree_balance_set(next, tommy_tree_balance_get(node));
+			tommy_imp_tree_parent_set(next->prev, next);
+			tommy_imp_tree_parent_set(next->next, next);
+			tommy_imp_tree_balance_set(next, tommy_imp_tree_balance_get(node));
 			left_shrunk = 1;
 		}
 	}
 
 	--tree->count;
 	if (parent)
-		tommy_tree_remove_balance(tree, parent, left_shrunk);
+		tommy_imp_tree_remove_balance(tree, parent, left_shrunk);
 
 	return data;
 }

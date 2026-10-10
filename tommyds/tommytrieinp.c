@@ -11,7 +11,7 @@
 /**
  * Create a new list with a single element.
  */
-tommy_inline tommy_trie_inplace_node* tommy_trie_inplace_list_insert_first(tommy_trie_inplace_node* node)
+tommy_inline tommy_trie_inplace_node* tommy_imp_trie_inplace_list_insert_first(tommy_trie_inplace_node* node)
 {
 	/* one element "circular" prev list */
 	node->prev = node;
@@ -26,7 +26,7 @@ tommy_inline tommy_trie_inplace_node* tommy_trie_inplace_list_insert_first(tommy
  * Add an element to an existing list.
  * \note The element is inserted at the end of the list.
  */
-tommy_inline void tommy_trie_inplace_list_insert_tail_not_empty(tommy_trie_inplace_node* head, tommy_trie_inplace_node* node)
+tommy_inline void tommy_imp_trie_inplace_list_insert_tail_not_empty(tommy_trie_inplace_node* head, tommy_trie_inplace_node* node)
 {
 	/* insert in the list in the last position */
 
@@ -42,7 +42,7 @@ tommy_inline void tommy_trie_inplace_list_insert_tail_not_empty(tommy_trie_inpla
 /**
  * Remove an element from the list.
  */
-tommy_inline void tommy_trie_inplace_list_remove(tommy_trie_inplace_node** let_ptr, tommy_trie_inplace_node* node)
+tommy_inline void tommy_imp_trie_inplace_list_remove(tommy_trie_inplace_node** let_ptr, tommy_trie_inplace_node* node)
 {
 	tommy_trie_inplace_node* head = *let_ptr;
 
@@ -67,7 +67,7 @@ TOMMY_API void tommy_trie_inplace_init(tommy_trie_inplace* trie_inplace)
 	trie_inplace->count = 0;
 }
 
-tommy_inline void trie_inplace_bucket_insert(int shift, tommy_trie_inplace_node** let_ptr, tommy_trie_inplace_node* insert, tommy_key_t key)
+tommy_inline void tommy_imp_trie_inplace_bucket_insert(int shift, tommy_trie_inplace_node** let_ptr, tommy_trie_inplace_node* insert, tommy_key_t key)
 {
 	tommy_trie_inplace_node* node = *let_ptr;
 
@@ -84,10 +84,10 @@ tommy_inline void trie_inplace_bucket_insert(int shift, tommy_trie_inplace_node*
 			insert->map[i] = 0;
 
 		/* setup the node as a list */
-		*let_ptr = tommy_trie_inplace_list_insert_first(insert);
+		*let_ptr = tommy_imp_trie_inplace_list_insert_first(insert);
 	} else {
 		/* if it's the same key, insert in the list */
-		tommy_trie_inplace_list_insert_tail_not_empty(node, insert);
+		tommy_imp_trie_inplace_list_insert_tail_not_empty(node, insert);
 	}
 }
 
@@ -101,7 +101,7 @@ TOMMY_API void tommy_trie_inplace_insert(tommy_trie_inplace* trie_inplace, tommy
 
 	tommy_trie_inplace_node** let_ptr = &trie_inplace->bucket[key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT];
 
-	trie_inplace_bucket_insert(TOMMY_TRIE_INPLACE_TREE_SHIFT, let_ptr, node, key);
+	tommy_imp_trie_inplace_bucket_insert(TOMMY_TRIE_INPLACE_TREE_SHIFT, let_ptr, node, key);
 
 	++trie_inplace->count;
 }
@@ -131,13 +131,13 @@ TOMMY_API void* tommy_trie_inplace_insert_unique(tommy_trie_inplace* trie_inplac
 		node->map[i] = 0;
 
 	/* use the empty child pointer found by the search without traversing again */
-	*let_ptr = tommy_trie_inplace_list_insert_first(node);
+	*let_ptr = tommy_imp_trie_inplace_list_insert_first(node);
 	++trie_inplace->count;
 
 	return data;
 }
 
-tommy_inline tommy_trie_inplace_node* trie_inplace_bucket_remove(int shift, tommy_trie_inplace_node** let_ptr, tommy_trie_inplace_node* remove, tommy_key_t key)
+tommy_inline tommy_trie_inplace_node* tommy_imp_trie_inplace_bucket_remove(int shift, tommy_trie_inplace_node** let_ptr, tommy_trie_inplace_node* remove, tommy_key_t key)
 {
 	tommy_trie_inplace_node* node = *let_ptr;
 
@@ -154,7 +154,7 @@ tommy_inline tommy_trie_inplace_node* trie_inplace_bucket_remove(int shift, tomm
 	if (!remove)
 		remove = node; /* remove the first */
 
-	tommy_trie_inplace_list_remove(let_ptr, remove);
+	tommy_imp_trie_inplace_list_remove(let_ptr, remove);
 
 	/* if not change in the node, nothing more to do */
 	if (*let_ptr == node)
@@ -210,7 +210,7 @@ TOMMY_API void* tommy_trie_inplace_remove(tommy_trie_inplace* trie_inplace, tomm
 
 	tommy_trie_inplace_node** let_ptr = &trie_inplace->bucket[key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT];
 
-	tommy_trie_inplace_node* ret = trie_inplace_bucket_remove(TOMMY_TRIE_INPLACE_TREE_SHIFT, let_ptr, 0, key);
+	tommy_trie_inplace_node* ret = tommy_imp_trie_inplace_bucket_remove(TOMMY_TRIE_INPLACE_TREE_SHIFT, let_ptr, 0, key);
 
 	if (!ret)
 		return 0;
@@ -229,7 +229,7 @@ TOMMY_API void* tommy_trie_inplace_remove_existing(tommy_trie_inplace* trie_inpl
 
 	tommy_trie_inplace_node** let_ptr = &trie_inplace->bucket[key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT];
 
-	tommy_trie_inplace_node* ret = trie_inplace_bucket_remove(TOMMY_TRIE_INPLACE_TREE_SHIFT, let_ptr, node, key);
+	tommy_trie_inplace_node* ret = tommy_imp_trie_inplace_bucket_remove(TOMMY_TRIE_INPLACE_TREE_SHIFT, let_ptr, node, key);
 
 	/* the element removed must match the one passed */
 	assert(ret == node);
@@ -239,7 +239,7 @@ TOMMY_API void* tommy_trie_inplace_remove_existing(tommy_trie_inplace* trie_inpl
 	return ret->data;
 }
 
-tommy_inline tommy_trie_inplace_node* trie_inplace_head_node(tommy_trie_inplace_node* node)
+tommy_inline tommy_trie_inplace_node* tommy_imp_trie_inplace_head_node(tommy_trie_inplace_node* node)
 {
 	tommy_trie_inplace_node* candidate = node;
 	while (1) {
@@ -256,7 +256,7 @@ tommy_inline tommy_trie_inplace_node* trie_inplace_head_node(tommy_trie_inplace_
 	}
 }
 
-tommy_inline tommy_trie_inplace_node* trie_inplace_tail_node(tommy_trie_inplace_node* node)
+tommy_inline tommy_trie_inplace_node* tommy_imp_trie_inplace_tail_node(tommy_trie_inplace_node* node)
 {
 	tommy_trie_inplace_node* candidate = node;
 	while (1) {
@@ -273,7 +273,7 @@ tommy_inline tommy_trie_inplace_node* trie_inplace_tail_node(tommy_trie_inplace_
 	}
 }
 
-tommy_inline void* trie_inplace_search_less(tommy_trie_inplace* trie_inplace, tommy_key_t key, tommy_bool_t equal)
+tommy_inline void* tommy_imp_trie_inplace_search_less(tommy_trie_inplace* trie_inplace, tommy_key_t key, tommy_bool_t equal)
 {
 	assert(key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT < TOMMY_TRIE_INPLACE_BUCKET_MAX);
 
@@ -311,14 +311,14 @@ tommy_inline void* trie_inplace_search_less(tommy_trie_inplace* trie_inplace, to
 	}
 
 	if (branch) {
-		tommy_trie_inplace_node* node = trie_inplace_tail_node(branch);
+		tommy_trie_inplace_node* node = tommy_imp_trie_inplace_tail_node(branch);
 		if (!candidate || node->key > candidate->key)
 			candidate = node;
 	}
 	return candidate ? candidate->data : 0;
 }
 
-tommy_inline void* trie_inplace_search_greater(tommy_trie_inplace* trie_inplace, tommy_key_t key, tommy_bool_t equal)
+tommy_inline void* tommy_imp_trie_inplace_search_greater(tommy_trie_inplace* trie_inplace, tommy_key_t key, tommy_bool_t equal)
 {
 	assert(key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT < TOMMY_TRIE_INPLACE_BUCKET_MAX);
 
@@ -357,7 +357,7 @@ tommy_inline void* trie_inplace_search_greater(tommy_trie_inplace* trie_inplace,
 	}
 
 	if (branch) {
-		tommy_trie_inplace_node* node = trie_inplace_head_node(branch);
+		tommy_trie_inplace_node* node = tommy_imp_trie_inplace_head_node(branch);
 		if (!candidate || node->key < candidate->key)
 			candidate = node;
 	}
@@ -366,29 +366,29 @@ tommy_inline void* trie_inplace_search_greater(tommy_trie_inplace* trie_inplace,
 
 TOMMY_API void* tommy_trie_inplace_search_less(tommy_trie_inplace* trie_inplace, tommy_key_t key)
 {
-	return trie_inplace_search_less(trie_inplace, key, 0);
+	return tommy_imp_trie_inplace_search_less(trie_inplace, key, 0);
 }
 
 TOMMY_API void* tommy_trie_inplace_search_less_equal(tommy_trie_inplace* trie_inplace, tommy_key_t key)
 {
-	return trie_inplace_search_less(trie_inplace, key, 1);
+	return tommy_imp_trie_inplace_search_less(trie_inplace, key, 1);
 }
 
 TOMMY_API void* tommy_trie_inplace_search_greater_equal(tommy_trie_inplace* trie_inplace, tommy_key_t key)
 {
-	return trie_inplace_search_greater(trie_inplace, key, 1);
+	return tommy_imp_trie_inplace_search_greater(trie_inplace, key, 1);
 }
 
 TOMMY_API void* tommy_trie_inplace_search_greater(tommy_trie_inplace* trie_inplace, tommy_key_t key)
 {
-	return trie_inplace_search_greater(trie_inplace, key, 0);
+	return tommy_imp_trie_inplace_search_greater(trie_inplace, key, 0);
 }
 
 TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_head(tommy_trie_inplace* trie_inplace)
 {
 	for (tommy_uint_t i = 0; i < TOMMY_TRIE_INPLACE_BUCKET_MAX; ++i)
 		if (trie_inplace->bucket[i])
-			return trie_inplace_head_node(trie_inplace->bucket[i]);
+			return tommy_imp_trie_inplace_head_node(trie_inplace->bucket[i]);
 
 	return 0;
 }
@@ -398,7 +398,7 @@ TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_tail(tommy_trie_inplace* t
 	for (tommy_uint_t i = TOMMY_TRIE_INPLACE_BUCKET_MAX; i != 0; ) {
 		--i;
 		if (trie_inplace->bucket[i])
-			return trie_inplace_tail_node(trie_inplace->bucket[i]);
+			return tommy_imp_trie_inplace_tail_node(trie_inplace->bucket[i]);
 	}
 
 	return 0;
@@ -443,7 +443,7 @@ TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_next(tommy_trie_inplace* t
 	}
 
 	if (branch) {
-		node = trie_inplace_head_node(branch);
+		node = tommy_imp_trie_inplace_head_node(branch);
 		if (!candidate || node->key < candidate->key)
 			candidate = node;
 	}
@@ -489,7 +489,7 @@ TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_prev(tommy_trie_inplace* t
 	}
 
 	if (branch) {
-		node = trie_inplace_tail_node(branch);
+		node = tommy_imp_trie_inplace_tail_node(branch);
 		if (!candidate || node->key > candidate->key)
 			candidate = node;
 	}
@@ -512,7 +512,7 @@ typedef struct trie_inplace_subtree_iterator_struct {
  */
 #define TOMMY_TRIE_INPLACE_LEVEL_MAX ((TOMMY_TRIE_INPLACE_BIT - TOMMY_TRIE_INPLACE_BUCKET_BIT) / TOMMY_TRIE_INPLACE_TREE_BIT)
 
-tommy_inline void trie_inplace_subtree_iterator_init(trie_inplace_subtree_iterator* iterator, tommy_trie_inplace_node* node)
+tommy_inline void tommy_imp_trie_inplace_subtree_iterator_init(trie_inplace_subtree_iterator* iterator, tommy_trie_inplace_node* node)
 {
 	/* callbacks can free the node before all its children have been visited */
 	for (tommy_uint_t i = 0; i < TOMMY_TRIE_INPLACE_TREE_MAX; ++i)
@@ -523,7 +523,7 @@ tommy_inline void trie_inplace_subtree_iterator_init(trie_inplace_subtree_iterat
 	iterator->active = 0;
 }
 
-tommy_inline tommy_trie_inplace_node* trie_inplace_subtree_iterator_next(trie_inplace_subtree_iterator* stack)
+tommy_inline tommy_trie_inplace_node* tommy_imp_trie_inplace_subtree_iterator_next(trie_inplace_subtree_iterator* stack)
 {
 	trie_inplace_subtree_iterator* iterator = stack;
 	while (1) {
@@ -534,7 +534,7 @@ tommy_inline tommy_trie_inplace_node* trie_inplace_subtree_iterator_next(trie_in
 				++iterator->branch;
 				if (!child)
 					continue;
-				trie_inplace_subtree_iterator_init(iterator + 1, child);
+				tommy_imp_trie_inplace_subtree_iterator_init(iterator + 1, child);
 				iterator->active = 1;
 			}
 			++iterator;
@@ -567,9 +567,9 @@ TOMMY_API void tommy_trie_inplace_foreach(tommy_trie_inplace* trie_inplace, tomm
 	for (tommy_uint_t i = 0; i < TOMMY_TRIE_INPLACE_BUCKET_MAX; ++i) {
 		if (!trie_inplace->bucket[i])
 			continue;
-		trie_inplace_subtree_iterator_init(stack, trie_inplace->bucket[i]);
+		tommy_imp_trie_inplace_subtree_iterator_init(stack, trie_inplace->bucket[i]);
 		tommy_trie_inplace_node* node;
-		while ((node = trie_inplace_subtree_iterator_next(stack)) != 0) {
+		while ((node = tommy_imp_trie_inplace_subtree_iterator_next(stack)) != 0) {
 			while (node) {
 				void* data = node->data;
 				/* save the next duplicate before the callback can free this node */
@@ -586,9 +586,9 @@ TOMMY_API void tommy_trie_inplace_foreach_arg(tommy_trie_inplace* trie_inplace, 
 	for (tommy_uint_t i = 0; i < TOMMY_TRIE_INPLACE_BUCKET_MAX; ++i) {
 		if (!trie_inplace->bucket[i])
 			continue;
-		trie_inplace_subtree_iterator_init(stack, trie_inplace->bucket[i]);
+		tommy_imp_trie_inplace_subtree_iterator_init(stack, trie_inplace->bucket[i]);
 		tommy_trie_inplace_node* node;
-		while ((node = trie_inplace_subtree_iterator_next(stack)) != 0) {
+		while ((node = tommy_imp_trie_inplace_subtree_iterator_next(stack)) != 0) {
 			while (node) {
 				void* data = node->data;
 				/* save the next duplicate before the callback can free this node */

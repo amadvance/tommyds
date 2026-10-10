@@ -34,7 +34,7 @@ TOMMY_API void tommy_hashdyn_clear(tommy_hashdyn* hashdyn)
 /**
  * Resize the bucket vector.
  */
-static void tommy_hashdyn_resize(tommy_hashdyn* hashdyn, tommy_uint_t new_bucket_bit)
+static void tommy_imp_hashdyn_resize(tommy_hashdyn* hashdyn, tommy_uint_t new_bucket_bit)
 {
 	tommy_size_t bucket_bit = hashdyn->bucket_bit;
 	tommy_size_t bucket_max = hashdyn->bucket_max;
@@ -126,21 +126,21 @@ static void tommy_hashdyn_resize(tommy_hashdyn* hashdyn, tommy_uint_t new_bucket
 /**
  * Grow.
  */
-tommy_inline void hashdyn_grow_step(tommy_hashdyn* hashdyn)
+tommy_inline void tommy_imp_hashdyn_grow_step(tommy_hashdyn* hashdyn)
 {
 	/* grow if more than 50% full */
 	if (hashdyn->count >= hashdyn->bucket_max / 2)
-		tommy_hashdyn_resize(hashdyn, hashdyn->bucket_bit + 1);
+		tommy_imp_hashdyn_resize(hashdyn, hashdyn->bucket_bit + 1);
 }
 
 /**
  * Shrink.
  */
-tommy_inline void hashdyn_shrink_step(tommy_hashdyn* hashdyn)
+tommy_inline void tommy_imp_hashdyn_shrink_step(tommy_hashdyn* hashdyn)
 {
 	/* shrink if less than 12.5% full */
 	if (hashdyn->count <= hashdyn->bucket_max / 8 && hashdyn->bucket_bit > TOMMY_HASHDYN_BIT)
-		tommy_hashdyn_resize(hashdyn, hashdyn->bucket_bit - 1);
+		tommy_imp_hashdyn_resize(hashdyn, hashdyn->bucket_bit - 1);
 }
 
 TOMMY_API void tommy_hashdyn_reserve(tommy_hashdyn* hashdyn, tommy_size_t count)
@@ -153,7 +153,7 @@ TOMMY_API void tommy_hashdyn_reserve(tommy_hashdyn* hashdyn, tommy_size_t count)
 	if (bucket_bit <= hashdyn->bucket_bit)
 		return;
 
-	tommy_hashdyn_resize(hashdyn, bucket_bit);
+	tommy_imp_hashdyn_resize(hashdyn, bucket_bit);
 }
 
 TOMMY_API void tommy_hashdyn_shrink(tommy_hashdyn* hashdyn)
@@ -166,7 +166,7 @@ TOMMY_API void tommy_hashdyn_shrink(tommy_hashdyn* hashdyn)
 	if (bucket_bit >= hashdyn->bucket_bit)
 		return;
 
-	tommy_hashdyn_resize(hashdyn, bucket_bit);
+	tommy_imp_hashdyn_resize(hashdyn, bucket_bit);
 }
 
 TOMMY_API void tommy_hashdyn_insert(tommy_hashdyn* hashdyn, tommy_hashdyn_node* node, void* data, tommy_hash_t hash)
@@ -179,7 +179,7 @@ TOMMY_API void tommy_hashdyn_insert(tommy_hashdyn* hashdyn, tommy_hashdyn_node* 
 
 	++hashdyn->count;
 
-	hashdyn_grow_step(hashdyn);
+	tommy_imp_hashdyn_grow_step(hashdyn);
 }
 
 TOMMY_API void* tommy_hashdyn_insert_unique(tommy_hashdyn* hashdyn, tommy_hashdyn_node* node, void* data, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)
@@ -201,7 +201,7 @@ TOMMY_API void* tommy_hashdyn_insert_unique(tommy_hashdyn* hashdyn, tommy_hashdy
 
 	++hashdyn->count;
 
-	hashdyn_grow_step(hashdyn);
+	tommy_imp_hashdyn_grow_step(hashdyn);
 
 	return data;
 }
@@ -225,7 +225,7 @@ TOMMY_API void* tommy_hashdyn_remove_existing(tommy_hashdyn* hashdyn, tommy_hash
 
 	--hashdyn->count;
 
-	hashdyn_shrink_step(hashdyn);
+	tommy_imp_hashdyn_shrink_step(hashdyn);
 
 	return node->data;
 }
@@ -242,7 +242,7 @@ TOMMY_API void* tommy_hashdyn_remove(tommy_hashdyn* hashdyn, tommy_search_func* 
 
 			--hashdyn->count;
 
-			hashdyn_shrink_step(hashdyn);
+			tommy_imp_hashdyn_shrink_step(hashdyn);
 
 			return node->data;
 		}

@@ -20,7 +20,7 @@
 /**
  * Set the hashtable in stable state.
  */
-tommy_inline void tommy_hashlin_stable(tommy_hashlin* hashlin)
+tommy_inline void tommy_imp_hashlin_stable(tommy_hashlin* hashlin)
 {
 	hashlin->state = TOMMY_HASHLIN_STATE_STABLE;
 
@@ -42,7 +42,7 @@ TOMMY_API void tommy_hashlin_init(tommy_hashlin* hashlin)
 		hashlin->bucket[i] = hashlin->bucket[0];
 
 	/* stable state */
-	tommy_hashlin_stable(hashlin);
+	tommy_imp_hashlin_stable(hashlin);
 
 	hashlin->count = 0;
 }
@@ -69,13 +69,13 @@ TOMMY_API void tommy_hashlin_clear(tommy_hashlin* hashlin)
 	hashlin->bucket_max = (tommy_size_t)1 << hashlin->bucket_bit;
 	hashlin->bucket_mask = hashlin->bucket_max - 1;
 	hashlin->count = 0;
-	tommy_hashlin_stable(hashlin);
+	tommy_imp_hashlin_stable(hashlin);
 }
 
 /**
  * Grow one step.
  */
-tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
+tommy_inline void tommy_imp_hashlin_grow_step(tommy_hashlin* hashlin)
 {
 	/* grow if more than 50% full */
 	if (hashlin->state != TOMMY_HASHLIN_STATE_GROW
@@ -157,7 +157,7 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 			/* if we have finished, change the state */
 			if (hashlin->split == hashlin->low_max) {
 				/* go in stable mode */
-				tommy_hashlin_stable(hashlin);
+				tommy_imp_hashlin_stable(hashlin);
 				break;
 			}
 		}
@@ -167,7 +167,7 @@ tommy_inline void hashlin_grow_step(tommy_hashlin* hashlin)
 /**
  * Shrink one step.
  */
-tommy_inline void hashlin_shrink_step(tommy_hashlin* hashlin)
+tommy_inline void tommy_imp_hashlin_shrink_step(tommy_hashlin* hashlin)
 {
 	/* shrink if less than 12.5% full */
 	if (hashlin->state != TOMMY_HASHLIN_STATE_SHRINK
@@ -225,7 +225,7 @@ tommy_inline void hashlin_shrink_step(tommy_hashlin* hashlin)
 				tommy_free(&segment[(tommy_ptrdiff_t)1 << hashlin->bucket_bit]);
 
 				/* go in stable mode */
-				tommy_hashlin_stable(hashlin);
+				tommy_imp_hashlin_stable(hashlin);
 				break;
 			}
 		}
@@ -240,7 +240,7 @@ TOMMY_API void tommy_hashlin_insert(tommy_hashlin* hashlin, tommy_hashlin_node* 
 
 	++hashlin->count;
 
-	hashlin_grow_step(hashlin);
+	tommy_imp_hashlin_grow_step(hashlin);
 }
 
 TOMMY_API void* tommy_hashlin_insert_unique(tommy_hashlin* hashlin, tommy_hashlin_node* node, void* data, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)
@@ -262,7 +262,7 @@ TOMMY_API void* tommy_hashlin_insert_unique(tommy_hashlin* hashlin, tommy_hashli
 
 	++hashlin->count;
 
-	hashlin_grow_step(hashlin);
+	tommy_imp_hashlin_grow_step(hashlin);
 
 	return data;
 }
@@ -284,7 +284,7 @@ TOMMY_API void* tommy_hashlin_remove_existing(tommy_hashlin* hashlin, tommy_hash
 
 	--hashlin->count;
 
-	hashlin_shrink_step(hashlin);
+	tommy_imp_hashlin_shrink_step(hashlin);
 
 	return node->data;
 }
@@ -301,7 +301,7 @@ TOMMY_API void* tommy_hashlin_remove(tommy_hashlin* hashlin, tommy_search_func* 
 
 			--hashlin->count;
 
-			hashlin_shrink_step(hashlin);
+			tommy_imp_hashlin_shrink_step(hashlin);
 
 			return node->data;
 		}
@@ -422,6 +422,6 @@ TOMMY_API void tommy_hashlin_to_list(tommy_hashlin* hashlin, tommy_list* list)
 	hashlin->bucket_max = initial_max;
 	hashlin->bucket_mask = initial_max - 1;
 	hashlin->count = 0;
-	tommy_hashlin_stable(hashlin);
+	tommy_imp_hashlin_stable(hashlin);
 }
 

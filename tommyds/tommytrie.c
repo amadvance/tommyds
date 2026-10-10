@@ -78,13 +78,13 @@ typedef struct trie_subtree_iterator_struct {
 	tommy_uint_t branch;
 } trie_subtree_iterator;
 
-tommy_inline void trie_subtree_iterator_init(trie_subtree_iterator* iterator, tommy_trie_node* node)
+tommy_inline void tommy_imp_trie_subtree_iterator_init(trie_subtree_iterator* iterator, tommy_trie_node* node)
 {
 	iterator->node = node;
 	iterator->branch = 0;
 }
 
-tommy_inline tommy_trie_node* trie_subtree_iterator_next(trie_subtree_iterator* stack, tommy_uint_t* depth)
+tommy_inline tommy_trie_node* tommy_imp_trie_subtree_iterator_next(trie_subtree_iterator* stack, tommy_uint_t* depth)
 {
 	while (*depth) {
 		trie_subtree_iterator* iterator = &stack[*depth - 1];
@@ -95,7 +95,7 @@ tommy_inline tommy_trie_node* trie_subtree_iterator_next(trie_subtree_iterator* 
 			tommy_trie_node* child = trie_get_tree(node)->map[iterator->branch];
 			++iterator->branch;
 			if (child) {
-				trie_subtree_iterator_init(&stack[*depth], child);
+				tommy_imp_trie_subtree_iterator_init(&stack[*depth], child);
 				++*depth;
 			}
 			continue;
@@ -113,10 +113,10 @@ TOMMY_API void tommy_trie_clear(tommy_trie* trie)
 {
 	trie_subtree_iterator stack[TOMMY_TRIE_LEVEL_MAX + 1];
 	for (tommy_uint_t i = 0; i < TOMMY_TRIE_BUCKET_MAX; ++i) {
-		trie_subtree_iterator_init(stack, trie->bucket[i]);
+		tommy_imp_trie_subtree_iterator_init(stack, trie->bucket[i]);
 		tommy_uint_t depth = 1;
 		tommy_trie_node* node;
-		while ((node = trie_subtree_iterator_next(stack, &depth)) != 0) {
+		while ((node = tommy_imp_trie_subtree_iterator_next(stack, &depth)) != 0) {
 			/* postorder releases parents only after their child maps are no longer needed */
 			if (trie_get_type(node) == TOMMY_TRIE_TYPE_TREE)
 				tommy_allocator_free(trie->alloc, trie_get_tree(node));
@@ -127,7 +127,7 @@ TOMMY_API void tommy_trie_clear(tommy_trie* trie)
 	trie->node_count = 0;
 }
 
-static void trie_bucket_insert(tommy_trie* trie, int shift, tommy_trie_node** let_ptr, tommy_trie_node* insert, tommy_key_t key)
+tommy_inline void tommy_imp_trie_bucket_insert(tommy_trie* trie, int shift, tommy_trie_node** let_ptr, tommy_trie_node* insert, tommy_key_t key)
 {
 	tommy_trie_tree* tree;
 	tommy_trie_node* node;
@@ -200,7 +200,7 @@ TOMMY_API void tommy_trie_insert(tommy_trie* trie, tommy_trie_node* node, void* 
 
 	tommy_trie_node** let_ptr = &trie->bucket[key >> TOMMY_TRIE_BUCKET_SHIFT];
 
-	trie_bucket_insert(trie, TOMMY_TRIE_TREE_SHIFT, let_ptr, node, key);
+	tommy_imp_trie_bucket_insert(trie, TOMMY_TRIE_TREE_SHIFT, let_ptr, node, key);
 
 	++trie->count;
 }
@@ -227,13 +227,13 @@ TOMMY_API void* tommy_trie_insert_unique(tommy_trie* trie, tommy_trie_node* node
 	node->index = key;
 
 	/* continue insertion at the position and key bits already reached by the search */
-	trie_bucket_insert(trie, shift, let_ptr, node, key);
+	tommy_imp_trie_bucket_insert(trie, shift, let_ptr, node, key);
 	++trie->count;
 
 	return data;
 }
 
-static tommy_trie_node* trie_bucket_remove_existing(tommy_trie* trie, int shift, tommy_trie_node** let_ptr, tommy_trie_node* remove, tommy_key_t key)
+tommy_inline tommy_trie_node* tommy_imp_trie_bucket_remove_existing(tommy_trie* trie, int shift, tommy_trie_node** let_ptr, tommy_trie_node* remove, tommy_key_t key)
 {
 	tommy_trie_node* node;
 	tommy_trie_tree* tree;
@@ -325,7 +325,7 @@ TOMMY_API void* tommy_trie_remove(tommy_trie* trie, tommy_key_t key)
 
 	tommy_trie_node** let_ptr = &trie->bucket[key >> TOMMY_TRIE_BUCKET_SHIFT];
 
-	tommy_trie_node* ret = trie_bucket_remove_existing(trie, TOMMY_TRIE_TREE_SHIFT, let_ptr, 0, key);
+	tommy_trie_node* ret = tommy_imp_trie_bucket_remove_existing(trie, TOMMY_TRIE_TREE_SHIFT, let_ptr, 0, key);
 
 	if (!ret)
 		return 0;
@@ -344,7 +344,7 @@ TOMMY_API void* tommy_trie_remove_existing(tommy_trie* trie, tommy_trie_node* no
 
 	tommy_trie_node** let_ptr = &trie->bucket[key >> TOMMY_TRIE_BUCKET_SHIFT];
 
-	tommy_trie_node* ret = trie_bucket_remove_existing(trie, TOMMY_TRIE_TREE_SHIFT, let_ptr, node, key);
+	tommy_trie_node* ret = tommy_imp_trie_bucket_remove_existing(trie, TOMMY_TRIE_TREE_SHIFT, let_ptr, node, key);
 
 	/* the element removed must match the one passed */
 	assert(ret == node);
@@ -384,7 +384,7 @@ TOMMY_API tommy_trie_node* tommy_trie_bucket(tommy_trie* trie, tommy_key_t key)
 	}
 }
 
-tommy_inline tommy_trie_node* trie_head_node(tommy_trie_node* node)
+tommy_inline tommy_trie_node* tommy_imp_trie_head_node(tommy_trie_node* node)
 {
 	while (trie_get_type(node) == TOMMY_TRIE_TYPE_TREE) {
 		tommy_trie_tree* tree = trie_get_tree(node);
@@ -397,7 +397,7 @@ tommy_inline tommy_trie_node* trie_head_node(tommy_trie_node* node)
 	return node;
 }
 
-tommy_inline tommy_trie_node* trie_tail_node(tommy_trie_node* node)
+tommy_inline tommy_trie_node* tommy_imp_trie_tail_node(tommy_trie_node* node)
 {
 	while (trie_get_type(node) == TOMMY_TRIE_TYPE_TREE) {
 		tommy_trie_tree* tree = trie_get_tree(node);
@@ -411,7 +411,7 @@ tommy_inline tommy_trie_node* trie_tail_node(tommy_trie_node* node)
 	return node->prev;
 }
 
-tommy_inline void* trie_search_less(tommy_trie* trie, tommy_key_t key, tommy_bool_t equal)
+tommy_inline void* tommy_imp_trie_search_less(tommy_trie* trie, tommy_key_t key, tommy_bool_t equal)
 {
 	assert(key >> TOMMY_TRIE_BUCKET_SHIFT < TOMMY_TRIE_BUCKET_MAX);
 
@@ -445,10 +445,10 @@ tommy_inline void* trie_search_less(tommy_trie* trie, tommy_key_t key, tommy_boo
 		shift -= TOMMY_TRIE_TREE_BIT;
 	}
 
-	return candidate ? trie_tail_node(candidate)->data : 0;
+	return candidate ? tommy_imp_trie_tail_node(candidate)->data : 0;
 }
 
-tommy_inline void* trie_search_greater(tommy_trie* trie, tommy_key_t key, tommy_bool_t equal)
+tommy_inline void* tommy_imp_trie_search_greater(tommy_trie* trie, tommy_key_t key, tommy_bool_t equal)
 {
 	assert(key >> TOMMY_TRIE_BUCKET_SHIFT < TOMMY_TRIE_BUCKET_MAX);
 
@@ -483,34 +483,34 @@ tommy_inline void* trie_search_greater(tommy_trie* trie, tommy_key_t key, tommy_
 		shift -= TOMMY_TRIE_TREE_BIT;
 	}
 
-	return candidate ? trie_head_node(candidate)->data : 0;
+	return candidate ? tommy_imp_trie_head_node(candidate)->data : 0;
 }
 
 TOMMY_API void* tommy_trie_search_less(tommy_trie* trie, tommy_key_t key)
 {
-	return trie_search_less(trie, key, 0);
+	return tommy_imp_trie_search_less(trie, key, 0);
 }
 
 TOMMY_API void* tommy_trie_search_less_equal(tommy_trie* trie, tommy_key_t key)
 {
-	return trie_search_less(trie, key, 1);
+	return tommy_imp_trie_search_less(trie, key, 1);
 }
 
 TOMMY_API void* tommy_trie_search_greater_equal(tommy_trie* trie, tommy_key_t key)
 {
-	return trie_search_greater(trie, key, 1);
+	return tommy_imp_trie_search_greater(trie, key, 1);
 }
 
 TOMMY_API void* tommy_trie_search_greater(tommy_trie* trie, tommy_key_t key)
 {
-	return trie_search_greater(trie, key, 0);
+	return tommy_imp_trie_search_greater(trie, key, 0);
 }
 
 TOMMY_API tommy_trie_node* tommy_trie_head(tommy_trie* trie)
 {
 	for (tommy_uint_t i = 0; i < TOMMY_TRIE_BUCKET_MAX; ++i)
 		if (trie->bucket[i])
-			return trie_head_node(trie->bucket[i]);
+			return tommy_imp_trie_head_node(trie->bucket[i]);
 
 	return 0;
 }
@@ -520,7 +520,7 @@ TOMMY_API tommy_trie_node* tommy_trie_tail(tommy_trie* trie)
 	for (tommy_uint_t i = TOMMY_TRIE_BUCKET_MAX; i != 0; ) {
 		--i;
 		if (trie->bucket[i])
-			return trie_tail_node(trie->bucket[i]);
+			return tommy_imp_trie_tail_node(trie->bucket[i]);
 	}
 
 	return 0;
@@ -557,7 +557,7 @@ TOMMY_API tommy_trie_node* tommy_trie_next(tommy_trie* trie, tommy_trie_node* no
 		shift -= TOMMY_TRIE_TREE_BIT;
 	}
 
-	return candidate ? trie_head_node(candidate) : 0;
+	return candidate ? tommy_imp_trie_head_node(candidate) : 0;
 }
 
 TOMMY_API tommy_trie_node* tommy_trie_prev(tommy_trie* trie, tommy_trie_node* node)
@@ -591,7 +591,7 @@ TOMMY_API tommy_trie_node* tommy_trie_prev(tommy_trie* trie, tommy_trie_node* no
 		shift -= TOMMY_TRIE_TREE_BIT;
 	}
 
-	return candidate ? trie_tail_node(candidate) : 0;
+	return candidate ? tommy_imp_trie_tail_node(candidate) : 0;
 }
 
 TOMMY_API void tommy_trie_to_list(tommy_trie* trie, tommy_list* list)
@@ -601,10 +601,10 @@ TOMMY_API void tommy_trie_to_list(tommy_trie* trie, tommy_list* list)
 	tommy_node* builder_tail = tommy_builder_init(&builder);
 
 	for (tommy_uint_t i = 0; i < TOMMY_TRIE_BUCKET_MAX; ++i) {
-		trie_subtree_iterator_init(stack, trie->bucket[i]);
+		tommy_imp_trie_subtree_iterator_init(stack, trie->bucket[i]);
 		tommy_uint_t depth = 1;
 		tommy_trie_node* node;
-		while ((node = trie_subtree_iterator_next(stack, &depth)) != 0) {
+		while ((node = tommy_imp_trie_subtree_iterator_next(stack, &depth)) != 0) {
 			if (trie_get_type(node) == TOMMY_TRIE_TYPE_TREE) {
 				/* all children have been transferred before the allocator overwrites the map */
 				tommy_allocator_free(trie->alloc, trie_get_tree(node));
@@ -625,10 +625,10 @@ TOMMY_API void tommy_trie_foreach(tommy_trie* trie, tommy_foreach_func* func)
 {
 	trie_subtree_iterator stack[TOMMY_TRIE_LEVEL_MAX + 1];
 	for (tommy_uint_t i = 0; i < TOMMY_TRIE_BUCKET_MAX; ++i) {
-		trie_subtree_iterator_init(stack, trie->bucket[i]);
+		tommy_imp_trie_subtree_iterator_init(stack, trie->bucket[i]);
 		tommy_uint_t depth = 1;
 		tommy_trie_node* node;
-		while ((node = trie_subtree_iterator_next(stack, &depth)) != 0) {
+		while ((node = tommy_imp_trie_subtree_iterator_next(stack, &depth)) != 0) {
 			/* list traversal saves the next node before the callback can free it */
 			if (trie_get_type(node) == TOMMY_TRIE_TYPE_NODE)
 				tommy_list_foreach(&node, func);
@@ -640,10 +640,10 @@ TOMMY_API void tommy_trie_foreach_arg(tommy_trie* trie, tommy_foreach_arg_func* 
 {
 	trie_subtree_iterator stack[TOMMY_TRIE_LEVEL_MAX + 1];
 	for (tommy_uint_t i = 0; i < TOMMY_TRIE_BUCKET_MAX; ++i) {
-		trie_subtree_iterator_init(stack, trie->bucket[i]);
+		tommy_imp_trie_subtree_iterator_init(stack, trie->bucket[i]);
 		tommy_uint_t depth = 1;
 		tommy_trie_node* node;
-		while ((node = trie_subtree_iterator_next(stack, &depth)) != 0) {
+		while ((node = tommy_imp_trie_subtree_iterator_next(stack, &depth)) != 0) {
 			/* list traversal saves the next node before the callback can free it */
 			if (trie_get_type(node) == TOMMY_TRIE_TYPE_NODE)
 				tommy_list_foreach_arg(&node, func, arg);
