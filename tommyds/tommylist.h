@@ -437,7 +437,7 @@ tommy_inline void tommy_list_move_head(tommy_list* list, tommy_node* node)
 		return;
 
 	tommy_list_remove_existing(list, node);
-	tommy_list_insert_head(list, node, node->data);
+	tommy_list_insert_head_not_empty(list, node);
 }
 
 /**
@@ -453,7 +453,7 @@ tommy_inline void tommy_list_move_tail(tommy_list* list, tommy_node* node)
 		return;
 
 	tommy_list_remove_existing(list, node);
-	tommy_list_insert_tail(list, node, node->data);
+	tommy_list_insert_tail_not_empty(tommy_list_head(list), node);
 }
 
 /**
