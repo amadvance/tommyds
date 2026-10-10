@@ -105,8 +105,8 @@
  * \endcode
  */
 
-#ifndef __TOMMYLIST_H
-#define __TOMMYLIST_H
+#ifndef TOMMY_LIST_H
+#define TOMMY_LIST_H
 
 #include "tommytypes.h"
 

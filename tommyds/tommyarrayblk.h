@@ -12,8 +12,8 @@
  * Allocated blocks are always of the same fixed size of 4 Ki pointers.
  */
 
-#ifndef __TOMMYARRAYBLK_H
-#define __TOMMYARRAYBLK_H
+#ifndef TOMMY_ARRAYBLK_H
+#define TOMMY_ARRAYBLK_H
 
 #include "tommytypes.h"
 

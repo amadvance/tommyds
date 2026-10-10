@@ -5,8 +5,8 @@
  * Allocator of fixed-size blocks.
  */
 
-#ifndef __TOMMYALLOC_H
-#define __TOMMYALLOC_H
+#ifndef TOMMY_ALLOC_H
+#define TOMMY_ALLOC_H
 
 #include "tommytypes.h"
 

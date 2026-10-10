@@ -21,8 +21,8 @@
  * preserve alignment for every element.
  */
 
-#ifndef __TOMMYARRAYOF_H
-#define __TOMMYARRAYOF_H
+#ifndef TOMMY_ARRAYOF_H
+#define TOMMY_ARRAYOF_H
 
 #include "tommytypes.h"
 

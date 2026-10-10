@@ -5,8 +5,8 @@
  * Hash functions for the use with ::tommy_hashtable, ::tommy_hashdyn and ::tommy_hashlin.
  */
 
-#ifndef __TOMMYHASH_H
-#define __TOMMYHASH_H
+#ifndef TOMMY_HASH_H
+#define TOMMY_HASH_H
 
 #include "tommytypes.h"
 

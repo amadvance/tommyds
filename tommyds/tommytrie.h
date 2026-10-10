@@ -141,8 +141,8 @@
  * \endcode
  */
 
-#ifndef __TOMMYTRIE_H
-#define __TOMMYTRIE_H
+#ifndef TOMMY_TRIE_H
+#define TOMMY_TRIE_H
 
 #include "tommytypes.h"
 #include "tommyalloc.h"

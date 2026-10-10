@@ -5,8 +5,8 @@
  * Generic types.
  */
 
-#ifndef __TOMMYTYPES_H
-#define __TOMMYTYPES_H
+#ifndef TOMMY_TYPES_H
+#define TOMMY_TYPES_H
 
 /******************************************************************************/
 /* memory bounds checking */

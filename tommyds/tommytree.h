@@ -122,8 +122,8 @@
  * \endcode
  */
 
-#ifndef __TOMMYTREE_H
-#define __TOMMYTREE_H
+#ifndef TOMMY_TREE_H
+#define TOMMY_TREE_H
 
 #include "tommytypes.h"
 #include "tommylist.h"

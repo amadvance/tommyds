@@ -117,8 +117,8 @@
  * See the \ref multiindex example for more detail.
  */
 
-#ifndef __TOMMYHASHLIN_H
-#define __TOMMYHASHLIN_H
+#ifndef TOMMY_HASHLIN_H
+#define TOMMY_HASHLIN_H
 
 #include "tommyhash.h"
 #include "tommylist.h"

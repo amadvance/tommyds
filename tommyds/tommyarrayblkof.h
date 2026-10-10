@@ -23,8 +23,8 @@
  * preserve alignment for every element.
  */
 
-#ifndef __TOMMYARRAYBLKOF_H
-#define __TOMMYARRAYBLKOF_H
+#ifndef TOMMY_ARRAYBLKOF_H
+#define TOMMY_ARRAYBLKOF_H
 
 #include "tommytypes.h"
 

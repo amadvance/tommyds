@@ -13,8 +13,8 @@
  * Allocated segments grow in size exponentially.
  */
 
-#ifndef __TOMMYARRAY_H
-#define __TOMMYARRAY_H
+#ifndef TOMMY_ARRAY_H
+#define TOMMY_ARRAY_H
 
 #include "tommytypes.h"
 

@@ -9,8 +9,8 @@
  * Do not use this directly. Use lists instead.
  */
 
-#ifndef __TOMMYCHAIN_H
-#define __TOMMYCHAIN_H
+#ifndef TOMMY_CHAIN_H
+#define TOMMY_CHAIN_H
 
 #include "tommytypes.h"
 

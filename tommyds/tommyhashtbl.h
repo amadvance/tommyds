@@ -100,8 +100,8 @@
  * See the \ref multiindex example for more detail.
  */
 
-#ifndef __TOMMYHASHTBL_H
-#define __TOMMYHASHTBL_H
+#ifndef TOMMY_HASHTBL_H
+#define TOMMY_HASHTBL_H
 
 #include "tommyhash.h"
 #include "tommylist.h"

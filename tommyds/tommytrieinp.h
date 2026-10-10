@@ -137,8 +137,8 @@
  * \endcode
  */
 
-#ifndef __TOMMYTRIEINP_H
-#define __TOMMYTRIEINP_H
+#ifndef TOMMY_TRIEINP_H
+#define TOMMY_TRIEINP_H
 
 #include "tommytypes.h"
 
