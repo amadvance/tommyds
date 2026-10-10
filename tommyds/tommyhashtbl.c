@@ -154,12 +154,20 @@ TOMMY_API tommy_size_t tommy_hashtable_memory_usage(const tommy_hashtable* hasht
 
 TOMMY_API void tommy_hashtable_to_list(tommy_hashtable* hashtable, tommy_list* list)
 {
+	tommy_builder builder;
+	tommy_node* builder_tail = tommy_builder_init(&builder);
+
 	/* clear buckets as they are transferred to avoid a second scan */
 	for (tommy_size_t pos = 0; pos < hashtable->bucket_max; ++pos) {
-		tommy_list_concat(list, &hashtable->bucket[pos]);
+		tommy_node* head = hashtable->bucket[pos];
+		if (head) {
+			tommy_node* tail = head->prev;
+			builder_tail = tommy_builder_concat(builder_tail, head, tail);
+		}
 		hashtable->bucket[pos] = 0;
 	}
 
+	tommy_list_concat_builder(list, &builder, builder_tail);
 	hashtable->count = 0;
 }
 

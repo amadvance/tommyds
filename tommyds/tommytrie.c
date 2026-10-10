@@ -464,29 +464,35 @@ TOMMY_API tommy_trie_node* tommy_trie_prev(tommy_trie* trie, tommy_trie_node* no
 	return candidate ? trie_tail_node(candidate) : 0;
 }
 
-static void trie_to_list_node(tommy_trie* trie, tommy_trie_node* node, tommy_list* list)
+static tommy_node* trie_to_list_node(tommy_trie* trie, tommy_trie_node* node, tommy_node* tail)
 {
 	if (!node)
-		return;
+		return tail;
 
 	if (trie_get_type(node) == TOMMY_TRIE_TYPE_TREE) {
 		tommy_trie_tree* tree = trie_get_tree(node);
 		for (tommy_uint_t i = 0; i < TOMMY_TRIE_TREE_MAX; ++i)
-			trie_to_list_node(trie, tree->map[i], list);
+			tail = trie_to_list_node(trie, tree->map[i], tail);
 		/* freeing the parent overwrites its branches, so transfer all children first */
 		tommy_allocator_free(trie->alloc, tree);
 	} else {
 		/* each leaf is already a list of equal keys in insertion order */
-		tommy_list_concat(list, &node);
+		tommy_node* last = node->prev;
+		tail = tommy_builder_concat(tail, node, last);
 	}
+	return tail;
 }
 
 TOMMY_API void tommy_trie_to_list(tommy_trie* trie, tommy_list* list)
 {
+	tommy_builder builder;
+	tommy_node* builder_tail = tommy_builder_init(&builder);
+
 	for (tommy_uint_t i = 0; i < TOMMY_TRIE_BUCKET_MAX; ++i) {
-		trie_to_list_node(trie, trie->bucket[i], list);
+		builder_tail = trie_to_list_node(trie, trie->bucket[i], builder_tail);
 		trie->bucket[i] = 0;
 	}
+	tommy_list_concat_builder(list, &builder, builder_tail);
 	trie->count = 0;
 	trie->node_count = 0;
 }

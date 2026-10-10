@@ -373,6 +373,9 @@ TOMMY_API tommy_size_t tommy_hashlin_memory_usage(const tommy_hashlin* hashlin)
 
 TOMMY_API void tommy_hashlin_to_list(tommy_hashlin* hashlin, tommy_list* list)
 {
+	tommy_builder builder;
+	tommy_node* builder_tail = tommy_builder_init(&builder);
+
 	tommy_size_t active_max = hashlin->low_max + hashlin->split;
 	tommy_size_t initial_max = (tommy_size_t)1 << TOMMY_HASHLIN_BIT;
 	tommy_hashlin_node** bucket = hashlin->bucket[0];
@@ -385,7 +388,11 @@ TOMMY_API void tommy_hashlin_to_list(tommy_hashlin* hashlin, tommy_list* list)
 	 * later segment starts at an offset equal to its size.
 	 */
 	for (tommy_size_t pos = 0; pos < initial_max; ++pos) {
-		tommy_list_concat(list, &bucket[pos]);
+		tommy_node* head = bucket[pos];
+		if (head) {
+			tommy_node* tail = head->prev;
+			builder_tail = tommy_builder_concat(builder_tail, head, tail);
+		}
 		bucket[pos] = 0;
 	}
 
@@ -398,13 +405,19 @@ TOMMY_API void tommy_hashlin_to_list(tommy_hashlin* hashlin, tommy_list* list)
 		if (active > size)
 			active = size;
 
-		for (tommy_size_t pos = 0; pos < active; ++pos)
-			tommy_list_concat(list, &bucket[pos]);
+		for (tommy_size_t pos = 0; pos < active; ++pos) {
+			tommy_node* head = bucket[pos];
+			if (head) {
+				tommy_node* tail = head->prev;
+				builder_tail = tommy_builder_concat(builder_tail, head, tail);
+			}
+		}
 
 		/* free only after transferring active buckets; inactive slots may be uninitialized or stale */
 		tommy_free(bucket);
 	}
 
+	tommy_list_concat_builder(list, &builder, builder_tail);
 	hashlin->bucket_bit = TOMMY_HASHLIN_BIT;
 	hashlin->bucket_max = initial_max;
 	hashlin->bucket_mask = initial_max - 1;

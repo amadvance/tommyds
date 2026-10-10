@@ -339,21 +339,26 @@ TOMMY_API void* tommy_tree_remove_existing(tommy_tree* tree, tommy_tree_node* no
 	return data;
 }
 
-tommy_inline void tommy_tree_to_list_node(tommy_tree_node* node, tommy_list* list)
+tommy_inline tommy_node* tommy_tree_to_list_node(tommy_tree_node* node, tommy_node* tail)
 {
 	if (node) {
 		tommy_tree_node* right = node->next;
 
-		tommy_tree_to_list_node(node->prev, list);
-		/* list insertion overwrites child links, so keep the right subtree reachable */
-		tommy_list_insert_tail(list, node, node->data);
-		tommy_tree_to_list_node(right, list);
+		tail = tommy_tree_to_list_node(node->prev, tail);
+		/* chain appending overwrites child links, so keep the right subtree reachable */
+		tail = tommy_builder_concat(tail, node, node);
+		tail = tommy_tree_to_list_node(right, tail);
 	}
+	return tail;
 }
 
 TOMMY_API void tommy_tree_to_list(tommy_tree* tree, tommy_list* list)
 {
-	tommy_tree_to_list_node(tree->root, list);
+	tommy_builder builder;
+	tommy_node* builder_tail = tommy_builder_init(&builder);
+
+	builder_tail = tommy_tree_to_list_node(tree->root, builder_tail);
+	tommy_list_concat_builder(list, &builder, builder_tail);
 	tommy_tree_clear(tree);
 }
 

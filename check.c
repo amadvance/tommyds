@@ -2187,107 +2187,170 @@ void test_tree_clear(void)
 	}
 }
 
-void test_tree_to_list(void)
+/**
+ * Verifies exact node order and every link, including the circular head prev link.
+ */
+void test_list_transfer_order(tommy_list* list, tommy_node** expected, unsigned size)
 {
-	tommy_tree tree;
-	tommy_list list;
-	struct object_tree objects[96];
-	struct object_tree prefix[2];
-	struct object_tree reused;
-	tommy_size_t index[96];
+	tommy_node* node = tommy_list_head(list);
+	tommy_node* prev = size ? expected[size - 1] : 0;
 
-	tommy_tree_init(&tree, &compare);
-	tommy_list_init(&list);
-	tommy_tree_to_list(&tree, &list);
-	if (!tommy_tree_empty(&tree) || !tommy_list_empty(&list)) {
-		/* LCOV_EXCL_START */
-		abort();
-		/* LCOV_EXCL_STOP */
-	}
-
-	reused.value = 7;
-	tommy_tree_insert(&tree, &reused.node, &reused);
-	tommy_tree_to_list(&tree, &list);
-	if (tommy_list_head(&list) != &reused.node || tommy_list_tail(&list) != &reused.node) {
-		/* LCOV_EXCL_START */
-		abort();
-		/* LCOV_EXCL_STOP */
-	}
-	tommy_list_init(&list);
-
-	for (unsigned i = 0; i < 2; ++i)
-		tommy_list_insert_tail(&list, &prefix[i].node, &prefix[i]);
-	for (unsigned i = 0; i < 96; ++i) {
-		objects[i].value = i % 5;
-		tommy_tree_insert(&tree, &objects[i].node, &objects[i]);
-	}
-	for (unsigned i = 0; i < 96; ++i)
-		index[i] = objects[i].node.index;
-
-	tommy_tree_to_list(&tree, &list);
-	if (!tommy_tree_empty(&tree) || tommy_tree_count(&tree) != 0) {
-		/* LCOV_EXCL_START */
-		abort();
-		/* LCOV_EXCL_STOP */
-	}
-	if (tommy_list_count(&list) != 98) {
-		/* LCOV_EXCL_START */
-		abort();
-		/* LCOV_EXCL_STOP */
-	}
-
-	tommy_node* node = tommy_list_head(&list);
-	for (unsigned i = 0; i < 2; ++i) {
-		if (node != &prefix[i].node) {
+	for (unsigned i = 0; i < size; ++i) {
+		if (node != expected[i] || node->prev != prev) {
 			/* LCOV_EXCL_START */
 			abort();
 			/* LCOV_EXCL_STOP */
 		}
+		prev = node;
 		node = node->next;
 	}
-	for (unsigned group = 0; group < 5; ++group) {
-		for (unsigned i = group; i < 96; i += 5) {
-			if (node != &objects[i].node || node->data != &objects[i] || node->index != index[i]) {
-				/* LCOV_EXCL_START */
-				abort();
-				/* LCOV_EXCL_STOP */
-			}
-			node = node->next;
-		}
-	}
-	if (node) {
+	if (node != 0 || tommy_list_tail(list) != prev) {
 		/* LCOV_EXCL_START */
 		abort();
 		/* LCOV_EXCL_STOP */
 	}
 
-	node = tommy_list_tail(&list);
-	for (unsigned i = 0; i < 98; ++i) {
-		if (!node) {
+	node = tommy_list_tail(list);
+	for (unsigned i = size; i > 0; --i) {
+		if (node != expected[i - 1]) {
 			/* LCOV_EXCL_START */
 			abort();
 			/* LCOV_EXCL_STOP */
 		}
-		node = tommy_list_prev(&list, node);
+		node = tommy_list_prev(list, node);
 	}
-	if (node) {
+	if (node != 0) {
 		/* LCOV_EXCL_START */
 		abort();
 		/* LCOV_EXCL_STOP */
 	}
+}
 
-	tommy_tree_to_list(&tree, &list);
-	if (tommy_list_count(&list) != 98) {
-		/* LCOV_EXCL_START */
-		abort();
-		/* LCOV_EXCL_STOP */
+void test_builder(void)
+{
+	const unsigned counts[] = { 0, 1, 6 };
+	struct object objects[8];
+	tommy_node* expected[8];
+	tommy_builder builder;
+	tommy_list list;
+
+	for (unsigned c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
+		for (unsigned prefix = 0; prefix <= 2; prefix += 2) {
+			unsigned size = prefix + counts[c];
+			for (unsigned repeat = 0; repeat < 2; ++repeat) {
+				/* reuse the same builder after its previous contents were transferred */
+				tommy_node* builder_tail = tommy_builder_init(&builder);
+				tommy_list_init(&list);
+				for (unsigned i = 0; i < size; ++i) {
+					expected[i] = &objects[i].node;
+					objects[i].node.index = i;
+					if (i < prefix)
+						tommy_list_insert_tail(&list, &objects[i].node, &objects[i]);
+				}
+
+				for (unsigned i = prefix; i < size; ) {
+					unsigned length = size - i;
+					if (length > 2)
+						length = 2;
+					tommy_list source;
+					tommy_list_init(&source);
+					for (unsigned j = 0; j < length; ++j)
+						tommy_list_insert_tail(&source, &objects[i + j].node, &objects[i + j]);
+					tommy_node* head = source;
+					tommy_node* tail = head->prev;
+					/* only inner links are required; finalization must repair both boundary links */
+					head->prev = 0;
+					tail->next = &builder.dummy;
+					builder_tail = tommy_builder_concat(builder_tail, head, tail);
+					i += length;
+				}
+
+				tommy_list_concat_builder(&list, &builder, builder_tail);
+				test_list_transfer_order(&list, expected, size);
+				for (unsigned i = 0; i < size; ++i) {
+					if (objects[i].node.data != &objects[i] || objects[i].node.index != i) {
+						/* LCOV_EXCL_START */
+						abort();
+						/* LCOV_EXCL_STOP */
+					}
+				}
+			}
+		}
 	}
-	reused.value = 8;
-	tommy_tree_insert(&tree, &reused.node, &reused);
-	if (tommy_tree_remove(&tree, &reused) != &reused) {
-		/* LCOV_EXCL_START */
-		abort();
-		/* LCOV_EXCL_STOP */
+}
+
+void test_tree_to_list(void)
+{
+	const unsigned counts[] = { 0, 1, 96 };
+	struct object_tree objects[98];
+	tommy_size_t index[98];
+	tommy_node* expected[98];
+
+	for (unsigned c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
+		for (unsigned prefix = 0; prefix <= 2; prefix += 2) {
+			tommy_tree tree;
+			tommy_list list;
+			unsigned size = prefix + counts[c];
+			tommy_tree_init(&tree, &compare);
+			tommy_list_init(&list);
+
+			for (unsigned i = 0; i < size; ++i) {
+				objects[i].value = i % 5;
+				if (i < prefix) {
+					objects[i].node.index = 0;
+					tommy_list_insert_tail(&list, &objects[i].node, &objects[i]);
+				} else {
+					tommy_tree_insert(&tree, &objects[i].node, &objects[i]);
+				}
+			}
+			for (unsigned i = 0; i < size; ++i)
+				index[i] = objects[i].node.index;
+
+			/* equal elements must retain insertion order after AVL rotations. */
+			unsigned pos = 0;
+			for (unsigned i = 0; i < prefix; ++i) {
+				expected[pos] = &objects[i].node;
+				++pos;
+			}
+			for (int group = 0; group < 5; ++group)
+				for (unsigned i = prefix; i < size; ++i)
+					if (objects[i].value == group) {
+						expected[pos] = &objects[i].node;
+						++pos;
+					}
+
+			for (unsigned repeat = 0; repeat < 2; ++repeat) {
+				tommy_tree_to_list(&tree, &list);
+				test_list_transfer_order(&list, expected, size);
+				if (!tommy_tree_empty(&tree) || tommy_tree_count(&tree) != 0 || tree.cmp != &compare) {
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+				}
+				for (unsigned i = 0; i < size; ++i) {
+					if (objects[i].node.data != &objects[i] || objects[i].node.index != index[i]) {
+						/* LCOV_EXCL_START */
+						abort();
+						/* LCOV_EXCL_STOP */
+					}
+				}
+			}
+
+			/* reinsert the transferred nodes, then verify search and removal. */
+			while (!tommy_list_empty(&list)) {
+				struct object_tree* data = tommy_list_remove_head(&list);
+				tommy_tree_insert(&tree, &data->node, data);
+			}
+			for (unsigned i = 0; i < size; ++i) {
+				if (tommy_tree_search(&tree, &objects[i]) == 0
+					|| tommy_tree_remove_existing(&tree, &objects[i].node) != &objects[i]
+					|| tommy_tree_count(&tree) != size - i - 1) {
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+				}
+			}
+		}
 	}
 }
 
@@ -3990,6 +4053,7 @@ void test_hashtable_to_list(void)
 	const unsigned counts[] = { 0, 1, 16, 128 };
 	struct object_hash obj[130];
 	tommy_node saved[130];
+	tommy_node* expected[130];
 	tommy_hashtable hashtable;
 	tommy_list list;
 
@@ -4012,8 +4076,26 @@ void test_hashtable_to_list(void)
 			tommy_size_t bucket_max = hashtable.bucket_max;
 			tommy_size_t bucket_mask = hashtable.bucket_mask;
 
+			/* capture exact ascending bucket order before any links change. */
+			unsigned pos = 0;
+			for (unsigned i = 0; i < prefix; ++i) {
+				expected[pos] = &obj[i].node;
+				++pos;
+			}
+			for (tommy_size_t i = 0; i < bucket_max; ++i)
+				for (tommy_node* node = bucket[i]; node; node = node->next) {
+					expected[pos] = node;
+					++pos;
+				}
+			if (pos != size) {
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+			}
+
 			tommy_hashtable_to_list(&hashtable, &list);
 			test_hash_list(&list, obj, saved, size, prefix);
+			test_list_transfer_order(&list, expected, size);
 			if (tommy_hashtable_count(&hashtable) != 0 || hashtable.bucket != bucket
 				|| hashtable.bucket_max != bucket_max || hashtable.bucket_mask != bucket_mask
 				|| tommy_hashtable_memory_usage(&hashtable) != bucket_max * sizeof(*bucket)) {
@@ -4046,6 +4128,7 @@ void test_hashtable_to_list(void)
 				saved[i] = obj[i].node;
 			tommy_hashtable_to_list(&hashtable, &list);
 			test_hash_list(&list, obj, saved, size, prefix);
+			test_list_transfer_order(&list, expected, size);
 
 			/* transfer the detached nodes back, then search and remove each one. */
 			while (!tommy_list_empty(&list)) {
@@ -4750,6 +4833,7 @@ void test_hashdyn_to_list(void)
 	const unsigned counts[] = { 0, 1, 8, 128 };
 	struct object_hash obj[130];
 	tommy_node saved[130];
+	tommy_node* expected[130];
 
 	for (unsigned c = 0; c < sizeof(counts) / sizeof(counts[0]); ++c) {
 		for (unsigned reserved = 0; reserved < 2; ++reserved) {
@@ -4777,8 +4861,26 @@ void test_hashdyn_to_list(void)
 				tommy_size_t bucket_mask = hashdyn.bucket_mask;
 				tommy_uint_t bucket_bit = hashdyn.bucket_bit;
 
+				/* capture exact ascending bucket order before any links change. */
+				unsigned pos = 0;
+				for (unsigned i = 0; i < prefix; ++i) {
+					expected[pos] = &obj[i].node;
+					++pos;
+				}
+				for (tommy_size_t i = 0; i < bucket_max; ++i)
+					for (tommy_node* node = bucket[i]; node; node = node->next) {
+						expected[pos] = node;
+						++pos;
+					}
+				if (pos != size) {
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+				}
+
 				tommy_hashdyn_to_list(&hashdyn, &list);
 				test_hash_list(&list, obj, saved, size, prefix);
+				test_list_transfer_order(&list, expected, size);
 				if (tommy_hashdyn_count(&hashdyn) != 0 || hashdyn.bucket != bucket
 					|| hashdyn.bucket_max != bucket_max || hashdyn.bucket_mask != bucket_mask
 					|| hashdyn.bucket_bit != bucket_bit
@@ -4811,6 +4913,7 @@ void test_hashdyn_to_list(void)
 					saved[i] = obj[i].node;
 				tommy_hashdyn_to_list(&hashdyn, &list);
 				test_hash_list(&list, obj, saved, size, prefix);
+				test_list_transfer_order(&list, expected, size);
 
 				/* reuse the nodes and verify removals across shrink thresholds. */
 				while (!tommy_list_empty(&list)) {
@@ -5594,6 +5697,7 @@ void test_hashlin_to_list(void)
 
 			tommy_hashlin_to_list(&hashlin, &list);
 			test_hash_list(&list, obj, saved, size, prefix);
+			test_list_transfer_order(&list, expected, size);
 			if (tommy_hashlin_count(&hashlin) != 0 || hashlin.bucket_max != initial_max
 				|| hashlin.bucket_mask != initial_max - 1 || hashlin.bucket_bit != TOMMY_HASHLIN_BIT
 				|| hashlin.state != stable_state || hashlin.low_max != initial_max
@@ -5609,15 +5713,6 @@ void test_hashlin_to_list(void)
 					abort();
 					/* LCOV_EXCL_STOP */
 				}
-			tommy_node* node = tommy_list_head(&list);
-			for (unsigned i = 0; i < size; ++i) {
-				if (node != expected[i]) {
-					/* LCOV_EXCL_START */
-					abort();
-					/* LCOV_EXCL_STOP */
-				}
-				node = node->next;
-			}
 			for (unsigned i = 0; i < bucket_max; ++i)
 				if (tommy_hashlin_bucket(&hashlin, i) != 0) {
 					/* LCOV_EXCL_START */
@@ -5642,6 +5737,7 @@ void test_hashlin_to_list(void)
 				saved[i] = obj[i].node;
 			tommy_hashlin_to_list(&hashlin, &list);
 			test_hash_list(&list, obj, saved, size, prefix);
+			test_list_transfer_order(&list, expected, size);
 
 			/* reinsert all transferred nodes, then grow again from the minimum capacity. */
 			while (!tommy_list_empty(&list)) {
@@ -7326,6 +7422,7 @@ int main()
 	test_alloc();
 	test_alloc_clear();
 	test_list();
+	test_builder();
 	test_tree();
 	test_tree_swap();
 	test_tree_duplicates();

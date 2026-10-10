@@ -119,6 +119,43 @@
 typedef tommy_node* tommy_list;
 
 /**
+ * Temporary list builder with an embedded sentinel.
+ * Initialize with tommy_builder_init() and finish with tommy_list_concat_builder().
+ * Keep the builder at the same address until finalization, as node links
+ * refer to its sentinel.
+ */
+typedef struct tommy_builder_struct {
+	tommy_node dummy; /**< Sentinel excluded from the resulting list. */
+} tommy_builder;
+
+/**
+ * Initializes an empty builder in O(1).
+ * \param builder Builder to initialize in its final location.
+ * \return Initial tail, pointing to the builder's sentinel.
+ */
+tommy_inline tommy_node* tommy_builder_init(tommy_builder* builder)
+{
+	builder->dummy.next = 0;
+	return &builder->dummy;
+}
+
+/**
+ * Appends a non-empty chain to a builder in O(1), preserving element order.
+ * \param tail Current tail, initially returned by tommy_builder_init().
+ * \param head Head of the non-empty source chain.
+ * \param last Tail of the source chain. For a single node, pass head again.
+ * The chains must not share nodes. Inner links must be valid;
+ * head's prev and last's next may be undefined.
+ * \return Updated tail to pass to the next append or tommy_list_concat_builder().
+ */
+tommy_inline tommy_node* tommy_builder_concat(tommy_node* tail, tommy_node* head, tommy_node* last)
+{
+	head->prev = tail;
+	tail->next = head;
+	return last;
+}
+
+/**
  * Initializes the list.
  * The list is completely inplace, so it doesn't need to be deinitialized.
  */
@@ -507,6 +544,37 @@ tommy_inline void tommy_list_concat(tommy_list* first, tommy_list* second)
 
 	/* set the "0 terminated" next list */
 	first_tail->next = second_head;
+}
+
+/**
+ * Appends a builder's chain to a list, preserving element order and restoring list links.
+ * \param list Destination list, possibly empty. It must not share nodes with the builder.
+ * \param builder Initialized builder, possibly empty. Its contents are consumed;
+ * reinitialize it before reuse.
+ * \param tail Current tail returned by the builder helpers, ignored when empty.
+ * \note This operation is O(1). An empty builder has no effect.
+ */
+tommy_inline void tommy_list_concat_builder(tommy_list* list, const tommy_builder* builder, tommy_node* tail)
+{
+	tommy_node* head = builder->dummy.next;
+
+	if (!head)
+		return;
+
+	tommy_node* first = *list;
+
+	/* replace the sentinel link so no list node refers to the temporary builder */
+	if (first) {
+		tommy_node* first_tail = first->prev;
+		first_tail->next = head;
+		head->prev = first_tail;
+		first->prev = tail;
+	} else {
+		*list = head;
+		head->prev = tail;
+	}
+
+	tail->next = 0;
 }
 
 /**
