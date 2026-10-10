@@ -80,6 +80,7 @@ TOMMY_API void tommy_array_resize(tommy_array* array, tommy_size_t size);
 
 /**
  * Removes all elements, preserving the allocated capacity.
+ * Call tommy_array_shrink() after clearing to restore the initial capacity.
  * Pointed-to objects are not freed.
  * The array remains initialized and can be reused immediately.
  */

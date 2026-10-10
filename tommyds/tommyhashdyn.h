@@ -174,6 +174,7 @@ tommy_inline void tommy_hashdyn_swap(tommy_hashdyn* first, tommy_hashdyn* second
 
 /**
  * Removes all elements, preserving the allocated buckets.
+ * Call tommy_hashdyn_shrink() after clearing to restore the initial capacity.
  * The hashtable remains initialized and can be reused immediately.
  * Objects are not freed and nodes are not accessed or modified.
  * Their links must not be used to traverse the previous contents.

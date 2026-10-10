@@ -92,6 +92,7 @@ TOMMY_API void tommy_arrayblkof_resize(tommy_arrayblkof* array, tommy_size_t siz
 
 /**
  * Removes all elements, preserving the allocated capacity.
+ * Call tommy_arrayblkof_shrink() after clearing to restore the initial capacity.
  * The array remains initialized and can be reused immediately.
  */
 tommy_inline void tommy_arrayblkof_clear(tommy_arrayblkof* array)
