@@ -71,26 +71,33 @@ tommy_inline void tommy_chain_concat(tommy_node* first_tail, tommy_node* second_
  */
 tommy_inline void tommy_chain_merge(tommy_chain* tommy_restrict first, tommy_chain* tommy_restrict second, tommy_compare_func* cmp)
 {
-	tommy_node* first_i = first->head;
+	/*
+	 * comparators must not change the chains, so cache these endpoints across calls.
+	 * also caching first_tail caused register spills with GCC and Clang on x86-64.
+	 */
+	tommy_node* first_head = first->head;
+	tommy_node* second_tail = second->tail;
+	tommy_node* first_i = first_head;
 	tommy_node* second_i = second->head;
 
 	/* merge */
 	while (1) {
 		if (cmp(first_i->data, second_i->data) > 0) {
 			tommy_node* next = second_i->next;
-			if (first_i == first->head) {
+			if (first_i == first_head) {
 				tommy_chain_concat(second_i, first_i);
-				first->head = second_i;
+				first_head = second_i;
+				first->head = first_head;
 			} else {
 				tommy_chain_splice(first_i->prev, first_i, second_i, second_i);
 			}
-			if (second_i == second->tail)
+			if (second_i == second_tail)
 				break;
 			second_i = next;
 		} else {
 			if (first_i == first->tail) {
 				tommy_chain_concat(first_i, second_i);
-				first->tail = second->tail;
+				first->tail = second_tail;
 				break;
 			}
 			first_i = first_i->next;

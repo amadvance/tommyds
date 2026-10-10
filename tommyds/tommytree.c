@@ -160,11 +160,14 @@ tommy_inline void* tommy_imp_tree_insert(tommy_tree* tree, tommy_tree_node* node
 	tommy_tree_node* parent = 0;
 	tommy_tree_node* existing = 0;
 	tommy_tree_node** link = &tree->root;
+	/* cache the comparator to avoid reloading it after each comparison */
+	tommy_compare_func* cmp_func = tree->cmp;
 
 	while (*link) {
-		int cmp = tree->cmp(data, (*link)->data);
-
+		/* comparators must not change the tree, so keep the node across the call */
 		parent = *link;
+		int cmp = cmp_func(data, parent->data);
+
 		if (cmp < 0)
 			link = &parent->prev;
 		else if (cmp == 0 && unique) {

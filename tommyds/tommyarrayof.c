@@ -85,6 +85,8 @@ TOMMY_API void tommy_arrayof_shrink(tommy_arrayof* array)
 
 TOMMY_API void tommy_arrayof_foreach(tommy_arrayof* array, tommy_foreach_func* func)
 {
+	/* cache the element size to avoid reloading it after each callback */
+	tommy_size_t element_size = array->element_size;
 	tommy_size_t pos = 0;
 
 	while (pos < array->count) {
@@ -93,11 +95,11 @@ TOMMY_API void tommy_arrayof_foreach(tommy_arrayof* array, tommy_foreach_func* f
 		tommy_size_t chunk_end = array->count < seg_end ? array->count : seg_end;
 		unsigned char* ptr = tommy_cast(unsigned char*, array->bucket[bsr]);
 
-		ptr += pos * array->element_size;
+		ptr += pos * element_size;
 
 		while (pos < chunk_end) {
 			func(ptr);
-			ptr += array->element_size;
+			ptr += element_size;
 			++pos;
 		}
 	}
@@ -105,6 +107,8 @@ TOMMY_API void tommy_arrayof_foreach(tommy_arrayof* array, tommy_foreach_func* f
 
 TOMMY_API void tommy_arrayof_foreach_arg(tommy_arrayof* array, tommy_foreach_arg_func* func, void* arg)
 {
+	/* cache the element size to avoid reloading it after each callback */
+	tommy_size_t element_size = array->element_size;
 	tommy_size_t pos = 0;
 
 	while (pos < array->count) {
@@ -113,11 +117,11 @@ TOMMY_API void tommy_arrayof_foreach_arg(tommy_arrayof* array, tommy_foreach_arg
 		tommy_size_t chunk_end = array->count < seg_end ? array->count : seg_end;
 		unsigned char* ptr = tommy_cast(unsigned char*, array->bucket[bsr]);
 
-		ptr += pos * array->element_size;
+		ptr += pos * element_size;
 
 		while (pos < chunk_end) {
 			func(arg, ptr);
-			ptr += array->element_size;
+			ptr += element_size;
 			++pos;
 		}
 	}

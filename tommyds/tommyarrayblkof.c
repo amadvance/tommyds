@@ -95,6 +95,8 @@ TOMMY_API void tommy_arrayblkof_shrink(tommy_arrayblkof* array)
 
 TOMMY_API void tommy_arrayblkof_foreach(tommy_arrayblkof* array, tommy_foreach_func* func)
 {
+	/* cache the element size to avoid reloading it after each callback */
+	tommy_size_t element_size = array->element_size;
 	tommy_size_t pos = 0;
 
 	while (pos < array->count) {
@@ -107,7 +109,7 @@ TOMMY_API void tommy_arrayblkof_foreach(tommy_arrayblkof* array, tommy_foreach_f
 
 		for (tommy_size_t i = 0; i < chunk; ++i) {
 			func(ptr);
-			ptr += array->element_size;
+			ptr += element_size;
 		}
 
 		pos += chunk;
@@ -116,6 +118,8 @@ TOMMY_API void tommy_arrayblkof_foreach(tommy_arrayblkof* array, tommy_foreach_f
 
 TOMMY_API void tommy_arrayblkof_foreach_arg(tommy_arrayblkof* array, tommy_foreach_arg_func* func, void* arg)
 {
+	/* cache the element size to avoid reloading it after each callback */
+	tommy_size_t element_size = array->element_size;
 	tommy_size_t pos = 0;
 
 	while (pos < array->count) {
@@ -128,7 +132,7 @@ TOMMY_API void tommy_arrayblkof_foreach_arg(tommy_arrayblkof* array, tommy_forea
 
 		for (tommy_size_t i = 0; i < chunk; ++i) {
 			func(arg, ptr);
-			ptr += array->element_size;
+			ptr += element_size;
 		}
 
 		pos += chunk;

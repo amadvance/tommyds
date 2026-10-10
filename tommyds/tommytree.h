@@ -378,14 +378,16 @@ tommy_inline void* tommy_tree_search_compare(tommy_tree* tree, tommy_compare_fun
 	void* candidate = 0;
 
 	while (node) {
-		int c = cmp(cmp_arg, node->data);
+		/* comparators must not change the tree, so retain the data across the call */
+		void* data = node->data;
+		int c = cmp(cmp_arg, data);
 
 		if (c < 0)
 			node = node->prev;
 		else if (c > 0)
 			node = node->next;
 		else {
-			candidate = node->data;
+			candidate = data;
 			node = node->prev;
 		}
 	}
@@ -425,10 +427,12 @@ tommy_inline void* tommy_tree_search_greater_equal_compare(tommy_tree* tree, tom
 	void* candidate = 0;
 
 	while (node) {
-		int c = cmp(cmp_arg, node->data);
+		/* comparators must not change the tree, so retain the data across the call */
+		void* data = node->data;
+		int c = cmp(cmp_arg, data);
 
 		if (c <= 0) {
-			candidate = node->data;
+			candidate = data;
 			node = node->prev;
 		} else {
 			node = node->next;
@@ -465,10 +469,12 @@ tommy_inline void* tommy_tree_search_greater_compare(tommy_tree* tree, tommy_com
 	void* candidate = 0;
 
 	while (node) {
-		int c = cmp(cmp_arg, node->data);
+		/* comparators must not change the tree, so retain the data across the call */
+		void* data = node->data;
+		int c = cmp(cmp_arg, data);
 
 		if (c < 0) {
-			candidate = node->data;
+			candidate = data;
 			node = node->prev;
 		} else {
 			node = node->next;
@@ -510,12 +516,14 @@ tommy_inline void* tommy_tree_search_less_equal_compare(tommy_tree* tree, tommy_
 	void* candidate = 0;
 
 	while (node) {
-		int c = cmp(cmp_arg, node->data);
+		/* comparators must not change the tree, so retain the data across the call */
+		void* data = node->data;
+		int c = cmp(cmp_arg, data);
 
 		if (c < 0) {
 			node = node->prev;
 		} else {
-			candidate = node->data;
+			candidate = data;
 			node = node->next;
 		}
 	}
@@ -550,10 +558,12 @@ tommy_inline void* tommy_tree_search_less_compare(tommy_tree* tree, tommy_compar
 	void* candidate = 0;
 
 	while (node) {
-		int c = cmp(cmp_arg, node->data);
+		/* comparators must not change the tree, so retain the data across the call */
+		void* data = node->data;
+		int c = cmp(cmp_arg, data);
 
 		if (c > 0) {
-			candidate = node->data;
+			candidate = data;
 			node = node->next;
 		} else {
 			node = node->prev;
