@@ -29,6 +29,9 @@ TommyDS HISTORY
    inclusive and exclusive key bound searches, unique insertion, removal using
    a custom comparison, clearing for reuse, and draining nodes to a list in
    tree order.
+ * In trie and inplace trie, added inclusive and exclusive key bound searches,
+   selecting duplicates in insertion order like the corresponding tree searches,
+   and removing the smallest or greatest element.
  * In array, added preallocating capacity, bidirectional resizing with
    automatic zeroing of unused slots upon shrinking, clearing while preserving
    allocated capacity, releasing unused memory without moving elements,

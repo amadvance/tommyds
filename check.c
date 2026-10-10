@@ -6190,6 +6190,55 @@ static int trie_foreach_compare(const void* void_a, const void* void_b)
 	return (a->value > b->value) - (a->value < b->value);
 }
 
+static void trie_search_bounds_check(tommy_trie* trie, void** expected, unsigned size)
+{
+	tommy_key_t high = 1;
+	high <<= TOMMY_TRIE_BIT - 1;
+	tommy_key_t max = high | (high - 1);
+
+	/* query existing keys, gaps, arbitrary prefixes, and both key-range endpoints */
+	for (unsigned i = 0; i < size + 258; ++i) {
+		tommy_key_t key;
+		if (i < size) {
+			struct object_trie* obj = expected[i];
+			key = obj->node.index;
+		} else if (i < size + 128)
+			key = tommy_inthash_u32(i - size) & max;
+		else if (i < size + 256)
+			key = i - size - 128;
+		else
+			key = i == size + 256 ? 0 : max;
+
+		const tommy_key_t queries[] = { key ? key - 1 : 0, key, key < max ? key + 1 : max };
+		for (unsigned q = 0; q < sizeof(queries) / sizeof(queries[0]); ++q) {
+			void* less = 0;
+			void* less_equal = 0;
+			void* greater_equal = 0;
+			void* greater = 0;
+			/* the oracle uses only independently sorted keys and insertion positions */
+			for (unsigned j = 0; j < size; ++j) {
+				struct object_trie* obj = expected[j];
+				if (obj->node.index < queries[q])
+					less = obj;
+				if (obj->node.index <= queries[q])
+					less_equal = obj;
+				if (obj->node.index >= queries[q] && !greater_equal)
+					greater_equal = obj;
+				if (obj->node.index > queries[q] && !greater)
+					greater = obj;
+			}
+			if (tommy_trie_search_less(trie, queries[q]) != less
+				|| tommy_trie_search_less_equal(trie, queries[q]) != less_equal
+				|| tommy_trie_search_greater_equal(trie, queries[q]) != greater_equal
+				|| tommy_trie_search_greater(trie, queries[q]) != greater) {
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+			}
+		}
+	}
+}
+
 static void trie_iteration_check(tommy_trie* trie, void** expected, unsigned size)
 {
 	tommy_trie_node* node = tommy_trie_head(trie);
@@ -6222,6 +6271,61 @@ static void trie_iteration_check(tommy_trie* trie, void** expected, unsigned siz
 		/* LCOV_EXCL_START */
 		abort();
 		/* LCOV_EXCL_STOP */
+	}
+}
+
+static void trie_remove_ends_check(tommy_trie* trie, struct object_trie* obj, unsigned size)
+{
+	void* expected[128];
+	for (unsigned mode = 0; mode < 3; ++mode) {
+		/* reuse the drained trie with the same keys and original duplicate insertion order */
+		for (unsigned i = 0; i < size; ++i) {
+			tommy_trie_insert(trie, &obj[i].node, &obj[i], obj[i].node.index);
+			expected[i] = &obj[i];
+		}
+		qsort(expected, size, sizeof(expected[0]), trie_foreach_compare);
+
+		unsigned head = 0;
+		unsigned tail = size;
+		while (head != tail) {
+			/* drain from either end or alternate, checking the complete remaining order */
+			tommy_bool_t remove_tail = mode == 1 || (mode == 2 && (tail - head) % 2 == 0);
+			void* data;
+			void* removed;
+			if (remove_tail) {
+				removed = expected[--tail];
+				data = tommy_trie_remove_tail(trie);
+			} else {
+				removed = expected[head];
+				++head;
+				data = tommy_trie_remove_head(trie);
+			}
+			if (data != removed || tommy_trie_count(trie) != tail - head) {
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+			}
+			trie_iteration_check(trie, expected + head, tail - head);
+		}
+		if (tommy_trie_remove_head(trie) != 0 || tommy_trie_remove_tail(trie) != 0
+			|| !tommy_trie_empty(trie) || tommy_trie_count(trie) != 0
+			|| trie->node_count != 0 || trie->alloc->count != 0) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
+	/* a zero data pointer must still remove the node */
+	tommy_trie_node node;
+	for (unsigned mode = 0; mode < 2; ++mode) {
+		tommy_trie_insert(trie, &node, 0, 0);
+		void* data = mode ? tommy_trie_remove_tail(trie) : tommy_trie_remove_head(trie);
+		if (data != 0 || !tommy_trie_empty(trie) || tommy_trie_count(trie) != 0) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
 	}
 }
 
@@ -6281,6 +6385,7 @@ void test_trie_iteration(void)
 				memcpy(saved_alloc, &alloc, sizeof(alloc));
 				memcpy(saved_obj, obj, sizeof(obj));
 				trie_iteration_check(&trie, expected, count);
+				trie_search_bounds_check(&trie, expected, count);
 				if (tommy_trie_count(&trie) != count
 					|| memcmp(saved_trie, &trie, sizeof(trie)) != 0
 					|| memcmp(saved_alloc, &alloc, sizeof(alloc)) != 0
@@ -6290,6 +6395,7 @@ void test_trie_iteration(void)
 					/* LCOV_EXCL_STOP */
 				}
 			}
+			trie_remove_ends_check(&trie, obj, sizes[s]);
 			tommy_allocator_done(&alloc);
 		}
 	}
@@ -6686,6 +6792,55 @@ static int trie_inplace_foreach_compare(const void* void_a, const void* void_b)
 	return (a->value > b->value) - (a->value < b->value);
 }
 
+static void trie_inplace_search_bounds_check(tommy_trie_inplace* trie, void** expected, unsigned size)
+{
+	tommy_key_t high = 1;
+	high <<= TOMMY_TRIE_INPLACE_BIT - 1;
+	tommy_key_t max = high | (high - 1);
+
+	/* query existing keys, gaps, arbitrary prefixes, and both key-range endpoints */
+	for (unsigned i = 0; i < size + 258; ++i) {
+		tommy_key_t key;
+		if (i < size) {
+			struct object_trie_inplace* obj = expected[i];
+			key = obj->node.key;
+		} else if (i < size + 128)
+			key = tommy_inthash_u32(i - size) & max;
+		else if (i < size + 256)
+			key = i - size - 128;
+		else
+			key = i == size + 256 ? 0 : max;
+
+		const tommy_key_t queries[] = { key ? key - 1 : 0, key, key < max ? key + 1 : max };
+		for (unsigned q = 0; q < sizeof(queries) / sizeof(queries[0]); ++q) {
+			void* less = 0;
+			void* less_equal = 0;
+			void* greater_equal = 0;
+			void* greater = 0;
+			/* the oracle uses only independently sorted keys and insertion positions */
+			for (unsigned j = 0; j < size; ++j) {
+				struct object_trie_inplace* obj = expected[j];
+				if (obj->node.key < queries[q])
+					less = obj;
+				if (obj->node.key <= queries[q])
+					less_equal = obj;
+				if (obj->node.key >= queries[q] && !greater_equal)
+					greater_equal = obj;
+				if (obj->node.key > queries[q] && !greater)
+					greater = obj;
+			}
+			if (tommy_trie_inplace_search_less(trie, queries[q]) != less
+				|| tommy_trie_inplace_search_less_equal(trie, queries[q]) != less_equal
+				|| tommy_trie_inplace_search_greater_equal(trie, queries[q]) != greater_equal
+				|| tommy_trie_inplace_search_greater(trie, queries[q]) != greater) {
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+			}
+		}
+	}
+}
+
 static void trie_inplace_iteration_check(tommy_trie_inplace* trie, void** expected, unsigned size)
 {
 	tommy_trie_inplace_node* node = tommy_trie_inplace_head(trie);
@@ -6718,6 +6873,60 @@ static void trie_inplace_iteration_check(tommy_trie_inplace* trie, void** expect
 		/* LCOV_EXCL_START */
 		abort();
 		/* LCOV_EXCL_STOP */
+	}
+}
+
+static void trie_inplace_remove_ends_check(tommy_trie_inplace* trie, struct object_trie_inplace* obj, unsigned size)
+{
+	void* expected[128];
+	for (unsigned mode = 0; mode < 3; ++mode) {
+		/* reuse the drained trie with the same keys and original duplicate insertion order */
+		for (unsigned i = 0; i < size; ++i) {
+			tommy_trie_inplace_insert(trie, &obj[i].node, &obj[i], obj[i].node.key);
+			expected[i] = &obj[i];
+		}
+		qsort(expected, size, sizeof(expected[0]), trie_inplace_foreach_compare);
+
+		unsigned head = 0;
+		unsigned tail = size;
+		while (head != tail) {
+			/* drain from either end or alternate, checking the complete remaining order */
+			tommy_bool_t remove_tail = mode == 1 || (mode == 2 && (tail - head) % 2 == 0);
+			void* data;
+			void* removed;
+			if (remove_tail) {
+				removed = expected[--tail];
+				data = tommy_trie_inplace_remove_tail(trie);
+			} else {
+				removed = expected[head];
+				++head;
+				data = tommy_trie_inplace_remove_head(trie);
+			}
+			if (data != removed || tommy_trie_inplace_count(trie) != tail - head) {
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+			}
+			trie_inplace_iteration_check(trie, expected + head, tail - head);
+		}
+		if (tommy_trie_inplace_remove_head(trie) != 0 || tommy_trie_inplace_remove_tail(trie) != 0
+			|| !tommy_trie_inplace_empty(trie) || tommy_trie_inplace_count(trie) != 0) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
+	/* a zero data pointer must still remove the node */
+	tommy_trie_inplace_node node;
+	for (unsigned mode = 0; mode < 2; ++mode) {
+		tommy_trie_inplace_insert(trie, &node, 0, 0);
+		void* data = mode ? tommy_trie_inplace_remove_tail(trie) : tommy_trie_inplace_remove_head(trie);
+		if (data != 0 || !tommy_trie_inplace_empty(trie) || tommy_trie_inplace_count(trie) != 0) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
 	}
 }
 
@@ -6779,6 +6988,7 @@ void test_trie_inplace_iteration(void)
 				memcpy(saved_trie, &trie, sizeof(trie));
 				memcpy(saved_obj, obj, sizeof(obj));
 				trie_inplace_iteration_check(&trie, expected, count);
+				trie_inplace_search_bounds_check(&trie, expected, count);
 				if (tommy_trie_inplace_count(&trie) != count
 					|| memcmp(saved_trie, &trie, sizeof(trie)) != 0
 					|| memcmp(saved_obj, obj, sizeof(obj)) != 0) {
@@ -6787,6 +6997,7 @@ void test_trie_inplace_iteration(void)
 					/* LCOV_EXCL_STOP */
 				}
 			}
+			trie_inplace_remove_ends_check(&trie, obj, sizes[s]);
 		}
 	}
 }

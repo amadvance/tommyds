@@ -349,7 +349,7 @@ TOMMY_API tommy_trie_node* tommy_trie_bucket(tommy_trie* trie, tommy_key_t key)
 	}
 }
 
-static tommy_trie_node* trie_head_node(tommy_trie_node* node)
+tommy_inline tommy_trie_node* trie_head_node(tommy_trie_node* node)
 {
 	while (trie_get_type(node) == TOMMY_TRIE_TYPE_TREE) {
 		tommy_trie_tree* tree = trie_get_tree(node);
@@ -362,7 +362,7 @@ static tommy_trie_node* trie_head_node(tommy_trie_node* node)
 	return node;
 }
 
-static tommy_trie_node* trie_tail_node(tommy_trie_node* node)
+tommy_inline tommy_trie_node* trie_tail_node(tommy_trie_node* node)
 {
 	while (trie_get_type(node) == TOMMY_TRIE_TYPE_TREE) {
 		tommy_trie_tree* tree = trie_get_tree(node);
@@ -374,6 +374,101 @@ static tommy_trie_node* trie_tail_node(tommy_trie_node* node)
 
 	/* each leaf points to the first duplicate, whose prev is the last duplicate */
 	return node->prev;
+}
+
+tommy_inline void* trie_search_less(tommy_trie* trie, tommy_key_t key, tommy_bool_t equal)
+{
+	assert(key >> TOMMY_TRIE_BUCKET_SHIFT < TOMMY_TRIE_BUCKET_MAX);
+
+	tommy_trie_node* candidate = 0;
+	tommy_trie_node** map = trie->bucket;
+	tommy_uint_t pos = key >> TOMMY_TRIE_BUCKET_SHIFT;
+	int shift = TOMMY_TRIE_TREE_SHIFT;
+
+	while (1) {
+		/* a smaller sibling deeper on the key path is closer than any earlier candidate */
+		for (tommy_uint_t i = pos; i != 0; ) {
+			--i;
+			if (map[i]) {
+				candidate = map[i];
+				break;
+			}
+		}
+
+		tommy_trie_node* node = map[pos];
+		if (!node)
+			break;
+		if (trie_get_type(node) == TOMMY_TRIE_TYPE_NODE) {
+			/* compressed leaves must be compared using the complete key */
+			if (node->index < key || (equal && node->index == key))
+				return node->prev->data;
+			break;
+		}
+
+		map = trie_get_tree(node)->map;
+		pos = (key >> shift) & TOMMY_TRIE_TREE_MASK;
+		shift -= TOMMY_TRIE_TREE_BIT;
+	}
+
+	return candidate ? trie_tail_node(candidate)->data : 0;
+}
+
+tommy_inline void* trie_search_greater(tommy_trie* trie, tommy_key_t key, tommy_bool_t equal)
+{
+	assert(key >> TOMMY_TRIE_BUCKET_SHIFT < TOMMY_TRIE_BUCKET_MAX);
+
+	tommy_trie_node* candidate = 0;
+	tommy_trie_node** map = trie->bucket;
+	tommy_uint_t size = TOMMY_TRIE_BUCKET_MAX;
+	tommy_uint_t pos = key >> TOMMY_TRIE_BUCKET_SHIFT;
+	int shift = TOMMY_TRIE_TREE_SHIFT;
+
+	while (1) {
+		/* a larger sibling deeper on the key path is closer than any earlier candidate */
+		for (tommy_uint_t i = pos + 1; i < size; ++i) {
+			if (map[i]) {
+				candidate = map[i];
+				break;
+			}
+		}
+
+		tommy_trie_node* node = map[pos];
+		if (!node)
+			break;
+		if (trie_get_type(node) == TOMMY_TRIE_TYPE_NODE) {
+			/* compressed leaves must be compared using the complete key */
+			if (node->index > key || (equal && node->index == key))
+				return node->data;
+			break;
+		}
+
+		map = trie_get_tree(node)->map;
+		size = TOMMY_TRIE_TREE_MAX;
+		pos = (key >> shift) & TOMMY_TRIE_TREE_MASK;
+		shift -= TOMMY_TRIE_TREE_BIT;
+	}
+
+	return candidate ? trie_head_node(candidate)->data : 0;
+}
+
+TOMMY_API void* tommy_trie_search_less(tommy_trie* trie, tommy_key_t key)
+{
+	return trie_search_less(trie, key, 0);
+}
+
+TOMMY_API void* tommy_trie_search_less_equal(tommy_trie* trie, tommy_key_t key)
+{
+	return trie_search_less(trie, key, 1);
+}
+
+TOMMY_API void* tommy_trie_search_greater_equal(tommy_trie* trie, tommy_key_t key)
+{
+	return trie_search_greater(trie, key, 1);
+}
+
+TOMMY_API void* tommy_trie_search_greater(tommy_trie* trie, tommy_key_t key)
+{
+	return trie_search_greater(trie, key, 0);
 }
 
 TOMMY_API tommy_trie_node* tommy_trie_head(tommy_trie* trie)

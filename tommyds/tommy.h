@@ -224,6 +224,20 @@
  * struct trie_inplace_object* found = tommy_trie_inplace_search(&trie_inplace, 1);
  * \endcode
  *
+ * Both numeric tries provide inclusive and exclusive key bound searches:
+ * tommy_trie_search_less(), tommy_trie_search_less_equal(),
+ * tommy_trie_search_greater_equal(), and tommy_trie_search_greater(), with
+ * corresponding tommy_trie_inplace functions. The less searches select the greatest
+ * qualifying key and its last duplicate in insertion order; the greater searches
+ * select the smallest qualifying key and its first duplicate. They return the
+ * object's data pointer, or 0 if none, without allocating memory or scanning elements.
+ * Search keys must fit within the configured number of bits.
+ *
+ * Use tommy_trie_remove_head() or tommy_trie_remove_tail(), and the corresponding
+ * tommy_trie_inplace functions, to remove the smallest or greatest key.
+ * They select the first or last duplicate in insertion order, respectively,
+ * and return the removed object's data pointer, or 0 if the trie is empty.
+ *
  * - **Ordered Trees** (::tommy_tree): AVL tree keeping elements in the order defined by a 3-way comparison
  * callback (::tommy_compare_func). Objects embed a ::tommy_tree_node.
  *
