@@ -339,25 +339,29 @@ TOMMY_API void* tommy_tree_remove_existing(tommy_tree* tree, tommy_tree_node* no
 	return data;
 }
 
-tommy_inline tommy_node* tommy_tree_to_list_node(tommy_tree_node* node, tommy_node* tail)
-{
-	if (node) {
-		tommy_tree_node* right = node->next;
-
-		tail = tommy_tree_to_list_node(node->prev, tail);
-		/* chain appending overwrites child links, so keep the right subtree reachable */
-		tail = tommy_builder_concat(tail, node, node);
-		tail = tommy_tree_to_list_node(right, tail);
-	}
-	return tail;
-}
-
 TOMMY_API void tommy_tree_to_list(tommy_tree* tree, tommy_list* list)
 {
+	/* AVL height is less than twice the bit width of its node count */
+	tommy_tree_node* stack[2 * TOMMY_SIZE_BIT];
+	tommy_size_t depth = 0;
+	tommy_tree_node* node = tree->root;
 	tommy_builder builder;
 	tommy_node* builder_tail = tommy_builder_init(&builder);
 
-	builder_tail = tommy_tree_to_list_node(tree->root, builder_tail);
+	while (node || depth) {
+		while (node) {
+			stack[depth] = node;
+			++depth;
+			node = node->prev;
+		}
+
+		node = stack[--depth];
+		/* chain appending overwrites child links, so keep the right subtree reachable */
+		tommy_tree_node* next = node->next;
+		builder_tail = tommy_builder_concat(builder_tail, node, node);
+		node = next;
+	}
+
 	tommy_list_concat_builder(list, &builder, builder_tail);
 	tommy_tree_clear(tree);
 }
