@@ -381,7 +381,7 @@ tommy_inline tommy_uint_t tommy_ilog2_u32(tommy_uint32_t value)
 #else
 	/* find the log base 2 of an N-bit integer in O(lg(N)) operations with multiply and lookup */
 	/* from http://graphics.stanford.edu/~seander/bithacks.html */
-	static unsigned char TOMMY_DE_BRUIJN_INDEX_ILOG2[32] = {
+	static const unsigned char TOMMY_DE_BRUIJN_INDEX_ILOG2[32] = {
 		0, 9, 1, 10, 13, 21, 2, 29, 11, 14, 16, 18, 22, 25, 3, 30,
 		8, 12, 20, 28, 15, 17, 24, 7, 19, 27, 23, 6, 26, 5, 4, 31
 	};
