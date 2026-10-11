@@ -201,7 +201,7 @@ dist:
 	mkdir $(DIST)/tommyds
 	mkdir $(DIST)/LICENSES
 	cp $(DISTFILES) $(DIST)
-	cp LICENSES/BSD-2-Clause $(DIST)/LICENSES
+	cp LICENSES/BSD-2-Clause LICENSES/MIT $(DIST)/LICENSES
 	cp $(DEP) $(DIST)/tommyds
 	cp $(DEPTEST) $(DIST)
 	cp -R doc $(DIST)

@@ -10,13 +10,10 @@ TommyDS HISTORY
  * BREAKING CHANGE: Renamed tommy_array_insert() to
    tommy_array_insert_tail() and tommy_arrayblk_insert() to
    tommy_arrayblk_insert_tail(). Callers must use the new names.
- * BREAKING CHANGE: Reimplemented tommy_hash_u32(), tommy_hash_u64(),
-   tommy_strhash_u32(), and added tommy_strhash_u64() using MurmurHash3
-   (x86_32 and x64_64) for significantly faster hashing. This is a breaking
-   change because the resulting hash values are different from previous
-   versions. tommy_hash_u32() and tommy_hash_u64() now produce identical hash
-   results to tommy_strhash_u32() and tommy_strhash_u64() for 0-terminated
-   strings.
+ * BREAKING CHANGE: Reimplemented tommy_hash_u32() and tommy_strhash_u32()
+   using a5hash32, and tommy_hash_u64() and the new tommy_strhash_u64()
+   using a5hash (64-bit). Both algorithms pass SMHasher3 tests.
+   The resulting hash values differ from previous versions.
  * In list, added relative insertion, prepending, removal at either end,
    backward iteration, ways to reorder or exchange list contents, transferring
    ranges or whole lists without copying objects, and merging two sorted lists
