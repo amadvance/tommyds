@@ -55,7 +55,7 @@ typedef struct tommy_trie_tree_struct tommy_trie_tree;
  */
 #define trie_get_type(ptr) (((tommy_uintptr_t)(ptr)) & 1)
 #define trie_get_tree(ptr) ((tommy_trie_tree*)(((tommy_uintptr_t)(ptr)) - TOMMY_TRIE_TYPE_TREE))
-#define trie_set_tree(ptr) (void*)(((tommy_uintptr_t)(ptr)) + TOMMY_TRIE_TYPE_TREE)
+#define trie_set_tree(ptr) ((void*)(((tommy_uintptr_t)(ptr)) + TOMMY_TRIE_TYPE_TREE))
 
 TOMMY_API void tommy_trie_init(tommy_trie* trie, tommy_allocator* alloc)
 {
