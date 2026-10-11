@@ -128,7 +128,7 @@ static void tommy_imp_hashdyn_resize(tommy_hashdyn* hashdyn, tommy_uint_t new_bu
  */
 tommy_inline void tommy_imp_hashdyn_grow_step(tommy_hashdyn* hashdyn)
 {
-	/* grow if more than 50% full */
+	/* grow if at least 50% full */
 	if (hashdyn->count >= hashdyn->bucket_max / 2)
 		tommy_imp_hashdyn_resize(hashdyn, hashdyn->bucket_bit + 1);
 }
@@ -138,7 +138,7 @@ tommy_inline void tommy_imp_hashdyn_grow_step(tommy_hashdyn* hashdyn)
  */
 tommy_inline void tommy_imp_hashdyn_shrink_step(tommy_hashdyn* hashdyn)
 {
-	/* shrink if less than 12.5% full */
+	/* shrink if at most 12.5% full */
 	if (hashdyn->count <= hashdyn->bucket_max / 8 && hashdyn->bucket_bit > TOMMY_HASHDYN_BIT)
 		tommy_imp_hashdyn_resize(hashdyn, hashdyn->bucket_bit - 1);
 }
