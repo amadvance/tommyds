@@ -146,7 +146,7 @@ typedef tommy_uint32_t tommy_uint_t;
  * Definition of the restrict keyword if available.
  */
 #if !defined(tommy_restrict)
-#if __STDC_VERSION__ >= 199901L
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #define tommy_restrict restrict
 #elif defined(_MSC_VER) || defined(__GNUC__)
 #define tommy_restrict __restrict
