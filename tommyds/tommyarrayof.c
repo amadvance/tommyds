@@ -37,8 +37,8 @@ TOMMY_API void tommy_arrayof_reserve(tommy_arrayof* array, tommy_size_t size)
 		unsigned char* segment = tommy_cast(unsigned char*, tommy_calloc(array->bucket_max, array->element_size));
 
 		/* store it adjusting the offset */
-		/* cast to ptrdiff_t to ensure to get a negative value */
-		array->bucket[array->bucket_bit] = segment - (tommy_ptrdiff_t)array->bucket_max * array->element_size;
+		/* no cast to ptrdiff_t is needed: unlike array indexing with unary minus, binary pointer subtraction directly offsets backwards with an unsigned operand */
+		array->bucket[array->bucket_bit] = segment - array->bucket_max * array->element_size;
 
 		++array->bucket_bit;
 		array->bucket_max = (tommy_size_t)1 << array->bucket_bit;
