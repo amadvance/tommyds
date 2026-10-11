@@ -3,20 +3,42 @@
 
 /** \file
  * Hash functions for the use with ::tommy_hashtable, ::tommy_hashdyn and ::tommy_hashlin.
+ *
+ * This module provides hash functions designed for in-memory data structures.
+ * ::tommy_hash_u32 and ::tommy_strhash_u32 use a5hash32, while
+ * ::tommy_hash_u64 and ::tommy_strhash_u64 use a5hash (64-bit).
+ * Reversible integer hash functions are also provided for 32-bit and 64-bit keys.
+ *
+ * a5hash32 is intended for 32-bit platforms and uses 32-bit operands with
+ * full 64-bit multiplication results. a5hash uses 64-bit operands with
+ * full 128-bit multiplication results. Both algorithms pass SMHasher3 tests.
+ * 
+ * Prefer the 64-bit version whenever possible, as it provides better resistance
+ * to collisions, particularly with specially crafted inputs. However, neither
+ * version is designed to resist deliberate collision attacks. If resistance to
+ * such attacks is required, use a dedicated hash function designed for that purpose.
+ *
+ * All hash functions are intended for runtime in-memory use only and not
+ * for persistent storage, as hash compatibility across different versions of the
+ * library is not guaranteed. String and sized buffer hash functions produce
+ * identical results for 0-terminated strings.
  */
 
 #ifndef TOMMY_HASH_H
 #define TOMMY_HASH_H
 
 #include "tommytypes.h"
+#include <string.h> /* for strlen */
 
 /******************************************************************************/
 /* hash */
 
 /**
  * Hash function with a 32-bit result.
- * Implementation of MurmurHash3 (x86_32) by Austin Appleby,
- * from https://github.com/aappleby/smhasher
+ * Implementation of a5hash32 by Aleksey Vaneev,
+ * from https://github.com/avaneev/a5hash
+ *
+ * This algorithm is compact, fast on short inputs, and passes SMHasher3 tests.
  *
  * \param init_val Initialization value.
  * Using a different initialization value, you can generate a completely different set of hash values.
@@ -28,15 +50,17 @@
  * It produces identical hash results to ::tommy_strhash_u32 for 0-terminated strings.
  * Compatibility across different versions of the library is not guaranteed:
  * this hash is intended for in-memory runtime use only and not for persistent storage.
- * It is not state-of-the-art against malicious collision attacks, but it is simple and fast.
+ * It is non-cryptographic and is not designed to protect against malicious collision attacks.
  * \return The 32-bit hash value.
  */
 TOMMY_API tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* void_key, tommy_size_t key_len);
 
 /**
  * Hash function with a 64-bit result.
- * Implementation of MurmurHash3 (x64_64) by Austin Appleby,
- * from https://github.com/aappleby/smhasher
+ * Implementation of a5hash (64-bit) by Aleksey Vaneev,
+ * from https://github.com/avaneev/a5hash
+ *
+ * This algorithm is compact, fast on short inputs, and passes SMHasher3 tests.
  *
  * \param init_val Initialization value.
  * Using a different initialization value, you can generate a completely different set of hash values.
@@ -46,20 +70,19 @@ TOMMY_API tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* voi
  * \note
  * This function is endianness independent and alignment independent.
  * It produces identical hash results to ::tommy_strhash_u64 for 0-terminated strings.
- * Compatibility across different versions of the library is not guaranteed:
- * this hash is intended for in-memory runtime use only and not for persistent storage.
- * It is not state-of-the-art against malicious collision attacks, but it is simple and fast.
+ * It is non-cryptographic and is not designed to protect against malicious collision attacks.
  * \return The 64-bit hash value.
  */
 TOMMY_API tommy_uint64_t tommy_hash_u64(tommy_uint64_t init_val, const void* void_key, tommy_size_t key_len);
 
 /**
  * String hash function with a 32-bit result.
- * Implementation is based on MurmurHash3 (x86_32) by Austin Appleby,
- * from https://github.com/aappleby/smhasher
+ * Implementation of a5hash32 by Aleksey Vaneev,
+ * from https://github.com/avaneev/a5hash
  *
  * This hash is designed to handle strings with an unknown length.
- * If the string is aligned, it operates in a single pass without calling strlen().
+ * It is implemented inline using strlen() followed by ::tommy_hash_u32.
+ * This gives better performance than scanning for the terminator while hashing.
  *
  * \param init_val Initialization value.
  * Using a different initialization value, you can generate a completely different set of hash values.
@@ -67,20 +90,25 @@ TOMMY_API tommy_uint64_t tommy_hash_u64(tommy_uint64_t init_val, const void* voi
  * \param void_key Pointer to the string to hash. It has to be 0-terminated.
  * \note
  * This function is endianness independent and alignment independent.
+ * It produces identical hash results to ::tommy_hash_u32 for 0-terminated strings.
  * Compatibility across different versions of the library is not guaranteed:
  * this hash is intended for in-memory runtime use only and not for persistent storage.
- * It is not state-of-the-art against malicious collision attacks, but it is simple and fast.
+ * It is non-cryptographic and is not designed to protect against malicious collision attacks.
  * \return The 32-bit hash value.
  */
-TOMMY_API tommy_uint32_t tommy_strhash_u32(tommy_uint32_t init_val, const void* void_key);
+tommy_inline tommy_uint32_t tommy_strhash_u32(tommy_uint32_t init_val, const void* void_key)
+{
+	return tommy_hash_u32(init_val, void_key, strlen(tommy_cast(const char*, void_key)));
+}
 
 /**
  * String hash function with a 64-bit result.
- * Implementation is based on MurmurHash3 (x64_64) by Austin Appleby,
- * from https://github.com/aappleby/smhasher
+ * Implementation of a5hash (64-bit) by Aleksey Vaneev,
+ * from https://github.com/avaneev/a5hash
  *
  * This hash is designed to handle strings with an unknown length.
- * If the string is aligned, it operates in a single pass without calling strlen().
+ * It is implemented inline using strlen() followed by ::tommy_hash_u64.
+ * This gives better performance than scanning for the terminator while hashing.
  *
  * \param init_val Initialization value.
  * Using a different initialization value, you can generate a completely different set of hash values.
@@ -88,12 +116,14 @@ TOMMY_API tommy_uint32_t tommy_strhash_u32(tommy_uint32_t init_val, const void* 
  * \param void_key Pointer to the string to hash. It has to be 0-terminated.
  * \note
  * This function is endianness independent and alignment independent.
- * Compatibility across different versions of the library is not guaranteed:
- * this hash is intended for in-memory runtime use only and not for persistent storage.
- * It is not state-of-the-art against malicious collision attacks, but it is simple and fast.
+ * It produces identical hash results to ::tommy_hash_u64 for 0-terminated strings.
+ * It is non-cryptographic and is not designed to protect against malicious collision attacks.
  * \return The 64-bit hash value.
  */
-TOMMY_API tommy_uint64_t tommy_strhash_u64(tommy_uint64_t init_val, const void* void_key);
+tommy_inline tommy_uint64_t tommy_strhash_u64(tommy_uint64_t init_val, const void* void_key)
+{
+	return tommy_hash_u64(init_val, void_key, strlen(tommy_cast(const char*, void_key)));
+}
 
 /**
  * Reversible 32-bit integer hash function.
@@ -130,6 +160,105 @@ tommy_inline tommy_uint64_t tommy_inthash_u64(tommy_uint64_t key)
 
 	return key;
 }
+
+/******************************************************************************/
+/* multiplication */
+
+/**
+ * Multiply two 64-bit unsigned numbers to obtain the full 128-bit product.
+ *
+ * \param A Address of the first operand, overwritten with the low 64 bits of the product.
+ * \param B Address of the second operand, overwritten with the high 64 bits of the product.
+ */
+#if defined(_MSC_VER) && defined(_M_X64)
+/**
+ * MSVC x64 does not support inline assembly, so use its full-product intrinsic.
+ */
+#pragma intrinsic(_umul128)
+tommy_inline void tommy_mum(tommy_uint64_t* A, tommy_uint64_t* B)
+{
+	tommy_uint64_t high;
+	tommy_uint64_t low = _umul128(*A, *B, &high);
+	*A = low;
+	*B = high;
+}
+#elif defined(_MSC_VER) && defined(_M_ARM64)
+#pragma intrinsic(__umulh)
+tommy_inline void tommy_mum(tommy_uint64_t* A, tommy_uint64_t* B)
+{
+	tommy_uint64_t a = *A;
+	tommy_uint64_t b = *B;
+	*A = a * b;
+	*B = __umulh(a, b);
+}
+#elif defined(__x86_64__) && (defined(__GNUC__) || defined(__clang__))
+/**
+ * Keep this before __SIZEOF_INT128__ because the explicit mulq generates more efficient code.
+ */
+tommy_inline void tommy_mum(tommy_uint64_t* A, tommy_uint64_t* B)
+{
+	tommy_uint64_t a = *A;
+	tommy_uint64_t b = *B;
+	tommy_uint64_t low, high;
+
+	__asm__ (
+		"mulq %3"
+		: "=a" (low), "=d" (high)
+		: "a" (a), "rm" (b)
+		: "cc"
+	);
+
+	*A = low;
+	*B = high;
+}
+#elif defined(__SIZEOF_INT128__)
+tommy_inline void tommy_mum(tommy_uint64_t* A, tommy_uint64_t* B)
+{
+	__uint128_t product = (__uint128_t)*A * *B;
+	*A = product;
+	*B = product >> 64;
+}
+#elif defined(__aarch64__) && (defined(__GNUC__) || defined(__clang__))
+/**
+ * Keep this after __SIZEOF_INT128__ because the assembly path failed optimized
+ * hash tests on Apple clang 21.0.0. See https://github.com/amadvance/snapraid/issues/43.
+ */
+tommy_inline void tommy_mum(tommy_uint64_t* A, tommy_uint64_t* B)
+{
+	tommy_uint64_t a = *A;
+	tommy_uint64_t b = *B;
+	tommy_uint64_t low = a * b;
+	tommy_uint64_t high;
+	__asm__ (
+		"umulh %0, %1, %2"
+		: "=r" (high)
+		: "r" (a), "r" (b)
+	);
+	*A = low;
+	*B = high;
+}
+#else
+tommy_inline void tommy_mum(tommy_uint64_t* A, tommy_uint64_t* B)
+{
+	tommy_uint64_t a = *A;
+	tommy_uint64_t b = *B;
+	tommy_uint64_t a_lo = (tommy_uint32_t)a;
+	tommy_uint64_t a_hi = a >> 32;
+	tommy_uint64_t b_lo = (tommy_uint32_t)b;
+	tommy_uint64_t b_hi = b >> 32;
+	tommy_uint64_t p0 = a_lo * b_lo;
+	tommy_uint64_t p1 = a_lo * b_hi;
+	tommy_uint64_t p2 = a_hi * b_lo;
+	tommy_uint64_t p3 = a_hi * b_hi;
+
+	/* retain the carry from the middle words in the high half */
+	tommy_uint64_t middle = p1 + (p0 >> 32) + (tommy_uint32_t)p2;
+	tommy_uint64_t low = (middle << 32) | (tommy_uint32_t)p0;
+	tommy_uint64_t high = p3 + (middle >> 32) + (p2 >> 32);
+	*A = low;
+	*B = high;
+}
+#endif
 
 #endif
 
