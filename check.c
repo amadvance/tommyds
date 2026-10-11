@@ -1644,6 +1644,48 @@ void test_list(void)
 	free(VECTOR);
 }
 
+void test_list_clear(void)
+{
+	tommy_list list;
+	struct object objects[2];
+
+	tommy_list_init(&list);
+	objects[0].value = 1;
+	objects[1].value = 2;
+	tommy_list_insert_tail(&list, &objects[0].node, &objects[0]);
+	tommy_list_insert_tail(&list, &objects[1].node, &objects[1]);
+	tommy_list_clear(&list);
+	if (!tommy_list_empty(&list) || tommy_list_count(&list) != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	if (tommy_list_head(&list) != 0 || tommy_list_tail(&list) != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	tommy_list_insert_tail(&list, &objects[0].node, &objects[0]);
+	if (tommy_list_head(&list) != &objects[0].node) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	tommy_list_remove_existing(&list, &objects[0].node);
+
+	struct object* allocated = malloc(sizeof(*allocated));
+	allocated->value = 3;
+	tommy_list_insert_tail(&list, &allocated->node, allocated);
+	tommy_list_foreach(&list, free);
+	tommy_list_clear(&list);
+	if (!tommy_list_empty(&list)) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+}
+
 void test_tree(void)
 {
 	const unsigned size = TOMMY_SIZE / 4;
@@ -7623,6 +7665,55 @@ void test_trie_inplace(void)
 	STOP();
 }
 
+void test_trie_inplace_clear(void)
+{
+	tommy_trie_inplace trie;
+	struct object_trie_inplace objects[2];
+
+	tommy_trie_inplace_init(&trie);
+	objects[0].value = 1;
+	objects[1].value = 2;
+	tommy_trie_inplace_insert(&trie, &objects[0].node, &objects[0], 1);
+	tommy_trie_inplace_insert(&trie, &objects[1].node, &objects[1], 2);
+	tommy_trie_inplace_clear(&trie);
+	if (!tommy_trie_inplace_empty(&trie) || tommy_trie_inplace_count(&trie) != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	for (unsigned i = 0; i < TOMMY_TRIE_INPLACE_BUCKET_MAX; ++i) {
+		if (trie.bucket[i] != 0) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+	if (tommy_trie_inplace_search(&trie, 1) != 0 || tommy_trie_inplace_search(&trie, 2) != 0) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+
+	tommy_trie_inplace_insert(&trie, &objects[0].node, &objects[0], 1);
+	if (tommy_trie_inplace_search(&trie, 1) != &objects[0]) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	tommy_trie_inplace_remove_existing(&trie, &objects[0].node);
+
+	struct object_trie_inplace* allocated = malloc(sizeof(*allocated));
+	allocated->value = 3;
+	tommy_trie_inplace_insert(&trie, &allocated->node, allocated, 3);
+	tommy_trie_inplace_foreach(&trie, free);
+	tommy_trie_inplace_clear(&trie);
+	if (!tommy_trie_inplace_empty(&trie)) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+}
+
 int main()
 {
 	nano_init();
@@ -7633,6 +7724,7 @@ int main()
 	test_alloc();
 	test_alloc_clear();
 	test_list();
+	test_list_clear();
 	test_builder();
 	test_tree();
 	test_tree_swap();
@@ -7663,6 +7755,7 @@ int main()
 	test_trie_swap();
 	test_trie_inplace();
 	test_trie_inplace_iteration();
+	test_trie_inplace_clear();
 	test_trie_inplace_foreach();
 	test_trie_inplace_foreach_order();
 	test_trie_inplace_foreach_depth();

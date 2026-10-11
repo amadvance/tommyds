@@ -229,6 +229,17 @@ typedef struct tommy_trie_inplace_struct {
 TOMMY_API void tommy_trie_inplace_init(tommy_trie_inplace* trie_inplace);
 
 /**
+ * Removes all elements.
+ * The trie remains initialized and can be reused immediately.
+ * Objects are not freed and nodes are not accessed or modified.
+ * Their links must not be used to traverse the previous contents.
+ * You can call this function after tommy_trie_inplace_foreach() has freed the objects.
+ * \param trie_inplace The trie to clear.
+ * \note This operation is O(1) with respect to the number of elements.
+ */
+TOMMY_API void tommy_trie_inplace_clear(tommy_trie_inplace* trie_inplace);
+
+/**
  * Exchanges the complete state of two initialized tries.
  * The tries must not share nodes. Nodes and objects are not accessed or modified.
  * Existing node pointers remain valid and belong to the other trie.
@@ -468,8 +479,8 @@ TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_prev(tommy_trie_inplace* t
  * No memory is allocated. Stack space is bounded by the number of key bits.
  *
  * If the callback frees the objects, the trie retains dangling node
- * pointers. Call tommy_trie_inplace_init() before reusing it. The trie has
- * no storage to release.
+ * pointers. Call tommy_trie_inplace_clear() or tommy_trie_inplace_init()
+ * before reusing it. The trie has no storage to release.
  */
 TOMMY_API void tommy_trie_inplace_foreach(tommy_trie_inplace* trie_inplace, tommy_foreach_func* func);
 

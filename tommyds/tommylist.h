@@ -101,7 +101,7 @@
  * \code
  * // deallocates all the objects iterating the list
  * tommy_list_foreach(&list, free);
- * tommy_list_init(&list); // resets the list before reuse
+ * tommy_list_clear(&list); // resets the list before reuse
  * \endcode
  */
 
@@ -160,6 +160,20 @@ tommy_inline tommy_node* tommy_builder_concat(tommy_node* tail, tommy_node* head
  * The list is completely inplace, so it doesn't need to be deinitialized.
  */
 tommy_inline void tommy_list_init(tommy_list* list)
+{
+	*list = 0;
+}
+
+/**
+ * Removes all elements.
+ * The list remains initialized and can be reused immediately.
+ * Objects are not freed and nodes are not accessed or modified.
+ * Their links must not be used to traverse the previous contents.
+ * You can call this function after tommy_list_foreach() has freed the objects.
+ * \param list The list to clear.
+ * \note This operation is O(1).
+ */
+tommy_inline void tommy_list_clear(tommy_list* list)
 {
 	*list = 0;
 }
@@ -705,12 +719,12 @@ tommy_inline tommy_size_t tommy_list_count(const tommy_list* list)
  *
  * // deallocates all the objects iterating the list
  * tommy_list_foreach(&list, free);
- * tommy_list_init(&list); // resets the list before reuse
+ * tommy_list_clear(&list); // resets the list before reuse
  * \endcode
  *
  * If the callback frees the objects, the list retains dangling node
- * pointers. Call tommy_list_init() before reusing it. The list has
- * no storage to release.
+ * pointers. Call tommy_list_clear() or tommy_list_init() before reusing it.
+ * The list has no storage to release.
  */
 tommy_inline void tommy_list_foreach(tommy_list* list, tommy_foreach_func* func)
 {

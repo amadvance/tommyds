@@ -67,6 +67,14 @@ TOMMY_API void tommy_trie_inplace_init(tommy_trie_inplace* trie_inplace)
 	trie_inplace->count = 0;
 }
 
+TOMMY_API void tommy_trie_inplace_clear(tommy_trie_inplace* trie_inplace)
+{
+	for (tommy_uint_t i = 0; i < TOMMY_TRIE_INPLACE_BUCKET_MAX; ++i)
+		trie_inplace->bucket[i] = 0;
+
+	trie_inplace->count = 0;
+}
+
 tommy_inline void tommy_imp_trie_inplace_bucket_insert(int shift, tommy_trie_inplace_node** let_ptr, tommy_trie_inplace_node* insert, tommy_key_t key)
 {
 	tommy_trie_inplace_node* node = *let_ptr;
