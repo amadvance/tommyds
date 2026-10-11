@@ -188,7 +188,9 @@ TOMMY_API void tommy_hashdyn_clear(tommy_hashdyn* hashdyn);
  * Pre-allocates buckets for the specified number of elements.
  *
  * It ensures that the hashtable has enough buckets allocated to contain
- * the specified number of elements without triggering a dynamic resize.
+ * the specified number of elements without triggering a dynamic resize on insertion.
+ * Subsequent removals retain the normal shrinking policy and may reduce
+ * the allocated capacity.
  * \param hashdyn Hashtable to reserve space in.
  * \param count Number of elements to reserve space for.
  */
