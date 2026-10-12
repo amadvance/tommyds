@@ -12,3 +12,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: make all check
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: make all check
