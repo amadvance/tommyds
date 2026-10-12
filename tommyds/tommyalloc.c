@@ -74,7 +74,9 @@ TOMMY_API void* tommy_allocator_alloc(tommy_allocator* alloc)
 			size = sizeof(tommy_allocator_entry) + alloc->align_size + alloc->block_size;
 
 		char* data = tommy_cast(char*, tommy_malloc(size));
-		tommy_allocator_entry* segment = (tommy_allocator_entry*)data;
+
+		/* malloc guarantees entry alignment, passing through void* avoids -Wcast-align */
+		tommy_allocator_entry* segment = tommy_cast(tommy_allocator_entry*, (void*)data);
 
 		/* put in the segment list */
 		segment->next = alloc->used_segment;
@@ -94,7 +96,8 @@ TOMMY_API void* tommy_allocator_alloc(tommy_allocator* alloc)
 
 		/* insert in free list */
 		do {
-			tommy_allocator_entry* free_block = (tommy_allocator_entry*)data;
+			/* the aligned start and rounded block_size preserve entry alignment, passing through void* avoids -Wcast-align */
+			tommy_allocator_entry* free_block = tommy_cast(tommy_allocator_entry*, (void*)data);
 			free_block->next = alloc->free_block;
 			alloc->free_block = free_block;
 
