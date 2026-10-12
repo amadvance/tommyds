@@ -13,6 +13,23 @@ jobs:
       - uses: actions/checkout@v2
       - run: make all check
 
+  build-linux-arm64:
+    # GitHub has no ubuntu-latest-arm alias
+    runs-on: ubuntu-26.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      - run: make -j$(nproc) all check
+
+  build-linux-x86:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install 32-bit toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-multilib
+      - run: make -j$(nproc) CC="gcc -m32" all check
+
   build-macos:
     runs-on: macos-latest
     steps:
@@ -30,3 +47,30 @@ jobs:
       - name: Run tests
         shell: cmd
         run: tommycheck.exe
+
+  build-windows-arm64:
+    # GitHub has no windows-latest-arm alias
+    runs-on: windows-11-arm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: amd64_arm64
+      - name: Build with clang-cl
+        shell: cmd
+        run: clang-cl --target=aarch64-pc-windows-msvc /nologo /O2 /W4 /TC /clang:-std=c99 /D_CRT_SECURE_NO_WARNINGS check.c tommyds\tommy.c /Fe:tommycheck.exe /link kernel32.lib
+      - name: Run tests
+        shell: cmd
+        run: tommycheck.exe
+
+  build-freebsd:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and test on FreeBSD
+        uses: vmactions/freebsd-vm@v1
+        with:
+          prepare: pkg install -y gmake
+          run: |
+            # the Makefile does not define the object suffix for FreeBSD
+            gmake -j$(sysctl -n hw.ncpu) O=.o all check
