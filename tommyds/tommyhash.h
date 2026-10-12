@@ -201,10 +201,11 @@ tommy_inline void tommy_mum(tommy_uint64_t* A, tommy_uint64_t* B)
 	tommy_uint64_t b = *B;
 	tommy_uint64_t low, high;
 
+	/* require a register to avoid Clang spilling the operand before mulq */
 	__asm__ (
 		"mulq %3"
 		: "=a" (low), "=d" (high)
-		: "a" (a), "rm" (b)
+		: "a" (a), "r" (b)
 		: "cc"
 	);
 
