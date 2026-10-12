@@ -18,3 +18,15 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: make all check
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ilammy/msvc-dev-cmd@v1
+      - name: Build with clang-cl
+        shell: cmd
+        run: clang-cl /nologo /O2 /W4 /TC /clang:-std=c99 /D_CRT_SECURE_NO_WARNINGS check.c tommyds\tommy.c /Fe:tommycheck.exe /link kernel32.lib
+      - name: Run tests
+        shell: cmd
+        run: tommycheck.exe

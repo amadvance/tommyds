@@ -18,6 +18,10 @@
 #include <assert.h>
 #include <limits.h>
 
+#if defined(_WIN32)
+#include <windows.h>
+#endif
+
 #if defined(__linux)
 #include <stdint.h>
 #include <unistd.h>
