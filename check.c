@@ -28,6 +28,10 @@
 #include <sys/time.h>
 #endif
 
+#if defined(__FreeBSD__)
+#include <sys/time.h>
+#endif
+
 #if defined(__MACH__)
 #include <mach/mach_time.h>
 #endif
@@ -1043,28 +1047,28 @@ void test_hash(void)
 			hash32 = tommy_hash_u32(hash32, storage[length].data, length);
 		}
 	} SPEED_STOP
-	printf("%25s %8.2f [ns/hash], %8u [measure]\n", "hash_u32", the_time / (count + 1), the_measure);
+	printf("%25s %8.2f [ns], %8u [measure]\n", "hash_u32", the_time / (count + 1), the_measure);
 
 	SPEED_START(0) {
 		for (unsigned length = 0; length <= count; ++length) {
 			hash64 = tommy_hash_u64(hash64, storage[length].data, length);
 		}
 	} SPEED_STOP
-	printf("%25s %8.2f [ns/hash], %8u [measure]\n", "hash_u64", the_time / (count + 1), the_measure);
+	printf("%25s %8.2f [ns], %8u [measure]\n", "hash_u64", the_time / (count + 1), the_measure);
 
 	SPEED_START(0) {
 		for (unsigned length = 0; length <= count; ++length) {
 			hash32 = tommy_strhash_u32(hash32, storage[length].data);
 		}
 	} SPEED_STOP
-	printf("%25s %8.2f [ns/hash], %8u [measure]\n", "strhash_u32", the_time / (count + 1), the_measure);
+	printf("%25s %8.2f [ns], %8u [measure]\n", "strhash_u32", the_time / (count + 1), the_measure);
 
 	SPEED_START(0) {
 		for (unsigned length = 0; length <= count; ++length) {
 			hash64 = tommy_strhash_u64(hash64, storage[length].data);
 		}
 	} SPEED_STOP
-	printf("%25s %8.2f [ns/hash], %8u [measure]\n", "strhash_u64", the_time / (count + 1), the_measure);
+	printf("%25s %8.2f [ns], %8u [measure]\n", "strhash_u64", the_time / (count + 1), the_measure);
 
 	/* keep all measured hash calls observable */
 	the_hash = hash32;
