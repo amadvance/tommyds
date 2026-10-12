@@ -1498,7 +1498,7 @@ void test_list_splice(void)
 void test_list_concat(void)
 {
 	struct object obj[8];
-	unsigned order[8];
+	unsigned order[8] = { 0 };
 	tommy_list first;
 	tommy_list second;
 
@@ -1518,7 +1518,7 @@ void test_list_concat(void)
 void test_list_prepend(void)
 {
 	struct object obj[8];
-	unsigned order[8];
+	unsigned order[8] = { 0 };
 	tommy_list first;
 	tommy_list second;
 
@@ -1541,7 +1541,7 @@ void test_list_reverse_move(void)
 {
 	struct object obj[6];
 	const unsigned forward[] = { 0, 1, 2, 3, 4, 5 };
-	unsigned order[6];
+	unsigned order[6] = { 0 };
 	tommy_list list;
 
 	for (unsigned n = 0; n <= 6; ++n) {
