@@ -311,6 +311,167 @@ TOMMY_API void* tommy_hashlin_remove(tommy_hashlin* hashlin, tommy_search_func* 
 	return 0;
 }
 
+/**
+ * Compares hashes in least-significant-bit-first order, with 0 before 1.
+ *
+ * The first differing bit decides the order: first precedes second when
+ * second has a 1 there. Equal hashes compare false.
+ */
+tommy_inline tommy_bool_t tommy_imp_hashlin_before(tommy_hash_t first, tommy_hash_t second)
+{
+	/* mark the positions where the hashes differ using XOR */
+	tommy_hash_t diff = first ^ second;
+
+	/* isolate the lowest differing bit using two's complement */
+	tommy_hash_t bit = diff & -diff;
+
+	/* a 1 in second means first has 0 there; equal hashes yield bit == 0 */
+	return (second & bit) != 0;
+}
+
+/**
+ * Gets the adjacent active bucket in least-significant-bit-first order.
+ * Returns bucket_max when there is no adjacent bucket.
+ *
+ * Traverses the virtual binary tree of buckets in bit-reversed order.
+ *
+ * For example, with 8 buckets the forward traversal order is:
+ *   0, 4, 2, 6, 1, 5, 3, 7
+ *
+ * During a progressive resize to 12 buckets (split = 4, low_max = 8):
+ *   0, 8, 4, 2, 10, 6, 1, 9, 5, 3, 11, 7
+ *
+ * Split child buckets (8, 10, 9, 11) immediately follow their parents (0, 2, 1, 3),
+ * keeping the relative order of all other buckets unchanged.
+ *
+ * When resizing completes at 16 buckets:
+ *   0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15
+ */
+tommy_inline tommy_size_t tommy_imp_hashlin_step(tommy_hashlin* hashlin, tommy_size_t pos, tommy_bool_t reverse)
+{
+	/* a split bucket uses one more bit, placing its two children consecutively */
+	tommy_size_t mask = (pos & hashlin->low_mask) < hashlin->split ? hashlin->bucket_mask : hashlin->low_mask;
+	tommy_size_t bit = (mask + 1) / 2;
+
+	/* propagate binary carry in bit-reversed order from MSB downwards */
+	while (bit && ((pos & bit) != 0) != reverse) {
+		pos ^= bit;
+		bit >>= 1;
+	}
+
+	/* carry wrapped around the root of the tree: end of traversal */
+	if (!bit)
+		return hashlin->bucket_max;
+	pos ^= bit;
+
+	/* enter a deeper preceding bucket at its last child, or a following one at its first */
+	if (reverse)
+		pos |= ~mask;
+
+	/* route to the split child bucket if active, otherwise use the parent */
+	if ((pos & hashlin->low_mask) < hashlin->split)
+		return pos & hashlin->bucket_mask;
+	return pos & hashlin->low_mask;
+}
+
+/**
+ * Finds the first or last node starting at an active bucket.
+ *
+ * Scans buckets in least-significant-bit-first order until a non-empty bucket
+ * is found, then returns its extreme element (minimum for forward, maximum for reverse).
+ */
+tommy_inline tommy_hashlin_node* tommy_imp_hashlin_limit(tommy_hashlin* hashlin, tommy_size_t pos, tommy_bool_t reverse)
+{
+	while (pos != hashlin->bucket_max) {
+		tommy_hashlin_node* best = 0;
+		for (tommy_hashlin_node* i = *tommy_hashlin_pos(hashlin, pos); i; i = i->next) {
+			/* equal hashes retain insertion order, so the reverse limit selects the last */
+			if (reverse) {
+				if (!best || !tommy_imp_hashlin_before(i->index, best->index))
+					best = i;
+			} else {
+				if (!best || tommy_imp_hashlin_before(i->index, best->index))
+					best = i;
+			}
+		}
+		if (best)
+			return best;
+		pos = tommy_imp_hashlin_step(hashlin, pos, reverse);
+	}
+	return 0;
+}
+
+/**
+ * Finds a neighbor using the current bucket layout and a resize-independent order.
+ *
+ * First searches for the closest neighbor within the current bucket.
+ * If none exists, advances to the next non-empty active bucket in LSB order.
+ */
+tommy_inline tommy_hashlin_node* tommy_imp_hashlin_neighbor(tommy_hashlin* hashlin, tommy_hashlin_node* node, tommy_bool_t reverse)
+{
+	tommy_size_t pos = node->index & hashlin->low_mask;
+	if (pos < hashlin->split)
+		pos = node->index & hashlin->bucket_mask;
+	tommy_hashlin_node* best = 0;
+	tommy_bool_t passed = 0;
+
+	/*
+	 * Bucket links can change during split and merge. Compare full hashes instead
+	 * of following those links as iteration order, so no remaining node moves
+	 * behind the iterator. Equal hashes always stay in one bucket in insertion order.
+	 */
+	for (tommy_hashlin_node* i = *tommy_hashlin_pos(hashlin, pos); i; i = i->next) {
+		if (i == node) {
+			passed = 1;
+		} else if (i->index == node->index) {
+			/* for identical hashes, follow insertion order relative to the current node */
+			if (reverse && !passed)
+				best = i;
+			else if (!reverse && passed)
+				return i;
+		} else if (reverse) {
+			if (tommy_imp_hashlin_before(i->index, node->index)) {
+				/* find the closest neighbor within the bucket in LSB order */
+				if (!best || !tommy_imp_hashlin_before(i->index, best->index))
+					best = i;
+			}
+		} else {
+			if (tommy_imp_hashlin_before(node->index, i->index)) {
+				/* find the closest neighbor within the bucket in LSB order */
+				if (!best || tommy_imp_hashlin_before(i->index, best->index))
+					best = i;
+			}
+		}
+	}
+	if (best)
+		return best;
+
+	/* bucket exhausted: advance to the next non-empty bucket in LSB order */
+	return tommy_imp_hashlin_limit(hashlin, tommy_imp_hashlin_step(hashlin, pos, reverse), reverse);
+}
+
+TOMMY_API tommy_hashlin_node* tommy_hashlin_head(tommy_hashlin* hashlin)
+{
+	/* start forward traversal at bucket 0, which has all LSB bits at zero */
+	return tommy_imp_hashlin_limit(hashlin, 0, 0);
+}
+
+TOMMY_API tommy_hashlin_node* tommy_hashlin_tail(tommy_hashlin* hashlin)
+{
+	/* split is always below low_max between API calls, so the all-ones low bucket is unsplit */
+	return tommy_imp_hashlin_limit(hashlin, hashlin->low_mask, 1);
+}
+
+TOMMY_API tommy_hashlin_node* tommy_hashlin_next(tommy_hashlin* hashlin, tommy_hashlin_node* node)
+{
+	return tommy_imp_hashlin_neighbor(hashlin, node, 0);
+}
+
+TOMMY_API tommy_hashlin_node* tommy_hashlin_prev(tommy_hashlin* hashlin, tommy_hashlin_node* node)
+{
+	return tommy_imp_hashlin_neighbor(hashlin, node, 1);
+}
+
 TOMMY_API void tommy_hashlin_foreach(tommy_hashlin* hashlin, tommy_foreach_func* func)
 {
 	/* number of valid buckets */

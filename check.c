@@ -4601,6 +4601,226 @@ void test_hashtable_clear(void)
 	tommy_hashtable_done(&hashtable);
 }
 
+static tommy_size_t hashtable_test_mask;
+
+static int hashtable_iteration_compare(const void* first, const void* second)
+{
+	const struct object_hash* a = *(struct object_hash* const*)first;
+	const struct object_hash* b = *(struct object_hash* const*)second;
+	tommy_size_t pa = a->node.index & hashtable_test_mask;
+	tommy_size_t pb = b->node.index & hashtable_test_mask;
+	if (pa != pb)
+		return pa < pb ? -1 : 1;
+	return (a->value > b->value) - (a->value < b->value);
+}
+
+static tommy_hash_t hashtable_iteration_hash(unsigned i, unsigned mode)
+{
+	switch (mode) {
+	case 0 :
+		return tommy_inthash_u32(i / 3);
+	case 1 :
+		return (tommy_hash_t)(i % 19) << 4;
+	case 2 :
+		return ~(tommy_hash_t)0;
+	default :
+		return i % 3 == 0 ? 0 : ((tommy_hash_t)1 << (i % TOMMY_SIZE_BIT));
+	}
+}
+
+static void hashtable_iteration_check(tommy_hashtable* table, struct object_hash** expected, unsigned count)
+{
+	tommy_hashtable_node* node = tommy_hashtable_head(table);
+	for (unsigned i = 0; i < count; ++i) {
+		if (!(node == &expected[i]->node)) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		if (!(tommy_hashtable_prev(table, node) == (i ? &expected[i - 1]->node : 0))) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		node = tommy_hashtable_next(table, node);
+	}
+	if (!(node == 0)) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	node = tommy_hashtable_tail(table);
+	for (unsigned i = count; i != 0; ) {
+		--i;
+		if (!(node == &expected[i]->node)) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		node = tommy_hashtable_prev(table, node);
+	}
+	if (!(node == 0)) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+}
+
+void test_hashtable_iterators(void)
+{
+	struct object_hash obj[512];
+	struct object_hash* expected[512];
+	const unsigned checkpoints[] = { 0, 1, 16, 17, 63, 64, 65, 128, 256, 512 };
+
+	hashtable_test_mask = 64 - 1;
+
+	for (unsigned mode = 0; mode < 4; ++mode) {
+		tommy_hashtable table;
+		tommy_hashtable_init(&table, 64);
+		unsigned count = 0;
+		for (unsigned c = 0; c < sizeof(checkpoints) / sizeof(checkpoints[0]); ++c) {
+			while (count < checkpoints[c]) {
+				obj[count].value = count;
+				tommy_hashtable_insert(&table, &obj[count].node, &obj[count], hashtable_iteration_hash(count, mode));
+				++count;
+			}
+			for (unsigned i = 0; i < count; ++i)
+				expected[i] = &obj[i];
+			qsort(expected, count, sizeof(expected[0]), hashtable_iteration_compare);
+			hashtable_iteration_check(&table, expected, count);
+		}
+
+		/* swapping transfers iterator ownership without changing node order */
+		tommy_hashtable other;
+		tommy_hashtable_init(&other, 64);
+		tommy_hashtable_swap(&table, &other);
+		hashtable_iteration_check(&other, expected, count);
+		hashtable_iteration_check(&table, expected, 0);
+		tommy_hashtable_clear(&other);
+		hashtable_iteration_check(&other, expected, 0);
+		tommy_hashtable_done(&other);
+		tommy_hashtable_done(&table);
+	}
+
+	for (unsigned mode = 0; mode < 4; ++mode) {
+		for (unsigned reverse = 0; reverse < 2; ++reverse) {
+			for (unsigned mutation = 0; mutation < 3; ++mutation) {
+				tommy_hashtable table;
+				tommy_hashtable_init(&table, 64);
+				unsigned count = 512;
+				unsigned char seen[512] = { 0 };
+				unsigned char removed[512] = { 0 };
+				for (unsigned i = 0; i < count; ++i) {
+					obj[i].value = i;
+					tommy_hashtable_insert(&table, &obj[i].node, &obj[i], hashtable_iteration_hash(i, mode));
+					expected[i] = &obj[i];
+				}
+				qsort(expected, count, sizeof(expected[0]), hashtable_iteration_compare);
+				unsigned visited = 0;
+				unsigned original_visited = 0;
+				unsigned removed_count = 0;
+				tommy_hashtable_node* node = reverse ? tommy_hashtable_tail(&table) : tommy_hashtable_head(&table);
+				while (node) {
+					struct object_hash* object = node->data;
+					unsigned id = object->value;
+					if (!(!seen[id])) {
+						/* LCOV_EXCL_START */
+						abort();
+						/* LCOV_EXCL_STOP */
+					}
+					seen[id] = 1;
+					++visited;
+					if (id < count) {
+						if (!(original_visited < count)) {
+							/* LCOV_EXCL_START */
+							abort();
+							/* LCOV_EXCL_STOP */
+						}
+						if (!(object == expected[reverse ? count - 1 - original_visited : original_visited])) {
+							/* LCOV_EXCL_START */
+							abort();
+							/* LCOV_EXCL_STOP */
+						}
+						++original_visited;
+					}
+
+					/* save the neighbor before mutations */
+					tommy_hashtable_node* next = reverse ? tommy_hashtable_prev(&table, node) : tommy_hashtable_next(&table, node);
+					if (mutation == 0 || (mutation == 1 && visited % 17 != 0)) {
+						void* data = visited % 2 ? tommy_hashtable_remove_existing(&table, node)
+							: tommy_hashtable_remove(&table, search_callback, object, node->index);
+						if (!(data == object)) {
+							/* LCOV_EXCL_START */
+							abort();
+							/* LCOV_EXCL_STOP */
+						}
+						removed[id] = 1;
+						++removed_count;
+					} else if (mutation == 2 && (visited % 16 == 0 || !next)) {
+						/* remove previously visited nodes as well as the current node */
+						for (unsigned i = 0; i < count; ++i) {
+							if (seen[i] && !removed[i]) {
+								if (!(tommy_hashtable_remove_existing(&table, &obj[i].node) == &obj[i])) {
+									/* LCOV_EXCL_START */
+									abort();
+									/* LCOV_EXCL_STOP */
+								}
+								removed[i] = 1;
+								++removed_count;
+							}
+						}
+					}
+					node = next;
+				}
+				if (!(original_visited == count)) {
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+				}
+				if (!(tommy_hashtable_count(&table) == count - removed_count)) {
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+				}
+
+				/* verify survivors in both directions against the independent oracle */
+				unsigned survivors = 0;
+				for (unsigned i = 0; i < count; ++i)
+					if (!removed[i])
+						expected[survivors++] = &obj[i];
+				qsort(expected, survivors, sizeof(expected[0]), hashtable_iteration_compare);
+				hashtable_iteration_check(&table, expected, survivors);
+				tommy_hashtable_done(&table);
+			}
+		}
+	}
+
+	/* freeing each removed object must not leave iteration dependent on its links */
+	for (unsigned reverse = 0; reverse < 2; ++reverse) {
+		tommy_hashtable table;
+		tommy_hashtable_init(&table, 64);
+		for (unsigned i = 0; i < 256; ++i) {
+			struct object_hash* object = malloc(sizeof(struct object_hash));
+			object->value = i;
+			tommy_hashtable_insert(&table, &object->node, object, hashtable_iteration_hash(i, 0));
+		}
+		unsigned visited = 0;
+		tommy_hashtable_node* node = reverse ? tommy_hashtable_tail(&table) : tommy_hashtable_head(&table);
+		while (node) {
+			tommy_hashtable_node* next = reverse ? tommy_hashtable_prev(&table, node) : tommy_hashtable_next(&table, node);
+			free(tommy_hashtable_remove_existing(&table, node));
+			++visited;
+			node = next;
+		}
+		if (visited != 256 || !tommy_hashtable_empty(&table)) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_hashtable_done(&table);
+	}
+}
+
 void test_hashtable(void)
 {
 	tommy_hashtable hashtable;
@@ -4612,6 +4832,7 @@ void test_hashtable(void)
 	test_hashtable_swap();
 	test_hashtable_rehash_existing();
 	test_hashtable_to_list();
+	test_hashtable_iterators();
 
 	struct object_hash* HASH = malloc(size * sizeof(struct object_hash));
 
@@ -5395,6 +5616,242 @@ void test_hashdyn_clear(void)
 	tommy_hashdyn_done(&hashdyn);
 }
 
+static int hash_bitreverse_compare(const void* first, const void* second)
+{
+	const struct object_hash* a = *(struct object_hash* const*)first;
+	const struct object_hash* b = *(struct object_hash* const*)second;
+	tommy_hash_t x = a->node.index;
+	tommy_hash_t y = b->node.index;
+	tommy_hash_t rx = 0;
+	tommy_hash_t ry = 0;
+	for (unsigned i = 0; i < TOMMY_SIZE_BIT; ++i) {
+		rx = (rx << 1) | (x & 1);
+		ry = (ry << 1) | (y & 1);
+		x >>= 1;
+		y >>= 1;
+	}
+	if (rx != ry)
+		return rx < ry ? -1 : 1;
+	return (a->value > b->value) - (a->value < b->value);
+}
+
+static tommy_hash_t hashdyn_iteration_hash(unsigned i, unsigned mode)
+{
+	switch (mode) {
+	case 0 :
+		return tommy_inthash_u32(i / 3);
+	case 1 :
+		return (tommy_hash_t)(i % 19) << TOMMY_HASHDYN_BIT;
+	case 2 :
+		return ~(tommy_hash_t)0;
+	default :
+		return i % 3 == 0 ? 0 : ((tommy_hash_t)1 << (i % TOMMY_SIZE_BIT));
+	}
+}
+
+static void hashdyn_iteration_check(tommy_hashdyn* table, struct object_hash** expected, unsigned count)
+{
+	tommy_hashdyn_node* node = tommy_hashdyn_head(table);
+	for (unsigned i = 0; i < count; ++i) {
+		if (!(node == &expected[i]->node)) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		if (!(tommy_hashdyn_prev(table, node) == (i ? &expected[i - 1]->node : 0))) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		node = tommy_hashdyn_next(table, node);
+	}
+	if (!(node == 0)) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	node = tommy_hashdyn_tail(table);
+	for (unsigned i = count; i != 0; ) {
+		--i;
+		if (!(node == &expected[i]->node)) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		node = tommy_hashdyn_prev(table, node);
+	}
+	if (!(node == 0)) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+}
+
+void test_hashdyn_iterators(void)
+{
+	struct object_hash obj[1024];
+	struct object_hash* expected[1024];
+	const unsigned checkpoints[] = { 0, 1, 8, 9, 15, 16, 17, 31, 32, 33, 64, 128, 256, 513, 1024 };
+
+	for (unsigned mode = 0; mode < 4; ++mode) {
+		tommy_hashdyn table;
+		tommy_hashdyn_init(&table);
+		unsigned count = 0;
+		for (unsigned c = 0; c < sizeof(checkpoints) / sizeof(checkpoints[0]); ++c) {
+			while (count < checkpoints[c]) {
+				obj[count].value = count;
+				tommy_hashdyn_insert(&table, &obj[count].node, &obj[count], hashdyn_iteration_hash(count, mode));
+				++count;
+			}
+			for (unsigned i = 0; i < count; ++i)
+				expected[i] = &obj[i];
+			qsort(expected, count, sizeof(expected[0]), hash_bitreverse_compare);
+			hashdyn_iteration_check(&table, expected, count);
+		}
+
+		/* swapping transfers iterator ownership without changing node order */
+		tommy_hashdyn other;
+		tommy_hashdyn_init(&other);
+		tommy_hashdyn_swap(&table, &other);
+		hashdyn_iteration_check(&other, expected, count);
+		hashdyn_iteration_check(&table, expected, 0);
+		tommy_hashdyn_clear(&other);
+		hashdyn_iteration_check(&other, expected, 0);
+		tommy_hashdyn_done(&other);
+		tommy_hashdyn_done(&table);
+	}
+
+	for (unsigned mode = 0; mode < 4; ++mode) {
+		for (unsigned reverse = 0; reverse < 2; ++reverse) {
+			for (unsigned mutation = 0; mutation < 4; ++mutation) {
+				tommy_hashdyn table;
+				tommy_hashdyn_init(&table);
+				unsigned count = mutation == 3 ? 130 : 1024;
+				unsigned char seen[1024] = { 0 };
+				unsigned char removed[1024] = { 0 };
+				for (unsigned i = 0; i < count; ++i) {
+					obj[i].value = i;
+					tommy_hashdyn_insert(&table, &obj[i].node, &obj[i], hashdyn_iteration_hash(i, mode));
+					expected[i] = &obj[i];
+				}
+				qsort(expected, count, sizeof(expected[0]), hash_bitreverse_compare);
+				unsigned visited = 0;
+				unsigned original_visited = 0;
+				unsigned removed_count = 0;
+				tommy_size_t initial_max = table.bucket_max;
+				tommy_hashdyn_node* node = reverse ? tommy_hashdyn_tail(&table) : tommy_hashdyn_head(&table);
+				while (node) {
+					struct object_hash* object = node->data;
+					unsigned id = object->value;
+					if (!(!seen[id])) {
+						/* LCOV_EXCL_START */
+						abort();
+						/* LCOV_EXCL_STOP */
+					}
+					seen[id] = 1;
+					++visited;
+					if (id < count) {
+						if (!(original_visited < count)) {
+							/* LCOV_EXCL_START */
+							abort();
+							/* LCOV_EXCL_STOP */
+						}
+						if (!(object == expected[reverse ? count - 1 - original_visited : original_visited])) {
+							/* LCOV_EXCL_START */
+							abort();
+							/* LCOV_EXCL_STOP */
+						}
+						++original_visited;
+					}
+
+					/* save the neighbor before mutations, including resize and batch removal */
+					tommy_hashdyn_node* next = reverse ? tommy_hashdyn_prev(&table, node) : tommy_hashdyn_next(&table, node);
+					if (mutation == 0 || (mutation == 1 && visited % 17 != 0)) {
+						void* data = visited % 2 ? tommy_hashdyn_remove_existing(&table, node)
+							: tommy_hashdyn_remove(&table, search_callback, object, node->index);
+						if (!(data == object)) {
+							/* LCOV_EXCL_START */
+							abort();
+							/* LCOV_EXCL_STOP */
+						}
+						removed[id] = 1;
+						++removed_count;
+					} else if (mutation == 2 && (visited % 16 == 0 || !next)) {
+						/* remove previously visited nodes as well as the current node */
+						for (unsigned i = 0; i < count; ++i) {
+							if (seen[i] && !removed[i]) {
+								if (!(tommy_hashdyn_remove_existing(&table, &obj[i].node) == &obj[i])) {
+									/* LCOV_EXCL_START */
+									abort();
+									/* LCOV_EXCL_STOP */
+								}
+								removed[i] = 1;
+								++removed_count;
+							}
+						}
+					} else if (mutation == 3 && visited == 1) {
+						/* force growth after saving an iterator, including duplicate hashes */
+						for (unsigned i = count; i < 1024; ++i) {
+							obj[i].value = i;
+							tommy_hashdyn_insert(&table, &obj[i].node, &obj[i], hashdyn_iteration_hash(i, mode));
+						}
+					}
+					node = next;
+				}
+				if (!(original_visited == count)) {
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+				}
+				if (!(tommy_hashdyn_count(&table) == (mutation == 3 ? 1024 : count) - removed_count)) {
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+				}
+				if (!(mutation == 3 ? table.bucket_max > initial_max : table.bucket_max < initial_max)) {
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+				}
+
+				/* verify survivors in both directions against the independent oracle */
+				unsigned survivors = 0;
+				for (unsigned i = 0; i < (mutation == 3 ? 1024 : count); ++i)
+					if (!removed[i])
+						expected[survivors++] = &obj[i];
+				qsort(expected, survivors, sizeof(expected[0]), hash_bitreverse_compare);
+				hashdyn_iteration_check(&table, expected, survivors);
+				tommy_hashdyn_done(&table);
+			}
+		}
+	}
+
+	/* freeing each removed object must not leave iteration dependent on its links */
+	for (unsigned reverse = 0; reverse < 2; ++reverse) {
+		tommy_hashdyn table;
+		tommy_hashdyn_init(&table);
+		for (unsigned i = 0; i < 512; ++i) {
+			struct object_hash* object = malloc(sizeof(struct object_hash));
+			object->value = i;
+			tommy_hashdyn_insert(&table, &object->node, object, hashdyn_iteration_hash(i, 0));
+		}
+		unsigned visited = 0;
+		tommy_hashdyn_node* node = reverse ? tommy_hashdyn_tail(&table) : tommy_hashdyn_head(&table);
+		while (node) {
+			tommy_hashdyn_node* next = reverse ? tommy_hashdyn_prev(&table, node) : tommy_hashdyn_next(&table, node);
+			free(tommy_hashdyn_remove_existing(&table, node));
+			++visited;
+			node = next;
+		}
+		if (visited != 512 || !tommy_hashdyn_empty(&table)) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_hashdyn_done(&table);
+	}
+}
+
 void test_hashdyn(void)
 {
 	const unsigned size = TOMMY_SIZE;
@@ -5406,6 +5863,7 @@ void test_hashdyn(void)
 	test_hashdyn_swap();
 	test_hashdyn_rehash_existing();
 	test_hashdyn_to_list();
+	test_hashdyn_iterators();
 
 	struct object_hash* HASH = malloc(size * sizeof(struct object_hash));
 
@@ -6290,6 +6748,232 @@ void test_hashlin_clear(void)
 	}
 }
 
+/**
+ * Independent iteration-order oracle: reverse the hash bits, then compare
+ * insertion sequence numbers for equal hashes.
+ */
+static int hashlin_iteration_compare(const void* first, const void* second)
+{
+	return hash_bitreverse_compare(first, second);
+}
+
+static tommy_hash_t hashlin_iteration_hash(unsigned i, unsigned mode)
+{
+	switch (mode) {
+	case 0 :
+		return tommy_inthash_u32(i / 3);
+	case 1 :
+		return (tommy_hash_t)(i % 19) << TOMMY_HASHLIN_BIT;
+	case 2 :
+		return ~(tommy_hash_t)0;
+	default :
+		return i % 3 == 0 ? 0 : ((tommy_hash_t)1 << (i % TOMMY_SIZE_BIT));
+	}
+}
+
+static void hashlin_iteration_check(tommy_hashlin* table, struct object_hash** expected, unsigned count)
+{
+	tommy_hashlin_node* node = tommy_hashlin_head(table);
+	for (unsigned i = 0; i < count; ++i) {
+		if (!(node == &expected[i]->node)) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		if (!(tommy_hashlin_prev(table, node) == (i ? &expected[i - 1]->node : 0))) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		node = tommy_hashlin_next(table, node);
+	}
+	if (!(node == 0)) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+	node = tommy_hashlin_tail(table);
+	for (unsigned i = count; i != 0; ) {
+		--i;
+		if (!(node == &expected[i]->node)) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		node = tommy_hashlin_prev(table, node);
+	}
+	if (!(node == 0)) {
+		/* LCOV_EXCL_START */
+		abort();
+		/* LCOV_EXCL_STOP */
+	}
+}
+
+void test_hashlin_iterators(void)
+{
+	struct object_hash obj[1024];
+	struct object_hash* expected[1024];
+	const unsigned checkpoints[] = { 0, 1, 32, 33, 63, 64, 65, 127, 128, 129, 256, 513, 1024 };
+
+	for (unsigned mode = 0; mode < 4; ++mode) {
+		tommy_hashlin table;
+		tommy_hashlin_init(&table);
+		unsigned count = 0;
+		for (unsigned c = 0; c < sizeof(checkpoints) / sizeof(checkpoints[0]); ++c) {
+			while (count < checkpoints[c]) {
+				obj[count].value = count;
+				tommy_hashlin_insert(&table, &obj[count].node, &obj[count], hashlin_iteration_hash(count, mode));
+				++count;
+			}
+			for (unsigned i = 0; i < count; ++i)
+				expected[i] = &obj[i];
+			qsort(expected, count, sizeof(expected[0]), hashlin_iteration_compare);
+			hashlin_iteration_check(&table, expected, count);
+		}
+
+		/* swapping transfers iterator ownership without changing node order */
+		tommy_hashlin other;
+		tommy_hashlin_init(&other);
+		tommy_hashlin_swap(&table, &other);
+		hashlin_iteration_check(&other, expected, count);
+		hashlin_iteration_check(&table, expected, 0);
+		tommy_hashlin_clear(&other);
+		hashlin_iteration_check(&other, expected, 0);
+		tommy_hashlin_done(&other);
+		tommy_hashlin_done(&table);
+	}
+
+	for (unsigned mode = 0; mode < 4; ++mode) {
+		for (unsigned reverse = 0; reverse < 2; ++reverse) {
+			for (unsigned mutation = 0; mutation < 4; ++mutation) {
+				tommy_hashlin table;
+				tommy_hashlin_init(&table);
+				unsigned count = mutation == 3 ? 130 : 1024;
+				unsigned char seen[1024] = { 0 };
+				unsigned char removed[1024] = { 0 };
+				for (unsigned i = 0; i < count; ++i) {
+					obj[i].value = i;
+					tommy_hashlin_insert(&table, &obj[i].node, &obj[i], hashlin_iteration_hash(i, mode));
+					expected[i] = &obj[i];
+				}
+				qsort(expected, count, sizeof(expected[0]), hashlin_iteration_compare);
+				unsigned visited = 0;
+				unsigned original_visited = 0;
+				unsigned removed_count = 0;
+				tommy_size_t initial_max = table.bucket_max;
+				tommy_hashlin_node* node = reverse ? tommy_hashlin_tail(&table) : tommy_hashlin_head(&table);
+				while (node) {
+					struct object_hash* object = node->data;
+					unsigned id = object->value;
+					if (!(!seen[id])) {
+						/* LCOV_EXCL_START */
+						abort();
+						/* LCOV_EXCL_STOP */
+					}
+					seen[id] = 1;
+					++visited;
+					if (id < count) {
+						if (!(original_visited < count)) {
+							/* LCOV_EXCL_START */
+							abort();
+							/* LCOV_EXCL_STOP */
+						}
+						if (!(object == expected[reverse ? count - 1 - original_visited : original_visited])) {
+							/* LCOV_EXCL_START */
+							abort();
+							/* LCOV_EXCL_STOP */
+						}
+						++original_visited;
+					}
+
+					/* save the neighbor before mutations, including resize and batch removal */
+					tommy_hashlin_node* next = reverse ? tommy_hashlin_prev(&table, node) : tommy_hashlin_next(&table, node);
+					if (mutation == 0 || (mutation == 1 && visited % 17 != 0)) {
+						void* data = visited % 2 ? tommy_hashlin_remove_existing(&table, node)
+							: tommy_hashlin_remove(&table, search_callback, object, node->index);
+						if (!(data == object)) {
+							/* LCOV_EXCL_START */
+							abort();
+							/* LCOV_EXCL_STOP */
+						}
+						removed[id] = 1;
+						++removed_count;
+					} else if (mutation == 2 && (visited % 16 == 0 || !next)) {
+						/* remove previously visited nodes as well as the current node */
+						for (unsigned i = 0; i < count; ++i) {
+							if (seen[i] && !removed[i]) {
+								if (!(tommy_hashlin_remove_existing(&table, &obj[i].node) == &obj[i])) {
+									/* LCOV_EXCL_START */
+									abort();
+									/* LCOV_EXCL_STOP */
+								}
+								removed[i] = 1;
+								++removed_count;
+							}
+						}
+					} else if (mutation == 3 && visited == 1) {
+						/* force growth after saving an iterator, including duplicate hashes */
+						for (unsigned i = count; i < 1024; ++i) {
+							obj[i].value = i;
+							tommy_hashlin_insert(&table, &obj[i].node, &obj[i], hashlin_iteration_hash(i, mode));
+						}
+					}
+					node = next;
+				}
+				if (!(original_visited == count)) {
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+				}
+				if (!(tommy_hashlin_count(&table) == (mutation == 3 ? 1024 : count) - removed_count)) {
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+				}
+				if (!(mutation == 3 ? table.bucket_max > initial_max : table.bucket_max < initial_max)) {
+					/* LCOV_EXCL_START */
+					abort();
+					/* LCOV_EXCL_STOP */
+				}
+
+				/* verify survivors in both directions against the independent oracle */
+				unsigned survivors = 0;
+				for (unsigned i = 0; i < (mutation == 3 ? 1024 : count); ++i)
+					if (!removed[i])
+						expected[survivors++] = &obj[i];
+				qsort(expected, survivors, sizeof(expected[0]), hashlin_iteration_compare);
+				hashlin_iteration_check(&table, expected, survivors);
+				tommy_hashlin_done(&table);
+			}
+		}
+	}
+
+	/* freeing each removed object must not leave iteration dependent on its links */
+	for (unsigned reverse = 0; reverse < 2; ++reverse) {
+		tommy_hashlin table;
+		tommy_hashlin_init(&table);
+		for (unsigned i = 0; i < 512; ++i) {
+			struct object_hash* object = malloc(sizeof(struct object_hash));
+			object->value = i;
+			tommy_hashlin_insert(&table, &object->node, object, hashlin_iteration_hash(i, 0));
+		}
+		unsigned visited = 0;
+		tommy_hashlin_node* node = reverse ? tommy_hashlin_tail(&table) : tommy_hashlin_head(&table);
+		while (node) {
+			tommy_hashlin_node* next = reverse ? tommy_hashlin_prev(&table, node) : tommy_hashlin_next(&table, node);
+			free(tommy_hashlin_remove_existing(&table, node));
+			++visited;
+			node = next;
+		}
+		if (visited != 512 || !tommy_hashlin_empty(&table)) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_hashlin_done(&table);
+	}
+}
+
 void test_hashlin(void)
 {
 	const unsigned size = TOMMY_SIZE;
@@ -6301,6 +6985,7 @@ void test_hashlin(void)
 	test_hashlin_rehash_existing();
 	test_hashlin_foreach();
 	test_hashlin_to_list();
+	test_hashlin_iterators();
 
 	struct object_hash* HASH = malloc(size * sizeof(struct object_hash));
 

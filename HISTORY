@@ -25,6 +25,9 @@ TommyDS HISTORY
  * In hashtable, added querying table state, emptying while retaining
    buckets, inserting only absent keys, updating an existing node's hash,
    draining nodes to a list, and reserving or shrinking bucket allocations.
+ * In hashtable, hashdyn and hashlin, added bidirectional traversal with
+   head(), tail(), next() and prev(), allowing insertions and removals during
+   iteration.
  * In tree, added navigation and key ordering, testing for emptiness,
    removing the smallest or greatest element, constant-time tree swapping,
    inclusive and exclusive key bound searches, unique insertion, removal using

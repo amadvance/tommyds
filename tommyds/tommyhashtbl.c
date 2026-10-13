@@ -171,3 +171,66 @@ TOMMY_API void tommy_hashtable_to_list(tommy_hashtable* hashtable, tommy_list* l
 	hashtable->count = 0;
 }
 
+/**
+ * Finds the first or last node starting at an active bucket.
+ *
+ * Scans buckets in sequential order until a non-empty bucket is found,
+ * then returns its head (for forward) or tail (for reverse).
+ */
+tommy_inline tommy_hashtable_node* tommy_imp_hashtable_limit(tommy_hashtable* hashtable, tommy_size_t pos, tommy_bool_t reverse)
+{
+	if (reverse) {
+		while (pos < hashtable->bucket_max) {
+			if (hashtable->bucket[pos])
+				return hashtable->bucket[pos]->prev;
+			if (!pos)
+				break;
+			--pos;
+		}
+	} else {
+		while (pos < hashtable->bucket_max) {
+			if (hashtable->bucket[pos])
+				return hashtable->bucket[pos];
+			++pos;
+		}
+	}
+	return 0;
+}
+
+TOMMY_API tommy_hashtable_node* tommy_hashtable_head(tommy_hashtable* hashtable)
+{
+	/* start forward traversal at the first bucket */
+	return tommy_imp_hashtable_limit(hashtable, 0, 0);
+}
+
+TOMMY_API tommy_hashtable_node* tommy_hashtable_tail(tommy_hashtable* hashtable)
+{
+	/* start reverse traversal at the last bucket */
+	return tommy_imp_hashtable_limit(hashtable, hashtable->bucket_max - 1, 1);
+}
+
+TOMMY_API tommy_hashtable_node* tommy_hashtable_next(tommy_hashtable* hashtable, tommy_hashtable_node* node)
+{
+	if (node->next)
+		return node->next;
+
+	/* bucket exhausted: advance to the next non-empty bucket */
+	tommy_size_t pos = node->index & hashtable->bucket_mask;
+	return tommy_imp_hashtable_limit(hashtable, pos + 1, 0);
+}
+
+TOMMY_API tommy_hashtable_node* tommy_hashtable_prev(tommy_hashtable* hashtable, tommy_hashtable_node* node)
+{
+	tommy_size_t pos = node->index & hashtable->bucket_mask;
+
+	/* if not at the head of the current bucket, use the previous node */
+	if (node != hashtable->bucket[pos])
+		return node->prev;
+
+	if (!pos)
+		return 0;
+
+	/* bucket exhausted: advance to the preceding non-empty bucket */
+	return tommy_imp_hashtable_limit(hashtable, pos - 1, 1);
+}
+
