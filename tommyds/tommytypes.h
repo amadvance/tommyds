@@ -102,7 +102,57 @@ typedef tommy_uint32_t tommy_uint_t;
 
 /**
  * Generic malloc(), calloc(), realloc() and free() functions.
- * Redefine them to what you need. By default they map to the C malloc(), calloc(), realloc() and free().
+ *
+ * Redefine them to what you need. By default they map to the C malloc(),
+ * calloc(), realloc() and free().
+ *
+ * \par Infallible Allocation Invariant
+ * Tommy assumes that dynamic memory allocation never fails and that these
+ * functions always return a valid, non-zero pointer. The library does not
+ * check for allocation failures and does not return error codes for
+ * out-of-memory (OOM) conditions.
+ *
+ * \par Rationale
+ * This choice reflects the memory model of modern general-purpose operating
+ * systems:
+ * - **Virtual Memory Overcommit:** On modern systems (such as Linux with default
+ *   overcommit heuristics), malloc() reserves virtual address space and almost
+ *   never returns 0 on 64-bit systems. Physical memory is committed on first write,
+ *   meaning actual exhaustion triggers the kernel OOM Killer (SIGKILL) rather
+ *   than an allocation failure. Checking for null returns in userspace often
+ *   provides a false sense of security.
+ * - **Swap Thrashing:** In systems backed by swap, severe memory pressure causes
+ *   destructive disk thrashing, degrading throughput by orders of magnitude and
+ *   rendering the process unusable long before an allocation call fails.
+ *
+ * \par Advantages
+ * - **Zero Error-Path Overhead:** No branch predictions, conditional jumps, or
+ *   status checks inside critical insertion and resizing loops, maximizing CPU
+ *   cache efficiency and execution speed.
+ * - **Clean and Lean API:** Functions (such as insertion and resizing) can remain
+ *   simple (often returning void or direct object pointers) without cluttering
+ *   client code with error-propagation boilerplate.
+ * - **Deterministic Consistency:** Avoids complex transactional rollback logic
+ *   otherwise required if an allocation failed halfway through dynamic table
+ *   growth or node migration.
+ * - **Industry Alignment:** Follows the established design of high-performance
+ *   systems libraries (e.g., GLib's g_malloc, Git's xmalloc, Redis's zmalloc,
+ *   and default C++ operator new).
+ *
+ * \par Trade-offs and Limitations
+ * - **Embedded and Bare-Metal Systems:** Systems without an MMU/virtual memory
+ *   (e.g., RTOS, microcontrollers) or strict overcommit disabled (vm.overcommit_memory=2)
+ *   do return 0 on heap exhaustion.
+ * - **Multi-Tenant Services:** Infrastructure daemons (e.g., database engines) that
+ *   must isolate a single client's excessive memory request without crashing the
+ *   entire process cannot rely on unchecked allocations.
+ *
+ * \par Custom Interception
+ * If your environment requires custom handling (such as memory tracking, structured
+ * aborts, or logging), redefine tommy_malloc, tommy_calloc, tommy_realloc, and
+ * tommy_free before including Tommy headers (or via compiler flags).
+ * Custom allocators must terminate the process (e.g., abort()) or initiate an
+ * unwinding non-local exit (e.g., longjmp or C++ exception) rather than returning 0.
  */
 #if !defined(tommy_malloc) || !defined(tommy_calloc) || !defined(tommy_realloc) || !defined(tommy_free)
 #include <stdlib.h>

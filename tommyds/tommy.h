@@ -970,8 +970,9 @@
  * insert objects also into a ::tommy_list and use the list as an iterator.
  * See the \ref multiindex example for more details.
  *
- * Tommy doesn't provide an error reporting mechanism for a malloc() failure.
- * You have to provide it by redefining malloc() if you expect it to fail.
+ * Tommy assumes memory allocation is infallible and does not provide an error
+ * reporting mechanism for allocation failures. See \ref memory_allocation
+ * for the rationale, advantages, and trade-offs of this decision.
  *
  * \section compromise Compromises
  *
@@ -980,6 +981,23 @@
  * crippling the interface.
  *
  * The following is a list of such decisions.
+ *
+ * \subsection memory_allocation Infallible memory allocation
+ * Tommy assumes that dynamic memory allocation never fails. Container operations
+ * do not check for allocation failures and do not return error codes on out-of-memory
+ * conditions.
+ *
+ * Handling allocation failures across every container operation would introduce
+ * branching overhead and require complex rollback logic when dynamic resizing
+ * fails halfway through. On modern 64-bit operating systems with virtual memory
+ * overcommit (such as Linux) and swap, memory exhaustion is either handled by the
+ * kernel OOM killer or results in system thrashing, making userspace null checks
+ * ineffective.
+ *
+ * In environments where allocation failures must be intercepted (such as embedded
+ * systems or monitored services), Tommy allows redefining tommy_malloc(),
+ * tommy_calloc(), tommy_realloc(), and tommy_free() with custom wrappers that can
+ * log diagnostics and abort or perform an unwinding non-local exit.
  *
  * \subsection multi_key Multi key
  * All the Tommy associative containers (hashtables, tries and trees) support the
