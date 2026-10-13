@@ -309,3 +309,147 @@ TOMMY_API void tommy_hashdyn_to_list(tommy_hashdyn* hashdyn, tommy_list* list)
 	hashdyn->count = 0;
 }
 
+/**
+ * Compares hashes in least-significant-bit-first order, with 0 before 1.
+ *
+ * The first differing bit decides the order: first precedes second when
+ * second has a 1 there. Equal hashes compare false.
+ */
+tommy_inline tommy_bool_t tommy_imp_hashdyn_before(tommy_hash_t first, tommy_hash_t second)
+{
+	/* mark the positions where the hashes differ using XOR */
+	tommy_hash_t diff = first ^ second;
+
+	/* isolate the lowest differing bit using two's complement */
+	tommy_hash_t bit = diff & -diff;
+
+	/* a 1 in second means first has 0 there; equal hashes yield bit == 0 */
+	return (second & bit) != 0;
+}
+
+/**
+ * Gets the adjacent active bucket in least-significant-bit-first order.
+ * Returns bucket_max when there is no adjacent bucket.
+ *
+ * Traverses the virtual binary tree of buckets in bit-reversed order.
+ *
+ * For example, with 8 buckets the forward traversal order is:
+ *   0, 4, 2, 6, 1, 5, 3, 7
+ *
+ * When resizing to 16 buckets:
+ *   0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15
+ */
+tommy_inline tommy_size_t tommy_imp_hashdyn_step(tommy_hashdyn* hashdyn, tommy_size_t pos, tommy_bool_t reverse)
+{
+	tommy_size_t bit = (hashdyn->bucket_mask + 1) / 2;
+
+	/* propagate binary carry in bit-reversed order from MSB downwards */
+	while (bit && ((pos & bit) != 0) != reverse) {
+		pos ^= bit;
+		bit >>= 1;
+	}
+
+	/* carry wrapped around the root of the tree: end of traversal */
+	if (!bit)
+		return hashdyn->bucket_max;
+	pos ^= bit;
+
+	return pos;
+}
+
+/**
+ * Finds the first or last node starting at an active bucket.
+ *
+ * Scans buckets in least-significant-bit-first order until a non-empty bucket
+ * is found, then returns its extreme element (minimum for forward, maximum for reverse).
+ */
+tommy_inline tommy_hashdyn_node* tommy_imp_hashdyn_limit(tommy_hashdyn* hashdyn, tommy_size_t pos, tommy_bool_t reverse)
+{
+	while (pos != hashdyn->bucket_max) {
+		tommy_hashdyn_node* best = 0;
+		for (tommy_hashdyn_node* i = hashdyn->bucket[pos]; i; i = i->next) {
+			/* equal hashes retain insertion order, so the reverse limit selects the last */
+			if (reverse) {
+				if (!best || !tommy_imp_hashdyn_before(i->index, best->index))
+					best = i;
+			} else {
+				if (!best || tommy_imp_hashdyn_before(i->index, best->index))
+					best = i;
+			}
+		}
+		if (best)
+			return best;
+		pos = tommy_imp_hashdyn_step(hashdyn, pos, reverse);
+	}
+	return 0;
+}
+
+/**
+ * Finds a neighbor using the current bucket layout and a resize-independent order.
+ *
+ * First searches for the closest neighbor within the current bucket.
+ * If none exists, advances to the next non-empty active bucket in LSB order.
+ */
+tommy_inline tommy_hashdyn_node* tommy_imp_hashdyn_neighbor(tommy_hashdyn* hashdyn, tommy_hashdyn_node* node, tommy_bool_t reverse)
+{
+	tommy_size_t pos = node->index & hashdyn->bucket_mask;
+	tommy_hashdyn_node* best = 0;
+	tommy_bool_t passed = 0;
+
+	/*
+	 * Bucket links can change during grow and shrink. Compare full hashes instead
+	 * of following those links as iteration order, so no remaining node moves
+	 * behind the iterator. Equal hashes always stay in one bucket in insertion order.
+	 */
+	for (tommy_hashdyn_node* i = hashdyn->bucket[pos]; i; i = i->next) {
+		if (i == node) {
+			passed = 1;
+		} else if (i->index == node->index) {
+			/* for identical hashes, follow insertion order relative to the current node */
+			if (reverse && !passed)
+				best = i;
+			else if (!reverse && passed)
+				return i;
+		} else if (reverse) {
+			if (tommy_imp_hashdyn_before(i->index, node->index)) {
+				/* find the closest neighbor within the bucket in LSB order */
+				if (!best || !tommy_imp_hashdyn_before(i->index, best->index))
+					best = i;
+			}
+		} else {
+			if (tommy_imp_hashdyn_before(node->index, i->index)) {
+				/* find the closest neighbor within the bucket in LSB order */
+				if (!best || tommy_imp_hashdyn_before(i->index, best->index))
+					best = i;
+			}
+		}
+	}
+	if (best)
+		return best;
+
+	/* bucket exhausted: advance to the next non-empty bucket in LSB order */
+	return tommy_imp_hashdyn_limit(hashdyn, tommy_imp_hashdyn_step(hashdyn, pos, reverse), reverse);
+}
+
+TOMMY_API tommy_hashdyn_node* tommy_hashdyn_head(tommy_hashdyn* hashdyn)
+{
+	/* start forward traversal at bucket 0, which has all LSB bits at zero */
+	return tommy_imp_hashdyn_limit(hashdyn, 0, 0);
+}
+
+TOMMY_API tommy_hashdyn_node* tommy_hashdyn_tail(tommy_hashdyn* hashdyn)
+{
+	/* start reverse traversal at the all-ones bucket, which has the highest LSB value */
+	return tommy_imp_hashdyn_limit(hashdyn, hashdyn->bucket_mask, 1);
+}
+
+TOMMY_API tommy_hashdyn_node* tommy_hashdyn_next(tommy_hashdyn* hashdyn, tommy_hashdyn_node* node)
+{
+	return tommy_imp_hashdyn_neighbor(hashdyn, node, 0);
+}
+
+TOMMY_API tommy_hashdyn_node* tommy_hashdyn_prev(tommy_hashdyn* hashdyn, tommy_hashdyn_node* node)
+{
+	return tommy_imp_hashdyn_neighbor(hashdyn, node, 1);
+}
+

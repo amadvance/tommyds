@@ -112,9 +112,50 @@
  *
  * If you need to iterate over all the elements in the hashtable, you can use
  * tommy_hashlin_foreach() or tommy_hashlin_foreach_arg().
- * If you need a more precise control with a real iteration, you have to insert
- * all the elements also in a ::tommy_list, and use the list to iterate.
- * See the \ref multiindex example for more detail.
+ * For traversal that permits insertions and removals, use tommy_hashlin_head()
+ * and tommy_hashlin_next(), or tommy_hashlin_tail() and tommy_hashlin_prev().
+ * Hashes are compared from the least significant bit to the most significant
+ * bit, with 0 before 1. Equal hashes are visited in insertion order.
+ * This order is independent of the number of buckets and progressive resizing.
+ * It differs from the bucket order used by foreach and to_list.
+ *
+ * \anchor tommy_hashlin_iterator_validity
+ * Iterators are pointers to nodes currently contained in the hashtable.
+ * Inserting elements or removing other nodes does not invalidate them or
+ * change the relative iteration order of the remaining elements.
+ * A forward or backward traversal visits every original element that remains
+ * contained, even if removals cause buckets to merge or insertions split them.
+ * New elements can be visited if inserted after the current position in the
+ * traversal direction; elements inserted before it need not be visited.
+ *
+ * Removing the pointed node invalidates its use as an iterator, even if its
+ * storage has not been freed. Obtain the next or previous node before removal,
+ * and keep that saved node contained until continuing the traversal.
+ *
+ * \code
+ * tommy_hashlin_node* i = tommy_hashlin_head(&hashlin);
+ * while (i) {
+ *     tommy_hashlin_node* next = tommy_hashlin_next(&hashlin, i);
+ *     if (should_remove(i->data)) {
+ *         free(tommy_hashlin_remove_existing(&hashlin, i));
+ *     }
+ *     i = next;
+ * }
+ * \endcode
+ *
+ * Changing a hash with tommy_hashlin_rehash_existing() can change iteration
+ * order, so the traversal guarantee does not cover rehashing during traversal.
+ * After swapping containers, use the container that now contains the node.
+ * Clearing or deinitializing the container invalidates all its iterators.
+ * Concurrent traversal and modification require external synchronization.
+ *
+ * Iterator calls scan bucket contents without allocating or modifying memory.
+ * With a good hash function and the table's low load factor, a full traversal
+ * runs in expected linear O(n) time.
+ * In pathological cases with severe hash collisions, traversal degrades to
+ * quadratic O(n^2) time.
+ * Use foreach for guaranteed linear traversal when no insertions or removals
+ * are needed.
  */
 
 #ifndef TOMMY_HASHLIN_H
@@ -337,6 +378,44 @@ tommy_inline void* tommy_hashlin_search(tommy_hashlin* hashlin, tommy_search_fun
  * \return The tommy_node::data field of the node removed.
  */
 TOMMY_API void* tommy_hashlin_remove_existing(tommy_hashlin* hashlin, tommy_hashlin_node* node);
+
+/**
+ * Gets the first node in iteration order, or 0 if empty.
+ * See \ref tommy_hashlin_iterator_validity for ordering and iterator validity.
+ * \note Scans empty buckets and the first nonempty bucket.
+ * \note This operation is O(1) on average.
+ */
+TOMMY_API tommy_hashlin_node* tommy_hashlin_head(tommy_hashlin* hashlin);
+
+/**
+ * Gets the last node in iteration order, or 0 if empty.
+ * See \ref tommy_hashlin_iterator_validity for ordering and iterator validity.
+ * \note Scans empty buckets and the last nonempty bucket.
+ * \note This operation is O(1) on average.
+ */
+TOMMY_API tommy_hashlin_node* tommy_hashlin_tail(tommy_hashlin* hashlin);
+
+/**
+ * Gets the following node in iteration order, or 0 for the tail.
+ * See \ref tommy_hashlin_iterator_validity for ordering and iterator validity.
+ * \param hashlin Hashtable currently containing the node.
+ * \param node Node currently contained in the hashtable. It must not be 0.
+ * \note Scans the current bucket, intervening empty buckets and, if needed,
+ * the following nonempty bucket.
+ * \note This operation is O(1) on average.
+ */
+TOMMY_API tommy_hashlin_node* tommy_hashlin_next(tommy_hashlin* hashlin, tommy_hashlin_node* node);
+
+/**
+ * Gets the preceding node in iteration order, or 0 for the head.
+ * See \ref tommy_hashlin_iterator_validity for ordering and iterator validity.
+ * \param hashlin Hashtable currently containing the node.
+ * \param node Node currently contained in the hashtable. It must not be 0.
+ * \note Scans the current bucket, intervening empty buckets and, if needed,
+ * the preceding nonempty bucket.
+ * \note This operation is O(1) on average.
+ */
+TOMMY_API tommy_hashlin_node* tommy_hashlin_prev(tommy_hashlin* hashlin, tommy_hashlin_node* node);
 
 /**
  * Updates the hash of an element already contained in the hashtable.

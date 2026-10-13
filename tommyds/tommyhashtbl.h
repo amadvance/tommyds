@@ -95,9 +95,46 @@
  *
  * If you need to iterate over all the elements in the hashtable, you can use
  * tommy_hashtable_foreach() or tommy_hashtable_foreach_arg().
- * If you need a more precise control with a real iteration, you have to insert
- * all the elements also in a ::tommy_list, and use the list to iterate.
- * See the \ref multiindex example for more detail.
+ * For traversal that permits insertions and removals, use tommy_hashtable_head()
+ * and tommy_hashtable_next(), or tommy_hashtable_tail() and tommy_hashtable_prev().
+ * Buckets are visited by increasing bucket index, and elements within each bucket
+ * are visited in insertion order.
+ *
+ * \anchor tommy_hashtable_iterator_validity
+ * Iterators are pointers to nodes currently contained in the hashtable.
+ * Inserting elements or removing other nodes does not invalidate them or
+ * change the relative iteration order of the remaining elements.
+ * A forward or backward traversal visits every original element that remains
+ * contained.
+ * New elements can be visited if inserted after the current position in the
+ * traversal direction; elements inserted before it need not be visited.
+ *
+ * Removing the pointed node invalidates its use as an iterator, even if its
+ * storage has not been freed. Obtain the next or previous node before removal,
+ * and keep that saved node contained until continuing the traversal.
+ *
+ * \code
+ * tommy_hashtable_node* i = tommy_hashtable_head(&hashtable);
+ * while (i) {
+ *     tommy_hashtable_node* next = tommy_hashtable_next(&hashtable, i);
+ *     if (should_remove(i->data)) {
+ *         free(tommy_hashtable_remove_existing(&hashtable, i));
+ *     }
+ *     i = next;
+ * }
+ * \endcode
+ *
+ * Changing a hash with tommy_hashtable_rehash_existing() can change iteration
+ * order, so the traversal guarantee does not cover rehashing during traversal.
+ * After swapping containers, use the container that now contains the node.
+ * Clearing or deinitializing the container invalidates all its iterators.
+ * Concurrent traversal and modification require external synchronization.
+ *
+ * Iterator calls follow node links directly without allocating memory.
+ * Advancing within a bucket is O(1); crossing between buckets scans empty buckets.
+ * A full traversal runs in O(n + b) time, where n is the number of elements
+ * and b is the number of buckets.
+ * Use foreach when no insertions or removals are needed.
  */
 
 #ifndef TOMMY_HASHTBL_H
@@ -267,6 +304,42 @@ tommy_inline void* tommy_hashtable_search(tommy_hashtable* hashtable, tommy_sear
  * \return The tommy_node::data field of the node removed.
  */
 TOMMY_API void* tommy_hashtable_remove_existing(tommy_hashtable* hashtable, tommy_hashtable_node* node);
+
+/**
+ * Gets the first node in iteration order, or 0 if empty.
+ * See \ref tommy_hashtable_iterator_validity for ordering and iterator validity.
+ * \note Scans empty buckets and returns the head of the first nonempty bucket.
+ * \note This operation is O(1) on average.
+ */
+TOMMY_API tommy_hashtable_node* tommy_hashtable_head(tommy_hashtable* hashtable);
+
+/**
+ * Gets the last node in iteration order, or 0 if empty.
+ * See \ref tommy_hashtable_iterator_validity for ordering and iterator validity.
+ * \note Scans empty buckets and returns the tail of the last nonempty bucket.
+ * \note This operation is O(1) on average.
+ */
+TOMMY_API tommy_hashtable_node* tommy_hashtable_tail(tommy_hashtable* hashtable);
+
+/**
+ * Gets the following node in iteration order, or 0 for the tail.
+ * See \ref tommy_hashtable_iterator_validity for ordering and iterator validity.
+ * \param hashtable Hashtable currently containing the node.
+ * \param node Node currently contained in the hashtable. It must not be 0.
+ * \note Advances within the current bucket, or scans to the next nonempty bucket.
+ * \note This operation is O(1) on average.
+ */
+TOMMY_API tommy_hashtable_node* tommy_hashtable_next(tommy_hashtable* hashtable, tommy_hashtable_node* node);
+
+/**
+ * Gets the preceding node in iteration order, or 0 for the head.
+ * See \ref tommy_hashtable_iterator_validity for ordering and iterator validity.
+ * \param hashtable Hashtable currently containing the node.
+ * \param node Node currently contained in the hashtable. It must not be 0.
+ * \note Steps backward within the current bucket, or scans to the preceding nonempty bucket.
+ * \note This operation is O(1) on average.
+ */
+TOMMY_API tommy_hashtable_node* tommy_hashtable_prev(tommy_hashtable* hashtable, tommy_hashtable_node* node);
 
 /**
  * Updates the hash of an element already contained in the hashtable.
