@@ -275,6 +275,36 @@
  *
  * To search with an arbitrary search key type rather than a full object, use tommy_tree_search_compare().
  *
+ * \subsection use_conventions API Conventions: Objects vs Nodes
+ *
+ * Tommy associative containers follow a consistent naming convention to distinguish
+ * functions that return user objects from functions that return container nodes:
+ *
+ * | Operation Family | Prefix / Name | Return Type | Typical Use |
+ * |---|---|---|---|
+ * | **Object lookup** | `search*` | `void*` (`data`) | High-level point queries returning the object directly (or 0) |
+ * | **Object removal** | `remove*` | `void*` (`data`) | Removes an element and returns the object pointer |
+ * | **Unique insertion** | `insert_unique*` | `void*` (`data`) | Returns existing object if present, 0 on successful insertion |
+ * | **Node lookup** | `find*` | `tommy_*_node*` | Locates the node, enabling iteration or metadata inspection |
+ * | **Bucket lookup** | `bucket*` | `tommy_*_node*` | Returns head node of hash collisions or trie leaves |
+ * | **Positional navigation** | `head*`, `tail*`, `next*`, `prev*` | `tommy_*_node*` | Linear and ordered traversal over container nodes |
+ *
+ * Use `search()` when you only need the object pointer. Use `find()` when you need
+ * to inspect the node itself or start a traversal from the matching position:
+ *
+ * \code
+ * // Point lookup returning the object directly:
+ * struct tree_object* obj = tommy_tree_search(&tree, &target);
+ *
+ * // Range iteration starting from a lower bound:
+ * tommy_tree_node* node = tommy_tree_find_greater_equal(&tree, &lower_bound);
+ * while (node) {
+ *     struct tree_object* item = node->data;
+ *     // process item...
+ *     node = tommy_tree_next(node);
+ * }
+ * \endcode
+ *
  * \subsection use_traversal Traversal and Iteration
  *
  * Tommy provides two mechanisms to traverse container elements:
@@ -299,10 +329,11 @@
  *   - Lists: traverse forward using tommy_list_head() and following `tommy_node::next`, or backward using
  * tommy_list_tail() and tommy_list_prev().
  *   - Trees: traverse in order using tommy_tree_head() and tommy_tree_next(), or in reverse using
- * tommy_tree_tail() and tommy_tree_prev().
+ * tommy_tree_tail() and tommy_tree_prev(). Traversal may also begin at any intermediate position returned
+ * by tommy_tree_find() or key bound searches like tommy_tree_find_greater_equal().
  *   - Arrays: access elements in an explicit `for` loop by index from 0 to tommy_array_size(&array) - 1.
- *   - Hashtables and tries: iterate over elements with the same key/bucket using `tommy_*_bucket()`
- * and following `->next`.
+ *   - Hashtables and tries: iterate over elements with the same key/bucket using `tommy_*_bucket()` or
+ * `tommy_*_find()` and following `->next`.
  *   - To iterate explicitly over all elements across hashtables or tries in insertion order, you can
  * insert objects into both an associative container and a ::tommy_list (see \ref multiindex).
  *
@@ -1013,8 +1044,8 @@
  *
  * \subsection data_pointer Data pointer
  * The node data pointer field (tommy_node::data, tommy_trie_inplace_node::data,
- * and tommy_tree_node::data) is present to allow search and remove functions to return
- * directly a pointer to the element stored in the container.
+ * and tommy_tree_node::data) is present to allow search, find, and remove functions to access
+ * or return directly a pointer to the element stored in the container.
  *
  * A more memory-conservative approach is to require the user to compute
  * the element pointer from the embedded node with a fixed displacement.
