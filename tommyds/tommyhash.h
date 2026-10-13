@@ -12,7 +12,7 @@
  * a5hash32 is intended for 32-bit platforms and uses 32-bit operands with
  * full 64-bit multiplication results. a5hash uses 64-bit operands with
  * full 128-bit multiplication results. Both algorithms pass SMHasher3 tests.
- * 
+ *
  * Prefer the 64-bit version whenever possible, as it provides better resistance
  * to collisions, particularly with specially crafted inputs. However, neither
  * version is designed to resist deliberate collision attacks. If resistance to
