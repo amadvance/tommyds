@@ -1086,14 +1086,35 @@
  * removing the need for this list.
  *
  * \subsection data_pointer Data pointer
- * The node data pointer field (tommy_node::data, tommy_trie_inplace_node::data,
- * and tommy_tree_node::data) is present to allow search, find, and remove functions to access
- * or return directly a pointer to the element stored in the container.
+ * Each node explicitly stores a pointer to the enclosing element
+ * (tommy_node::data, tommy_trie_inplace_node::data, and tommy_tree_node::data)
+ * to allow search, traversal, and removal functions to access or return directly
+ * a pointer to the element stored in the container.
  *
- * A more memory-conservative approach is to require the user to compute
- * the element pointer from the embedded node with a fixed displacement.
- * For an example, see the Linux Kernel declaration of
- * <a href="https://elixir.bootlin.com/linux/latest/ident/container_of">container_of()</a>.
+ * A more memory-conservative alternative is to require the user to compute
+ * the element pointer from the embedded node with a fixed displacement,
+ * as done in the Linux Kernel declaration of
+ * <a href="https://github.com/torvalds/linux/blob/master/include/linux/container_of.h">container_of()</a>.
+ *
+ * Tommy deliberately trades one pointer of storage (sizeof(void*)) per node
+ * to obtain significant advantages in usability, safety, and API cleanliness:
+ * - **Direct API Return**: Search, pop, and removal functions return the object
+ *   pointer directly (or NULL if not found), eliminating boilerplate container_of()
+ *   macro invocations at every call site.
+ * - **Safe NULL Handling**: Returning NULL on search miss is natural and safe.
+ *   With container_of(), applying the displacement macro to a NULL node pointer
+ *   produces an invalid, non-zero address ((char*)NULL - offset), requiring
+ *   an explicit conditional check before every conversion.
+ * - **Callback Interoperability**: Iteration callbacks receive the object pointer
+ *   directly. Standard C library functions like free() can be passed directly to
+ *   tommy_*_foreach() without writing boilerplate wrapper functions.
+ * - **Opaque and Incomplete Types**: Functions can manipulate and return objects
+ *   referenced only by forward declarations (e.g. struct object*). In contrast,
+ *   container_of() requires the full struct definition to be visible at compile
+ *   time in order to evaluate offsetof().
+ * - **Standard Portability**: Avoids compiler-specific extensions (such as typeof
+ *   or statement expressions) and eliminates C++ undefined-behavior pitfalls when
+ *   embedding nodes inside non-standard-layout classes.
  *
  * \subsection insertion_order Insertion order
  * In associative containers, the list used for collisions is doubly-linked to allow
