@@ -359,6 +359,55 @@ tommy_inline void* tommy_tree_remove_tail(tommy_tree* tree)
 }
 
 /**
+ * Finds the first equal node in the tree with a specific comparison function.
+ *
+ * Like tommy_tree_find() but you can specify a different comparison function.
+ * Note that this function must define a suborder of the original one.
+ * The first equal node in tree order is returned.
+ *
+ * The cmp_arg argument will be the first argument of the comparison function,
+ * and it can be of a different type than the objects in the tree.
+ * \param tree The tree.
+ * \param cmp Comparison function called with cmp_arg and the object in the tree.
+ * \param cmp_arg Search key, which may have a different type from tree objects.
+ * \return The first equal node in tree order, or 0 if not found.
+ */
+tommy_inline tommy_tree_node* tommy_tree_find_compare(tommy_tree* tree, tommy_compare_func* cmp, const void* cmp_arg)
+{
+	tommy_tree_node* node = tree->root;
+	tommy_tree_node* candidate = 0;
+
+	while (node) {
+		/* comparators must not change the tree, so retain the data across the call */
+		void* data = node->data;
+		int c = cmp(cmp_arg, data);
+
+		if (c < 0)
+			node = node->prev;
+		else if (c > 0)
+			node = node->next;
+		else {
+			candidate = node;
+			node = node->prev;
+		}
+	}
+
+	return candidate;
+}
+
+/**
+ * Finds the first equal node in the tree.
+ * If the element is not found, 0 is returned.
+ * \param tree The tree.
+ * \param data Element used for comparison.
+ * \return The first equal node in tree order, or 0 if none.
+ */
+tommy_inline tommy_tree_node* tommy_tree_find(tommy_tree* tree, const void* data)
+{
+	return tommy_tree_find_compare(tree, tree->cmp, data);
+}
+
+/**
  * Searches an element in the tree with a specific comparison function.
  *
  * Like tommy_tree_search() but you can specify a different comparison function.
@@ -374,25 +423,9 @@ tommy_inline void* tommy_tree_remove_tail(tommy_tree* tree)
  */
 tommy_inline void* tommy_tree_search_compare(tommy_tree* tree, tommy_compare_func* cmp, const void* cmp_arg)
 {
-	tommy_tree_node* node = tree->root;
-	void* candidate = 0;
+	tommy_tree_node* node = tommy_tree_find_compare(tree, cmp, cmp_arg);
 
-	while (node) {
-		/* comparators must not change the tree, so retain the data across the call */
-		void* data = node->data;
-		int c = cmp(cmp_arg, data);
-
-		if (c < 0)
-			node = node->prev;
-		else if (c > 0)
-			node = node->next;
-		else {
-			candidate = data;
-			node = node->prev;
-		}
-	}
-
-	return candidate;
+	return node ? node->data : 0;
 }
 
 /**
@@ -404,7 +437,56 @@ tommy_inline void* tommy_tree_search_compare(tommy_tree* tree, tommy_compare_fun
  */
 tommy_inline void* tommy_tree_search(tommy_tree* tree, const void* data)
 {
-	return tommy_tree_search_compare(tree, tree->cmp, data);
+	tommy_tree_node* node = tommy_tree_find(tree, data);
+
+	return node ? node->data : 0;
+}
+
+/**
+ * Finds a node in the tree with key greater or equal than the specified one with a specific comparison function.
+ *
+ * Like tommy_tree_find_greater_equal() but you can specify a different comparison function.
+ * Note that this function must define a suborder of the original one.
+ * The first qualifying node in tree order is returned.
+ *
+ * The cmp_arg argument will be the first argument of the comparison function,
+ * and it can be of a different type than the objects in the tree.
+ * \param tree The tree.
+ * \param cmp Comparison function called with cmp_arg and the object in the tree.
+ * \param cmp_arg Search key, which may have a different type from tree objects.
+ * \return The first node in tree order with key greater or equal, or 0 if none.
+ */
+tommy_inline tommy_tree_node* tommy_tree_find_greater_equal_compare(tommy_tree* tree, tommy_compare_func* cmp, const void* cmp_arg)
+{
+	tommy_tree_node* node = tree->root;
+	tommy_tree_node* candidate = 0;
+
+	while (node) {
+		/* comparators must not change the tree, so retain the data across the call */
+		void* data = node->data;
+		int c = cmp(cmp_arg, data);
+
+		if (c <= 0) {
+			candidate = node;
+			node = node->prev;
+		} else {
+			node = node->next;
+		}
+	}
+
+	return candidate;
+}
+
+/**
+ * Finds a node in the tree with key greater or equal than the specified one.
+ * If no such element exists, 0 is returned.
+ * \param tree The tree.
+ * \param data Element used for comparison.
+ * \return The first node in tree order with key greater or equal, or 0 if none.
+ */
+tommy_inline tommy_tree_node* tommy_tree_find_greater_equal(tommy_tree* tree, const void* data)
+{
+	return tommy_tree_find_greater_equal_compare(tree, tree->cmp, data);
 }
 
 /**
@@ -423,23 +505,9 @@ tommy_inline void* tommy_tree_search(tommy_tree* tree, const void* data)
  */
 tommy_inline void* tommy_tree_search_greater_equal_compare(tommy_tree* tree, tommy_compare_func* cmp, const void* cmp_arg)
 {
-	tommy_tree_node* node = tree->root;
-	void* candidate = 0;
+	tommy_tree_node* node = tommy_tree_find_greater_equal_compare(tree, cmp, cmp_arg);
 
-	while (node) {
-		/* comparators must not change the tree, so retain the data across the call */
-		void* data = node->data;
-		int c = cmp(cmp_arg, data);
-
-		if (c <= 0) {
-			candidate = data;
-			node = node->prev;
-		} else {
-			node = node->next;
-		}
-	}
-
-	return candidate;
+	return node ? node->data : 0;
 }
 
 /**
@@ -451,7 +519,51 @@ tommy_inline void* tommy_tree_search_greater_equal_compare(tommy_tree* tree, tom
  */
 tommy_inline void* tommy_tree_search_greater_equal(tommy_tree* tree, const void* data)
 {
-	return tommy_tree_search_greater_equal_compare(tree, tree->cmp, data);
+	tommy_tree_node* node = tommy_tree_find_greater_equal(tree, data);
+
+	return node ? node->data : 0;
+}
+
+/**
+ * Finds the first node in tree order with key strictly greater than the specified one using a specific comparison function.
+ * The function must define a suborder of the tree comparison function.
+ * Equivalent elements are excluded from the result.
+ * \param tree The tree.
+ * \param cmp Comparison function called with cmp_arg and the object in the tree.
+ * \param cmp_arg Search key, which may have a different type from tree objects.
+ * \return The first strictly greater node, or 0 if none.
+ */
+tommy_inline tommy_tree_node* tommy_tree_find_greater_compare(tommy_tree* tree, tommy_compare_func* cmp, const void* cmp_arg)
+{
+	tommy_tree_node* node = tree->root;
+	tommy_tree_node* candidate = 0;
+
+	while (node) {
+		/* comparators must not change the tree, so retain the data across the call */
+		void* data = node->data;
+		int c = cmp(cmp_arg, data);
+
+		if (c < 0) {
+			candidate = node;
+			node = node->prev;
+		} else {
+			node = node->next;
+		}
+	}
+
+	return candidate;
+}
+
+/**
+ * Finds the first node in tree order with key strictly greater than the specified one.
+ * If no such element exists, 0 is returned.
+ * \param tree The tree.
+ * \param data Element used for comparison.
+ * \return The first strictly greater node, or 0 if none.
+ */
+tommy_inline tommy_tree_node* tommy_tree_find_greater(tommy_tree* tree, const void* data)
+{
+	return tommy_tree_find_greater_compare(tree, tree->cmp, data);
 }
 
 /**
@@ -465,23 +577,9 @@ tommy_inline void* tommy_tree_search_greater_equal(tommy_tree* tree, const void*
  */
 tommy_inline void* tommy_tree_search_greater_compare(tommy_tree* tree, tommy_compare_func* cmp, const void* cmp_arg)
 {
-	tommy_tree_node* node = tree->root;
-	void* candidate = 0;
+	tommy_tree_node* node = tommy_tree_find_greater_compare(tree, cmp, cmp_arg);
 
-	while (node) {
-		/* comparators must not change the tree, so retain the data across the call */
-		void* data = node->data;
-		int c = cmp(cmp_arg, data);
-
-		if (c < 0) {
-			candidate = data;
-			node = node->prev;
-		} else {
-			node = node->next;
-		}
-	}
-
-	return candidate;
+	return node ? node->data : 0;
 }
 
 /**
@@ -493,7 +591,56 @@ tommy_inline void* tommy_tree_search_greater_compare(tommy_tree* tree, tommy_com
  */
 tommy_inline void* tommy_tree_search_greater(tommy_tree* tree, const void* data)
 {
-	return tommy_tree_search_greater_compare(tree, tree->cmp, data);
+	tommy_tree_node* node = tommy_tree_find_greater(tree, data);
+
+	return node ? node->data : 0;
+}
+
+/**
+ * Finds a node in the tree with key less or equal than the specified one with a specific comparison function.
+ *
+ * Like tommy_tree_find_less_equal() but you can specify a different comparison function.
+ * Note that this function must define a suborder of the original one.
+ * The last qualifying node in tree order is returned.
+ *
+ * The cmp_arg argument will be the first argument of the comparison function,
+ * and it can be of a different type than the objects in the tree.
+ * \param tree The tree.
+ * \param cmp Comparison function called with cmp_arg and the object in the tree.
+ * \param cmp_arg Search key, which may have a different type from tree objects.
+ * \return The last node in tree order with key less or equal, or 0 if none.
+ */
+tommy_inline tommy_tree_node* tommy_tree_find_less_equal_compare(tommy_tree* tree, tommy_compare_func* cmp, const void* cmp_arg)
+{
+	tommy_tree_node* node = tree->root;
+	tommy_tree_node* candidate = 0;
+
+	while (node) {
+		/* comparators must not change the tree, so retain the data across the call */
+		void* data = node->data;
+		int c = cmp(cmp_arg, data);
+
+		if (c < 0) {
+			node = node->prev;
+		} else {
+			candidate = node;
+			node = node->next;
+		}
+	}
+
+	return candidate;
+}
+
+/**
+ * Finds a node in the tree with key less or equal than the specified one.
+ * If no such element exists, 0 is returned.
+ * \param tree The tree.
+ * \param data Element used for comparison.
+ * \return The last node in tree order with key less or equal, or 0 if none.
+ */
+tommy_inline tommy_tree_node* tommy_tree_find_less_equal(tommy_tree* tree, const void* data)
+{
+	return tommy_tree_find_less_equal_compare(tree, tree->cmp, data);
 }
 
 /**
@@ -512,23 +659,9 @@ tommy_inline void* tommy_tree_search_greater(tommy_tree* tree, const void* data)
  */
 tommy_inline void* tommy_tree_search_less_equal_compare(tommy_tree* tree, tommy_compare_func* cmp, const void* cmp_arg)
 {
-	tommy_tree_node* node = tree->root;
-	void* candidate = 0;
+	tommy_tree_node* node = tommy_tree_find_less_equal_compare(tree, cmp, cmp_arg);
 
-	while (node) {
-		/* comparators must not change the tree, so retain the data across the call */
-		void* data = node->data;
-		int c = cmp(cmp_arg, data);
-
-		if (c < 0) {
-			node = node->prev;
-		} else {
-			candidate = data;
-			node = node->next;
-		}
-	}
-
-	return candidate;
+	return node ? node->data : 0;
 }
 
 /**
@@ -540,7 +673,51 @@ tommy_inline void* tommy_tree_search_less_equal_compare(tommy_tree* tree, tommy_
  */
 tommy_inline void* tommy_tree_search_less_equal(tommy_tree* tree, const void* data)
 {
-	return tommy_tree_search_less_equal_compare(tree, tree->cmp, data);
+	tommy_tree_node* node = tommy_tree_find_less_equal(tree, data);
+
+	return node ? node->data : 0;
+}
+
+/**
+ * Finds the last node in tree order with key strictly less than the specified one using a specific comparison function.
+ * The function must define a suborder of the tree comparison function.
+ * Equivalent elements are excluded from the result.
+ * \param tree The tree.
+ * \param cmp Comparison function called with cmp_arg and the object in the tree.
+ * \param cmp_arg Search key, which may have a different type from tree objects.
+ * \return The last strictly less node, or 0 if none.
+ */
+tommy_inline tommy_tree_node* tommy_tree_find_less_compare(tommy_tree* tree, tommy_compare_func* cmp, const void* cmp_arg)
+{
+	tommy_tree_node* node = tree->root;
+	tommy_tree_node* candidate = 0;
+
+	while (node) {
+		/* comparators must not change the tree, so retain the data across the call */
+		void* data = node->data;
+		int c = cmp(cmp_arg, data);
+
+		if (c > 0) {
+			candidate = node;
+			node = node->next;
+		} else {
+			node = node->prev;
+		}
+	}
+
+	return candidate;
+}
+
+/**
+ * Finds the last node in tree order with key strictly less than the specified one.
+ * If no such element exists, 0 is returned.
+ * \param tree The tree.
+ * \param data Element used for comparison.
+ * \return The last strictly less node, or 0 if none.
+ */
+tommy_inline tommy_tree_node* tommy_tree_find_less(tommy_tree* tree, const void* data)
+{
+	return tommy_tree_find_less_compare(tree, tree->cmp, data);
 }
 
 /**
@@ -554,23 +731,9 @@ tommy_inline void* tommy_tree_search_less_equal(tommy_tree* tree, const void* da
  */
 tommy_inline void* tommy_tree_search_less_compare(tommy_tree* tree, tommy_compare_func* cmp, const void* cmp_arg)
 {
-	tommy_tree_node* node = tree->root;
-	void* candidate = 0;
+	tommy_tree_node* node = tommy_tree_find_less_compare(tree, cmp, cmp_arg);
 
-	while (node) {
-		/* comparators must not change the tree, so retain the data across the call */
-		void* data = node->data;
-		int c = cmp(cmp_arg, data);
-
-		if (c > 0) {
-			candidate = data;
-			node = node->next;
-		} else {
-			node = node->prev;
-		}
-	}
-
-	return candidate;
+	return node ? node->data : 0;
 }
 
 /**
@@ -582,7 +745,9 @@ tommy_inline void* tommy_tree_search_less_compare(tommy_tree* tree, tommy_compar
  */
 tommy_inline void* tommy_tree_search_less(tommy_tree* tree, const void* data)
 {
-	return tommy_tree_search_less_compare(tree, tree->cmp, data);
+	tommy_tree_node* node = tommy_tree_find_less(tree, data);
+
+	return node ? node->data : 0;
 }
 
 /**
@@ -597,21 +762,7 @@ tommy_inline void* tommy_tree_search_less(tommy_tree* tree, const void* data)
  */
 tommy_inline void* tommy_tree_remove_compare(tommy_tree* tree, tommy_compare_func* cmp, const void* cmp_arg)
 {
-	tommy_tree_node* node = tree->root;
-	tommy_tree_node* candidate = 0;
-
-	while (node) {
-		int c = cmp(cmp_arg, node->data);
-
-		if (c < 0)
-			node = node->prev;
-		else if (c > 0)
-			node = node->next;
-		else {
-			candidate = node;
-			node = node->prev;
-		}
-	}
+	tommy_tree_node* candidate = tommy_tree_find_compare(tree, cmp, cmp_arg);
 
 	if (!candidate)
 		return 0;

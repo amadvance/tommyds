@@ -411,7 +411,7 @@ tommy_inline tommy_trie_node* tommy_imp_trie_tail_node(tommy_trie_node* node)
 	return node->prev;
 }
 
-tommy_inline void* tommy_imp_trie_search_less(tommy_trie* trie, tommy_key_t key, tommy_bool_t equal)
+tommy_inline tommy_trie_node* tommy_imp_trie_find_less(tommy_trie* trie, tommy_key_t key, tommy_bool_t equal)
 {
 	assert(key >> TOMMY_TRIE_BUCKET_SHIFT < TOMMY_TRIE_BUCKET_MAX);
 
@@ -436,7 +436,7 @@ tommy_inline void* tommy_imp_trie_search_less(tommy_trie* trie, tommy_key_t key,
 		if (trie_get_type(node) == TOMMY_TRIE_TYPE_NODE) {
 			/* compressed leaves must be compared using the complete key */
 			if (node->index < key || (equal && node->index == key))
-				return node->prev->data;
+				return node->prev;
 			break;
 		}
 
@@ -445,10 +445,10 @@ tommy_inline void* tommy_imp_trie_search_less(tommy_trie* trie, tommy_key_t key,
 		shift -= TOMMY_TRIE_TREE_BIT;
 	}
 
-	return candidate ? tommy_imp_trie_tail_node(candidate)->data : 0;
+	return candidate ? tommy_imp_trie_tail_node(candidate) : 0;
 }
 
-tommy_inline void* tommy_imp_trie_search_greater(tommy_trie* trie, tommy_key_t key, tommy_bool_t equal)
+tommy_inline tommy_trie_node* tommy_imp_trie_find_greater(tommy_trie* trie, tommy_key_t key, tommy_bool_t equal)
 {
 	assert(key >> TOMMY_TRIE_BUCKET_SHIFT < TOMMY_TRIE_BUCKET_MAX);
 
@@ -473,7 +473,7 @@ tommy_inline void* tommy_imp_trie_search_greater(tommy_trie* trie, tommy_key_t k
 		if (trie_get_type(node) == TOMMY_TRIE_TYPE_NODE) {
 			/* compressed leaves must be compared using the complete key */
 			if (node->index > key || (equal && node->index == key))
-				return node->data;
+				return node;
 			break;
 		}
 
@@ -483,27 +483,55 @@ tommy_inline void* tommy_imp_trie_search_greater(tommy_trie* trie, tommy_key_t k
 		shift -= TOMMY_TRIE_TREE_BIT;
 	}
 
-	return candidate ? tommy_imp_trie_head_node(candidate)->data : 0;
+	return candidate ? tommy_imp_trie_head_node(candidate) : 0;
+}
+
+TOMMY_API tommy_trie_node* tommy_trie_find_less(tommy_trie* trie, tommy_key_t key)
+{
+	return tommy_imp_trie_find_less(trie, key, 0);
+}
+
+TOMMY_API tommy_trie_node* tommy_trie_find_less_equal(tommy_trie* trie, tommy_key_t key)
+{
+	return tommy_imp_trie_find_less(trie, key, 1);
+}
+
+TOMMY_API tommy_trie_node* tommy_trie_find_greater_equal(tommy_trie* trie, tommy_key_t key)
+{
+	return tommy_imp_trie_find_greater(trie, key, 1);
+}
+
+TOMMY_API tommy_trie_node* tommy_trie_find_greater(tommy_trie* trie, tommy_key_t key)
+{
+	return tommy_imp_trie_find_greater(trie, key, 0);
 }
 
 TOMMY_API void* tommy_trie_search_less(tommy_trie* trie, tommy_key_t key)
 {
-	return tommy_imp_trie_search_less(trie, key, 0);
+	tommy_trie_node* node = tommy_trie_find_less(trie, key);
+
+	return node ? node->data : 0;
 }
 
 TOMMY_API void* tommy_trie_search_less_equal(tommy_trie* trie, tommy_key_t key)
 {
-	return tommy_imp_trie_search_less(trie, key, 1);
+	tommy_trie_node* node = tommy_trie_find_less_equal(trie, key);
+
+	return node ? node->data : 0;
 }
 
 TOMMY_API void* tommy_trie_search_greater_equal(tommy_trie* trie, tommy_key_t key)
 {
-	return tommy_imp_trie_search_greater(trie, key, 1);
+	tommy_trie_node* node = tommy_trie_find_greater_equal(trie, key);
+
+	return node ? node->data : 0;
 }
 
 TOMMY_API void* tommy_trie_search_greater(tommy_trie* trie, tommy_key_t key)
 {
-	return tommy_imp_trie_search_greater(trie, key, 0);
+	tommy_trie_node* node = tommy_trie_find_greater(trie, key);
+
+	return node ? node->data : 0;
 }
 
 TOMMY_API tommy_trie_node* tommy_trie_head(tommy_trie* trie)

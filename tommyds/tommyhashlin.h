@@ -290,6 +290,30 @@ tommy_inline tommy_hashlin_node* tommy_hashlin_bucket(tommy_hashlin* hashlin, to
 }
 
 /**
+ * Finds a node in the hashtable.
+ * You have to provide a compare function and the hash of the element you want to find.
+ * If more equal elements are present, the first one is returned.
+ * \param hashlin Hashtable to search.
+ * \param cmp Compare function called with cmp_arg as first argument and with the element to compare as a second one.
+ * The function should return 0 for equal elements, anything other for different elements.
+ * \param cmp_arg Compare argument passed as first argument of the compare function.
+ * \param hash Hash of the element to find.
+ * \return The first node found, or 0 if none.
+ */
+tommy_inline tommy_hashlin_node* tommy_hashlin_find(tommy_hashlin* hashlin, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)
+{
+	tommy_hashlin_node* i = tommy_hashlin_bucket(hashlin, hash);
+
+	while (i) {
+		/* we first check if the hash matches, as in the same bucket we may have multiple hash values */
+		if (i->index == hash && cmp(cmp_arg, i->data) == 0)
+			return i;
+		i = i->next;
+	}
+	return 0;
+}
+
+/**
  * Searches an element in the hashtable.
  * You have to provide a compare function and the hash of the element you want to find.
  * If more equal elements are present, the first one is returned.
@@ -302,15 +326,9 @@ tommy_inline tommy_hashlin_node* tommy_hashlin_bucket(tommy_hashlin* hashlin, to
  */
 tommy_inline void* tommy_hashlin_search(tommy_hashlin* hashlin, tommy_search_func* cmp, const void* cmp_arg, tommy_hash_t hash)
 {
-	tommy_hashlin_node* i = tommy_hashlin_bucket(hashlin, hash);
+	tommy_hashlin_node* node = tommy_hashlin_find(hashlin, cmp, cmp_arg, hash);
 
-	while (i) {
-		/* we first check if the hash matches, as in the same bucket we may have multiple hash values */
-		if (i->index == hash && cmp(cmp_arg, i->data) == 0)
-			return i->data;
-		i = i->next;
-	}
-	return 0;
+	return node ? node->data : 0;
 }
 
 /**

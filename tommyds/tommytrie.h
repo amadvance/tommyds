@@ -299,6 +299,18 @@ TOMMY_API void* tommy_trie_remove(tommy_trie* trie, tommy_key_t key);
 TOMMY_API tommy_trie_node* tommy_trie_bucket(tommy_trie* trie, tommy_key_t key);
 
 /**
+ * Finds the first node with the specified key.
+ * If multiple elements have the key, the first in insertion order is returned.
+ * \param trie The trie.
+ * \param key Key of the element to find.
+ * \return The first node found, or 0 if none.
+ */
+tommy_inline tommy_trie_node* tommy_trie_find(tommy_trie* trie, tommy_key_t key)
+{
+	return tommy_trie_bucket(trie, key);
+}
+
+/**
  * Searches an element in the trie.
  * You have to provide the key of the element you want to find.
  * If more elements with the same key are present, the first one is returned.
@@ -308,13 +320,57 @@ TOMMY_API tommy_trie_node* tommy_trie_bucket(tommy_trie* trie, tommy_key_t key);
  */
 tommy_inline void* tommy_trie_search(tommy_trie* trie, tommy_key_t key)
 {
-	tommy_trie_node* i = tommy_trie_bucket(trie, key);
+	tommy_trie_node* i = tommy_trie_find(trie, key);
 
 	if (!i)
 		return 0;
 
 	return i->data;
 }
+
+/**
+ * Finds the last node in key order with key strictly less than the specified one.
+ * If multiple elements have the selected key, the last in insertion order is returned.
+ * No memory is allocated or modified; auxiliary space is O(1).
+ * \param trie The trie.
+ * \param key Search key, which must fit within ::TOMMY_TRIE_BIT bits.
+ * \return The selected node, or 0 if none.
+ * \note Traversal is bounded by the number of key bits and branches per level.
+ */
+TOMMY_API tommy_trie_node* tommy_trie_find_less(tommy_trie* trie, tommy_key_t key);
+
+/**
+ * Finds the last node in key order with key less or equal than the specified one.
+ * If multiple elements have the selected key, the last in insertion order is returned.
+ * No memory is allocated or modified; auxiliary space is O(1).
+ * \param trie The trie.
+ * \param key Search key, which must fit within ::TOMMY_TRIE_BIT bits.
+ * \return The selected node, or 0 if none.
+ * \note Traversal is bounded by the number of key bits and branches per level.
+ */
+TOMMY_API tommy_trie_node* tommy_trie_find_less_equal(tommy_trie* trie, tommy_key_t key);
+
+/**
+ * Finds the first node in key order with key greater or equal than the specified one.
+ * If multiple elements have the selected key, the first in insertion order is returned.
+ * No memory is allocated or modified; auxiliary space is O(1).
+ * \param trie The trie.
+ * \param key Search key, which must fit within ::TOMMY_TRIE_BIT bits.
+ * \return The selected node, or 0 if none.
+ * \note Traversal is bounded by the number of key bits and branches per level.
+ */
+TOMMY_API tommy_trie_node* tommy_trie_find_greater_equal(tommy_trie* trie, tommy_key_t key);
+
+/**
+ * Finds the first node in key order with key strictly greater than the specified one.
+ * If multiple elements have the selected key, the first in insertion order is returned.
+ * No memory is allocated or modified; auxiliary space is O(1).
+ * \param trie The trie.
+ * \param key Search key, which must fit within ::TOMMY_TRIE_BIT bits.
+ * \return The selected node, or 0 if none.
+ * \note Traversal is bounded by the number of key bits and branches per level.
+ */
+TOMMY_API tommy_trie_node* tommy_trie_find_greater(tommy_trie* trie, tommy_key_t key);
 
 /**
  * Searches the last element in key order with key strictly less than the specified one.

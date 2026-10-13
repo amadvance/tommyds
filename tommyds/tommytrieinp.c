@@ -281,7 +281,7 @@ tommy_inline tommy_trie_inplace_node* tommy_imp_trie_inplace_tail_node(tommy_tri
 	}
 }
 
-tommy_inline void* tommy_imp_trie_inplace_search_less(tommy_trie_inplace* trie_inplace, tommy_key_t key, tommy_bool_t equal)
+tommy_inline tommy_trie_inplace_node* tommy_imp_trie_inplace_find_less(tommy_trie_inplace* trie_inplace, tommy_key_t key, tommy_bool_t equal)
 {
 	assert(key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT < TOMMY_TRIE_INPLACE_BUCKET_MAX);
 
@@ -305,7 +305,7 @@ tommy_inline void* tommy_imp_trie_inplace_search_less(tommy_trie_inplace* trie_i
 		if (!node)
 			break;
 		if (equal && node->key == key)
-			return node->prev->data;
+			return node->prev;
 		/* keys on the path are not ordered and compete with the saved branch */
 		if (node->key < key && (!candidate || node->key > candidate->key))
 			candidate = node->prev;
@@ -323,10 +323,10 @@ tommy_inline void* tommy_imp_trie_inplace_search_less(tommy_trie_inplace* trie_i
 		if (!candidate || node->key > candidate->key)
 			candidate = node;
 	}
-	return candidate ? candidate->data : 0;
+	return candidate;
 }
 
-tommy_inline void* tommy_imp_trie_inplace_search_greater(tommy_trie_inplace* trie_inplace, tommy_key_t key, tommy_bool_t equal)
+tommy_inline tommy_trie_inplace_node* tommy_imp_trie_inplace_find_greater(tommy_trie_inplace* trie_inplace, tommy_key_t key, tommy_bool_t equal)
 {
 	assert(key >> TOMMY_TRIE_INPLACE_BUCKET_SHIFT < TOMMY_TRIE_INPLACE_BUCKET_MAX);
 
@@ -350,7 +350,7 @@ tommy_inline void* tommy_imp_trie_inplace_search_greater(tommy_trie_inplace* tri
 		if (!node)
 			break;
 		if (equal && node->key == key)
-			return node->data;
+			return node;
 		/* keys on the path are not ordered and compete with the saved branch */
 		if (node->key > key && (!candidate || node->key < candidate->key))
 			candidate = node;
@@ -369,27 +369,55 @@ tommy_inline void* tommy_imp_trie_inplace_search_greater(tommy_trie_inplace* tri
 		if (!candidate || node->key < candidate->key)
 			candidate = node;
 	}
-	return candidate ? candidate->data : 0;
+	return candidate;
+}
+
+TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_find_less(tommy_trie_inplace* trie_inplace, tommy_key_t key)
+{
+	return tommy_imp_trie_inplace_find_less(trie_inplace, key, 0);
+}
+
+TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_find_less_equal(tommy_trie_inplace* trie_inplace, tommy_key_t key)
+{
+	return tommy_imp_trie_inplace_find_less(trie_inplace, key, 1);
+}
+
+TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_find_greater_equal(tommy_trie_inplace* trie_inplace, tommy_key_t key)
+{
+	return tommy_imp_trie_inplace_find_greater(trie_inplace, key, 1);
+}
+
+TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_find_greater(tommy_trie_inplace* trie_inplace, tommy_key_t key)
+{
+	return tommy_imp_trie_inplace_find_greater(trie_inplace, key, 0);
 }
 
 TOMMY_API void* tommy_trie_inplace_search_less(tommy_trie_inplace* trie_inplace, tommy_key_t key)
 {
-	return tommy_imp_trie_inplace_search_less(trie_inplace, key, 0);
+	tommy_trie_inplace_node* node = tommy_trie_inplace_find_less(trie_inplace, key);
+
+	return node ? node->data : 0;
 }
 
 TOMMY_API void* tommy_trie_inplace_search_less_equal(tommy_trie_inplace* trie_inplace, tommy_key_t key)
 {
-	return tommy_imp_trie_inplace_search_less(trie_inplace, key, 1);
+	tommy_trie_inplace_node* node = tommy_trie_inplace_find_less_equal(trie_inplace, key);
+
+	return node ? node->data : 0;
 }
 
 TOMMY_API void* tommy_trie_inplace_search_greater_equal(tommy_trie_inplace* trie_inplace, tommy_key_t key)
 {
-	return tommy_imp_trie_inplace_search_greater(trie_inplace, key, 1);
+	tommy_trie_inplace_node* node = tommy_trie_inplace_find_greater_equal(trie_inplace, key);
+
+	return node ? node->data : 0;
 }
 
 TOMMY_API void* tommy_trie_inplace_search_greater(tommy_trie_inplace* trie_inplace, tommy_key_t key)
 {
-	return tommy_imp_trie_inplace_search_greater(trie_inplace, key, 0);
+	tommy_trie_inplace_node* node = tommy_trie_inplace_find_greater(trie_inplace, key);
+
+	return node ? node->data : 0;
 }
 
 TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_head(tommy_trie_inplace* trie_inplace)

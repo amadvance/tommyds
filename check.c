@@ -2175,6 +2175,46 @@ void test_tree_duplicates(void)
 			abort();
 			/* LCOV_EXCL_STOP */
 		}
+		if (tommy_tree_find(&tree, &key) != &objects[group].node) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		if (tommy_tree_find_compare(&tree, &compare, &key) != &objects[group].node) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		if (tommy_tree_find_greater_equal(&tree, &key) != &objects[group].node) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		if (tommy_tree_find_greater_equal_compare(&tree, &compare, &key) != &objects[group].node) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		if (tommy_tree_find_less_equal(&tree, &key) != &objects[92 + group].node) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		if (tommy_tree_find_less_equal_compare(&tree, &compare, &key) != &objects[92 + group].node) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+		tommy_tree_node* greater_node = greater ? &((struct object_tree*)greater)->node : 0;
+		tommy_tree_node* less_node = less ? &((struct object_tree*)less)->node : 0;
+		if (tommy_tree_find_greater(&tree, &key) != greater_node
+			|| tommy_tree_find_greater_compare(&tree, &compare, &key) != greater_node
+			|| tommy_tree_find_less(&tree, &key) != less_node
+			|| tommy_tree_find_less_compare(&tree, &compare, &key) != less_node) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
 	}
 
 	struct object_tree key;
@@ -4497,6 +4537,7 @@ void test_hashtable_clear(void)
 				tommy_hash_t hash = tommy_inthash_u32(obj[i].value);
 				if (obj[i].value != (int)(i / 2)
 					|| obj[i].node.data != &obj[i] || obj[i].node.index != hash
+					|| tommy_hashtable_find(&hashtable, search_callback, &obj[i], hash) != 0
 					|| tommy_hashtable_search(&hashtable, search_callback, &obj[i], hash) != 0
 					|| tommy_hashtable_remove(&hashtable, search_callback, &obj[i], hash) != 0) {
 					/* LCOV_EXCL_START */
@@ -4518,7 +4559,8 @@ void test_hashtable_clear(void)
 		}
 
 		for (unsigned i = 0; i < 128; ++i)
-			if (tommy_hashtable_search(&hashtable, search_callback, &obj[i], tommy_inthash_u32(obj[i].value)) != &obj[i]) {
+			if (tommy_hashtable_find(&hashtable, search_callback, &obj[i], tommy_inthash_u32(obj[i].value)) != &obj[i].node
+				|| tommy_hashtable_search(&hashtable, search_callback, &obj[i], tommy_inthash_u32(obj[i].value)) != &obj[i]) {
 				/* LCOV_EXCL_START */
 				abort();
 				/* LCOV_EXCL_STOP */
@@ -5287,6 +5329,7 @@ void test_hashdyn_clear(void)
 				tommy_hash_t hash = tommy_inthash_u32(obj[i].value);
 				if (obj[i].value != (int)(i / 2)
 					|| obj[i].node.data != &obj[i] || obj[i].node.index != hash
+					|| tommy_hashdyn_find(&hashdyn, search_callback, &obj[i], hash) != 0
 					|| tommy_hashdyn_search(&hashdyn, search_callback, &obj[i], hash) != 0
 					|| tommy_hashdyn_remove(&hashdyn, search_callback, &obj[i], hash) != 0) {
 					/* LCOV_EXCL_START */
@@ -5308,7 +5351,8 @@ void test_hashdyn_clear(void)
 		}
 
 		for (unsigned i = 0; i < 128; ++i)
-			if (tommy_hashdyn_search(&hashdyn, search_callback, &obj[i], tommy_inthash_u32(obj[i].value)) != &obj[i]) {
+			if (tommy_hashdyn_find(&hashdyn, search_callback, &obj[i], tommy_inthash_u32(obj[i].value)) != &obj[i].node
+				|| tommy_hashdyn_search(&hashdyn, search_callback, &obj[i], tommy_inthash_u32(obj[i].value)) != &obj[i]) {
 				/* LCOV_EXCL_START */
 				abort();
 				/* LCOV_EXCL_STOP */
@@ -6157,6 +6201,7 @@ void test_hashlin_clear(void)
 				if (obj[i].value != (int)(i / 2)
 					|| memcmp(&saved[i], &obj[i].node, sizeof(saved[i])) != 0
 					|| obj[i].node.data != &obj[i] || obj[i].node.index != hash
+					|| tommy_hashlin_find(&hashlin, search_callback, &obj[i], hash) != 0
 					|| tommy_hashlin_search(&hashlin, search_callback, &obj[i], hash) != 0
 					|| tommy_hashlin_remove(&hashlin, search_callback, &obj[i], hash) != 0) {
 					/* LCOV_EXCL_START */
@@ -6183,7 +6228,8 @@ void test_hashlin_clear(void)
 		}
 
 		for (unsigned i = 0; i < 256; ++i)
-			if (tommy_hashlin_search(&hashlin, search_callback, &obj[i], tommy_inthash_u32(obj[i].value)) != &obj[i]) {
+			if (tommy_hashlin_find(&hashlin, search_callback, &obj[i], tommy_inthash_u32(obj[i].value)) != &obj[i].node
+				|| tommy_hashlin_search(&hashlin, search_callback, &obj[i], tommy_inthash_u32(obj[i].value)) != &obj[i]) {
 				/* LCOV_EXCL_START */
 				abort();
 				/* LCOV_EXCL_STOP */
@@ -6508,10 +6554,10 @@ static void trie_search_bounds_check(tommy_trie* trie, void** expected, unsigned
 
 		const tommy_key_t queries[] = { key ? key - 1 : 0, key, key < max ? key + 1 : max };
 		for (unsigned q = 0; q < sizeof(queries) / sizeof(queries[0]); ++q) {
-			void* less = 0;
-			void* less_equal = 0;
-			void* greater_equal = 0;
-			void* greater = 0;
+			struct object_trie* less = 0;
+			struct object_trie* less_equal = 0;
+			struct object_trie* greater_equal = 0;
+			struct object_trie* greater = 0;
 			/* the oracle uses only independently sorted keys and insertion positions */
 			for (unsigned j = 0; j < size; ++j) {
 				struct object_trie* obj = expected[j];
@@ -6528,6 +6574,19 @@ static void trie_search_bounds_check(tommy_trie* trie, void** expected, unsigned
 				|| tommy_trie_search_less_equal(trie, queries[q]) != less_equal
 				|| tommy_trie_search_greater_equal(trie, queries[q]) != greater_equal
 				|| tommy_trie_search_greater(trie, queries[q]) != greater) {
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+			}
+			tommy_trie_node* expected_less = less ? &less->node : 0;
+			tommy_trie_node* expected_less_equal = less_equal ? &less_equal->node : 0;
+			tommy_trie_node* expected_greater_equal = greater_equal ? &greater_equal->node : 0;
+			tommy_trie_node* expected_greater = greater ? &greater->node : 0;
+			if (tommy_trie_find_less(trie, queries[q]) != expected_less
+				|| tommy_trie_find_less_equal(trie, queries[q]) != expected_less_equal
+				|| tommy_trie_find_greater_equal(trie, queries[q]) != expected_greater_equal
+				|| tommy_trie_find_greater(trie, queries[q]) != expected_greater
+				|| tommy_trie_find(trie, queries[q]) != tommy_trie_bucket(trie, queries[q])) {
 				/* LCOV_EXCL_START */
 				abort();
 				/* LCOV_EXCL_STOP */
@@ -7110,10 +7169,10 @@ static void trie_inplace_search_bounds_check(tommy_trie_inplace* trie, void** ex
 
 		const tommy_key_t queries[] = { key ? key - 1 : 0, key, key < max ? key + 1 : max };
 		for (unsigned q = 0; q < sizeof(queries) / sizeof(queries[0]); ++q) {
-			void* less = 0;
-			void* less_equal = 0;
-			void* greater_equal = 0;
-			void* greater = 0;
+			struct object_trie_inplace* less = 0;
+			struct object_trie_inplace* less_equal = 0;
+			struct object_trie_inplace* greater_equal = 0;
+			struct object_trie_inplace* greater = 0;
 			/* the oracle uses only independently sorted keys and insertion positions */
 			for (unsigned j = 0; j < size; ++j) {
 				struct object_trie_inplace* obj = expected[j];
@@ -7130,6 +7189,19 @@ static void trie_inplace_search_bounds_check(tommy_trie_inplace* trie, void** ex
 				|| tommy_trie_inplace_search_less_equal(trie, queries[q]) != less_equal
 				|| tommy_trie_inplace_search_greater_equal(trie, queries[q]) != greater_equal
 				|| tommy_trie_inplace_search_greater(trie, queries[q]) != greater) {
+				/* LCOV_EXCL_START */
+				abort();
+				/* LCOV_EXCL_STOP */
+			}
+			tommy_trie_inplace_node* expected_inplace_less = less ? &less->node : 0;
+			tommy_trie_inplace_node* expected_inplace_less_equal = less_equal ? &less_equal->node : 0;
+			tommy_trie_inplace_node* expected_inplace_greater_equal = greater_equal ? &greater_equal->node : 0;
+			tommy_trie_inplace_node* expected_inplace_greater = greater ? &greater->node : 0;
+			if (tommy_trie_inplace_find_less(trie, queries[q]) != expected_inplace_less
+				|| tommy_trie_inplace_find_less_equal(trie, queries[q]) != expected_inplace_less_equal
+				|| tommy_trie_inplace_find_greater_equal(trie, queries[q]) != expected_inplace_greater_equal
+				|| tommy_trie_inplace_find_greater(trie, queries[q]) != expected_inplace_greater
+				|| tommy_trie_inplace_find(trie, queries[q]) != tommy_trie_inplace_bucket(trie, queries[q])) {
 				/* LCOV_EXCL_START */
 				abort();
 				/* LCOV_EXCL_STOP */
