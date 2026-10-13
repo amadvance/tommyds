@@ -23,6 +23,7 @@
  * The data structures provided are:
  *
  * - ::tommy_list - A doubly linked list.
+ * It supports fast sorting with a stable merge sort algorithm.
  * - ::tommy_array, ::tommy_arrayof - A linear array.
  * It doesn't fragment the heap.
  * - ::tommy_arrayblk, ::tommy_arrayblkof - A blocked linear array.
@@ -35,6 +36,8 @@
  * - ::tommy_trie - A trie optimized for cache utilization.
  * - ::tommy_trie_inplace - A trie completely inplace.
  * - ::tommy_tree - A tree to keep elements in order.
+ * - ::tommy_allocator - An allocator of fixed-size blocks avoiding heap fragmentation.
+ * - Hash functions - Non-cryptographic 32/64-bit hash functions (a5hash) for integers, strings, and byte buffers.
  *
  * The most interesting are ::tommy_array, ::tommy_hashdyn, ::tommy_hashlin, ::tommy_trie and ::tommy_trie_inplace.
  *
@@ -63,8 +66,10 @@
  * | ::tommy_tree | Ordered collections, range queries | AVL tree ordered by a comparison callback |
  *
  * Tommy containers do not manage the lifetime of stored objects. Memory allocation (e.g. via `malloc()`)
- * and deallocation (e.g. via `free()`) remain the caller's responsibility. Container deinitialization
- * functions (`*_done()`) release internal container buffers without freeing stored objects.
+ * and deallocation (e.g. via `free()`) remain the caller's responsibility:
+ * - **Deinitialization (`*_done()`)**: releases internal container buffers without freeing stored objects.
+ * - **Clearing (`*_clear()`)**: empties the container while preserving allocated capacity for immediate reuse,
+ * without freeing stored objects.
  *
  * \subsection use_seq Sequential Containers and Arrays
  *
@@ -127,6 +132,24 @@
  * tommy_list_insert_tail(&list, &obj->node, obj); // inserts at tail
  * \endcode
  *
+ * Lists can be sorted in-place with tommy_list_sort() using a stable merge sort algorithm:
+ *
+ * \code
+ * int list_compare(const void* obj_a, const void* obj_b)
+ * {
+ *     const struct list_object* a = obj_a;
+ *     const struct list_object* b = obj_b;
+ *
+ *     if (a->value < b->value)
+ *         return -1;
+ *     if (a->value > b->value)
+ *         return 1;
+ *     return 0;
+ * }
+ *
+ * tommy_list_sort(&list, list_compare); // stable O(N log N) in-place sort
+ * \endcode
+ *
  * \subsection use_assoc Associative Containers
  *
  * Tommy associative containers store pointers to generic objects and provide fast search by key,
@@ -173,6 +196,11 @@
  *
  * tommy_hashdyn_done(&hashdyn);
  * \endcode
+ *
+ * By default, tommy_hashdyn_insert() allows multiple elements with identical keys.
+ * To enforce uniqueness atomically, use tommy_hashdyn_insert_unique() (and the corresponding
+ * tommy_hashtable and tommy_hashlin functions), which inserts the element only if no match
+ * already exists, returning the existing object if present, or 0 on successful insertion.
  *
  * - **Numeric Tries** (::tommy_trie, ::tommy_trie_inplace): index objects directly by an integer key
  * (::tommy_key_t). ::tommy_trie uses an embedded ::tommy_node and requires an external ::tommy_allocator.
@@ -275,6 +303,14 @@
  *
  * To search with an arbitrary search key type rather than a full object, use tommy_tree_search_compare().
  *
+ * Like numeric tries, trees provide inclusive and exclusive key bound searches:
+ * tommy_tree_search_less(), tommy_tree_search_less_equal(),
+ * tommy_tree_search_greater_equal(), and tommy_tree_search_greater(), with
+ * custom comparator variants (e.g. tommy_tree_search_greater_equal_compare())
+ * and node lookup counterparts (tommy_tree_find_greater_equal(), etc.).
+ * Combining tommy_tree_find_greater_equal() with tommy_tree_next() enables
+ * efficient range scans over ordered elements.
+ *
  * \subsection use_conventions API Conventions: Objects vs Nodes
  *
  * Tommy associative containers follow a consistent naming convention to distinguish
@@ -283,14 +319,18 @@
  * | Operation Family | Prefix / Name | Return Type | Typical Use |
  * |---|---|---|---|
  * | **Object lookup** | `search*` | `void*` (`data`) | High-level point queries returning the object directly (or 0) |
- * | **Object removal** | `remove*` | `void*` (`data`) | Removes an element and returns the object pointer |
- * | **Unique insertion** | `insert_unique*` | `void*` (`data`) | Returns existing object if present, 0 on successful insertion |
+ * | **Object removal** | `remove*` | `void*` (`data`) | Searches by key/callback and removes matching element |
+ * | **Direct node removal** | `remove_existing*` | `void*` (`data`) | Unlinks a known node directly without search (O(1) in lists/hashtables) |
+ * | **Unique insertion** | `insert_unique*` | `void*` (`data`) | Inserts only if absent; returns existing object or 0 |
  * | **Node lookup** | `find*` | `tommy_*_node*` | Locates the node, enabling iteration or metadata inspection |
  * | **Bucket lookup** | `bucket*` | `tommy_*_node*` | Returns head node of hash collisions or trie leaves |
  * | **Positional navigation** | `head*`, `tail*`, `next*`, `prev*` | `tommy_*_node*` | Linear and ordered traversal over container nodes |
  *
  * Use `search()` when you only need the object pointer. Use `find()` when you need
- * to inspect the node itself or start a traversal from the matching position:
+ * to inspect the node itself or start a traversal from the matching position.
+ *
+ * For element removal, use `remove()` when you only have a search key (performing a lookup),
+ * or `remove_existing()` when you already hold the node pointer (avoiding lookup overhead).
  *
  * \code
  * // Point lookup returning the object directly:
@@ -334,6 +374,9 @@
  *   - Arrays: access elements in an explicit `for` loop by index from 0 to tommy_array_size(&array) - 1.
  *   - Hashtables and tries: iterate over elements with the same key/bucket using `tommy_*_bucket()` or
  * `tommy_*_find()` and following `->next`.
+ *   - Hashtables can also be drained directly into a ::tommy_list using tommy_hashtable_to_list(),
+ * tommy_hashdyn_to_list(), or tommy_hashlin_to_list() in O(buckets) time without memory allocations,
+ * enabling sequential batch processing or list sorting.
  *   - To iterate explicitly over all elements across hashtables or tries in insertion order, you can
  * insert objects into both an associative container and a ::tommy_list (see \ref multiindex).
  *
