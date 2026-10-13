@@ -74,6 +74,33 @@
  * }
  * \endcode
  *
+ * \anchor tommy_list_iterator_validity
+ * Iterators are pointers to nodes contained in the list.
+ * Inserting elements or removing other nodes between iterator calls does not
+ * invalidate pointers to nodes that remain in the list.
+ * Subsequent next/prev calls use the current contents and ordering;
+ * inserted elements may become visible and removed elements are skipped.
+ *
+ * Removing the pointed node invalidates its use as an iterator, even if
+ * its storage has not been freed. To continue traversal after removing
+ * the current node, obtain the next or previous node before removal.
+ *
+ * \code
+ * tommy_node* i = tommy_list_head(&list);
+ * while (i) {
+ *     tommy_node* next = i->next; // obtain the next node before removal
+ *
+ *     if (condition) {
+ *         tommy_list_remove_existing(&list, i);
+ *         free(i->data); // safe to deallocate
+ *     }
+ *
+ *     i = next;
+ * }
+ * \endcode
+ *
+ * Concurrent traversal and modification require external synchronization.
+ *
  * To reorder existing elements, use tommy_list_move_head(), tommy_list_move_tail()
  * or tommy_list_reverse(). To split a list or transfer elements between lists,
  * use tommy_list_split(), tommy_list_prepend(), tommy_list_splice_before()
@@ -205,6 +232,7 @@ tommy_inline tommy_node* tommy_list_tail(tommy_list* list)
  * Gets the previous node in the list.
  * Unlike tommy_node::prev, this function returns 0 at the head of the list,
  * allowing backward iteration starting from tommy_list_tail().
+ * See \ref tommy_list_iterator_validity for iterator validity across insertions and removals.
  * \param list The list.
  * \param node The current node. The node must be in the list.
  * \return The previous node, or 0 if the current node is the head.
