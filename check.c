@@ -717,6 +717,38 @@ struct inthash64_test {
 	{ 0, 0 }
 };
 
+const struct inthash32_test MULHASH32[] = {
+	{ 0x00000000U, 0x00000000U },
+	{ 0x00000001U, 0x514e28b7U },
+	{ 0x00000002U, 0x30f4c306U },
+	{ 0x7fffffffU, 0xf9cc0ea8U },
+	{ 0x80000000U, 0x6d3c65a0U },
+	{ 0xffffffffU, 0x81f16f39U },
+	{ 0x55555555U, 0x1d2752bfU },
+	{ 0xaaaaaaaaU, 0xabf634c6U },
+	{ 0x00010000U, 0x0ea34562U },
+	{ 0xffff0000U, 0x4ae38127U },
+	{ 0x12345678U, 0xe37cd1bcU },
+	{ 0xdeadbeefU, 0x0de5c6a9U },
+	{ 0, 0 }
+};
+
+const struct inthash64_test MULHASH64[] = {
+	{ 0x0000000000000000ULL, 0x0000000000000000ULL },
+	{ 0x0000000000000001ULL, 0x5692161d100b05e5ULL },
+	{ 0x0000000000000002ULL, 0xdbd238973a2b148aULL },
+	{ 0x7fffffffffffffffULL, 0x5a682afe7965debdULL },
+	{ 0x8000000000000000ULL, 0x25c26ea579cea98aULL },
+	{ 0xffffffffffffffffULL, 0xb4d055fcf2cbbd7bULL },
+	{ 0x5555555555555555ULL, 0xc4c84c7057e99f63ULL },
+	{ 0xaaaaaaaaaaaaaaaaULL, 0x899098e2afd33ec7ULL },
+	{ 0x0000000100000000ULL, 0xd820b7e910b0f93fULL },
+	{ 0xffffffff00000000ULL, 0xb742092f23ab85b3ULL },
+	{ 0x0123456789abcdefULL, 0xb2c058e4ebb5112cULL },
+	{ 0xdeadbeefcafebabeULL, 0x7ad6664f09ffe52cULL },
+	{ 0, 0 }
+};
+
 void test_strhash_alignment(void)
 {
 	const tommy_uint32_t seed[] = { 0, 1, 0xa766795d, 0xffffffff };
@@ -1028,6 +1060,22 @@ void test_hash(void)
 		}
 	}
 
+	for (unsigned i = 0; MULHASH32[i].value || !i; ++i) {
+		if (tommy_mulhash_u32(MULHASH32[i].value) != MULHASH32[i].hash) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
+	for (unsigned i = 0; MULHASH64[i].value || !i; ++i) {
+		if (tommy_mulhash_u64(MULHASH64[i].value) != MULHASH64[i].hash) {
+			/* LCOV_EXCL_START */
+			abort();
+			/* LCOV_EXCL_STOP */
+		}
+	}
+
 	enum { count = 63 };
 
 	/* prepare aligned strings before timing, using the same inputs for all hashes */
@@ -1070,9 +1118,46 @@ void test_hash(void)
 	} SPEED_STOP
 	printf("%25s %8.2f [ns], %8u [measure]\n", "strhash_u64", the_time / (count + 1), the_measure);
 
+	/*
+	 * Measure dependent integer hashes like the seeded byte hashes above.
+	 * The increment prevents adjacent XOR finalizers from cancelling when
+	 * inlined and avoids repeatedly hashing the zero fixed point.
+	 */
+	tommy_uint32_t inthash32 = 1;
+	SPEED_START(0) {
+		for (unsigned i = 0; i <= count; ++i)
+			inthash32 = tommy_inthash_u32(inthash32 + 1);
+	} SPEED_STOP
+	printf("%25s %8.2f [ns], %8u [measure]\n", "inthash_u32", the_time / (count + 1), the_measure);
+
+	tommy_uint32_t mulhash32 = 1;
+	SPEED_START(0) {
+		for (unsigned i = 0; i <= count; ++i)
+			mulhash32 = tommy_mulhash_u32(mulhash32 + 1);
+	} SPEED_STOP
+	printf("%25s %8.2f [ns], %8u [measure]\n", "mulhash_u32", the_time / (count + 1), the_measure);
+
+	tommy_uint64_t inthash64 = 1;
+	SPEED_START(0) {
+		for (unsigned i = 0; i <= count; ++i)
+			inthash64 = tommy_inthash_u64(inthash64 + 1);
+	} SPEED_STOP
+	printf("%25s %8.2f [ns], %8u [measure]\n", "inthash_u64", the_time / (count + 1), the_measure);
+
+	tommy_uint64_t mulhash64 = 1;
+	SPEED_START(0) {
+		for (unsigned i = 0; i <= count; ++i)
+			mulhash64 = tommy_mulhash_u64(mulhash64 + 1);
+	} SPEED_STOP
+	printf("%25s %8.2f [ns], %8u [measure]\n", "mulhash_u64", the_time / (count + 1), the_measure);
+
 	/* keep all measured hash calls observable */
 	the_hash = hash32;
 	the_hash = hash64;
+	the_hash = inthash32;
+	the_hash = mulhash32;
+	the_hash = inthash64;
+	the_hash = mulhash64;
 }
 
 void test_alloc_clear(void)

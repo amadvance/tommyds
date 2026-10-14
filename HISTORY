@@ -14,6 +14,9 @@ TommyDS HISTORY
    using a5hash32, and tommy_hash_u64() and the new tommy_strhash_u64()
    using a5hash (64-bit). Both algorithms pass SMHasher3 tests.
    The resulting hash values differ from previous versions.
+ * Added tommy_mulhash_u32() and tommy_mulhash_u64(), reversible integer
+   hashes based on MurmurHash3 fmix32 and the SplitMix64 finalizer, for
+   architectures with fast integer multiplication.
  * In hashtable, tree, trie and inplace trie, added find* functions returning
    container nodes for traversal and metadata inspection. Tree and trie variants
    include inclusive and exclusive key bound lookups, with custom comparison

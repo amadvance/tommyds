@@ -169,6 +169,47 @@ tommy_inline tommy_uint64_t tommy_inthash_u64(tommy_uint64_t key)
 	return key;
 }
 
+/**
+ * Reversible 32-bit integer hash function using multiplications.
+ * Implementation of the MurmurHash3 fmix32 finalizer by Austin Appleby,
+ * from https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp
+ * \param key The 32-bit integer to hash.
+ * \return The 32-bit hash value.
+ * \note Requires an architecture with fast 32-bit integer multiplication
+ * for good performance. See tommy_inthash_u32() for an alternative.
+ */
+tommy_inline tommy_uint32_t tommy_mulhash_u32(tommy_uint32_t key)
+{
+	key ^= key >> 16;
+	key *= 0x85ebca6bU;
+	key ^= key >> 13;
+	key *= 0xc2b2ae35U;
+	key ^= key >> 16;
+
+	return key;
+}
+
+/**
+ * Reversible 64-bit integer hash function using multiplications.
+ * Implementation of the SplitMix64 finalizer,
+ * from https://prng.di.unimi.it/splitmix64.c
+ * \param key The 64-bit integer to hash.
+ * \return The 64-bit hash value.
+ * \note Requires an architecture with fast 64-bit integer multiplication
+ * for good performance. It is generally not recommended on 32-bit architectures,
+ * where these multiplications are expensive. Consider tommy_inthash_u64() instead.
+ */
+tommy_inline tommy_uint64_t tommy_mulhash_u64(tommy_uint64_t key)
+{
+	key ^= key >> 30;
+	key *= 0xbf58476d1ce4e5b9ULL;
+	key ^= key >> 27;
+	key *= 0x94d049bb133111ebULL;
+	key ^= key >> 31;
+
+	return key;
+}
+
 /******************************************************************************/
 /* multiplication */
 
