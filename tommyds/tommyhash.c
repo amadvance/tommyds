@@ -14,6 +14,7 @@
  */
 #if defined(__GNUC__)
 #define tommy_imp_hash_swap32(x) __builtin_bswap32(x)
+#define tommy_imp_hash_swap64(x) __builtin_bswap64(x)
 #else
 tommy_inline tommy_uint32_t tommy_imp_hash_swap32(tommy_uint32_t v)
 {
@@ -21,6 +22,18 @@ tommy_inline tommy_uint32_t tommy_imp_hash_swap32(tommy_uint32_t v)
 	       ((v & 0x00FF0000) >> 8) |
 	       ((v & 0x0000FF00) << 8) |
 	       ((v & 0x000000FF) << 24);
+}
+
+tommy_inline tommy_uint64_t tommy_imp_hash_swap64(tommy_uint64_t v)
+{
+	return ((v & 0xFF00000000000000ULL) >> 56) |
+	       ((v & 0x00FF000000000000ULL) >> 40) |
+	       ((v & 0x0000FF0000000000ULL) >> 24) |
+	       ((v & 0x000000FF00000000ULL) >> 8) |
+	       ((v & 0x00000000FF000000ULL) << 8) |
+	       ((v & 0x0000000000FF0000ULL) << 24) |
+	       ((v & 0x000000000000FF00ULL) << 40) |
+	       ((v & 0x00000000000000FFULL) << 56);
 }
 #endif
 
@@ -35,11 +48,22 @@ tommy_inline tommy_uint32_t tommy_imp_hash_le_uint32_read(const void* ptr)
 	return v;
 }
 
+tommy_inline tommy_uint64_t tommy_imp_hash_le_uint64_read(const void* ptr)
+{
+	tommy_uint64_t v;
+	memcpy(&v, ptr, sizeof(v));
+#if defined(WORDS_BIGENDIAN) || defined(__BIG_ENDIAN__) || \
+	(defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+	v = tommy_imp_hash_swap64(v);
+#endif
+	return v;
+}
+
 /******************************************************************************/
 /* a5hash */
 
 /**
- * a5hash32 and a5hash (64-bit) by Aleksey Vaneev, from https://github.com/avaneev/a5hash.
+ * a5hash32 by Aleksey Vaneev, from https://github.com/avaneev/a5hash.
  * Adapted from version 5.25 with little-endian word reads.
  * Copyright (c) 2025 Aleksey Vaneev. Released under the MIT license, see LICENSES/MIT.
  */
@@ -124,46 +148,83 @@ TOMMY_API tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* voi
 	return a ^ b;
 }
 
+/******************************************************************************/
+/* rapidhashnano */
+
+/**
+ * rapidhashnano (64-bit) by Nicolas De Carli, from https://github.com/Nicoshev/rapidhash.
+ * Adapted from rapidhash V3 with little-endian word reads.
+ * Copyright (C) 2025 Nicolas De Carli. Released under the MIT license.
+ */
+
+tommy_inline tommy_uint64_t tommy_imp_rapid_mix(tommy_uint64_t a, tommy_uint64_t b)
+{
+	tommy_mum(&a, &b);
+	return a ^ b;
+}
+
 TOMMY_API tommy_uint64_t tommy_hash_u64(tommy_uint64_t init_val, const void* void_key, tommy_size_t key_len)
 {
 	const unsigned char* key = tommy_cast(const unsigned char*, void_key);
-	tommy_uint64_t val01 = 0x5555555555555555ULL;
-	tommy_uint64_t val10 = 0xaaaaaaaaaaaaaaaaULL;
-	tommy_uint64_t h[2] = { (0x452821e638d01377ULL ^ key_len) ^ (init_val & val10), (0x243f6a8885a308d3ULL ^ key_len) ^ (init_val & val01) };
+	static const tommy_uint64_t secret[8] = {
+		0x2d358dccaa6c78a5ULL,
+		0x8bb84b93962eacc9ULL,
+		0x4b33a62ed433d4a3ULL,
+		0x4d5a2da51de1aa47ULL,
+		0xa0761d6478bd642fULL,
+		0xe7037ed1a0b428dbULL,
+		0x90ed1765281c388cULL,
+		0xaaaaaaaaaaaaaaaaULL
+	};
+	tommy_uint64_t seed = init_val;
+	tommy_uint64_t a = 0;
+	tommy_uint64_t b = 0;
 	tommy_size_t len = key_len;
 
-	tommy_mum(&h[0], &h[1]);
-	if (len > 16) {
-		val01 ^= h[0];
-		val10 ^= h[1];
-		do {
-			/* each 64-bit operand puts the first little-endian word in its high half */
-			h[0] ^= (tommy_uint64_t)tommy_imp_hash_le_uint32_read(key) << 32 ^ tommy_imp_hash_le_uint32_read(key + 4);
-			h[1] ^= (tommy_uint64_t)tommy_imp_hash_le_uint32_read(key + 8) << 32 ^ tommy_imp_hash_le_uint32_read(key + 12);
-			tommy_mum(&h[0], &h[1]);
-			h[0] += val01;
-			h[1] += val10;
-			key += 16;
-			len -= 16;
-		} while (len > 16);
+	seed ^= tommy_imp_rapid_mix(seed ^ secret[2], secret[1]);
+
+	if (len <= 16) {
+		if (len >= 4) {
+			seed ^= len;
+			if (len >= 8) {
+				const unsigned char* tail = key + len - 8;
+				a = tommy_imp_hash_le_uint64_read(key);
+				b = tommy_imp_hash_le_uint64_read(tail);
+			} else {
+				const unsigned char* tail = key + len - 4;
+				a = tommy_imp_hash_le_uint32_read(key);
+				b = tommy_imp_hash_le_uint32_read(tail);
+			}
+		} else if (len != 0) {
+			a = ((tommy_uint64_t)key[0] << 45) | key[len - 1];
+			b = key[len >> 1];
+		}
+	} else {
+		if (len > 48) {
+			tommy_uint64_t see1 = seed;
+			tommy_uint64_t see2 = seed;
+			do {
+				seed = tommy_imp_rapid_mix(tommy_imp_hash_le_uint64_read(key) ^ secret[0], tommy_imp_hash_le_uint64_read(key + 8) ^ seed);
+				see1 = tommy_imp_rapid_mix(tommy_imp_hash_le_uint64_read(key + 16) ^ secret[1], tommy_imp_hash_le_uint64_read(key + 24) ^ see1);
+				see2 = tommy_imp_rapid_mix(tommy_imp_hash_le_uint64_read(key + 32) ^ secret[2], tommy_imp_hash_le_uint64_read(key + 40) ^ see2);
+				key += 48;
+				len -= 48;
+			} while (len > 48);
+			seed ^= see1;
+			seed ^= see2;
+		}
+		if (len > 16) {
+			seed = tommy_imp_rapid_mix(tommy_imp_hash_le_uint64_read(key) ^ secret[2], tommy_imp_hash_le_uint64_read(key + 8) ^ seed);
+			if (len > 32)
+				seed = tommy_imp_rapid_mix(tommy_imp_hash_le_uint64_read(key + 16) ^ secret[2], tommy_imp_hash_le_uint64_read(key + 24) ^ seed);
+		}
+		a = tommy_imp_hash_le_uint64_read(key + len - 16) ^ len;
+		b = tommy_imp_hash_le_uint64_read(key + len - 8);
 	}
 
-	if (len >= 4) {
-		const unsigned char* tail = key + len - 4;
-		tommy_size_t offset = (len / 8) * 4;
-		h[0] ^= (tommy_uint64_t)tommy_imp_hash_le_uint32_read(key) << 32 | tommy_imp_hash_le_uint32_read(tail);
-		h[1] ^= (tommy_uint64_t)tommy_imp_hash_le_uint32_read(key + offset) << 32 | tommy_imp_hash_le_uint32_read(tail - offset);
-	} else if (len != 0) {
-		h[0] ^= key[0];
-		if (len >= 2)
-			h[0] ^= key[1] << 8;
-		if (len == 3)
-			h[0] ^= key[2] << 16;
-	}
-
-	tommy_mum(&h[0], &h[1]);
-	h[0] ^= val01;
-	tommy_mum(&h[0], &h[1]);
-	return h[0] ^ h[1];
+	a ^= secret[1];
+	b ^= seed;
+	tommy_mum(&a, &b);
+	return tommy_imp_rapid_mix(a ^ secret[7], b ^ secret[1] ^ len);
 }
 

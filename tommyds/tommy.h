@@ -37,7 +37,7 @@
  * - ::tommy_trie_inplace - A trie completely in-place.
  * - ::tommy_tree - A tree to keep elements in order.
  * - ::tommy_allocator - An allocator of fixed-size blocks avoiding heap fragmentation.
- * - Hash functions - Non-cryptographic 32/64-bit hash functions (a5hash) for integers, strings, and byte buffers.
+ * - Hash functions - Non-cryptographic 32/64-bit hash functions (a5hash32, rapidhashnano) for integers, strings, and byte buffers.
  *
  * The most interesting are ::tommy_array, ::tommy_hashdyn, ::tommy_hashlin, ::tommy_trie and ::tommy_trie_inplace.
  *
