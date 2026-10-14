@@ -464,11 +464,19 @@ TOMMY_API tommy_hashlin_node* tommy_hashlin_tail(tommy_hashlin* hashlin)
 
 TOMMY_API tommy_hashlin_node* tommy_hashlin_next(tommy_hashlin* hashlin, tommy_hashlin_node* node)
 {
+	/* adjacent equal hashes are consecutive in insertion order */
+	if (node->next && node->next->index == node->index)
+		return node->next;
+
 	return tommy_imp_hashlin_neighbor(hashlin, node, 0);
 }
 
 TOMMY_API tommy_hashlin_node* tommy_hashlin_prev(tommy_hashlin* hashlin, tommy_hashlin_node* node)
 {
+	/* equal hashes follow insertion order, but the bucket head's prev points to the tail */
+	if (node != *tommy_hashlin_bucket_ref(hashlin, node->index) && node->prev->index == node->index)
+		return node->prev;
+
 	return tommy_imp_hashlin_neighbor(hashlin, node, 1);
 }
 

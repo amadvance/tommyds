@@ -445,11 +445,19 @@ TOMMY_API tommy_hashdyn_node* tommy_hashdyn_tail(tommy_hashdyn* hashdyn)
 
 TOMMY_API tommy_hashdyn_node* tommy_hashdyn_next(tommy_hashdyn* hashdyn, tommy_hashdyn_node* node)
 {
+	/* adjacent equal hashes are consecutive in insertion order */
+	if (node->next && node->next->index == node->index)
+		return node->next;
+
 	return tommy_imp_hashdyn_neighbor(hashdyn, node, 0);
 }
 
 TOMMY_API tommy_hashdyn_node* tommy_hashdyn_prev(tommy_hashdyn* hashdyn, tommy_hashdyn_node* node)
 {
+	/* equal hashes follow insertion order, but the bucket head's prev points to the tail */
+	if (node != hashdyn->bucket[node->index & hashdyn->bucket_mask] && node->prev->index == node->index)
+		return node->prev;
+
 	return tommy_imp_hashdyn_neighbor(hashdyn, node, 1);
 }
 
