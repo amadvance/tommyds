@@ -34,7 +34,7 @@
  * It doesn't have the problem of the delay when resizing and
  * it doesn't fragment the heap.
  * - ::tommy_trie - A trie optimized for cache utilization.
- * - ::tommy_trie_inplace - A trie completely inplace.
+ * - ::tommy_trie_inplace - A trie completely in-place.
  * - ::tommy_tree - A tree to keep elements in order.
  * - ::tommy_allocator - An allocator of fixed-size blocks avoiding heap fragmentation.
  * - Hash functions - Non-cryptographic 32/64-bit hash functions (a5hash) for integers, strings, and byte buffers.
@@ -65,18 +65,18 @@
  * | ::tommy_trie_inplace | Integer keys: 32-bit by default, configurable to 64-bit | In-place node; requires no external allocator |
  * | ::tommy_tree | Ordered collections, range queries | AVL tree ordered by a comparison callback |
  *
- * Tommy containers do not manage the lifetime of stored objects. Memory allocation (e.g. via `malloc()`)
+ * Tommy containers do not manage the lifetime of stored elements. Memory allocation (e.g. via `malloc()`)
  * and deallocation (e.g. via `free()`) remain the caller's responsibility:
- * - **Deinitialization (`*_done()`)**: releases internal container buffers without freeing stored objects.
- * - **Clearing (`*_clear()`)**: empties the container while preserving allocated capacity for immediate reuse,
- * without freeing stored objects.
+ * - **Deinitialization (`*_done()`)**: releases internal container buffers without freeing stored elements.
+ * - **Clearing (`*_clear()`)**: empties the container, leaving it initialized and immediately reusable
+ * without freeing stored elements. Capacity management depends on the container.
  *
  * \subsection use_seq Sequential Containers and Arrays
  *
  * Dynamic arrays (::tommy_array, ::tommy_arrayof, ::tommy_arrayblk, ::tommy_arrayblkof) store
  * elements indexed by position (from 0 to size - 1). They grow dynamically without heap
- * fragmentation and do **not** require any embedded node inside stored objects.
- * ::tommy_array and ::tommy_arrayblk store pointers to objects (`void*`), while ::tommy_arrayof
+ * fragmentation and do **not** require any embedded node inside stored elements.
+ * ::tommy_array and ::tommy_arrayblk store pointers to elements (`void*`), while ::tommy_arrayof
  * and ::tommy_arrayblkof store element values directly.
  *
  * \code
@@ -86,38 +86,38 @@
  *
  * tommy_array_grow(&array, 10); // grows size to at least 10 elements
  *
- * struct object* obj = malloc(sizeof(struct object));
- * obj->value = 42;
+ * struct element* elem = malloc(sizeof(struct element));
+ * elem->value = 42;
  *
- * tommy_array_set(&array, 0, obj); // stores a pointer at index 0
+ * tommy_array_set(&array, 0, elem); // stores a pointer at index 0
  *
- * struct object* obj0 = tommy_array_get(&array, 0); // retrieves pointer at index 0
+ * struct element* element_0 = tommy_array_get(&array, 0); // retrieves pointer at index 0
  *
  * tommy_array_done(&array); // deinitializes the array
  * \endcode
  *
  * \code
- * struct value_object {
+ * struct value_element {
  *     int value;
  * };
  *
  * tommy_arrayof arrayof;
- * tommy_arrayof_init(&arrayof, sizeof(struct value_object)); // sets element size
+ * tommy_arrayof_init(&arrayof, sizeof(struct value_element)); // sets element size
  *
  * tommy_arrayof_grow(&arrayof, 10); // grows size to at least 10 elements
  *
- * struct value_object* val0 = tommy_arrayof_ref(&arrayof, 0); // gets pointer to element at index 0
+ * struct value_element* val0 = tommy_arrayof_ref(&arrayof, 0); // gets pointer to element at index 0
  * val0->value = 42;
  *
  * tommy_arrayof_done(&arrayof); // deinitializes the array
  * \endcode
  *
- * Doubly linked lists (::tommy_list) store pointers to objects sequentially (at head or tail).
- * An object inserted into a list must contain an embedded ::tommy_node, but elements are not
+ * Doubly linked lists (::tommy_list) store pointers to elements sequentially (at head or tail).
+ * An element inserted into a list must contain an embedded ::tommy_node, but elements are not
  * indexed by key.
  *
  * \code
- * struct list_object {
+ * struct list_element {
  *     int value;
  *     // other fields
  *     tommy_node node;
@@ -126,19 +126,19 @@
  * tommy_list list;
  * tommy_list_init(&list);
  *
- * struct list_object* obj = malloc(sizeof(struct list_object));
- * obj->value = 42;
+ * struct list_element* elem = malloc(sizeof(struct list_element));
+ * elem->value = 42;
  *
- * tommy_list_insert_tail(&list, &obj->node, obj); // inserts at tail
+ * tommy_list_insert_tail(&list, &elem->node, elem); // inserts at tail
  * \endcode
  *
  * Lists can be sorted in-place with tommy_list_sort() using a stable merge sort algorithm:
  *
  * \code
- * int list_compare(const void* obj_a, const void* obj_b)
+ * int list_compare(const void* elem_a, const void* elem_b)
  * {
- *     const struct list_object* a = obj_a;
- *     const struct list_object* b = obj_b;
+ *     const struct list_element* a = elem_a;
+ *     const struct list_element* b = elem_b;
  *
  *     if (a->value < b->value)
  *         return -1;
@@ -147,49 +147,49 @@
  *     return 0;
  * }
  *
- * tommy_list_sort(&list, list_compare); // stable O(N log N) in-place sort
+ * tommy_list_sort(&list, list_compare); // stable O(n log n) in-place sort
  * \endcode
  *
  * \subsection use_assoc Associative Containers
  *
- * Tommy associative containers store pointers to generic objects and provide fast search by key,
+ * Tommy associative containers store pointers to generic elements and provide fast search by key,
  * hash value, or comparison callback. They support multiple elements with the same key, preserving
  * the insertion order of duplicates (semantically equivalent to C++ `multimap` and `unordered_multimap`).
  *
  * Tommy relies on two different callback signatures depending on the container:
- * - **Equality callback (::tommy_search_func)**: used by hashtables. It takes `(const void* arg, const void* obj)`
+ * - **Equality callback (::tommy_search_func)**: used by hashtables. It takes `(const void* arg, const void* elem)`
  * and returns `0` if the element matches the search argument, or non-zero (`!= 0`) if different.
  * - **Three-way comparison callback (::tommy_compare_func)**: used by trees and list sorting. It takes
- * `(const void* obj_a, const void* obj_b)` and returns `< 0` if `a < b`, `0` if `a == b`, and `> 0` if `a > b`.
+ * `(const void* elem_a, const void* elem_b)` and returns `< 0` if `a < b`, `0` if `a == b`, and `> 0` if `a > b`.
  *
- * - **Hashtables** (::tommy_hashtable, ::tommy_hashdyn, ::tommy_hashlin): objects embed a ::tommy_node.
+ * - **Hashtables** (::tommy_hashtable, ::tommy_hashdyn, ::tommy_hashlin): elements embed a ::tommy_node.
  * Insertion takes the hash of the key (type ::tommy_hash_t, e.g. computed via ::tommy_inthash_u32(),
  * ::tommy_strhash_u32(), or ::tommy_hash_u32()). Search and remove take an equality callback function
- * (::tommy_search_func) returning 0 on match to differentiate objects with matching hash values.
+ * (::tommy_search_func) returning 0 on match to differentiate elements with matching hash values.
  * ::tommy_hashlin shares the same API pattern as ::tommy_hashdyn while resizing incrementally.
  *
  * \code
- * struct hash_object {
+ * struct hash_element {
  *     int value;
  *     // other fields
  *     tommy_node node;
  * };
  *
- * int hash_compare(const void* arg, const void* obj)
+ * int hash_compare(const void* arg, const void* elem)
  * {
- *     return *(const int*)arg != ((const struct hash_object*)obj)->value;
+ *     return *(const int*)arg != ((const struct hash_element*)elem)->value;
  * }
  *
  * tommy_hashdyn hashdyn;
  * tommy_hashdyn_init(&hashdyn);
  *
- * struct hash_object* obj = malloc(sizeof(struct hash_object));
- * obj->value = 1;
+ * struct hash_element* elem = malloc(sizeof(struct hash_element));
+ * elem->value = 1;
  *
- * tommy_hashdyn_insert(&hashdyn, &obj->node, obj, tommy_inthash_u32(obj->value));
+ * tommy_hashdyn_insert(&hashdyn, &elem->node, elem, tommy_inthash_u32(elem->value));
  *
  * int value_to_find = 1;
- * struct hash_object* found = tommy_hashdyn_search(&hashdyn, hash_compare, &value_to_find, tommy_inthash_u32(value_to_find));
+ * struct hash_element* found = tommy_hashdyn_search(&hashdyn, hash_compare, &value_to_find, tommy_inthash_u32(value_to_find));
  * if (found) {
  *     // found
  * }
@@ -198,11 +198,11 @@
  * \endcode
  *
  * By default, tommy_hashdyn_insert() allows multiple elements with identical keys.
- * To enforce uniqueness atomically, use tommy_hashdyn_insert_unique() (and the corresponding
+ * To enforce uniqueness in a single operation, use tommy_hashdyn_insert_unique() (and the corresponding
  * tommy_hashtable and tommy_hashlin functions), which inserts the element only if no match
- * already exists, returning the existing object if present, or 0 on successful insertion.
+ * already exists, returning the existing element if present, or the inserted element on successful insertion.
  *
- * - **Numeric Tries** (::tommy_trie, ::tommy_trie_inplace): index objects directly by an integer key
+ * - **Numeric Tries** (::tommy_trie, ::tommy_trie_inplace): index elements directly by an integer key
  * (::tommy_key_t). ::tommy_trie uses an embedded ::tommy_node and requires an external ::tommy_allocator.
  * ::tommy_trie_inplace uses an embedded ::tommy_trie_inplace_node directly without an external allocator.
  * Both support 32-bit keys by default, configurable to 64-bit by increasing ::TOMMY_TRIE_BIT
@@ -211,7 +211,7 @@
  * This requirement is checked with assert() when assertions are enabled.
  *
  * \code
- * struct trie_object {
+ * struct trie_element {
  *     tommy_key_t key;
  *     // other fields
  *     tommy_node node;
@@ -223,19 +223,18 @@
  * tommy_allocator_init(&alloc, TOMMY_TRIE_BLOCK_SIZE, TOMMY_TRIE_BLOCK_SIZE);
  * tommy_trie_init(&trie, &alloc);
  *
- * struct trie_object* obj = malloc(sizeof(struct trie_object));
- * obj->key = 1;
+ * struct trie_element* elem = malloc(sizeof(struct trie_element));
+ * elem->key = 1;
  *
- * tommy_trie_insert(&trie, &obj->node, obj, obj->key);
+ * tommy_trie_insert(&trie, &elem->node, elem, elem->key);
  *
- * struct trie_object* found = tommy_trie_search(&trie, 1);
+ * struct trie_element* found = tommy_trie_search(&trie, 1);
  *
- * tommy_trie_done(&trie);
  * tommy_allocator_done(&alloc);
  * \endcode
  *
  * \code
- * struct trie_inplace_object {
+ * struct trie_inplace_element {
  *     tommy_key_t key;
  *     // other fields
  *     tommy_trie_inplace_node node;
@@ -244,12 +243,12 @@
  * tommy_trie_inplace trie_inplace;
  * tommy_trie_inplace_init(&trie_inplace);
  *
- * struct trie_inplace_object* obj = malloc(sizeof(struct trie_inplace_object));
- * obj->key = 1;
+ * struct trie_inplace_element* elem = malloc(sizeof(struct trie_inplace_element));
+ * elem->key = 1;
  *
- * tommy_trie_inplace_insert(&trie_inplace, &obj->node, obj, obj->key);
+ * tommy_trie_inplace_insert(&trie_inplace, &elem->node, elem, elem->key);
  *
- * struct trie_inplace_object* found = tommy_trie_inplace_search(&trie_inplace, 1);
+ * struct trie_inplace_element* found = tommy_trie_inplace_search(&trie_inplace, 1);
  * \endcode
  *
  * Both numeric tries provide inclusive and exclusive key bound searches:
@@ -258,28 +257,28 @@
  * corresponding tommy_trie_inplace functions. The less searches select the greatest
  * qualifying key and its last duplicate in insertion order; the greater searches
  * select the smallest qualifying key and its first duplicate. They return the
- * object's data pointer, or 0 if none, without allocating memory or scanning elements.
+ * element pointer, or 0 if none, without allocating memory or scanning elements.
  * Search keys must fit within the configured number of bits.
  *
  * Use tommy_trie_remove_head() or tommy_trie_remove_tail(), and the corresponding
  * tommy_trie_inplace functions, to remove the smallest or greatest key.
  * They select the first or last duplicate in insertion order, respectively,
- * and return the removed object's data pointer, or 0 if the trie is empty.
+ * and return the removed element, or 0 if the trie is empty.
  *
  * - **Ordered Trees** (::tommy_tree): AVL tree keeping elements in the order defined by a 3-way comparison
- * callback (::tommy_compare_func). Objects embed a ::tommy_tree_node.
+ * callback (::tommy_compare_func). Elements embed a ::tommy_tree_node.
  *
  * \code
- * struct tree_object {
+ * struct tree_element {
  *     int value;
  *     // other fields
  *     tommy_tree_node node;
  * };
  *
- * int tree_compare(const void* obj_a, const void* obj_b)
+ * int tree_compare(const void* elem_a, const void* elem_b)
  * {
- *     const struct tree_object* a = obj_a;
- *     const struct tree_object* b = obj_b;
+ *     const struct tree_element* a = elem_a;
+ *     const struct tree_element* b = elem_b;
  *
  *     if (a->value < b->value)
  *         return -1;
@@ -291,17 +290,17 @@
  * tommy_tree tree;
  * tommy_tree_init(&tree, tree_compare);
  *
- * struct tree_object* obj = malloc(sizeof(struct tree_object));
- * obj->value = 1;
+ * struct tree_element* elem = malloc(sizeof(struct tree_element));
+ * elem->value = 1;
  *
- * tommy_tree_insert(&tree, &obj->node, obj);
+ * tommy_tree_insert(&tree, &elem->node, elem);
  *
- * // search using a reference object
- * struct tree_object value_to_find = { 1 };
- * struct tree_object* found = tommy_tree_search(&tree, &value_to_find);
+ * // search using a reference element
+ * struct tree_element value_to_find = { 1 };
+ * struct tree_element* found = tommy_tree_search(&tree, &value_to_find);
  * \endcode
  *
- * To search with an arbitrary search key type rather than a full object, use tommy_tree_search_compare().
+ * To search with an arbitrary search key type rather than a full element, use tommy_tree_search_compare().
  *
  * Like numeric tries, trees provide inclusive and exclusive key bound searches:
  * tommy_tree_search_less(), tommy_tree_search_less_equal(),
@@ -311,36 +310,36 @@
  * Combining tommy_tree_find_greater_equal() with tommy_tree_next() enables
  * efficient range scans over ordered elements.
  *
- * \subsection use_conventions API Conventions: Objects vs Nodes
+ * \subsection use_conventions API Conventions: Elements vs Nodes
  *
  * Tommy associative containers follow a consistent naming convention to distinguish
- * functions that return user objects from functions that return container nodes:
+ * functions that return user elements from functions that return container nodes:
  *
  * | Operation Family | Prefix / Name | Return Type | Typical Use |
  * |---|---|---|---|
- * | **Object lookup** | `search*` | `void*` (`data`) | High-level point queries returning the object directly (or 0) |
- * | **Object removal** | `remove*` | `void*` (`data`) | Searches by key/callback and removes matching element |
+ * | **Element lookup** | `search*` | `void*` (`data`) | High-level point queries returning the element directly (or 0) |
+ * | **Element removal** | `remove*` | `void*` (`data`) | Searches by key/callback and removes matching element |
  * | **Direct node removal** | `remove_existing*` | `void*` (`data`) | Unlinks a known node directly without search (O(1) in lists/hashtables) |
- * | **Unique insertion** | `insert_unique*` | `void*` (`data`) | Inserts only if absent; returns existing object or 0 |
+ * | **Unique insertion** | `insert_unique*` | `void*` (`data`) | Inserts only if absent; returns existing element if present, or the inserted element |
  * | **Node lookup** | `find*` | `tommy_*_node*` | Locates the node, enabling iteration or metadata inspection |
  * | **Bucket lookup** | `bucket*` | `tommy_*_node*` | Returns head node of hash collisions or trie leaves |
  * | **Positional navigation** | `head*`, `tail*`, `next*`, `prev*` | `tommy_*_node*` | Linear and ordered traversal over container nodes |
  *
- * Use `search()` when you only need the object pointer. Use `find()` when you need
+ * Use `search()` when you only need the element pointer. Use `find()` when you need
  * to inspect the node itself or start a traversal from the matching position.
  *
  * For element removal, use `remove()` when you only have a search key (performing a lookup),
  * or `remove_existing()` when you already hold the node pointer (avoiding lookup overhead).
  *
  * \code
- * // Point lookup returning the object directly:
- * struct tree_object* obj = tommy_tree_search(&tree, &target);
+ * // Point lookup returning the element directly:
+ * struct tree_element* elem = tommy_tree_search(&tree, &target);
  *
  * // Range iteration starting from a lower bound:
  * tommy_tree_node* node = tommy_tree_find_greater_equal(&tree, &lower_bound);
  * while (node) {
- *     struct tree_object* item = node->data;
- *     // process item...
+ *     struct tree_element* elem = node->data;
+ *     // process elem...
  *     node = tommy_tree_next(node);
  * }
  * \endcode
@@ -350,35 +349,38 @@
  * Tommy provides two mechanisms to traverse container elements:
  *
  * - **Callback traversal (foreach)**: almost all containers (lists, hashtables, tries, and trees)
- * provide `foreach()` and `foreach_arg()` functions (such as tommy_hashdyn_foreach(), tommy_list_foreach(),
- * tommy_trie_foreach(), and tommy_tree_foreach()) to iterate over all stored elements using a callback function.
+ * provide `foreach()` and `foreach_arg()` functions to iterate over all stored elements using a callback function.
  * The callback may safely deallocate the current element (e.g. calling free()), but adding or removing
  * elements from inside the callback is not allowed.
  *
  * \code
- * void print_object(void* arg, void* obj)
+ * void print_element(void* arg, void* elem)
  * {
- *     struct hash_object* o = obj;
+ *     struct hash_element* o = elem;
  *     printf("%s: %d\n", (const char*)arg, o->value);
  * }
  *
- * tommy_hashdyn_foreach_arg(&hashdyn, print_object, "Item");
+ * tommy_hashdyn_foreach_arg(&hashdyn, print_element, "Item");
  * \endcode
  *
  * - **Explicit iteration**:
- *   - Lists: traverse forward using tommy_list_head() and following `tommy_node::next`, or backward using
- * tommy_list_tail() and tommy_list_prev().
- *   - Trees: traverse in order using tommy_tree_head() and tommy_tree_next(), or in reverse using
- * tommy_tree_tail() and tommy_tree_prev(). Traversal may also begin at any intermediate position returned
- * by tommy_tree_find() or key bound searches like tommy_tree_find_greater_equal().
- *   - Arrays: access elements in an explicit `for` loop by index from 0 to tommy_array_size(&array) - 1.
- *   - Hashtables and tries: iterate over elements with the same key/bucket using `tommy_*_bucket()` or
- * `tommy_*_find()` and following `->next`.
- *   - Hashtables can also be drained directly into a ::tommy_list using tommy_hashtable_to_list(),
- * tommy_hashdyn_to_list(), or tommy_hashlin_to_list() in O(buckets) time without memory allocations,
- * enabling sequential batch processing or list sorting.
- *   - To iterate explicitly over all elements across hashtables or tries in insertion order, you can
- * insert objects into both an associative container and a ::tommy_list (see \ref multiindex).
+ *   - Lists: traverse forward using head() and following `next`, or backward using tail() and prev().
+ *   - Trees: traverse in order using head() and next(), or in reverse using tail() and prev().
+ * Traversal may also begin at any intermediate position returned by find() or key bound searches like
+ * find_greater_equal().
+ *   - Tries: traverse in key order using head() and next(), or in reverse using tail() and prev().
+ * Traversal may also begin at any intermediate position returned by find() or key bound searches like
+ * find_greater_equal().
+ *   - Hashtables: traverse all elements in internal container order forward using head() and next(),
+ * or backward using tail() and prev(). Elements in the same bucket can also be traversed using
+ * bucket() and following `next`.
+ *   - Arrays: access elements in an explicit `for` loop by index from 0 to size() - 1.
+ *   - Trees, tries, and hashtables can also be drained directly into a ::tommy_list without memory
+ * allocations using to_list(). Trees and tries transfer elements in sorted order, while hashtables
+ * transfer elements in bucket order, enabling sequential batch processing or list sorting.
+ *   - To iterate explicitly over all elements in global insertion order (rather than the container's
+ * internal or sorted order), you can insert elements into both an associative container and a ::tommy_list
+ * (see \ref multiindex).
  *
  * \section Features
  *
@@ -396,10 +398,10 @@
  *
  * \section Performance
  * Here you can see some timings comparing with other notable implementations.
- * The *Hit* graph shows the time required for searching random objects
+ * The *Hit* graph shows the time required for searching random elements
  * with a key.
  * The *Change* graph shows the time required for searching, removing and
- * reinserting random objects with a different key value.
+ * reinserting random elements with a different key value.
  *
  * Times are expressed in nanoseconds for each element, and **lower is better**.
  *
@@ -422,9 +424,9 @@
  * - ::tommy_hashdyn - Dynamic chained hashtable.
  * - ::tommy_hashlin - Linear chained hashtable.
  * - ::tommy_trie - Trie optimized for cache usage.
- * - ::tommy_trie_inplace - Trie completely inplace.
+ * - ::tommy_trie_inplace - Trie completely in-place.
  * - <a href="http://www.canonware.com/rb/">rbtree</a> - Red-black tree by Jason Evans.
- * - <a href="http://www.nedprod.com/programs/portable/nedtries/">nedtrie</a> - Binary trie inplace by Niall Douglas.
+ * - <a href="http://www.nedprod.com/programs/portable/nedtries/">nedtrie</a> - Binary trie in-place by Niall Douglas.
  * - <a href="https://github.com/attractivechaos/klib/blob/master/khash.h">khash</a> - Dynamic open addressing hashtable by Attractive Chaos.
  * - <a href="https://troydhanson.github.io/uthash/">uthash</a> - Dynamic chaining hashtable by Troy D. Hanson.
  * - <a href="http://judy.sourceforge.net/">judy</a> - Burst trie (JudyL) by Doug Baskins.
@@ -447,52 +449,52 @@
  * \section thebenchmark Understanding the Benchmark Methodology
  *
  * The primary purpose of this benchmark is to measure the performance of
- * storing and searching a collection of N pointers to distinct objects,
+ * storing and searching a collection of N pointers to distinct elements,
  * indexed by an associated integer key.
  *
  * This test methodology deliberately **deviates from typical hash table
- * comparisons** where the entire object's data is copied and stored
+ * comparisons** where the entire element's data is copied and stored
  * directly within the container.
  *
  * Storing pointers is a **more common requirement** in real-world
- * applications where the same object must be referenced by or included in
+ * applications where the same element must be referenced by or included in
  * multiple data structures (see \ref multiindex).
- * Duplicating the object in such cases would be inefficient or incorrect.
+ * Duplicating the element in such cases would be inefficient or incorrect.
  * This difference is critical and explains why these performance metrics may
  * differ from other general-purpose hash table comparisons.
  *
  * To accurately simulate real-world usage where the application must retrieve
- * and access the object's data, the search operation in this benchmark
+ * and access the element's data, the search operation in this benchmark
  * dereferences the stored pointers. This step typically necessitates
  * an additional memory load, often resulting in a cache miss.
  *
  * This overhead provides a relative performance advantage to **intrusive containers**
  * (like the Tommy structures) where the required indexing metadata is stored
- * directly within the user's object structure. For these designs, the cache
- * miss incurred to access the object's data is the same one that retrieves the
+ * directly within the user's element structure. For these designs, the cache
+ * miss incurred to access the element's data is the same one that retrieves the
  * necessary indexing information, minimizing the "additional" cost.
  *
  * The tests performed are:
- * * **Insert:** Measures the time taken to add all N objects, starting from an
+ * * **Insert:** Measures the time taken to add all N elements, starting from an
  * empty container.
  * * **Change:** Measures the time taken to **Find**, **Remove**, and immediately
- * **Reinsert** an object with a *new* key, repeated for all N objects.
- * * **Hit:** Measures the time taken to successfully **Find** all N objects
+ * **Reinsert** an element with a *new* key, repeated for all N elements.
+ * * **Hit:** Measures the time taken to successfully **Find** all N elements
  * and then **Dereference** (access) them.
- * * **Miss:** Measures the time taken to attempt to find N objects that are
+ * * **Miss:** Measures the time taken to attempt to find N elements that are
  * **not present** in the container.
  * * **Remove:** Measures the time taken to **Find** and **Remove** all N
- * objects.
+ * elements.
  *
  * Note that *Change*, *Hit*, and *Miss* tests are always performed with N
- * objects already in the container, while *Insert* builds the container up, and
- * *Remove* empties it. The objects are always dereferenced upon successful search
+ * elements already in the container, while *Insert* builds the container up, and
+ * *Remove* empties it. The elements are always dereferenced upon successful search
  * and removal.
  *
- * All objects are preallocated on the heap, and the time for memory
+ * All elements are preallocated on the heap, and the time for memory
  * allocation/deallocation itself is not included in the performance results.
  *
- * Each object contains a unique integer key, a value field for consistency checks,
+ * Each element contains a unique integer key, a value field for consistency checks,
  * and a 16-byte unused *payload* field, plus any required internal data structure
  * links.
  *
@@ -572,7 +574,7 @@
  * custom allocator**.
  *
  * Note that hashtables are also faster in Forward mode than in Random mode. This
- * happens because the objects are **allocated sequentially in memory**, and
+ * happens because the elements are **allocated sequentially in memory**, and
  * accessing them in key order still results in better cache utilization overall.
  *
  * <table border="0">
@@ -608,10 +610,10 @@
  *
  * \code
  * #define N 10000000 // Number of elements
- * #define PAYLOAD 16 // Size of the object's payload data
+ * #define PAYLOAD 16 // Size of the element's payload data
  *
- * // Basic object inserted in the collection
- * struct obj {
+ * // Basic element inserted in the collection
+ * struct element {
  *     unsigned value; // Key used for searching
  *     char payload[PAYLOAD];
  * };
@@ -622,12 +624,12 @@
  *     unsigned operator()(unsigned key) const { return tommy_inthash_u32(key); }
  * };
  *
- * // Map collection from "unsigned" to "pointer to object"
- * typedef std::unordered_map<unsigned, obj*, custom_hash> bag_t;
+ * // Map collection from "unsigned" to "pointer to element"
+ * typedef std::unordered_map<unsigned, element*, custom_hash> bag_t;
  * bag_t bag;
  *
- * // Preallocate objects
- * obj* OBJ = new obj[N];
+ * // Preallocate elements
+ * element* ELEM = new element[N];
  *
  * // Keys used for inserting and searching elements
  * unsigned INSERT[N];
@@ -652,11 +654,11 @@
  * for(i=0;i<N;++i) {
  *     // Setup the element to insert
  *     unsigned key = INSERT[i];
- *     obj* element = &OBJ[i];
- *     element->value = key;
+ *     element* elem = &ELEM[i];
+ *     elem->value = key;
  *
  *     // Insert it
- *     bag[key] = element;
+ *     bag[key] = elem;
  * }
  * \endcode
  *
@@ -670,14 +672,14 @@
  *         abort();
  *
  *     // Remove it
- *     obj* element = j->second;
+ *     element* elem = j->second;
  *     bag.erase(j);
  *
  *     // Reinsert the element with a new key
  *     // Use +1 in the key to ensure that the new key is unique
  *     key = INSERT[i] + 1;
- *     element->value = key;
- *     bag[key] = element;
+ *     elem->value = key;
+ *     bag[key] = elem;
  * }
  * \endcode
  *
@@ -693,10 +695,10 @@
  *         abort();
  *
  *     // Ensure that it's the correct element.
- *     // This operation is like using the object after finding it,
+ *     // This operation is like using the element after finding it,
  *     // and likely involves a cache-miss operation.
- *     obj* element = j->second;
- *     if (element->value != key)
+ *     element* elem = j->second;
+ *     if (elem->value != key)
  *         abort();
  * }
  * \endcode
@@ -727,8 +729,8 @@
  *     bag.erase(j);
  *
  *     // Ensure that it's the correct element.
- *     obj* element = j->second;
- *     if (element->value != key)
+ *     element* elem = j->second;
+ *     if (elem->value != key)
  *         abort();
  * }
  * \endcode
@@ -800,20 +802,20 @@
  * See this <a href="other/ck_problem.png">performance graph</a>
  * for a visual illustration of the issue.
  *
- * \page multiindex Multi-Indexing: Searching Objects in Multiple Ways
+ * \page multiindex Multi-Indexing: Searching Elements in Multiple Ways
  *
- * In any real-world application where you use objects to represent information,
- * you'll often need to search for those objects using **different keys** or
+ * In any real-world application where you use elements to represent information,
+ * you'll often need to search for those elements using **different keys** or
  * criteria. This is where the concept of **multi-indexing** becomes essential.
  *
- * Consider a common example: files in a file system. A single file object
+ * Consider a common example: files in a file system. A single file element
  * might need to be found in several distinct ways:
  * * By its **name** (e.g., 'document.pdf').
  * * By its **residing directory** (e.g., '/home/user/documents/').
  * * By its **full path** (e.g., '/home/user/documents/document.pdf').
  * * By its unique **inode** number.
  *
- * With multi-indexing, each search key requires the file object to be
+ * With multi-indexing, each search key requires the file element to be
  * inserted into a separate, dedicated data structure (like a hash table or
  * a tree) to allow for a fast search based on that specific key. This is
  * exactly what TommyDS is designed to **facilitate**.
@@ -825,27 +827,20 @@
  * performance benefit in your C application for in-memory data structures.
  *
  * TommyDS simplifies the management of these multiple indexes, allowing you to
- * have a single object, but link it into several different data structures
- * simultaneously, each using a different field of the object as the search key.
+ * have a single element, but link it into several different data structures
+ * simultaneously, each using a different field of the element as the search key.
  *
- * Note that TommyDS does not provide a uniform iterator interface across all
- * containers. While containers like ::tommy_list and ::tommy_tree allow explicit
- * traversal using dedicated node functions, and other containers provide
- * callback traversal through `"foreach"` functions, if your application needs
- * an explicit external iterator across hashtables (meaning the ability to walk
- * through all objects in the collection in an explicit loop) or if you need to
- * preserve the original insertion order of the objects across multiple hash
- * tables, you can also insert all the objects into a separate ::tommy_list.
+ * For example, if your application needs to preserve the global insertion
+ * order across multiple indexes or across the entire collection, you can include
+ * an auxiliary ::tommy_list alongside the indexed structures.
+ * This gives you the best of both worlds: fast lookup via the indexed containers,
+ * and sequential traversal in original insertion order via the list.
  *
- * You can then use the ::tommy_list structure as your primary iterator. This
- * gives you the best of both worlds: fast search via the indexed structures,
- * and ordered traversal via the list.
+ * The next code example demonstrates using multiple data structures (a list to preserve
+ * global insertion order and several hash tables for indexing) to store a 'file'
+ * element, allowing access and searching based on different fields.
  *
- * The next example demonstrates using multiple data structures (a list and several
- * hash tables) to store a 'file' object, allowing access and searching based
- * on different fields.
- *
- * First, we declare the file object structure, including the required intrusive
+ * First, we declare the file element structure, including the required intrusive
  * nodes for the various data structures that will store it.
  *
  * \code
@@ -865,15 +860,15 @@
  * \endcode
  *
  * Next, we define helper functions to compute the hash for each field used
- * as a key and comparison functions to search for an object based on a
+ * as a key and comparison functions to search for an element based on a
  * specified key.
  *
  * \code
  * // search function by inode
- * int search_by_inode(const void* arg, const void* obj)
+ * int search_by_inode(const void* arg, const void* elem)
  * {
  *     const inode_t* inode = arg;
- *     const struct file* f = obj;
+ *     const struct file* f = elem;
  *     return *inode != f->inode;
  * }
  *
@@ -901,10 +896,10 @@
  *     char* name;
  * };
  *
- * int search_by_path(const void* arg, const void* obj)
+ * int search_by_path(const void* arg, const void* elem)
  * {
  *     const struct path* p = arg;
- *     const struct file* f = obj;
+ *     const struct file* f = elem;
  *     return strcmp(p->dir, f->dir) != 0 || strcmp(p->name, f->name) != 0;
  * }
  *
@@ -932,10 +927,10 @@
  *     tommy_hashdyn_init(&hashtable_by_inode);
  * \endcode
  *
- * We create a file object and insert it into all the data structures.
+ * We create a file element and insert it into all the data structures.
  *
  * \code
- *     // creates an object
+ *     // creates the element
  *     struct file* f = malloc(sizeof(struct file));
  *     strcpy(f->dir, ...);
  *     strcpy(f->name, ...);
@@ -1001,7 +996,7 @@
  *     }
  * \endcode
  *
- * Finally, we deallocate all the file objects and deinitialize the data
+ * Finally, we deallocate all the file elements and deinitialize the data
  * structures.
  *
  * \code
@@ -1037,12 +1032,14 @@
  *
  * Tommy does not provide a uniform iterator interface across all containers.
  * While individual containers provide callback-based traversal (`foreach`) and
- * explicit iteration (such as node-based traversal in ::tommy_list and ::tommy_tree,
- * or index-based access in arrays), Tommy does not provide standalone bidirectional
- * or complex cursor iterators for hashtables. To iterate over elements with an
- * explicit loop while preserving insertion order across hashtables, you can
- * insert objects also into a ::tommy_list and use the list as an iterator.
- * See the \ref multiindex example for more details.
+ * explicit bidirectional iteration using dedicated node functions (`head()`,
+ * `tail()`, `next()`, and `prev()` in lists, trees, tries, and hashtables, or
+ * index-based access in arrays), each container uses its own API rather than a
+ * unified iterator abstraction. Furthermore, associative containers iterate in
+ * their internal or sorted order rather than global insertion order.
+ * To iterate over elements with an explicit loop while preserving global
+ * insertion order, you can insert elements also into a ::tommy_list and use
+ * the list as an iterator. See the \ref multiindex example for more details.
  *
  * Tommy assumes memory allocation is infallible and does not provide an error
  * reporting mechanism for allocation failures. See \ref memory_allocation
@@ -1098,18 +1095,18 @@
  *
  * Tommy deliberately trades one pointer of storage (sizeof(void*)) per node
  * to obtain significant advantages in usability, safety, and API cleanliness:
- * - **Direct API Return**: Search, pop, and removal functions return the object
- *   pointer directly (or NULL if not found), eliminating boilerplate container_of()
+ * - **Direct API Return**: Search, pop, and removal functions return the element
+ *   pointer directly (or 0 if not found), eliminating boilerplate container_of()
  *   macro invocations at every call site.
  * - **Safe NULL Handling**: Returning NULL on search miss is natural and safe.
  *   With container_of(), applying the displacement macro to a NULL node pointer
  *   produces an invalid, non-zero address ((char*)NULL - offset), requiring
  *   an explicit conditional check before every conversion.
- * - **Callback Interoperability**: Iteration callbacks receive the object pointer
+ * - **Callback Interoperability**: Iteration callbacks receive the element pointer
  *   directly. Standard C library functions like free() can be passed directly to
  *   tommy_*_foreach() without writing boilerplate wrapper functions.
- * - **Opaque and Incomplete Types**: Functions can manipulate and return objects
- *   referenced only by forward declarations (e.g. struct object*). In contrast,
+ * - **Opaque and Incomplete Types**: Functions can manipulate and return elements
+ *   referenced only by forward declarations (e.g. struct element*). In contrast,
  *   container_of() requires the full struct definition to be visible at compile
  *   time in order to evaluate offsetof().
  * - **Standard Portability**: Avoids compiler-specific extensions (such as typeof

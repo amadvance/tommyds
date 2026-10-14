@@ -9,23 +9,6 @@
 #define TOMMY_TYPES_H
 
 /******************************************************************************/
-/* memory bounds checking */
-
-/**
- * Enable bounds-safe implementations when compiling with AddressSanitizer
- * or Fil-C. These environments detect accesses beyond allocated objects,
- * including intentional overreads that remain within a readable memory page.
- * Normal builds retain the faster implementations.
- */
-#if defined(__SANITIZE_ADDRESS__) || defined(__FILC__)
-#define TOMMY_MEMORY_BOUNDS_CHECK 1
-#elif defined(__has_feature)
-#define TOMMY_MEMORY_BOUNDS_CHECK __has_feature(address_sanitizer)
-#else
-#define TOMMY_MEMORY_BOUNDS_CHECK 0
-#endif
-
-/******************************************************************************/
 /* types */
 
 #include <stddef.h>
@@ -73,7 +56,7 @@ typedef int tommy_bool_t; /**< Generic boolean type. */
  * Generic unsigned integer type.
  *
  * It has no specific size, as it is used to store only small values.
- * To make the code more efficient, a full 32 bit integer is used.
+ * To make the code more efficient, a full 32-bit integer is used.
  */
 typedef tommy_uint32_t tommy_uint_t;
 
@@ -130,7 +113,7 @@ typedef tommy_uint32_t tommy_uint_t;
  *   status checks inside critical insertion and resizing loops, maximizing CPU
  *   cache efficiency and execution speed.
  * - **Clean and Lean API:** Functions (such as insertion and resizing) can remain
- *   simple (often returning void or direct object pointers) without cluttering
+ *   simple (often returning void or direct element pointers) without cluttering
  *   client code with error-propagation boilerplate.
  * - **Deterministic Consistency:** Avoids complex transactional rollback logic
  *   otherwise required if an allocation failed halfway through dynamic table
@@ -231,12 +214,12 @@ typedef tommy_uint32_t tommy_uint_t;
 /* key/hash */
 
 /**
- * Type used in indexed data structures to store the key of an object.
+ * Type used in indexed data structures to store the key of an element.
  */
 typedef tommy_size_t tommy_key_t;
 
 /**
- * Type used in hashtables to store the hash of an object.
+ * Type used in hashtables to store the hash of an element.
  */
 typedef tommy_size_t tommy_hash_t;
 
@@ -246,11 +229,11 @@ typedef tommy_size_t tommy_hash_t;
 /**
  * Data structure node.
  * This node type is shared between all the data structures and used to store some
- * info directly into the objects you want to store.
+ * info directly into the elements you want to store.
  *
  * A typical declaration is:
  * \code
- * struct object {
+ * struct element {
  *     tommy_node node;
  *     // other fields
  * };
@@ -259,7 +242,7 @@ typedef tommy_size_t tommy_hash_t;
 typedef struct tommy_node_struct {
 	/**
 	 * Next node.
-	 * The tail node has it at 0, like a 0 terminated list.
+	 * The tail node has it at 0, like a 0-terminated list.
 	 */
 	struct tommy_node_struct* next;
 
@@ -270,9 +253,9 @@ typedef struct tommy_node_struct {
 	struct tommy_node_struct* prev;
 
 	/**
-	 * Pointer to the object containing the node.
+	 * Pointer to the element containing the node.
 	 * This field is initialized when inserting nodes into a data structure.
-	 * The object pointer passed to insertion functions must not be 0.
+	 * The element pointer passed to insertion functions must not be 0.
 	 */
 	void* data;
 
@@ -291,23 +274,20 @@ typedef struct tommy_node_struct {
 
 /**
  * Compare function for elements.
- * \param obj_a Pointer to the first object to compare.
- * \param obj_b Pointer to the second object to compare.
- * \return <0 if the first element is less than the second, ==0 if equal, >0 if greater.
  *
  * This function is like the C strcmp().
  *
  * \code
- * struct object {
+ * struct element {
  *     tommy_node node;
  *     int value;
  * };
  *
- * int compare(const void* obj_a, const void* obj_b)
+ * int compare(const void* elem_a, const void* elem_b)
  * {
- *     if (((const struct object*)obj_a)->value < ((const struct object*)obj_b)->value)
+ *     if (((const struct element*)elem_a)->value < ((const struct element*)elem_b)->value)
  *         return -1;
- *     if (((const struct object*)obj_a)->value > ((const struct object*)obj_b)->value)
+ *     if (((const struct element*)elem_a)->value > ((const struct element*)elem_b)->value)
  *         return 1;
  *     return 0;
  * }
@@ -315,64 +295,62 @@ typedef struct tommy_node_struct {
  * tommy_list_sort(&list, compare);
  * \endcode
  *
+ * \param elem_a Pointer to the first element to compare.
+ * \param elem_b Pointer to the second element to compare.
+ * \return <0 if the first element is less than the second, ==0 if equal, >0 if greater.
  */
-typedef int tommy_compare_func(const void* obj_a, const void* obj_b);
+typedef int tommy_compare_func(const void* elem_a, const void* elem_b);
 
 /**
  * Search function for elements.
- * \param arg Pointer to the value to search as passed to the search function.
- * \param obj Pointer to the object to compare to.
- * \return ==0 if the value matches the element. !=0 if different.
- *
- * The first argument is a pointer to the value to search exactly
- * as it's passed to the search function called.
- * The second argument is a pointer to the object inside the hashtable to compare.
- *
- * The return value has to be 0 if the values are equal. != 0 if they are different.
  *
  * \code
- * struct object {
+ * struct element {
  *     tommy_node node;
  *     int value;
  * };
  *
- * int compare(const void* arg, const void* obj)
+ * int compare(const void* arg, const void* elem)
  * {
  *     const int* value_to_find = arg;
- *     const struct object* object_to_compare = obj;
+ *     const struct element* element_to_compare = elem;
  *
- *     return *value_to_find != object_to_compare->value;
+ *     return *value_to_find != element_to_compare->value;
  * }
  *
  * int value_to_find = 1;
- * struct object* obj = tommy_hashtable_search(&hashtable, compare, &value_to_find, tommy_inthash_u32(value_to_find));
- * if (!obj) {
+ * struct element* elem = tommy_hashtable_search(&hashtable, compare, &value_to_find, tommy_inthash_u32(value_to_find));
+ * if (!elem) {
  *     // not found
  * } else {
  *     // found
  * }
  * \endcode
  *
+ * \param arg Pointer to the value to search as passed to the search function.
+ * \param elem Pointer to the element to compare to.
+ * \return ==0 if the value matches the element. !=0 if different.
  */
-typedef int tommy_search_func(const void* arg, const void* obj);
+typedef int tommy_search_func(const void* arg, const void* elem);
 
 /**
  * Foreach function.
- * \param obj Pointer to the object to iterate.
  *
- * A typical example is to use free() to deallocate all the objects in a list.
+ * A typical example is to use free() to deallocate all the elements in a list.
  * \code
- * tommy_list_foreach(&list, (tommy_foreach_func*)free);
+ * tommy_list_foreach(&list, free);
  * \endcode
+ *
+ * \param elem Pointer to the element to iterate.
  */
-typedef void tommy_foreach_func(void* obj);
+typedef void tommy_foreach_func(void* elem);
 
 /**
  * Foreach function with an argument.
  * \param arg Pointer to a generic argument.
- * \param obj Pointer to the object to iterate.
+ * \param elem Pointer to the element to iterate.
  */
-typedef void tommy_foreach_arg_func(void* arg, void* obj);
+typedef void tommy_foreach_arg_func(void* arg, void* elem);
 
 /******************************************************************************/
 /* bit hacks */
