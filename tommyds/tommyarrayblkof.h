@@ -156,7 +156,11 @@ tommy_inline void* tommy_arrayblkof_tail(tommy_arrayblkof* array)
 tommy_inline void* tommy_arrayblkof_insert_tail(tommy_arrayblkof* array)
 {
 	tommy_size_t pos = array->count;
-	tommy_arrayblkof_grow(array, pos + 1);
+
+	++array->count;
+	if (array->count > array->block_count * TOMMY_ARRAYBLKOF_SIZE)
+		tommy_arrayblkof_reserve(array, array->count);
+
 	return tommy_arrayblkof_ref(array, pos);
 }
 

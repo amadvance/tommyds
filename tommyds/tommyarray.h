@@ -170,7 +170,9 @@ tommy_inline void tommy_array_insert_tail(tommy_array* array, void* element)
 {
 	tommy_size_t pos = array->count;
 
-	tommy_array_grow(array, pos + 1);
+	++array->count;
+	if (array->count > array->bucket_max)
+		tommy_array_reserve(array, array->count);
 
 	tommy_array_set(array, pos, element);
 }
