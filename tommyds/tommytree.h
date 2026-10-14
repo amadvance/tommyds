@@ -22,31 +22,31 @@
  * To insert elements in the tree you have to call tommy_tree_insert() for
  * each element.
  * In the insertion call you have to specify the address of the node and the
- * address of the object.
- * The address of the object is used to initialize the tommy_node::data field
+ * address of the element.
+ * The address of the element is used to initialize the tommy_node::data field
  * of the node.
  *
  * \code
- * struct object {
+ * struct element {
  *     int value;
  *     // other fields
  *     tommy_tree_node node;
  * };
  *
- * struct object* obj = malloc(sizeof(struct object)); // creates the object
+ * struct element* elem = malloc(sizeof(struct element)); // creates the element
  *
- * obj->value = ...; // initializes the object
+ * elem->value = ...; // initializes the element
  *
- * tommy_tree_insert(&tree, &obj->node, obj); // inserts the object
+ * tommy_tree_insert(&tree, &elem->node, elem); // inserts the element
  * \endcode
  *
  * To find the first element with a given key in tree order, call
  * tommy_tree_search() providing the key to search.
  *
  * \code
- * struct object value_to_find = { 1 };
- * struct object* obj = tommy_tree_search(&tree, &value_to_find);
- * if (!obj) {
+ * struct element value_to_find = { 1 };
+ * struct element* elem = tommy_tree_search(&tree, &value_to_find);
+ * if (!elem) {
  *     // not found
  * } else {
  *     // found
@@ -60,9 +60,9 @@
  * \code
  * tommy_tree_node* i = tommy_tree_head(&tree);
  * while (i) {
- *     struct object* obj = i->data; // gets the object pointer
+ *     struct element* elem = i->data; // gets the element pointer
  *
- *     printf("%d\n", obj->value); // process the object
+ *     printf("%d\n", elem->value); // process the element
  *
  *     i = tommy_tree_next(i); // go to the next element
  * }
@@ -86,10 +86,10 @@
  * tommy_tree_remove() providing the key to search and remove.
  *
  * \code
- * struct object value_to_remove = { 1 };
- * struct object* obj = tommy_tree_remove(&tree, &value_to_remove);
- * if (obj) {
- *     free(obj); // frees the object allocated memory
+ * struct element value_to_remove = { 1 };
+ * struct element* elem = tommy_tree_remove(&tree, &value_to_remove);
+ * if (elem) {
+ *     free(elem); // frees the element allocated memory
  * }
  * \endcode
  *
@@ -97,18 +97,18 @@
  * address using tommy_tree_remove_existing().
  *
  * \code
- * struct object* obj = ...;
- * tommy_tree_remove_existing(&tree, &obj->node);
- * free(obj);
+ * struct element* elem = ...;
+ * tommy_tree_remove_existing(&tree, &elem->node);
+ * free(elem);
  * \endcode
  *
  * To remove the smallest or greatest element you can use tommy_tree_remove_head()
  * or tommy_tree_remove_tail().
  *
  * \code
- * struct object* obj = tommy_tree_remove_head(&tree);
- * if (obj) {
- *     free(obj);
+ * struct element* elem = tommy_tree_remove_head(&tree);
+ * if (elem) {
+ *     free(elem);
  * }
  * \endcode
  *
@@ -117,7 +117,7 @@
  * This can be done with the tommy_tree_foreach() function.
  *
  * \code
- * // deallocates all the objects iterating the tree
+ * // deallocates all the elements iterating the tree
  * tommy_tree_foreach(&tree, free);
  * \endcode
  */
@@ -133,7 +133,7 @@
 
 /**
  * Tree node.
- * This is the node that you have to include inside your objects.
+ * This is the node that you have to include inside your elements.
  * The node must preserve its natural alignment because the tree stores the
  * balance factor in the two least significant bits of the parent pointer.
  */
@@ -151,7 +151,7 @@ typedef struct tommy_tree_struct {
 
 /**
  * Initializes the tree.
- * \param tree The tree to initialize.
+ * \param tree The tree.
  * \param cmp The comparison function that defines the order in the tree.
  */
 tommy_inline void tommy_tree_init(tommy_tree* tree, tommy_compare_func* cmp)
@@ -180,9 +180,10 @@ tommy_inline void tommy_tree_swap(tommy_tree* first, tommy_tree* second)
 /**
  * Removes all elements, preserving the comparison function.
  * The tree remains initialized and can be reused immediately.
- * Objects are not freed and nodes are not accessed or modified.
+ * Elements are not freed and nodes are not accessed or modified.
  * Their links must not be used to traverse the previous contents.
- * You can call this function after tommy_tree_foreach() has freed the objects.
+ * You can call this function after tommy_tree_foreach() has freed the elements.
+ * \param tree The tree.
  * \note This operation is O(1).
  */
 tommy_inline void tommy_tree_clear(tommy_tree* tree)
@@ -194,11 +195,11 @@ tommy_inline void tommy_tree_clear(tommy_tree* tree)
 /**
  * Inserts an element in the tree, allowing duplicate keys.
  * Equal elements are visited in insertion order.
- * You have to provide the pointer of the node embedded into the object and
- * the pointer to the object.
+ * You have to provide the pointer of the node embedded into the element and
+ * the pointer to the element.
  * \param tree The tree.
- * \param node Pointer to the node embedded into the object to insert.
- * \param data Pointer to the object to insert.
+ * \param node Pointer to the node embedded into the element to insert.
+ * \param data Pointer to the element to insert.
  */
 TOMMY_API void tommy_tree_insert(tommy_tree* tree, tommy_tree_node* node, void* data);
 
@@ -206,10 +207,10 @@ TOMMY_API void tommy_tree_insert(tommy_tree* tree, tommy_tree_node* node, void* 
  * Inserts an element only if no equal element is already contained.
  * If found, the first equal element in tree order is returned and the
  * candidate node is left unchanged. Otherwise the candidate is inserted
- * and its data field is returned.
+ * and data is returned.
  * \param tree The tree.
- * \param node Pointer to the node embedded into the object to insert.
- * \param data Pointer to the object to insert.
+ * \param node The candidate node. It must not belong to any container.
+ * \param data Pointer to the element to insert.
  * \return The first equal element, or data if the candidate was inserted.
  */
 TOMMY_API void* tommy_tree_insert_unique(tommy_tree* tree, tommy_tree_node* node, void* data);
@@ -219,7 +220,7 @@ TOMMY_API void* tommy_tree_insert_unique(tommy_tree* tree, tommy_tree_node* node
  * Existing list elements remain before the transferred elements. The tree is
  * left empty and initialized with its original comparison function.
  * The list must be initialized and must not share nodes with the tree.
- * Objects are not freed, and the node data and index fields are left unchanged.
+ * Elements are not freed, and the node data and index fields are left unchanged.
  * The index field no longer represents a valid tree parent after the transfer.
  * \param tree The tree to drain.
  * \param list The destination list.
@@ -229,10 +230,10 @@ TOMMY_API void tommy_tree_to_list(tommy_tree* tree, tommy_list* list);
 
 /**
  * Removes an element from the tree.
- * You must already have the address of the element to remove.
+ * You must already have the address of the node to remove.
  * \param tree The tree.
  * \param node The node to remove.
- * \return The tommy_node::data field of the node removed.
+ * \return The removed element.
  */
 TOMMY_API void* tommy_tree_remove_existing(tommy_tree* tree, tommy_tree_node* node);
 
@@ -250,7 +251,8 @@ tommy_inline tommy_tree_node* tommy_tree_parent(tommy_tree_node* node)
  * Gets the node following the specified one in tree order.
  * See \ref tommy_tree_iterator_validity for iterator validity across insertions and removals.
  * \param node Node contained in the tree.
- * \return The following node. For the tail node 0 is returned.
+ * \return The following node, or 0 for the tail node.
+ * \note This operation is O(log n), and amortized O(1) during full traversal.
  */
 tommy_inline tommy_tree_node* tommy_tree_next(tommy_tree_node* node)
 {
@@ -274,7 +276,8 @@ tommy_inline tommy_tree_node* tommy_tree_next(tommy_tree_node* node)
  * Gets the node preceding the specified one in tree order.
  * See \ref tommy_tree_iterator_validity for iterator validity across insertions and removals.
  * \param node Node contained in the tree.
- * \return The preceding node. For the head node 0 is returned.
+ * \return The preceding node, or 0 for the head node.
+ * \note This operation is O(log n), and amortized O(1) during full traversal.
  */
 tommy_inline tommy_tree_node* tommy_tree_prev(tommy_tree_node* node)
 {
@@ -295,8 +298,10 @@ tommy_inline tommy_tree_node* tommy_tree_prev(tommy_tree_node* node)
 }
 
 /**
- * Gets the head (smallest) element in the tree.
- * \return The head node. For empty trees 0 is returned.
+ * Gets the head (smallest) node in the tree.
+ * \param tree The tree.
+ * \return The head node, or 0 if the tree is empty.
+ * \note This operation is O(log n).
  */
 tommy_inline tommy_tree_node* tommy_tree_head(tommy_tree* tree)
 {
@@ -312,8 +317,10 @@ tommy_inline tommy_tree_node* tommy_tree_head(tommy_tree* tree)
 }
 
 /**
- * Gets the tail (greatest) element in the tree.
- * \return The tail node. For empty trees 0 is returned.
+ * Gets the tail (greatest) node in the tree.
+ * \param tree The tree.
+ * \return The tail node, or 0 if the tree is empty.
+ * \note This operation is O(log n).
  */
 tommy_inline tommy_tree_node* tommy_tree_tail(tommy_tree* tree)
 {
@@ -331,7 +338,8 @@ tommy_inline tommy_tree_node* tommy_tree_tail(tommy_tree* tree)
 /**
  * Removes and returns the head (smallest) element.
  * If the tree is empty, 0 is returned.
- * \return The removed element, or 0 if empty.
+ * \param tree The tree.
+ * \return The removed element, or 0 if the tree is empty.
  */
 tommy_inline void* tommy_tree_remove_head(tommy_tree* tree)
 {
@@ -346,7 +354,8 @@ tommy_inline void* tommy_tree_remove_head(tommy_tree* tree)
 /**
  * Removes and returns the tail (greatest) element.
  * If the tree is empty, 0 is returned.
- * \return The removed element, or 0 if empty.
+ * \param tree The tree.
+ * \return The removed element, or 0 if the tree is empty.
  */
 tommy_inline void* tommy_tree_remove_tail(tommy_tree* tree)
 {
@@ -366,11 +375,11 @@ tommy_inline void* tommy_tree_remove_tail(tommy_tree* tree)
  * The first equal node in tree order is returned.
  *
  * The cmp_arg argument will be the first argument of the comparison function,
- * and it can be of a different type than the objects in the tree.
+ * and it can be of a different type than the elements in the tree.
  * \param tree The tree.
- * \param cmp Comparison function called with cmp_arg and the object in the tree.
- * \param cmp_arg Search key, which may have a different type from tree objects.
- * \return The first equal node in tree order, or 0 if not found.
+ * \param cmp Comparison function called with cmp_arg and the element in the tree.
+ * \param cmp_arg Search key, which may have a different type from tree elements.
+ * \return The first equal node in tree order, or 0 if none.
  */
 tommy_inline tommy_tree_node* tommy_tree_find_compare(tommy_tree* tree, tommy_compare_func* cmp, const void* cmp_arg)
 {
@@ -415,11 +424,11 @@ tommy_inline tommy_tree_node* tommy_tree_find(tommy_tree* tree, const void* data
  * The first equal element in tree order is returned.
  *
  * The cmp_arg argument will be the first argument of the comparison function,
- * and it can be of a different type than the objects in the tree.
+ * and it can be of a different type than the elements in the tree.
  * \param tree The tree.
- * \param cmp Comparison function called with cmp_arg and the object in the tree.
- * \param cmp_arg Search key, which may have a different type from tree objects.
- * \return The first equal element in tree order, or 0 if not found.
+ * \param cmp Comparison function called with cmp_arg and the element in the tree.
+ * \param cmp_arg Search key, which may have a different type from tree elements.
+ * \return The first equal element in tree order, or 0 if none.
  */
 tommy_inline void* tommy_tree_search_compare(tommy_tree* tree, tommy_compare_func* cmp, const void* cmp_arg)
 {
@@ -450,10 +459,10 @@ tommy_inline void* tommy_tree_search(tommy_tree* tree, const void* data)
  * The first qualifying node in tree order is returned.
  *
  * The cmp_arg argument will be the first argument of the comparison function,
- * and it can be of a different type than the objects in the tree.
+ * and it can be of a different type than the elements in the tree.
  * \param tree The tree.
- * \param cmp Comparison function called with cmp_arg and the object in the tree.
- * \param cmp_arg Search key, which may have a different type from tree objects.
+ * \param cmp Comparison function called with cmp_arg and the element in the tree.
+ * \param cmp_arg Search key, which may have a different type from tree elements.
  * \return The first node in tree order with key greater or equal, or 0 if none.
  */
 tommy_inline tommy_tree_node* tommy_tree_find_greater_equal_compare(tommy_tree* tree, tommy_compare_func* cmp, const void* cmp_arg)
@@ -497,10 +506,10 @@ tommy_inline tommy_tree_node* tommy_tree_find_greater_equal(tommy_tree* tree, co
  * The first qualifying element in tree order is returned.
  *
  * The cmp_arg argument will be the first argument of the comparison function,
- * and it can be of a different type than the objects in the tree.
+ * and it can be of a different type than the elements in the tree.
  * \param tree The tree.
- * \param cmp Comparison function called with cmp_arg and the object in the tree.
- * \param cmp_arg Search key, which may have a different type from tree objects.
+ * \param cmp Comparison function called with cmp_arg and the element in the tree.
+ * \param cmp_arg Search key, which may have a different type from tree elements.
  * \return The first element in tree order with key greater or equal, or 0 if none.
  */
 tommy_inline void* tommy_tree_search_greater_equal_compare(tommy_tree* tree, tommy_compare_func* cmp, const void* cmp_arg)
@@ -529,8 +538,8 @@ tommy_inline void* tommy_tree_search_greater_equal(tommy_tree* tree, const void*
  * The function must define a suborder of the tree comparison function.
  * Equivalent elements are excluded from the result.
  * \param tree The tree.
- * \param cmp Comparison function called with cmp_arg and the object in the tree.
- * \param cmp_arg Search key, which may have a different type from tree objects.
+ * \param cmp Comparison function called with cmp_arg and the element in the tree.
+ * \param cmp_arg Search key, which may have a different type from tree elements.
  * \return The first strictly greater node, or 0 if none.
  */
 tommy_inline tommy_tree_node* tommy_tree_find_greater_compare(tommy_tree* tree, tommy_compare_func* cmp, const void* cmp_arg)
@@ -571,8 +580,8 @@ tommy_inline tommy_tree_node* tommy_tree_find_greater(tommy_tree* tree, const vo
  * The function must define a suborder of the tree comparison function.
  * Equivalent elements are excluded from the result.
  * \param tree The tree.
- * \param cmp Comparison function called with cmp_arg and the object in the tree.
- * \param cmp_arg Search key, which may have a different type from tree objects.
+ * \param cmp Comparison function called with cmp_arg and the element in the tree.
+ * \param cmp_arg Search key, which may have a different type from tree elements.
  * \return The first strictly greater element, or 0 if none.
  */
 tommy_inline void* tommy_tree_search_greater_compare(tommy_tree* tree, tommy_compare_func* cmp, const void* cmp_arg)
@@ -604,10 +613,10 @@ tommy_inline void* tommy_tree_search_greater(tommy_tree* tree, const void* data)
  * The last qualifying node in tree order is returned.
  *
  * The cmp_arg argument will be the first argument of the comparison function,
- * and it can be of a different type than the objects in the tree.
+ * and it can be of a different type than the elements in the tree.
  * \param tree The tree.
- * \param cmp Comparison function called with cmp_arg and the object in the tree.
- * \param cmp_arg Search key, which may have a different type from tree objects.
+ * \param cmp Comparison function called with cmp_arg and the element in the tree.
+ * \param cmp_arg Search key, which may have a different type from tree elements.
  * \return The last node in tree order with key less or equal, or 0 if none.
  */
 tommy_inline tommy_tree_node* tommy_tree_find_less_equal_compare(tommy_tree* tree, tommy_compare_func* cmp, const void* cmp_arg)
@@ -651,10 +660,10 @@ tommy_inline tommy_tree_node* tommy_tree_find_less_equal(tommy_tree* tree, const
  * The last qualifying element in tree order is returned.
  *
  * The cmp_arg argument will be the first argument of the comparison function,
- * and it can be of a different type than the objects in the tree.
+ * and it can be of a different type than the elements in the tree.
  * \param tree The tree.
- * \param cmp Comparison function called with cmp_arg and the object in the tree.
- * \param cmp_arg Search key, which may have a different type from tree objects.
+ * \param cmp Comparison function called with cmp_arg and the element in the tree.
+ * \param cmp_arg Search key, which may have a different type from tree elements.
  * \return The last element in tree order with key less or equal, or 0 if none.
  */
 tommy_inline void* tommy_tree_search_less_equal_compare(tommy_tree* tree, tommy_compare_func* cmp, const void* cmp_arg)
@@ -683,8 +692,8 @@ tommy_inline void* tommy_tree_search_less_equal(tommy_tree* tree, const void* da
  * The function must define a suborder of the tree comparison function.
  * Equivalent elements are excluded from the result.
  * \param tree The tree.
- * \param cmp Comparison function called with cmp_arg and the object in the tree.
- * \param cmp_arg Search key, which may have a different type from tree objects.
+ * \param cmp Comparison function called with cmp_arg and the element in the tree.
+ * \param cmp_arg Search key, which may have a different type from tree elements.
  * \return The last strictly less node, or 0 if none.
  */
 tommy_inline tommy_tree_node* tommy_tree_find_less_compare(tommy_tree* tree, tommy_compare_func* cmp, const void* cmp_arg)
@@ -725,8 +734,8 @@ tommy_inline tommy_tree_node* tommy_tree_find_less(tommy_tree* tree, const void*
  * The function must define a suborder of the tree comparison function.
  * Equivalent elements are excluded from the result.
  * \param tree The tree.
- * \param cmp Comparison function called with cmp_arg and the object in the tree.
- * \param cmp_arg Search key, which may have a different type from tree objects.
+ * \param cmp Comparison function called with cmp_arg and the element in the tree.
+ * \param cmp_arg Search key, which may have a different type from tree elements.
  * \return The last strictly less element, or 0 if none.
  */
 tommy_inline void* tommy_tree_search_less_compare(tommy_tree* tree, tommy_compare_func* cmp, const void* cmp_arg)
@@ -751,13 +760,13 @@ tommy_inline void* tommy_tree_search_less(tommy_tree* tree, const void* data)
 }
 
 /**
- * Searches and removes an element with a specific comparison function.
+ * Searches and removes an element from the tree with a specific comparison function.
  * The comparison function must define a suborder of the original one.
  * The cmp_arg argument is passed as the first argument of the comparison
- * function and may have a different type than the objects in the tree.
+ * function and may have a different type than the elements in the tree.
  * \param tree The tree.
- * \param cmp Comparison function used to find the element.
- * \param cmp_arg Argument passed to the comparison function.
+ * \param cmp Comparison function called with cmp_arg and the element in the tree.
+ * \param cmp_arg Search key, which may have a different type from tree elements.
  * \return The first equal element in tree order, or 0 if not found.
  */
 tommy_inline void* tommy_tree_remove_compare(tommy_tree* tree, tommy_compare_func* cmp, const void* cmp_arg)
@@ -771,7 +780,7 @@ tommy_inline void* tommy_tree_remove_compare(tommy_tree* tree, tommy_compare_fun
 }
 
 /**
- * Searches and removes an element.
+ * Searches and removes an element from the tree.
  * If the element is not found, 0 is returned.
  * \param tree The tree.
  * \param data Element used for comparison.
@@ -798,24 +807,26 @@ tommy_inline void* tommy_tree_remove(tommy_tree* tree, const void* data)
  *
  * ...
  *
- * // creates an object
- * struct object* obj = malloc(sizeof(struct object));
+ * // creates an element
+ * struct element* elem = malloc(sizeof(struct element));
  *
  * ...
  *
  * // insert it in the tree
- * tommy_tree_insert(&tree, &obj->node, obj);
+ * tommy_tree_insert(&tree, &elem->node, elem);
  *
  * ...
  *
- * // deallocates all the objects iterating the tree
+ * // deallocates all the elements iterating the tree
  * tommy_tree_foreach(&tree, free);
  * tommy_tree_clear(&tree); // resets the tree before reuse
  * \endcode
  *
- * If the callback frees the objects, the tree retains dangling node
+ * If the callback frees the elements, the tree retains dangling node
  * pointers. Call tommy_tree_clear() or tommy_tree_init() before reusing it.
  * The tree has no storage to release.
+ * \param tree The tree.
+ * \param func Function to call with each element.
  */
 TOMMY_API void tommy_tree_foreach(tommy_tree* tree, tommy_foreach_func* func);
 
@@ -824,12 +835,17 @@ TOMMY_API void tommy_tree_foreach(tommy_tree* tree, tommy_foreach_func* func);
  * The iteration order and callback rules are the same as tommy_tree_foreach().
  * The callback may deallocate the current element.
  * Adding or removing elements from inside the callback is not allowed.
+ * \param tree The tree.
+ * \param func Function to call with each element.
+ * \param arg Argument to pass to the function.
  */
 TOMMY_API void tommy_tree_foreach_arg(tommy_tree* tree, tommy_foreach_arg_func* func, void* arg);
 
 /**
- * Checks if empty.
- * \return If the tree is empty.
+ * Checks whether the tree is empty.
+ * \param tree The tree.
+ * \return Nonzero if the tree is empty, 0 otherwise.
+ * \note This operation is O(1).
  */
 tommy_inline tommy_bool_t tommy_tree_empty(const tommy_tree* tree)
 {
@@ -838,6 +854,9 @@ tommy_inline tommy_bool_t tommy_tree_empty(const tommy_tree* tree)
 
 /**
  * Gets the number of elements.
+ * \param tree The tree.
+ * \return The number of elements in the tree.
+ * \note This operation is O(1).
  */
 tommy_inline tommy_size_t tommy_tree_count(const tommy_tree* tree)
 {
@@ -847,6 +866,8 @@ tommy_inline tommy_size_t tommy_tree_count(const tommy_tree* tree)
 /**
  * Gets the size of allocated memory.
  * It includes the size of the ::tommy_tree_node of the stored elements.
+ * \param tree The tree.
+ * \return Total memory allocated by the tree, in bytes.
  */
 TOMMY_API tommy_size_t tommy_tree_memory_usage(const tommy_tree* tree);
 

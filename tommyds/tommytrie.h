@@ -30,22 +30,22 @@
  * To insert elements in the trie you have to call tommy_trie_insert() for
  * each element.
  * In the insertion call you have to specify the address of the node, the
- * address of the object, and the key value to use.
- * The address of the object is used to initialize the tommy_node::data field
+ * address of the element, and the key value to use.
+ * The address of the element is used to initialize the tommy_node::data field
  * of the node, and the key to initialize the tommy_node::index field.
  *
  * \code
- * struct object {
+ * struct element {
  *     int value;
  *     // other fields
  *     tommy_node node;
  * };
  *
- * struct object* obj = malloc(sizeof(struct object)); // creates the object
+ * struct element* elem = malloc(sizeof(struct element)); // creates the element
  *
- * obj->value = ...; // initializes the object
+ * elem->value = ...; // initializes the element
  *
- * tommy_trie_insert(&trie, &obj->node, obj, obj->value); // inserts the object
+ * tommy_trie_insert(&trie, &elem->node, elem, elem->value); // inserts the element
  * \endcode
  *
  * To find an element in the trie you have to call tommy_trie_search() providing
@@ -53,8 +53,8 @@
  *
  * \code
  * int value_to_find = 1;
- * struct object* obj = tommy_trie_search(&trie, value_to_find);
- * if (!obj) {
+ * struct element* elem = tommy_trie_search(&trie, value_to_find);
+ * if (!elem) {
  *     // not found
  * } else {
  *     // found
@@ -65,7 +65,7 @@
  * tommy_trie_search_less_equal(), tommy_trie_search_greater_equal(),
  * or tommy_trie_search_greater(). Like the corresponding ::tommy_tree searches,
  * the less searches return the last qualifying element in key and insertion order,
- * and the greater searches return the first. They return the object's data pointer,
+ * and the greater searches return the first. They return the element pointer,
  * or 0 if no key qualifies, and accept the same key range as tommy_trie_search().
  *
  * To iterate over all the elements in the trie with the same key, you have to
@@ -75,9 +75,9 @@
  * int value_to_find = 1;
  * tommy_node* i = tommy_trie_bucket(&trie, value_to_find);
  * while (i) {
- *     struct object* obj = i->data; // gets the object pointer
+ *     struct element* elem = i->data; // gets the element pointer
  *
- *     printf("%d\n", obj->value); // process the object
+ *     printf("%d\n", elem->value); // process the element
  *
  *     i = i->next; // goes to the next element
  * }
@@ -90,8 +90,8 @@
  * \code
  * tommy_trie_node* i = tommy_trie_head(&trie);
  * while (i) {
- *     struct object* obj = i->data;
- *     printf("%d\n", obj->value);
+ *     struct element* elem = i->data;
+ *     printf("%d\n", elem->value);
  *     i = tommy_trie_next(&trie, i);
  * }
  * \endcode
@@ -117,21 +117,21 @@
  * providing the key to search and remove.
  *
  * \code
- * struct object* obj = tommy_trie_remove(&trie, value_to_remove);
- * if (obj) {
- *     free(obj); // frees the object allocated memory
+ * struct element* elem = tommy_trie_remove(&trie, value_to_remove);
+ * if (elem) {
+ *     free(elem); // frees the element allocated memory
  * }
  * \endcode
  *
  * To remove the smallest or greatest element, use tommy_trie_remove_head()
  * or tommy_trie_remove_tail(). With equal keys, they remove the first or last
  * element in insertion order, respectively, like the corresponding ::tommy_tree
- * operations. They return the removed object's data pointer, or 0 if empty.
+ * operations. They return the removed element, or 0 if empty.
  *
  * To visit all the elements use tommy_trie_foreach() or tommy_trie_foreach_arg().
  * Elements are visited by increasing key, with equal keys in insertion order.
  *
- * To destroy the trie you can deallocate all the objects with
+ * To destroy the trie you can deallocate all the elements with
  * tommy_trie_foreach(), and deinitialize the allocator using tommy_allocator_done().
  * The allocator must no longer be used by other tries.
  *
@@ -196,7 +196,7 @@
 
 /**
  * Trie node.
- * This is the node that you have to include inside your objects.
+ * This is the node that you have to include inside your elements.
  */
 typedef tommy_node tommy_trie_node;
 
@@ -217,7 +217,7 @@ typedef struct tommy_trie_struct {
  * You can share this allocator with other tries.
  *
  * The trie is completely allocated through the allocator, and it doesn't need to be deinitialized.
- * \param trie The trie to initialize.
+ * \param trie The trie.
  * \param alloc Allocator initialized with *both* the size and align with TOMMY_TRIE_BLOCK_SIZE.
  */
 TOMMY_API void tommy_trie_init(tommy_trie* trie, tommy_allocator* alloc);
@@ -225,7 +225,7 @@ TOMMY_API void tommy_trie_init(tommy_trie* trie, tommy_allocator* alloc);
 /**
  * Exchanges the complete state of two initialized tries, including their allocator references.
  * Each allocator reference moves with its internal nodes so subsequent operations use the associated allocator.
- * The tries must not share nodes. Nodes and objects are not accessed or modified.
+ * The tries must not share nodes. Nodes and elements are not accessed or modified.
  * Existing node pointers remain valid and belong to the other trie. Referenced allocators must remain initialized.
  * Passing the same trie twice has no effect. Both tries remain usable; their memory is released through their allocators.
  * \param first The first trie.
@@ -242,25 +242,23 @@ tommy_inline void tommy_trie_swap(tommy_trie* first, tommy_trie* second)
 /**
  * Removes all elements, preserving the allocator reference.
  * The trie remains initialized and can be reused immediately with the same allocator.
- * Objects are not freed and nodes are not accessed or modified.
+ * Elements are not freed and nodes are not accessed or modified.
  * Their links must not be used to traverse the previous contents.
- * You can call this function after tommy_trie_foreach() has freed the objects.
+ * You can call this function after tommy_trie_foreach() has freed the elements.
  * Internal nodes are returned to the allocator, leaving the trie empty.
  * Other tries sharing the allocator are unaffected.
  * No memory is allocated; free blocks remain available for reuse in the allocator.
- * \param trie The trie to clear.
+ * \param trie The trie.
  * \note This operation is O(n), with stack space bounded by the number of key bits.
  */
 TOMMY_API void tommy_trie_clear(tommy_trie* trie);
 
 /**
  * Inserts an element in the trie.
- * You have to provide the pointer of the node embedded into the object,
- * the pointer to the object and the key to use.
  * \param trie The trie.
- * \param node Pointer to the node embedded into the object to insert.
- * \param data Pointer to the object to insert.
- * \param key Key to use to insert the object.
+ * \param node Pointer to the node embedded into the element to insert.
+ * \param data Pointer to the element to insert.
+ * \param key Key to use to insert the element.
  */
 TOMMY_API void tommy_trie_insert(tommy_trie* trie, tommy_trie_node* node, void* data, tommy_key_t key);
 
@@ -268,12 +266,12 @@ TOMMY_API void tommy_trie_insert(tommy_trie* trie, tommy_trie_node* node, void* 
  * Inserts an element only if no element with the same numeric key is already contained.
  * If found, the first element with that key in insertion order is returned.
  * The candidate node and trie, including its allocator, are left unchanged, and no memory is allocated.
- * Otherwise, the candidate is inserted using the normal insertion policy and its data field is returned.
+ * Otherwise, the candidate is inserted using the normal insertion policy and data is returned.
  * \param trie The trie.
  * \param node The candidate node. It must not belong to any container.
- * \param data Pointer to the object to insert.
+ * \param data Pointer to the element to insert.
  * \param key Numeric key, which must fit within ::TOMMY_TRIE_BIT bits.
- * \return The first matching element's data field, or data if the candidate was inserted.
+ * \return The first equal element, or data if the candidate was inserted.
  */
 TOMMY_API void* tommy_trie_insert_unique(tommy_trie* trie, tommy_trie_node* node, void* data, tommy_key_t key);
 
@@ -331,126 +329,105 @@ tommy_inline void* tommy_trie_search(tommy_trie* trie, tommy_key_t key)
 /**
  * Finds the last node in key order with key strictly less than the specified one.
  * If multiple elements have the selected key, the last in insertion order is returned.
- * No memory is allocated or modified; auxiliary space is O(1).
  * \param trie The trie.
  * \param key Search key, which must fit within ::TOMMY_TRIE_BIT bits.
  * \return The selected node, or 0 if none.
- * \note Traversal is bounded by the number of key bits and branches per level.
  */
 TOMMY_API tommy_trie_node* tommy_trie_find_less(tommy_trie* trie, tommy_key_t key);
 
 /**
  * Finds the last node in key order with key less or equal than the specified one.
  * If multiple elements have the selected key, the last in insertion order is returned.
- * No memory is allocated or modified; auxiliary space is O(1).
  * \param trie The trie.
  * \param key Search key, which must fit within ::TOMMY_TRIE_BIT bits.
  * \return The selected node, or 0 if none.
- * \note Traversal is bounded by the number of key bits and branches per level.
  */
 TOMMY_API tommy_trie_node* tommy_trie_find_less_equal(tommy_trie* trie, tommy_key_t key);
 
 /**
  * Finds the first node in key order with key greater or equal than the specified one.
  * If multiple elements have the selected key, the first in insertion order is returned.
- * No memory is allocated or modified; auxiliary space is O(1).
  * \param trie The trie.
  * \param key Search key, which must fit within ::TOMMY_TRIE_BIT bits.
  * \return The selected node, or 0 if none.
- * \note Traversal is bounded by the number of key bits and branches per level.
  */
 TOMMY_API tommy_trie_node* tommy_trie_find_greater_equal(tommy_trie* trie, tommy_key_t key);
 
 /**
  * Finds the first node in key order with key strictly greater than the specified one.
  * If multiple elements have the selected key, the first in insertion order is returned.
- * No memory is allocated or modified; auxiliary space is O(1).
  * \param trie The trie.
  * \param key Search key, which must fit within ::TOMMY_TRIE_BIT bits.
  * \return The selected node, or 0 if none.
- * \note Traversal is bounded by the number of key bits and branches per level.
  */
 TOMMY_API tommy_trie_node* tommy_trie_find_greater(tommy_trie* trie, tommy_key_t key);
 
 /**
  * Searches the last element in key order with key strictly less than the specified one.
  * If multiple elements have the selected key, the last in insertion order is returned.
- * No memory is allocated or modified; auxiliary space is O(1).
  * \param trie The trie.
  * \param key Search key, which must fit within ::TOMMY_TRIE_BIT bits.
- * \return The selected element's data field, or 0 if none.
- * \note Traversal is bounded by the number of key bits and branches per level.
+ * \return The selected element, or 0 if none.
  */
 TOMMY_API void* tommy_trie_search_less(tommy_trie* trie, tommy_key_t key);
 
 /**
  * Searches the last element in key order with key less or equal than the specified one.
  * If multiple elements have the selected key, the last in insertion order is returned.
- * No memory is allocated or modified; auxiliary space is O(1).
  * \param trie The trie.
  * \param key Search key, which must fit within ::TOMMY_TRIE_BIT bits.
- * \return The selected element's data field, or 0 if none.
- * \note Traversal is bounded by the number of key bits and branches per level.
+ * \return The selected element, or 0 if none.
  */
 TOMMY_API void* tommy_trie_search_less_equal(tommy_trie* trie, tommy_key_t key);
 
 /**
  * Searches the first element in key order with key greater or equal than the specified one.
  * If multiple elements have the selected key, the first in insertion order is returned.
- * No memory is allocated or modified; auxiliary space is O(1).
  * \param trie The trie.
  * \param key Search key, which must fit within ::TOMMY_TRIE_BIT bits.
- * \return The selected element's data field, or 0 if none.
- * \note Traversal is bounded by the number of key bits and branches per level.
+ * \return The selected element, or 0 if none.
  */
 TOMMY_API void* tommy_trie_search_greater_equal(tommy_trie* trie, tommy_key_t key);
 
 /**
  * Searches the first element in key order with key strictly greater than the specified one.
  * If multiple elements have the selected key, the first in insertion order is returned.
- * No memory is allocated or modified; auxiliary space is O(1).
  * \param trie The trie.
  * \param key Search key, which must fit within ::TOMMY_TRIE_BIT bits.
- * \return The selected element's data field, or 0 if none.
- * \note Traversal is bounded by the number of key bits and branches per level.
+ * \return The selected element, or 0 if none.
  */
 TOMMY_API void* tommy_trie_search_greater(tommy_trie* trie, tommy_key_t key);
 
 /**
  * Removes an element from the trie.
- * You must already have the address of the element to remove.
+ * You must already have the address of the node to remove.
  * \param trie The trie.
  * \param node The node to remove.
- * \return The tommy_node::data field of the node removed.
+ * \return The removed element.
  */
 TOMMY_API void* tommy_trie_remove_existing(tommy_trie* trie, tommy_trie_node* node);
 
 /**
  * Gets the head (smallest key) node in the trie.
  * If multiple elements have the smallest key, the first in insertion order is returned.
- * No memory is allocated or modified; auxiliary space is O(1).
  * \param trie The trie.
  * \return The head node, or 0 if the trie is empty.
- * \note Traversal is bounded by the number of key bits and branches per level.
  */
 TOMMY_API tommy_trie_node* tommy_trie_head(tommy_trie* trie);
 
 /**
  * Gets the tail (greatest key) node in the trie.
  * If multiple elements have the greatest key, the last in insertion order is returned.
- * No memory is allocated or modified; auxiliary space is O(1).
  * \param trie The trie.
  * \return The tail node, or 0 if the trie is empty.
- * \note Traversal is bounded by the number of key bits and branches per level.
  */
 TOMMY_API tommy_trie_node* tommy_trie_tail(tommy_trie* trie);
 
 /**
  * Removes and returns the head (smallest key) element.
  * If multiple elements have the smallest key, the first in insertion order is removed.
- * Objects are not freed. No memory is allocated.
  * \param trie The trie.
- * \return The removed element's data field, or 0 if the trie is empty.
+ * \return The removed element, or 0 if the trie is empty.
  * \note Uses tommy_trie_head() and tommy_trie_remove_existing().
  */
 tommy_inline void* tommy_trie_remove_head(tommy_trie* trie)
@@ -466,9 +443,8 @@ tommy_inline void* tommy_trie_remove_head(tommy_trie* trie)
 /**
  * Removes and returns the tail (greatest key) element.
  * If multiple elements have the greatest key, the last in insertion order is removed.
- * Objects are not freed. No memory is allocated.
  * \param trie The trie.
- * \return The removed element's data field, or 0 if the trie is empty.
+ * \return The removed element, or 0 if the trie is empty.
  * \note Uses tommy_trie_tail() and tommy_trie_remove_existing().
  */
 tommy_inline void* tommy_trie_remove_tail(tommy_trie* trie)
@@ -484,9 +460,8 @@ tommy_inline void* tommy_trie_remove_tail(tommy_trie* trie)
 /**
  * Gets the node following the specified one by increasing numeric key.
  * Elements with equal keys are visited in insertion order.
- * No memory is allocated or modified; auxiliary space is O(1).
  * See \ref tommy_trie_iterator_validity for iterator validity across insertions and removals.
- * \param trie The trie containing the node.
+ * \param trie The trie.
  * \param node Node currently contained in the trie. It must not be 0.
  * \return The following node, or 0 for the tail node.
  * \note Moving within duplicates is O(1). Moving to another key traverses
@@ -497,9 +472,8 @@ TOMMY_API tommy_trie_node* tommy_trie_next(tommy_trie* trie, tommy_trie_node* no
 /**
  * Gets the node preceding the specified one by increasing numeric key.
  * Elements with equal keys are visited in reverse insertion order.
- * No memory is allocated or modified; auxiliary space is O(1).
  * See \ref tommy_trie_iterator_validity for iterator validity across insertions and removals.
- * \param trie The trie containing the node.
+ * \param trie The trie.
  * \param node Node currently contained in the trie. It must not be 0.
  * \return The preceding node, or 0 for the head node.
  * \note Moving within duplicates is O(1). Moving to another key traverses
@@ -512,7 +486,7 @@ TOMMY_API tommy_trie_node* tommy_trie_prev(tommy_trie* trie, tommy_trie_node* no
  * Elements with equal keys retain their insertion order. Existing list elements
  * remain before the transferred elements; an initially empty list is therefore sorted.
  * The list must be initialized and must not share nodes with the trie.
- * Objects are not freed, and the node data and index fields are left unchanged.
+ * Elements are not freed, and the node data and index fields are left unchanged.
  * Internal nodes are returned to the allocator, leaving the trie empty and
  * reusable with the same allocator. Other tries sharing the allocator are unaffected.
  * No memory is allocated; free blocks remain available for reuse in the allocator.
@@ -528,17 +502,19 @@ TOMMY_API void tommy_trie_to_list(tommy_trie* trie, tommy_list* list);
  * The callback receives the data field of each node.
  * An empty trie does not invoke the callback.
  *
- * The callback may deallocate the current object, including its embedded node.
+ * The callback may deallocate the current element, including its embedded node.
  * It must not add or remove elements, modify keys or node links, or deallocate
  * other elements, the trie, or its allocator.
  * This operation does not remove elements or update the count.
  *
  * No memory is allocated. Stack space is bounded by the number of key bits.
  *
- * If the callback frees the objects, the trie retains dangling node
+ * If the callback frees the elements, the trie retains dangling node
  * pointers. Call tommy_trie_clear() before reusing it to release its
  * internal nodes to the allocator, or tommy_allocator_done() to release
  * its storage.
+ * \param trie The trie.
+ * \param func Function to call with each element.
  */
 TOMMY_API void tommy_trie_foreach(tommy_trie* trie, tommy_foreach_func* func);
 
@@ -546,11 +522,17 @@ TOMMY_API void tommy_trie_foreach(tommy_trie* trie, tommy_foreach_func* func);
  * Calls the specified function with an argument for each element in the trie.
  * The iteration order and callback rules are the same as tommy_trie_foreach().
  * The callback receives arg followed by the data field of each node.
+ * \param trie The trie.
+ * \param func Function to call with each element.
+ * \param arg Argument to pass to the function.
  */
 TOMMY_API void tommy_trie_foreach_arg(tommy_trie* trie, tommy_foreach_arg_func* func, void* arg);
 
 /**
  * Gets the number of elements.
+ * \param trie The trie.
+ * \return The number of elements in the trie.
+ * \note This operation is O(1).
  */
 tommy_inline tommy_size_t tommy_trie_count(const tommy_trie* trie)
 {
@@ -558,8 +540,10 @@ tommy_inline tommy_size_t tommy_trie_count(const tommy_trie* trie)
 }
 
 /**
- * Checks if empty in O(1) time.
- * \return If the trie contains no elements.
+ * Checks whether the trie is empty.
+ * \param trie The trie.
+ * \return Nonzero if the trie is empty, 0 otherwise.
+ * \note This operation is O(1).
  */
 tommy_inline tommy_bool_t tommy_trie_empty(const tommy_trie* trie)
 {
@@ -569,6 +553,8 @@ tommy_inline tommy_bool_t tommy_trie_empty(const tommy_trie* trie)
 /**
  * Gets the size of allocated memory.
  * It includes the size of the ::tommy_trie_node of the stored elements.
+ * \param trie The trie.
+ * \return Total memory allocated by the trie, in bytes.
  */
 TOMMY_API tommy_size_t tommy_trie_memory_usage(const tommy_trie* trie);
 

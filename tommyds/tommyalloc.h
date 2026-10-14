@@ -29,12 +29,12 @@ typedef struct tommy_allocator_struct {
 	struct tommy_allocator_entry_struct* used_segment; /**< List of allocated segments. */
 	tommy_size_t block_size; /**< Block size. */
 	tommy_size_t align_size; /**< Alignment size. */
-	tommy_size_t count; /**< Number of allocated elements. */
+	tommy_size_t count; /**< Number of allocated blocks. */
 } tommy_allocator;
 
 /**
  * Initializes the allocator.
- * \param alloc Allocator to initialize.
+ * \param alloc The allocator.
  * \param block_size Size of the block to allocate.
  * \param align_size Minimum alignment requirement. Values smaller than sizeof(void*)
  * are raised to sizeof(void*). After this adjustment, align_size must be a multiple
@@ -45,7 +45,7 @@ TOMMY_API void tommy_allocator_init(tommy_allocator* alloc, tommy_size_t block_s
 /**
  * Deinitializes the allocator.
  * It also releases all the allocated memory to the heap.
- * \param alloc Allocator to deinitialize.
+ * \param alloc The allocator.
  */
 TOMMY_API void tommy_allocator_done(tommy_allocator* alloc);
 
@@ -55,13 +55,13 @@ TOMMY_API void tommy_allocator_done(tommy_allocator* alloc);
  * The allocator remains initialized and can be reused immediately with the same
  * block size and alignment. Its memory usage becomes zero.
  * Calling this function on an empty allocator has no effect.
- * \param alloc Allocator to clear.
+ * \param alloc The allocator.
  */
 TOMMY_API void tommy_allocator_clear(tommy_allocator* alloc);
 
 /**
  * Allocates a block.
- * \param alloc Allocator to use.
+ * \param alloc The allocator.
  * \return Pointer to the allocated block.
  */
 TOMMY_API void* tommy_allocator_alloc(tommy_allocator* alloc);
@@ -69,7 +69,7 @@ TOMMY_API void* tommy_allocator_alloc(tommy_allocator* alloc);
 /**
  * Deallocates a block.
  * You must use the same allocator used in the tommy_allocator_alloc() call.
- * \param alloc Allocator to use.
+ * \param alloc The allocator.
  * \param ptr Block to free.
  */
 TOMMY_API void tommy_allocator_free(tommy_allocator* alloc, void* ptr);
@@ -77,7 +77,7 @@ TOMMY_API void tommy_allocator_free(tommy_allocator* alloc, void* ptr);
 /**
  * Gets the total size of allocated blocks currently in use.
  * Excludes free blocks retained by the allocator and segment overhead.
- * \param alloc Allocator to use.
+ * \param alloc The allocator.
  * \return Size of active blocks in bytes.
  */
 TOMMY_API tommy_size_t tommy_allocator_memory_usage(const tommy_allocator* alloc);

@@ -157,7 +157,7 @@ tommy_inline void tommy_chain_merge_degenerated(tommy_chain* tommy_restrict firs
 
 /**
  * Sorts a chain.
- * It's a stable merge sort using power of 2 buckets, with O(N*log(N)) complexity,
+ * It's a stable merge sort using power of 2 buckets, with O(n log n) complexity,
  * similar to the one used in the SGI STL libraries and in the Linux Kernel,
  * but faster on degenerate cases like already ordered lists.
  *
@@ -167,7 +167,7 @@ tommy_inline void tommy_chain_merge_degenerated(tommy_chain* tommy_restrict firs
  * Linux Kernel lib/list_sort.c
  * http://lxr.linux.no/#linux+v2.6.36/lib/list_sort.c
  *
- * \param chain Chain to sort.
+ * \param chain The chain.
  * \param cmp Comparison function.
  */
 tommy_inline void tommy_chain_mergesort(tommy_chain* chain, tommy_compare_func* cmp)

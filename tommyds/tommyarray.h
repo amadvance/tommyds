@@ -7,7 +7,7 @@
  * This array is able to grow dynamically upon request, without any reallocation.
  *
  * The grow operation involves an allocation of a new array segment, without reallocating
- * the already used memory, and thus **not increasing** the heap fragmentation.
+ * the already used memory, and thus not increasing the heap fragmentation.
  * This also implies that the address of the stored elements never changes.
  *
  * Allocated segments grow in size exponentially.
@@ -42,11 +42,13 @@ typedef struct tommy_array_struct {
 
 /**
  * Initializes the array.
+ * \param array The array.
  */
 TOMMY_API void tommy_array_init(tommy_array* array);
 
 /**
  * Deinitializes the array.
+ * \param array The array.
  */
 TOMMY_API void tommy_array_done(tommy_array* array);
 
@@ -54,12 +56,16 @@ TOMMY_API void tommy_array_done(tommy_array* array);
  * Allocates space for at least the specified number of elements.
  * The initialized size and existing elements are unchanged.
  * Existing element references remain valid.
+ * \param array The array.
+ * \param size Number of elements to reserve space for.
  */
 TOMMY_API void tommy_array_reserve(tommy_array* array, tommy_size_t size);
 
 /**
  * Grows the size up to the specified value.
  * All the new elements in the array are initialized with the 0 value.
+ * \param array The array.
+ * \param size New size of the array.
  */
 tommy_inline void tommy_array_grow(tommy_array* array, tommy_size_t size)
 {
@@ -75,14 +81,17 @@ tommy_inline void tommy_array_grow(tommy_array* array, tommy_size_t size)
  * Changes the initialized size, preserving the common prefix.
  * New elements are initialized to zero.
  * Reducing the size does not release allocated capacity.
+ * \param array The array.
+ * \param size New size of the array.
  */
 TOMMY_API void tommy_array_resize(tommy_array* array, tommy_size_t size);
 
 /**
  * Removes all elements, preserving the allocated capacity.
  * Call tommy_array_shrink() after clearing to restore the initial capacity.
- * Pointed-to objects are not freed.
+ * Pointed-to elements are not freed.
  * The array remains initialized and can be reused immediately.
+ * \param array The array.
  */
 tommy_inline void tommy_array_clear(tommy_array* array)
 {
@@ -92,6 +101,7 @@ tommy_inline void tommy_array_clear(tommy_array* array)
 /**
  * Releases unused allocated memory.
  * Preserves the size, values, and addresses of existing elements.
+ * \param array The array.
  */
 TOMMY_API void tommy_array_shrink(tommy_array* array);
 
@@ -99,6 +109,9 @@ TOMMY_API void tommy_array_shrink(tommy_array* array);
  * Gets a reference to the element at the specified position.
  * You must be sure that space for this position is already
  * allocated by calling tommy_array_grow().
+ * \param array The array.
+ * \param pos Position of the element.
+ * \return Pointer to the slot at the specified position.
  */
 tommy_inline void** tommy_array_ref(tommy_array* array, tommy_size_t pos)
 {
@@ -114,6 +127,9 @@ tommy_inline void** tommy_array_ref(tommy_array* array, tommy_size_t pos)
  * Sets the element at the specified position.
  * You must be sure that space for this position is already
  * allocated by calling tommy_array_grow().
+ * \param array The array.
+ * \param pos Position of the element.
+ * \param element Element to set.
  */
 tommy_inline void tommy_array_set(tommy_array* array, tommy_size_t pos, void* element)
 {
@@ -124,6 +140,9 @@ tommy_inline void tommy_array_set(tommy_array* array, tommy_size_t pos, void* el
  * Gets the element at the specified position.
  * You must be sure that space for this position is already
  * allocated by calling tommy_array_grow().
+ * \param array The array.
+ * \param pos Position of the element.
+ * \return The element at the specified position.
  */
 tommy_inline void* tommy_array_get(tommy_array* array, tommy_size_t pos)
 {
@@ -133,6 +152,8 @@ tommy_inline void* tommy_array_get(tommy_array* array, tommy_size_t pos)
 /**
  * Gets the last element.
  * The array must not be empty.
+ * \param array The array.
+ * \return The last element.
  */
 tommy_inline void* tommy_array_tail(tommy_array* array)
 {
@@ -142,6 +163,8 @@ tommy_inline void* tommy_array_tail(tommy_array* array)
 
 /**
  * Grows and inserts a new element at the end of the array.
+ * \param array The array.
+ * \param element Element to insert.
  */
 tommy_inline void tommy_array_insert_tail(tommy_array* array, void* element)
 {
@@ -156,6 +179,8 @@ tommy_inline void tommy_array_insert_tail(tommy_array* array, void* element)
  * Removes and returns the last element.
  * The array must not be empty.
  * The removed slot is cleared, and allocated capacity is preserved.
+ * \param array The array.
+ * \return The removed element.
  */
 tommy_inline void* tommy_array_remove_tail(tommy_array* array)
 {
@@ -174,6 +199,8 @@ tommy_inline void* tommy_array_remove_tail(tommy_array* array)
 
 /**
  * Checks whether the array is empty.
+ * \param array The array.
+ * \return Nonzero if the array is empty, 0 otherwise.
  */
 tommy_inline tommy_bool_t tommy_array_empty(const tommy_array* array)
 {
@@ -182,6 +209,8 @@ tommy_inline tommy_bool_t tommy_array_empty(const tommy_array* array)
 
 /**
  * Gets the initialized size of the array.
+ * \param array The array.
+ * \return The initialized size of the array.
  */
 tommy_inline tommy_size_t tommy_array_size(const tommy_array* array)
 {
@@ -190,6 +219,8 @@ tommy_inline tommy_size_t tommy_array_size(const tommy_array* array)
 
 /**
  * Gets the number of elements that fit without further allocation.
+ * \param array The array.
+ * \return The capacity of the array.
  */
 tommy_inline tommy_size_t tommy_array_capacity(const tommy_array* array)
 {
@@ -200,6 +231,9 @@ tommy_inline tommy_size_t tommy_array_capacity(const tommy_array* array)
  * Exchanges two initialized arrays without copying their elements.
  * Element references remain valid and belong to the other array.
  * Passing the same array twice has no effect.
+ * \param first The first array.
+ * \param second The second array.
+ * \note This operation is O(1).
  */
 tommy_inline void tommy_array_swap(tommy_array* first, tommy_array* second)
 {
@@ -214,19 +248,18 @@ tommy_inline void tommy_array_swap(tommy_array* first, tommy_array* second)
  * You cannot add or remove elements, nor change the size of the array,
  * from inside the callback.
  *
- * \param array Array to iterate.
- * \param func Function to call with each element.
- *
- * If the callback frees the objects, the array retains dangling
+ * If the callback frees the elements, the array retains dangling
  * pointers. Call tommy_array_clear() before reusing it, or
  * tommy_array_done() to release its storage.
+ * \param array The array.
+ * \param func Function to call with each element.
  */
 TOMMY_API void tommy_array_foreach(tommy_array* array, tommy_foreach_func* func);
 
 /**
  * Calls the specified function with an argument for each element in the array.
  *
- * \param array Array to iterate.
+ * \param array The array.
  * \param func Function to call with each element.
  * \param arg Argument to pass to the function.
  */
@@ -234,6 +267,8 @@ TOMMY_API void tommy_array_foreach_arg(tommy_array* array, tommy_foreach_arg_fun
 
 /**
  * Gets the size of allocated memory.
+ * \param array The array.
+ * \return Total memory allocated by the array, in bytes.
  */
 TOMMY_API tommy_size_t tommy_array_memory_usage(const tommy_array* array);
 

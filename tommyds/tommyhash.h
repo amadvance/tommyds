@@ -2,7 +2,7 @@
 // Copyright (C) 2010 Andrea Mazzoleni
 
 /** \file
- * Hash functions for the use with ::tommy_hashtable, ::tommy_hashdyn and ::tommy_hashlin.
+ * Hash functions for use with ::tommy_hashtable, ::tommy_hashdyn and ::tommy_hashlin.
  *
  * This module provides hash functions designed for in-memory data structures.
  * ::tommy_hash_u32 and ::tommy_strhash_u32 use a5hash32, while
@@ -43,15 +43,15 @@
  * \param init_val Initialization value.
  * Using a different initialization value, you can generate a completely different set of hash values.
  * Use 0 if not relevant.
- * \param void_key Pointer to the data to hash. Must not be NULL, even if key_len is 0.
+ * \param void_key Pointer to the data to hash. Must not be 0, even if key_len is 0.
  * \param key_len Size of the data to hash.
+ * \return The 32-bit hash value.
  * \note
  * This function is endianness independent and alignment independent.
  * It produces identical hash results to ::tommy_strhash_u32 for 0-terminated strings.
  * Compatibility across different versions of the library is not guaranteed:
  * this hash is intended for in-memory runtime use only and not for persistent storage.
  * It is non-cryptographic and is not designed to protect against malicious collision attacks.
- * \return The 32-bit hash value.
  */
 TOMMY_API tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* void_key, tommy_size_t key_len);
 
@@ -65,13 +65,15 @@ TOMMY_API tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* voi
  * \param init_val Initialization value.
  * Using a different initialization value, you can generate a completely different set of hash values.
  * Use 0 if not relevant.
- * \param void_key Pointer to the data to hash. Must not be NULL, even if key_len is 0.
+ * \param void_key Pointer to the data to hash. Must not be 0, even if key_len is 0.
  * \param key_len Size of the data to hash.
+ * \return The 64-bit hash value.
  * \note
  * This function is endianness independent and alignment independent.
  * It produces identical hash results to ::tommy_strhash_u64 for 0-terminated strings.
+ * Compatibility across different versions of the library is not guaranteed:
+ * this hash is intended for in-memory runtime use only and not for persistent storage.
  * It is non-cryptographic and is not designed to protect against malicious collision attacks.
- * \return The 64-bit hash value.
  */
 TOMMY_API tommy_uint64_t tommy_hash_u64(tommy_uint64_t init_val, const void* void_key, tommy_size_t key_len);
 
@@ -88,13 +90,13 @@ TOMMY_API tommy_uint64_t tommy_hash_u64(tommy_uint64_t init_val, const void* voi
  * Using a different initialization value, you can generate a completely different set of hash values.
  * Use 0 if not relevant.
  * \param void_key Pointer to the string to hash. It has to be 0-terminated.
+ * \return The 32-bit hash value.
  * \note
  * This function is endianness independent and alignment independent.
  * It produces identical hash results to ::tommy_hash_u32 for 0-terminated strings.
  * Compatibility across different versions of the library is not guaranteed:
  * this hash is intended for in-memory runtime use only and not for persistent storage.
  * It is non-cryptographic and is not designed to protect against malicious collision attacks.
- * \return The 32-bit hash value.
  */
 tommy_inline tommy_uint32_t tommy_strhash_u32(tommy_uint32_t init_val, const void* void_key)
 {
@@ -114,11 +116,13 @@ tommy_inline tommy_uint32_t tommy_strhash_u32(tommy_uint32_t init_val, const voi
  * Using a different initialization value, you can generate a completely different set of hash values.
  * Use 0 if not relevant.
  * \param void_key Pointer to the string to hash. It has to be 0-terminated.
+ * \return The 64-bit hash value.
  * \note
  * This function is endianness independent and alignment independent.
  * It produces identical hash results to ::tommy_hash_u64 for 0-terminated strings.
+ * Compatibility across different versions of the library is not guaranteed:
+ * this hash is intended for in-memory runtime use only and not for persistent storage.
  * It is non-cryptographic and is not designed to protect against malicious collision attacks.
- * \return The 64-bit hash value.
  */
 tommy_inline tommy_uint64_t tommy_strhash_u64(tommy_uint64_t init_val, const void* void_key)
 {
@@ -129,6 +133,8 @@ tommy_inline tommy_uint64_t tommy_strhash_u64(tommy_uint64_t init_val, const voi
  * Reversible 32-bit integer hash function.
  * Implementation of the Robert Jenkins "4-byte Integer Hashing",
  * from http://burtleburtle.net/bob/hash/integer.html
+ * \param key The 32-bit integer to hash.
+ * \return The 32-bit hash value.
  */
 tommy_inline tommy_uint32_t tommy_inthash_u32(tommy_uint32_t key)
 {
@@ -147,6 +153,8 @@ tommy_inline tommy_uint32_t tommy_inthash_u32(tommy_uint32_t key)
  * Reversible 64-bit integer hash function.
  * Implementation of the Thomas Wang "Integer Hash Function",
  * from http://web.archive.org/web/20071223173210/http://www.concentric.net/~Ttwang/tech/inthash.htm
+ * \param key The 64-bit integer to hash.
+ * \return The 64-bit hash value.
  */
 tommy_inline tommy_uint64_t tommy_inthash_u64(tommy_uint64_t key)
 {
@@ -165,13 +173,13 @@ tommy_inline tommy_uint64_t tommy_inthash_u64(tommy_uint64_t key)
 /* multiplication */
 
 /**
- * Multiply two 64-bit unsigned numbers to obtain the full 128-bit product.
+ * Multiplies two 64-bit unsigned numbers to obtain the full 128-bit product.
  *
  * \param A Address of the first operand, overwritten with the low 64 bits of the product.
  * \param B Address of the second operand, overwritten with the high 64 bits of the product.
  */
 #if defined(_MSC_VER) && defined(_M_X64)
-/**
+/*
  * MSVC x64 does not support inline assembly, so use its full-product intrinsic.
  */
 #pragma intrinsic(_umul128)
@@ -220,7 +228,7 @@ tommy_inline void tommy_mum(tommy_uint64_t* A, tommy_uint64_t* B)
 	*B = product >> 64;
 }
 #elif defined(__aarch64__) && (defined(__GNUC__) || defined(__clang__))
-/**
+/*
  * Keep this after __SIZEOF_INT128__ because the assembly path failed optimized
  * hash tests on Apple clang 21.0.0. See https://github.com/amadvance/snapraid/issues/43.
  */

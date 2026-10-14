@@ -2,9 +2,9 @@
 // Copyright (C) 2010 Andrea Mazzoleni
 
 /** \file
- * Inplace trie.
+ * In-place trie.
  *
- * This trie is an inplace implementation not needing any external allocation.
+ * This trie is an in-place implementation not needing any external allocation.
  *
  * Unlike ::tommy_trie, elements also represent the inner nodes and are not
  * stored in key order. Ordered traversal merges each node's elements with
@@ -27,22 +27,22 @@
  * To insert elements in the trie you have to call tommy_trie_inplace_insert() for
  * each element.
  * In the insertion call you have to specify the address of the node, the
- * address of the object, and the key value to use.
- * The address of the object is used to initialize the tommy_trie_inplace_node::data field
+ * address of the element, and the key value to use.
+ * The address of the element is used to initialize the tommy_trie_inplace_node::data field
  * of the node, and the key to initialize the tommy_trie_inplace_node::key field.
  *
  * \code
- * struct object {
+ * struct element {
  *     int value;
  *     // other fields
  *     tommy_trie_inplace_node node;
  * };
  *
- * struct object* obj = malloc(sizeof(struct object)); // creates the object
+ * struct element* elem = malloc(sizeof(struct element)); // creates the element
  *
- * obj->value = ...; // initializes the object
+ * elem->value = ...; // initializes the element
  *
- * tommy_trie_inplace_insert(&trie_inplace, &obj->node, obj, obj->value); // inserts the object
+ * tommy_trie_inplace_insert(&trie_inplace, &elem->node, elem, elem->value); // inserts the element
  * \endcode
  *
  * To find an element in the trie you have to call tommy_trie_inplace_search() providing
@@ -50,8 +50,8 @@
  *
  * \code
  * int value_to_find = 1;
- * struct object* obj = tommy_trie_inplace_search(&trie_inplace, value_to_find);
- * if (!obj) {
+ * struct element* elem = tommy_trie_inplace_search(&trie_inplace, value_to_find);
+ * if (!elem) {
  *     // not found
  * } else {
  *     // found
@@ -62,7 +62,7 @@
  * tommy_trie_inplace_search_less_equal(), tommy_trie_inplace_search_greater_equal(),
  * or tommy_trie_inplace_search_greater(). Like the corresponding ::tommy_tree searches,
  * the less searches return the last qualifying element in key and insertion order,
- * and the greater searches return the first. They return the object's data pointer,
+ * and the greater searches return the first. They return the element pointer,
  * or 0 if no key qualifies, and accept the same key range as tommy_trie_inplace_search().
  *
  * To iterate over all the elements in the trie with the same key, you have to
@@ -72,9 +72,9 @@
  * int value_to_find = 1;
  * tommy_trie_inplace_node* i = tommy_trie_inplace_bucket(&trie_inplace, value_to_find);
  * while (i) {
- *     struct object* obj = i->data; // gets the object pointer
+ *     struct element* elem = i->data; // gets the element pointer
  *
- *     printf("%d\n", obj->value); // process the object
+ *     printf("%d\n", elem->value); // process the element
  *
  *     i = i->next; // goes to the next element
  * }
@@ -87,8 +87,8 @@
  * \code
  * tommy_trie_inplace_node* i = tommy_trie_inplace_head(&trie_inplace);
  * while (i) {
- *     struct object* obj = i->data;
- *     printf("%d\n", obj->value);
+ *     struct element* elem = i->data;
+ *     printf("%d\n", elem->value);
  *     i = tommy_trie_inplace_next(&trie_inplace, i);
  * }
  * \endcode
@@ -114,22 +114,22 @@
  * providing the key to search and remove.
  *
  * \code
- * struct object* obj = tommy_trie_inplace_remove(&trie_inplace, value_to_remove);
- * if (obj) {
- *     free(obj); // frees the object allocated memory
+ * struct element* elem = tommy_trie_inplace_remove(&trie_inplace, value_to_remove);
+ * if (elem) {
+ *     free(elem); // frees the element allocated memory
  * }
  * \endcode
  *
  * To remove the smallest or greatest element, use tommy_trie_inplace_remove_head()
  * or tommy_trie_inplace_remove_tail(). With equal keys, they remove the first or last
  * element in insertion order, respectively, like the corresponding ::tommy_tree
- * operations. They return the removed object's data pointer, or 0 if empty.
+ * operations. They return the removed element, or 0 if empty.
  *
  * To visit all the elements use tommy_trie_inplace_foreach() or
  * tommy_trie_inplace_foreach_arg(). Elements are visited by increasing key,
  * with equal keys in insertion order.
  *
- * To destroy the trie you can deallocate all the objects with
+ * To destroy the trie you can deallocate all the elements with
  * tommy_trie_inplace_foreach(), as the trie doesn't allocate memory.
  *
  * \code
@@ -148,7 +148,7 @@
 /* trie_inplace */
 
 /**
- * Number of bits supported for inplace trie keys.
+ * Number of bits supported for in-place trie keys.
  *
  * All keys must fit in TOMMY_TRIE_INPLACE_BIT bits, even if tommy_key_t is wider.
  * This requirement is checked with assert(), and is not enforced
@@ -201,14 +201,14 @@
 
 /**
  * Trie node.
- * This is the node that you have to include inside your objects.
+ * This is the node that you have to include inside your elements.
  */
 typedef struct tommy_trie_inplace_node_struct {
 	struct tommy_trie_inplace_node_struct* next; /**< Next element. 0 if it's the last. */
 	struct tommy_trie_inplace_node_struct* prev; /**< Circular previous element. */
 	void* data; /**< Pointer to the data. */
 	struct tommy_trie_inplace_node_struct* map[TOMMY_TRIE_INPLACE_TREE_MAX]; /**< Branches of the node. */
-	tommy_key_t key; /**< Used to store the key or the hash. */
+	tommy_key_t key; /**< Used to store the key. */
 } tommy_trie_inplace_node;
 
 /**
@@ -223,25 +223,25 @@ typedef struct tommy_trie_inplace_struct {
 /**
  * Initializes the trie.
  *
- * The trie is completely inplace, and it doesn't need to be deinitialized.
- * \param trie_inplace The trie to initialize.
+ * The trie is completely in-place, and it doesn't need to be deinitialized.
+ * \param trie_inplace The trie.
  */
 TOMMY_API void tommy_trie_inplace_init(tommy_trie_inplace* trie_inplace);
 
 /**
  * Removes all elements.
  * The trie remains initialized and can be reused immediately.
- * Objects are not freed and nodes are not accessed or modified.
+ * Elements are not freed and nodes are not accessed or modified.
  * Their links must not be used to traverse the previous contents.
- * You can call this function after tommy_trie_inplace_foreach() has freed the objects.
- * \param trie_inplace The trie to clear.
+ * You can call this function after tommy_trie_inplace_foreach() has freed the elements.
+ * \param trie_inplace The trie.
  * \note This operation is O(1) with respect to the number of elements.
  */
 TOMMY_API void tommy_trie_inplace_clear(tommy_trie_inplace* trie_inplace);
 
 /**
  * Exchanges the complete state of two initialized tries.
- * The tries must not share nodes. Nodes and objects are not accessed or modified.
+ * The tries must not share nodes. Nodes and elements are not accessed or modified.
  * Existing node pointers remain valid and belong to the other trie.
  * Passing the same trie twice has no effect. Both tries remain usable and require no deinitialization.
  * \param first The first trie.
@@ -258,9 +258,9 @@ tommy_inline void tommy_trie_inplace_swap(tommy_trie_inplace* first, tommy_trie_
 /**
  * Inserts an element in the trie.
  * \param trie_inplace The trie.
- * \param node Pointer to the node embedded into the object to insert.
- * \param data Pointer to the object to insert.
- * \param key Key to use to insert the object.
+ * \param node Pointer to the node embedded into the element to insert.
+ * \param data Pointer to the element to insert.
+ * \param key Key to use to insert the element.
  */
 TOMMY_API void tommy_trie_inplace_insert(tommy_trie_inplace* trie_inplace, tommy_trie_inplace_node* node, void* data, tommy_key_t key);
 
@@ -268,12 +268,12 @@ TOMMY_API void tommy_trie_inplace_insert(tommy_trie_inplace* trie_inplace, tommy
  * Inserts an element only if no element with the same numeric key is already contained.
  * If found, the first element with that key in insertion order is returned.
  * The candidate node and trie are left unchanged, and no memory is allocated.
- * Otherwise, the candidate is inserted using the normal insertion policy and its data field is returned.
+ * Otherwise, the candidate is inserted using the normal insertion policy and data is returned.
  * \param trie_inplace The trie.
  * \param node The candidate node. It must not belong to any container.
- * \param data Pointer to the object to insert.
+ * \param data Pointer to the element to insert.
  * \param key Numeric key, which must fit within ::TOMMY_TRIE_INPLACE_BIT bits.
- * \return The first matching element's data field, or data if the candidate was inserted.
+ * \return The first equal element, or data if the candidate was inserted.
  */
 TOMMY_API void* tommy_trie_inplace_insert_unique(tommy_trie_inplace* trie_inplace, tommy_trie_inplace_node* node, void* data, tommy_key_t key);
 
@@ -345,126 +345,105 @@ tommy_inline void* tommy_trie_inplace_search(tommy_trie_inplace* trie_inplace, t
 /**
  * Finds the last node in key order with key strictly less than the specified one.
  * If multiple elements have the selected key, the last in insertion order is returned.
- * No memory is allocated or modified; auxiliary space is O(1).
  * \param trie_inplace The trie.
  * \param key Search key, which must fit within ::TOMMY_TRIE_INPLACE_BIT bits.
  * \return The selected node, or 0 if none.
- * \note Traversal is bounded by the number of key bits and branches per level.
  */
 TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_find_less(tommy_trie_inplace* trie_inplace, tommy_key_t key);
 
 /**
  * Finds the last node in key order with key less or equal than the specified one.
  * If multiple elements have the selected key, the last in insertion order is returned.
- * No memory is allocated or modified; auxiliary space is O(1).
  * \param trie_inplace The trie.
  * \param key Search key, which must fit within ::TOMMY_TRIE_INPLACE_BIT bits.
  * \return The selected node, or 0 if none.
- * \note Traversal is bounded by the number of key bits and branches per level.
  */
 TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_find_less_equal(tommy_trie_inplace* trie_inplace, tommy_key_t key);
 
 /**
  * Finds the first node in key order with key greater or equal than the specified one.
  * If multiple elements have the selected key, the first in insertion order is returned.
- * No memory is allocated or modified; auxiliary space is O(1).
  * \param trie_inplace The trie.
  * \param key Search key, which must fit within ::TOMMY_TRIE_INPLACE_BIT bits.
  * \return The selected node, or 0 if none.
- * \note Traversal is bounded by the number of key bits and branches per level.
  */
 TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_find_greater_equal(tommy_trie_inplace* trie_inplace, tommy_key_t key);
 
 /**
  * Finds the first node in key order with key strictly greater than the specified one.
  * If multiple elements have the selected key, the first in insertion order is returned.
- * No memory is allocated or modified; auxiliary space is O(1).
  * \param trie_inplace The trie.
  * \param key Search key, which must fit within ::TOMMY_TRIE_INPLACE_BIT bits.
  * \return The selected node, or 0 if none.
- * \note Traversal is bounded by the number of key bits and branches per level.
  */
 TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_find_greater(tommy_trie_inplace* trie_inplace, tommy_key_t key);
 
 /**
  * Searches the last element in key order with key strictly less than the specified one.
  * If multiple elements have the selected key, the last in insertion order is returned.
- * No memory is allocated or modified; auxiliary space is O(1).
  * \param trie_inplace The trie.
  * \param key Search key, which must fit within ::TOMMY_TRIE_INPLACE_BIT bits.
- * \return The selected element's data field, or 0 if none.
- * \note Traversal is bounded by the number of key bits and branches per level.
+ * \return The selected element, or 0 if none.
  */
 TOMMY_API void* tommy_trie_inplace_search_less(tommy_trie_inplace* trie_inplace, tommy_key_t key);
 
 /**
  * Searches the last element in key order with key less or equal than the specified one.
  * If multiple elements have the selected key, the last in insertion order is returned.
- * No memory is allocated or modified; auxiliary space is O(1).
  * \param trie_inplace The trie.
  * \param key Search key, which must fit within ::TOMMY_TRIE_INPLACE_BIT bits.
- * \return The selected element's data field, or 0 if none.
- * \note Traversal is bounded by the number of key bits and branches per level.
+ * \return The selected element, or 0 if none.
  */
 TOMMY_API void* tommy_trie_inplace_search_less_equal(tommy_trie_inplace* trie_inplace, tommy_key_t key);
 
 /**
  * Searches the first element in key order with key greater or equal than the specified one.
  * If multiple elements have the selected key, the first in insertion order is returned.
- * No memory is allocated or modified; auxiliary space is O(1).
  * \param trie_inplace The trie.
  * \param key Search key, which must fit within ::TOMMY_TRIE_INPLACE_BIT bits.
- * \return The selected element's data field, or 0 if none.
- * \note Traversal is bounded by the number of key bits and branches per level.
+ * \return The selected element, or 0 if none.
  */
 TOMMY_API void* tommy_trie_inplace_search_greater_equal(tommy_trie_inplace* trie_inplace, tommy_key_t key);
 
 /**
  * Searches the first element in key order with key strictly greater than the specified one.
  * If multiple elements have the selected key, the first in insertion order is returned.
- * No memory is allocated or modified; auxiliary space is O(1).
  * \param trie_inplace The trie.
  * \param key Search key, which must fit within ::TOMMY_TRIE_INPLACE_BIT bits.
- * \return The selected element's data field, or 0 if none.
- * \note Traversal is bounded by the number of key bits and branches per level.
+ * \return The selected element, or 0 if none.
  */
 TOMMY_API void* tommy_trie_inplace_search_greater(tommy_trie_inplace* trie_inplace, tommy_key_t key);
 
 /**
  * Removes an element from the trie.
- * You must already have the address of the element to remove.
+ * You must already have the address of the node to remove.
  * \param trie_inplace The trie.
  * \param node The node to remove.
- * \return The tommy_trie_inplace_node::data field of the node removed.
+ * \return The removed element.
  */
 TOMMY_API void* tommy_trie_inplace_remove_existing(tommy_trie_inplace* trie_inplace, tommy_trie_inplace_node* node);
 
 /**
  * Gets the head (smallest key) node in the trie.
  * If multiple elements have the smallest key, the first in insertion order is returned.
- * No memory is allocated or modified; auxiliary space is O(1).
  * \param trie_inplace The trie.
  * \return The head node, or 0 if the trie is empty.
- * \note Traversal is bounded by the number of key bits and branches per level.
  */
 TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_head(tommy_trie_inplace* trie_inplace);
 
 /**
  * Gets the tail (greatest key) node in the trie.
  * If multiple elements have the greatest key, the last in insertion order is returned.
- * No memory is allocated or modified; auxiliary space is O(1).
  * \param trie_inplace The trie.
  * \return The tail node, or 0 if the trie is empty.
- * \note Traversal is bounded by the number of key bits and branches per level.
  */
 TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_tail(tommy_trie_inplace* trie_inplace);
 
 /**
  * Removes and returns the head (smallest key) element.
  * If multiple elements have the smallest key, the first in insertion order is removed.
- * Objects are not freed. No memory is allocated.
  * \param trie_inplace The trie.
- * \return The removed element's data field, or 0 if the trie is empty.
+ * \return The removed element, or 0 if the trie is empty.
  * \note Uses tommy_trie_inplace_head() and tommy_trie_inplace_remove_existing().
  */
 tommy_inline void* tommy_trie_inplace_remove_head(tommy_trie_inplace* trie_inplace)
@@ -480,9 +459,8 @@ tommy_inline void* tommy_trie_inplace_remove_head(tommy_trie_inplace* trie_inpla
 /**
  * Removes and returns the tail (greatest key) element.
  * If multiple elements have the greatest key, the last in insertion order is removed.
- * Objects are not freed. No memory is allocated.
  * \param trie_inplace The trie.
- * \return The removed element's data field, or 0 if the trie is empty.
+ * \return The removed element, or 0 if the trie is empty.
  * \note Uses tommy_trie_inplace_tail() and tommy_trie_inplace_remove_existing().
  */
 tommy_inline void* tommy_trie_inplace_remove_tail(tommy_trie_inplace* trie_inplace)
@@ -498,9 +476,8 @@ tommy_inline void* tommy_trie_inplace_remove_tail(tommy_trie_inplace* trie_inpla
 /**
  * Gets the node following the specified one by increasing numeric key.
  * Elements with equal keys are visited in insertion order.
- * No memory is allocated or modified; auxiliary space is O(1).
  * See \ref tommy_trie_inplace_iterator_validity for iterator validity across insertions and removals.
- * \param trie_inplace The trie containing the node.
+ * \param trie_inplace The trie.
  * \param node Node currently contained in the trie. It must not be 0.
  * \return The following node, or 0 for the tail node.
  * \note Moving within duplicates is O(1). Moving to another key traverses
@@ -511,9 +488,8 @@ TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_next(tommy_trie_inplace* t
 /**
  * Gets the node preceding the specified one by increasing numeric key.
  * Elements with equal keys are visited in reverse insertion order.
- * No memory is allocated or modified; auxiliary space is O(1).
  * See \ref tommy_trie_inplace_iterator_validity for iterator validity across insertions and removals.
- * \param trie_inplace The trie containing the node.
+ * \param trie_inplace The trie.
  * \param node Node currently contained in the trie. It must not be 0.
  * \return The preceding node, or 0 for the head node.
  * \note Moving within duplicates is O(1). Moving to another key traverses
@@ -527,16 +503,18 @@ TOMMY_API tommy_trie_inplace_node* tommy_trie_inplace_prev(tommy_trie_inplace* t
  * The callback receives the data field of each node.
  * An empty trie does not invoke the callback.
  *
- * The callback may deallocate the current object, including its embedded node.
+ * The callback may deallocate the current element, including its embedded node.
  * It must not add or remove elements, modify keys or node links, or deallocate
  * other elements or the trie.
  * This operation does not remove elements or update the count.
  *
  * No memory is allocated. Stack space is bounded by the number of key bits.
  *
- * If the callback frees the objects, the trie retains dangling node
+ * If the callback frees the elements, the trie retains dangling node
  * pointers. Call tommy_trie_inplace_clear() or tommy_trie_inplace_init()
  * before reusing it. The trie has no storage to release.
+ * \param trie_inplace The trie.
+ * \param func Function to call with each element.
  */
 TOMMY_API void tommy_trie_inplace_foreach(tommy_trie_inplace* trie_inplace, tommy_foreach_func* func);
 
@@ -544,11 +522,17 @@ TOMMY_API void tommy_trie_inplace_foreach(tommy_trie_inplace* trie_inplace, tomm
  * Calls the specified function with an argument for each element in the trie.
  * The iteration order and callback rules are the same as tommy_trie_inplace_foreach().
  * The callback receives arg followed by the data field of each node.
+ * \param trie_inplace The trie.
+ * \param func Function to call with each element.
+ * \param arg Argument to pass to the function.
  */
 TOMMY_API void tommy_trie_inplace_foreach_arg(tommy_trie_inplace* trie_inplace, tommy_foreach_arg_func* func, void* arg);
 
 /**
  * Gets the number of elements.
+ * \param trie_inplace The trie.
+ * \return The number of elements in the trie.
+ * \note This operation is O(1).
  */
 tommy_inline tommy_size_t tommy_trie_inplace_count(const tommy_trie_inplace* trie_inplace)
 {
@@ -556,8 +540,10 @@ tommy_inline tommy_size_t tommy_trie_inplace_count(const tommy_trie_inplace* tri
 }
 
 /**
- * Checks if empty in O(1) time.
- * \return If the trie contains no elements.
+ * Checks whether the trie is empty.
+ * \param trie_inplace The trie.
+ * \return Nonzero if the trie is empty, 0 otherwise.
+ * \note This operation is O(1).
  */
 tommy_inline tommy_bool_t tommy_trie_inplace_empty(const tommy_trie_inplace* trie_inplace)
 {
@@ -567,6 +553,8 @@ tommy_inline tommy_bool_t tommy_trie_inplace_empty(const tommy_trie_inplace* tri
 /**
  * Gets the size of allocated memory.
  * It includes the size of the ::tommy_trie_inplace_node of the stored elements.
+ * \param trie_inplace The trie.
+ * \return Total memory allocated by the trie, in bytes.
  */
 TOMMY_API tommy_size_t tommy_trie_inplace_memory_usage(const tommy_trie_inplace* trie_inplace);
 
