@@ -155,7 +155,11 @@ tommy_inline void* tommy_arrayof_tail(tommy_arrayof* array)
 tommy_inline void* tommy_arrayof_insert_tail(tommy_arrayof* array)
 {
 	tommy_size_t pos = array->count;
-	tommy_arrayof_grow(array, pos + 1);
+
+	++array->count;
+	if (array->count > array->bucket_max)
+		tommy_arrayof_reserve(array, array->count);
+
 	return tommy_arrayof_ref(array, pos);
 }
 

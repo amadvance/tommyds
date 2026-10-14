@@ -170,7 +170,9 @@ tommy_inline void tommy_arrayblk_insert_tail(tommy_arrayblk* array, void* elemen
 {
 	tommy_size_t pos = array->count;
 
-	tommy_arrayblk_grow(array, pos + 1);
+	++array->count;
+	if (array->count > array->block_count * TOMMY_ARRAYBLK_SIZE)
+		tommy_arrayblk_reserve(array, array->count);
 
 	tommy_arrayblk_set(array, pos, element);
 }
