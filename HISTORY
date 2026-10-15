@@ -12,7 +12,9 @@ TommyDS HISTORY
    tommy_arrayblk_insert_tail(). Callers must use the new names.
  * BREAKING CHANGE: Reimplemented tommy_hash_u32() and tommy_strhash_u32()
    using a5hash32, and tommy_hash_u64() and the new tommy_strhash_u64()
-   using a5hash (64-bit). Both algorithms pass SMHasher3 tests.
+   using a5hash (64-bit). a5hash32 includes asymmetric seed mixing in all
+   four state words to prevent the identified seed-independent collisions.
+   a5hash includes an odd seed-expansion factor and crossed additive feed-forward.
    The resulting hash values differ from previous versions.
  * Added tommy_mulhash_u32() and tommy_mulhash_u64(), reversible integer
    hashes based on MurmurHash3 fmix32 and the SplitMix64 finalizer, for

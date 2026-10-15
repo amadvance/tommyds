@@ -11,7 +11,9 @@
  *
  * a5hash32 is intended for 32-bit platforms and uses 32-bit operands with
  * full 64-bit multiplication results. a5hash uses 64-bit operands with
- * full 128-bit multiplication results. Both algorithms pass SMHasher3 tests.
+ * full 128-bit multiplication results. a5hash32 includes asymmetric seed mixing
+ * in all four state words to prevent the identified seed-independent collisions.
+ * a5hash includes an odd seed-expansion factor and crossed additive feed-forward.
  *
  * Prefer the 64-bit version whenever possible, as it provides better resistance
  * to collisions, particularly with specially crafted inputs. However, neither
@@ -38,10 +40,10 @@
  * Implementation of a5hash32 by Aleksey Vaneev,
  * from https://github.com/avaneev/a5hash
  *
- * This algorithm is compact, fast on short inputs, and passes SMHasher3 tests.
+ * This algorithm is compact and fast on short inputs, with asymmetric seed mixing.
  *
  * \param init_val Initialization value.
- * Using a different initialization value, you can generate a completely different set of hash values.
+ * Using a different initialization value changes the hash values.
  * Use 0 if not relevant.
  * \param void_key Pointer to the data to hash. Must not be 0, even if key_len is 0.
  * \param key_len Size of the data to hash.
@@ -60,7 +62,7 @@ TOMMY_API tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* voi
  * Implementation of a5hash (64-bit) by Aleksey Vaneev,
  * from https://github.com/avaneev/a5hash
  *
- * This algorithm is compact, fast on short inputs, and passes SMHasher3 tests.
+ * This algorithm is compact and fast on short inputs, with odd seed expansion and crossed additive feed-forward.
  *
  * \param init_val Initialization value.
  * Using a different initialization value, you can generate a completely different set of hash values.
@@ -87,7 +89,7 @@ TOMMY_API tommy_uint64_t tommy_hash_u64(tommy_uint64_t init_val, const void* voi
  * This gives better performance than scanning for the terminator while hashing.
  *
  * \param init_val Initialization value.
- * Using a different initialization value, you can generate a completely different set of hash values.
+ * Using a different initialization value changes the hash values.
  * Use 0 if not relevant.
  * \param void_key Pointer to the string to hash. It has to be 0-terminated.
  * \return The 32-bit hash value.

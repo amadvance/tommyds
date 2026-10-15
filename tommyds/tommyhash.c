@@ -22,6 +22,18 @@ tommy_inline tommy_uint32_t tommy_imp_hash_swap32(tommy_uint32_t v)
 	       ((v & 0x0000FF00) << 8) |
 	       ((v & 0x000000FF) << 24);
 }
+
+tommy_inline tommy_uint64_t tommy_imp_hash_swap64(tommy_uint64_t v)
+{
+	return ((v & 0xFF00000000000000ULL) >> 56) |
+	       ((v & 0x00FF000000000000ULL) >> 40) |
+	       ((v & 0x0000FF0000000000ULL) >> 24) |
+	       ((v & 0x000000FF00000000ULL) >> 8) |
+	       ((v & 0x00000000FF000000ULL) << 8) |
+	       ((v & 0x0000000000FF0000ULL) << 24) |
+	       ((v & 0x000000000000FF00ULL) << 40) |
+	       ((v & 0x00000000000000FFULL) << 56);
+}
 #endif
 
 tommy_inline tommy_uint32_t tommy_imp_hash_le_uint32_read(const void* ptr)
@@ -35,6 +47,17 @@ tommy_inline tommy_uint32_t tommy_imp_hash_le_uint32_read(const void* ptr)
 	return v;
 }
 
+tommy_inline tommy_uint64_t tommy_imp_hash_le_uint64_read(const void* ptr)
+{
+	tommy_uint64_t v;
+	memcpy(&v, ptr, sizeof(v));
+#if defined(WORDS_BIGENDIAN) || defined(__BIG_ENDIAN__) || \
+	(defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+	v = tommy_imp_hash_swap64(v);
+#endif
+	return v;
+}
+
 /******************************************************************************/
 /* a5hash */
 
@@ -44,10 +67,10 @@ tommy_inline tommy_uint32_t tommy_imp_hash_le_uint32_read(const void* ptr)
  * Copyright (c) 2025 Aleksey Vaneev. Released under the MIT license, see LICENSES/MIT.
  */
 
-tommy_inline void tommy_imp_a5hash_mul(tommy_uint32_t a, tommy_uint32_t b, tommy_uint32_t* lo, tommy_uint32_t* hi)
+tommy_inline void tommy_imp_mul(tommy_uint32_t* lo, tommy_uint32_t* hi)
 {
 	/* both operands are 32-bit; the full product supplies two state words */
-	tommy_uint64_t v = (tommy_uint64_t)a * b;
+	tommy_uint64_t v = (tommy_uint64_t)*lo * *hi;
 	*lo = (tommy_uint32_t)v;
 	*hi = v >> 32;
 }
@@ -57,16 +80,34 @@ TOMMY_API tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* voi
 	const unsigned char* key = tommy_cast(const unsigned char*, void_key);
 	tommy_uint32_t val01 = 0x55555555;
 	tommy_uint32_t val10 = 0xaaaaaaaa;
-	tommy_uint32_t h[4] = { 0x243f6a88, 0x85a308d3, 0xfb0bd3ea, 0x0f58fd47 };
+
+	/*
+	 * Set all unmasked odd/even bits to 1 in the initial constants to prevent
+	 * specific key lengths from creating free trailing zeros during seed
+	 * expansion, improving resistance to adversarial collisions.
+	 */
+	tommy_uint32_t h[4] = { 0xaebf6aaa, 0xd5f75dd7, 0xfb0bd3ea, 0x0f58fd47 };
 	tommy_uint32_t a, b;
 	tommy_size_t len = key_len;
 
 	h[0] ^= key_len;
 	h[1] ^= key_len;
 #if TOMMY_SIZE_BIT == 64
-	tommy_imp_a5hash_mul((key_len >> 32) ^ 0x452821e6, (key_len >> 32) ^ 0x38d01377, &h[2], &h[3]);
+	h[2] = (key_len >> 32) ^ 0x452821e6;
+	h[3] = (key_len >> 32) ^ 0x38d01377;
+	tommy_imp_mul(&h[2], &h[3]);
 #endif
-	tommy_imp_a5hash_mul(h[1] ^ (init_val & val10), h[0] ^ (init_val & val01), &h[0], &h[1]);
+	h[0] ^= init_val & val01;
+	h[1] ^= init_val & val10;
+	tommy_imp_mul(&h[0], &h[1]);
+
+	/*
+	 * Mix the expanded seed asymmetrically into h[2] and h[3] so that short keys
+	 * skipping the main loop still depend on the seed, and neither h[0] nor h[1]
+	 * cancels out when folding h[0] ^= h[2] and h[1] ^= h[3] at the end.
+	 */
+	h[2] ^= h[0] ^ h[1];
+	h[3] ^= h[0];
 
 	if (len <= 16) {
 		if (len >= 4) {
@@ -75,9 +116,9 @@ TOMMY_API tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* voi
 			b = tommy_imp_hash_le_uint32_read(tail);
 			if (len >= 9) {
 				tommy_size_t offset = (len / 8) * 4;
-				tommy_uint32_t c = tommy_imp_hash_le_uint32_read(key + offset);
-				tommy_uint32_t d = tommy_imp_hash_le_uint32_read(tail - offset);
-				tommy_imp_a5hash_mul(c + h[2], d + h[3], &h[2], &h[3]);
+				h[2] += tommy_imp_hash_le_uint32_read(key + offset);
+				h[3] += tommy_imp_hash_le_uint32_read(tail - offset);
+				tommy_imp_mul(&h[2], &h[3]);
 			}
 		} else {
 			a = 0;
@@ -96,8 +137,12 @@ TOMMY_API tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* voi
 		do {
 			tommy_uint32_t s1 = h[0];
 			tommy_uint32_t s4 = h[3];
-			tommy_imp_a5hash_mul(tommy_imp_hash_le_uint32_read(key) + h[0], tommy_imp_hash_le_uint32_read(key + 4) + h[1], &h[0], &h[1]);
-			tommy_imp_a5hash_mul(tommy_imp_hash_le_uint32_read(key + 8) + h[2], tommy_imp_hash_le_uint32_read(key + 12) + h[3], &h[2], &h[3]);
+			h[0] += tommy_imp_hash_le_uint32_read(key);
+			h[1] += tommy_imp_hash_le_uint32_read(key + 4);
+			tommy_imp_mul(&h[0], &h[1]);
+			h[2] += tommy_imp_hash_le_uint32_read(key + 8);
+			h[3] += tommy_imp_hash_le_uint32_read(key + 12);
+			tommy_imp_mul(&h[2], &h[3]);
 			h[0] += val01;
 			h[1] += s4;
 			h[2] += s1;
@@ -111,17 +156,20 @@ TOMMY_API tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* voi
 		a = tommy_imp_hash_le_uint32_read(tail - 8);
 		b = tommy_imp_hash_le_uint32_read(tail - 4);
 		if (len >= 9) {
-			tommy_uint32_t c = tommy_imp_hash_le_uint32_read(tail - 16);
-			tommy_uint32_t d = tommy_imp_hash_le_uint32_read(tail - 12);
-			tommy_imp_a5hash_mul(c + h[2], d + h[3], &h[2], &h[3]);
+			h[2] += tommy_imp_hash_le_uint32_read(tail - 16);
+			h[3] += tommy_imp_hash_le_uint32_read(tail - 12);
+			tommy_imp_mul(&h[2], &h[3]);
 		}
 	}
 
 	h[0] ^= h[2];
 	h[1] ^= h[3];
-	tommy_imp_a5hash_mul(a + h[0], b + h[1], &h[0], &h[1]);
-	tommy_imp_a5hash_mul(val01 ^ h[0], h[1], &a, &b);
-	return a ^ b;
+	h[0] += a;
+	h[1] += b;
+	tommy_imp_mul(&h[0], &h[1]);
+	h[0] ^= val01;
+	tommy_imp_mul(&h[0], &h[1]);
+	return h[0] ^ h[1];
 }
 
 TOMMY_API tommy_uint64_t tommy_hash_u64(tommy_uint64_t init_val, const void* void_key, tommy_size_t key_len)
@@ -129,7 +177,13 @@ TOMMY_API tommy_uint64_t tommy_hash_u64(tommy_uint64_t init_val, const void* voi
 	const unsigned char* key = tommy_cast(const unsigned char*, void_key);
 	tommy_uint64_t val01 = 0x5555555555555555ULL;
 	tommy_uint64_t val10 = 0xaaaaaaaaaaaaaaaaULL;
-	tommy_uint64_t h[2] = { (0x452821e638d01377ULL ^ key_len) ^ (init_val & val10), (0x243f6a8885a308d3ULL ^ key_len) ^ (init_val & val01) };
+
+	/*
+	 * Set all unmasked odd/even bits to 1 in the initial constants to prevent
+	 * specific key lengths from creating free trailing zeros during seed
+	 * expansion, improving resistance to adversarial collisions.
+	 */
+	tommy_uint64_t h[2] = { (0xaebfeea8aaa3aadbULL ^ key_len) ^ (init_val & val01), (0x557d75f77dd55777ULL ^ key_len) ^ (init_val & val10) };
 	tommy_size_t len = key_len;
 
 	tommy_mum(&h[0], &h[1]);
@@ -137,9 +191,8 @@ TOMMY_API tommy_uint64_t tommy_hash_u64(tommy_uint64_t init_val, const void* voi
 		val01 ^= h[0];
 		val10 ^= h[1];
 		do {
-			/* each 64-bit operand puts the first little-endian word in its high half */
-			h[0] ^= (tommy_uint64_t)tommy_imp_hash_le_uint32_read(key) << 32 ^ tommy_imp_hash_le_uint32_read(key + 4);
-			h[1] ^= (tommy_uint64_t)tommy_imp_hash_le_uint32_read(key + 8) << 32 ^ tommy_imp_hash_le_uint32_read(key + 12);
+			h[0] ^= tommy_imp_hash_le_uint64_read(key);
+			h[1] ^= tommy_imp_hash_le_uint64_read(key + 8);
 			tommy_mum(&h[0], &h[1]);
 			h[0] += val01;
 			h[1] += val10;
