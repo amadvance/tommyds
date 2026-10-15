@@ -5,12 +5,24 @@
  * Hash functions for use with ::tommy_hashtable, ::tommy_hashdyn and ::tommy_hashlin.
  *
  * This module provides hash functions designed for in-memory data structures.
- * ::tommy_hash_u32 and ::tommy_strhash_u32 use a5hash32, while
- * ::tommy_hash_u64 and ::tommy_strhash_u64 use a5hash (64-bit).
+ * ::tommy_hash_u32 and ::tommy_strhash_u32 derive from a5hash32, while
+ * ::tommy_hash_u64 and ::tommy_strhash_u64 derive from a5hash.
+ *
+ * Both variants are modified to improve adversarial collision resistance under
+ * the seeded collision-score metric described by Thomas Dybdahl Ahle in
+ * "Adversarial examples for fast hash functions":
+ * https://thomasahle.com/blog/adversarial-examples-for-hashes/
+ * The original a5hash32 leaves one state lane independent of the seed, allowing
+ * distinct inputs of 9 to 16 bytes to collide for every seed. The original
+ * 64-bit a5hash can lose seed dependence during initialization, making specially
+ * crafted inputs collide more often across seeds than a uniform 64-bit hash.
+ * TommyDS changes initialization and mixing to address these weaknesses,
+ * so its hash values differ from the original algorithms.
+ *
  * Reversible integer hash functions are also provided for 32-bit and 64-bit keys.
  *
- * a5hash32 is intended for 32-bit platforms and uses 32-bit operands with
- * full 64-bit multiplication results. a5hash uses 64-bit operands with
+ * ::tommy_hash_u32 is intended for 32-bit platforms and uses 32-bit operands with
+ * full 64-bit multiplication results. ::tommy_hash_u64 uses 64-bit operands with
  * full 128-bit multiplication results. Both algorithms pass SMHasher3 tests.
  *
  * Prefer the 64-bit version whenever possible, as it provides better resistance
@@ -35,9 +47,8 @@
 
 /**
  * Hash function with a 32-bit result.
- * Implementation of a5hash32 by Aleksey Vaneev,
- * from https://github.com/avaneev/a5hash
- *
+ * Derived from a5hash32 by Aleksey Vaneev from https://github.com/avaneev/a5hash
+ * 
  * This algorithm is compact, fast on short inputs, and passes SMHasher3 tests.
  *
  * \param init_val Initialization value.
@@ -57,8 +68,7 @@ TOMMY_API tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* voi
 
 /**
  * Hash function with a 64-bit result.
- * Implementation of a5hash (64-bit) by Aleksey Vaneev,
- * from https://github.com/avaneev/a5hash
+ * Derived from a5hash by Aleksey Vaneev from https://github.com/avaneev/a5hash
  *
  * This algorithm is compact, fast on short inputs, and passes SMHasher3 tests.
  *
@@ -79,12 +89,8 @@ TOMMY_API tommy_uint64_t tommy_hash_u64(tommy_uint64_t init_val, const void* voi
 
 /**
  * String hash function with a 32-bit result.
- * Implementation of a5hash32 by Aleksey Vaneev,
- * from https://github.com/avaneev/a5hash
  *
  * This hash is designed to handle strings with an unknown length.
- * It is implemented inline using strlen() followed by ::tommy_hash_u32.
- * This gives better performance than scanning for the terminator while hashing.
  *
  * \param init_val Initialization value.
  * Using a different initialization value, you can generate a completely different set of hash values.
@@ -105,12 +111,8 @@ tommy_inline tommy_uint32_t tommy_strhash_u32(tommy_uint32_t init_val, const voi
 
 /**
  * String hash function with a 64-bit result.
- * Implementation of a5hash (64-bit) by Aleksey Vaneev,
- * from https://github.com/avaneev/a5hash
  *
  * This hash is designed to handle strings with an unknown length.
- * It is implemented inline using strlen() followed by ::tommy_hash_u64.
- * This gives better performance than scanning for the terminator while hashing.
  *
  * \param init_val Initialization value.
  * Using a different initialization value, you can generate a completely different set of hash values.
