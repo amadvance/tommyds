@@ -11,7 +11,7 @@ TommyDS HISTORY
    tommy_array_insert_tail() and tommy_arrayblk_insert() to
    tommy_arrayblk_insert_tail(). Callers must use the new names.
  * BREAKING CHANGE: Reimplemented tommy_hash_u32() and tommy_strhash_u32()
-   using a5hash32, and tommy_hash_u64() and the new tommy_strhash_u64()
+   using a modified a5hash32, and tommy_hash_u64() and the new tommy_strhash_u64()
    using a5hash (64-bit). Both algorithms pass SMHasher3 tests.
    The resulting hash values differ from previous versions.
  * Added tommy_mulhash_u32() and tommy_mulhash_u64(), reversible integer

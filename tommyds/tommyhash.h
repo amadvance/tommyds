@@ -5,7 +5,7 @@
  * Hash functions for use with ::tommy_hashtable, ::tommy_hashdyn and ::tommy_hashlin.
  *
  * This module provides hash functions designed for in-memory data structures.
- * ::tommy_hash_u32 and ::tommy_strhash_u32 use a5hash32, while
+ * ::tommy_hash_u32 and ::tommy_strhash_u32 use a modified a5hash32, while
  * ::tommy_hash_u64 and ::tommy_strhash_u64 use a5hash (64-bit).
  * Reversible integer hash functions are also provided for 32-bit and 64-bit keys.
  *
@@ -35,8 +35,13 @@
 
 /**
  * Hash function with a 32-bit result.
- * Implementation of a5hash32 by Aleksey Vaneev,
+ * Modified implementation of a5hash32 by Aleksey Vaneev,
  * from https://github.com/avaneev/a5hash
+ *
+ * The expanded seed is mixed asymmetrically into the two additional state words
+ * before processing the input to prevent seed-independent collision attacks
+ * on short keys, while avoiding cancellation in the final XOR fold.
+ * The resulting hash values differ from upstream a5hash32.
  *
  * This algorithm is compact, fast on short inputs, and passes SMHasher3 tests.
  *
@@ -79,12 +84,13 @@ TOMMY_API tommy_uint64_t tommy_hash_u64(tommy_uint64_t init_val, const void* voi
 
 /**
  * String hash function with a 32-bit result.
- * Implementation of a5hash32 by Aleksey Vaneev,
+ * Modified implementation of a5hash32 by Aleksey Vaneev,
  * from https://github.com/avaneev/a5hash
  *
  * This hash is designed to handle strings with an unknown length.
  * It is implemented inline using strlen() followed by ::tommy_hash_u32.
  * This gives better performance than scanning for the terminator while hashing.
+ * It uses the same modified seed mixing and differs from upstream a5hash32.
  *
  * \param init_val Initialization value.
  * Using a different initialization value, you can generate a completely different set of hash values.
