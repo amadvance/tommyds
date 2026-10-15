@@ -13,7 +13,7 @@
  * full 64-bit multiplication results. a5hash uses 64-bit operands with
  * full 128-bit multiplication results. a5hash32 includes asymmetric seed mixing
  * in all four state words to prevent the identified seed-independent collisions.
- * a5hash includes an odd seed-expansion factor and crossed additive feed-forward.
+ * Both versions add the input operands to each full product, propagating the carry.
  *
  * Prefer the 64-bit version whenever possible, as it provides better resistance
  * to collisions, particularly with specially crafted inputs. However, neither
@@ -62,7 +62,7 @@ TOMMY_API tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* voi
  * Implementation of a5hash (64-bit) by Aleksey Vaneev,
  * from https://github.com/avaneev/a5hash
  *
- * This algorithm is compact and fast on short inputs, with odd seed expansion and crossed additive feed-forward.
+ * This algorithm is compact and fast on short inputs, with additive mixing of the full products.
  *
  * \param init_val Initialization value.
  * Using a different initialization value, you can generate a completely different set of hash values.
@@ -309,6 +309,92 @@ tommy_inline void tommy_mum(tommy_uint64_t* A, tommy_uint64_t* B)
 	tommy_uint64_t high = p3 + (middle >> 32) + (p2 >> 32);
 	*A = low;
 	*B = high;
+}
+#endif
+
+/**
+ * Mixes two 32-bit words using a full product and additive feed-forward.
+ * Computes A * B + A + (B << 32) modulo 2^64, including the carry.
+ *
+ * \param A Address of the first word, overwritten with the low 32 bits.
+ * \param B Address of the second word, overwritten with the high 32 bits.
+ * \note A and B must point to distinct objects. This transformation is not bijective.
+ */
+#if defined(__x86_64__) && defined(__GNUC__) && !defined(__clang__)
+tommy_inline void tommy_mix32(tommy_uint32_t* A, tommy_uint32_t* B)
+{
+	tommy_uint64_t a = *A;
+	tommy_uint64_t b = *B;
+	tommy_uint64_t lo, hi;
+
+	/* early-clobber outputs preserve both operands until the final ADD/ADC */
+	__asm__ (
+		"movq %3, %0\n\t"
+		"imulq %2, %0\n\t"
+		"movq %0, %1\n\t"
+		"shrq $32, %1\n\t"
+		"addl %k2, %k0\n\t"
+		"adcl %k3, %k1"
+		: "=&r" (lo), "=&r" (hi)
+		: "r" (a), "r" (b)
+		: "cc"
+	);
+
+	*A = lo;
+	*B = hi;
+}
+#else
+tommy_inline void tommy_mix32(tommy_uint32_t* A, tommy_uint32_t* B)
+{
+	tommy_uint32_t a = *A;
+	tommy_uint32_t b = *B;
+	tommy_uint64_t p = (tommy_uint64_t)a * b;
+	tommy_uint32_t lo = p;
+	*A = lo + a;
+	/* propagate the low-word carry to preserve the full-width addition */
+	*B = (p >> 32) + b + (*A < lo);
+}
+#endif
+
+/**
+ * Mixes two 64-bit words using a full product and additive feed-forward.
+ * Computes A * B + A + (B << 64) modulo 2^128, including the carry.
+ *
+ * \param A Address of the first word, overwritten with the low 64 bits.
+ * \param B Address of the second word, overwritten with the high 64 bits.
+ * \note A and B must point to distinct objects. This transformation is not bijective.
+ */
+#if defined(__x86_64__) && defined(__GNUC__) && !defined(__clang__)
+tommy_inline void tommy_mix64(tommy_uint64_t* A, tommy_uint64_t* B)
+{
+	tommy_uint64_t a = *A;
+	tommy_uint64_t b = *B;
+	tommy_uint64_t lo = a;
+	tommy_uint64_t hi;
+
+	/* MUL overwrites RAX/RDX before ADD/ADC consume the original operands */
+	__asm__ (
+		"mulq %3\n\t"
+		"addq %2, %0\n\t"
+		"adcq %3, %1"
+		: "+&a" (lo), "=&d" (hi)
+		: "r" (a), "r" (b)
+		: "cc"
+	);
+
+	*A = lo;
+	*B = hi;
+}
+#else
+tommy_inline void tommy_mix64(tommy_uint64_t* A, tommy_uint64_t* B)
+{
+	tommy_uint64_t a = *A;
+	tommy_uint64_t b = *B;
+	tommy_mum(A, B);
+	tommy_uint64_t lo = *A;
+	*A += a;
+	/* propagate the low-word carry to preserve the full-width addition */
+	*B += b + (*A < lo);
 }
 #endif
 

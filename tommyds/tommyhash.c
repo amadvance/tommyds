@@ -63,17 +63,9 @@ tommy_inline tommy_uint64_t tommy_imp_hash_le_uint64_read(const void* ptr)
 
 /**
  * a5hash32 and a5hash (64-bit) by Aleksey Vaneev, from https://github.com/avaneev/a5hash.
- * Adapted from version 5.25 with little-endian word reads.
+ * Adapted from version 5.25 with little-endian word reads and additive product mixing.
  * Copyright (c) 2025 Aleksey Vaneev. Released under the MIT license, see LICENSES/MIT.
  */
-
-tommy_inline void tommy_imp_mul(tommy_uint32_t* lo, tommy_uint32_t* hi)
-{
-	/* both operands are 32-bit; the full product supplies two state words */
-	tommy_uint64_t v = (tommy_uint64_t)*lo * *hi;
-	*lo = (tommy_uint32_t)v;
-	*hi = v >> 32;
-}
 
 TOMMY_API tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* void_key, tommy_size_t key_len)
 {
@@ -95,11 +87,11 @@ TOMMY_API tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* voi
 #if TOMMY_SIZE_BIT == 64
 	h[2] = (key_len >> 32) ^ 0x452821e6;
 	h[3] = (key_len >> 32) ^ 0x38d01377;
-	tommy_imp_mul(&h[2], &h[3]);
+	tommy_mix32(&h[2], &h[3]);
 #endif
 	h[0] ^= init_val & val01;
 	h[1] ^= init_val & val10;
-	tommy_imp_mul(&h[0], &h[1]);
+	tommy_mix32(&h[0], &h[1]);
 
 	/*
 	 * Mix the expanded seed asymmetrically into h[2] and h[3] so that short keys
@@ -118,7 +110,7 @@ TOMMY_API tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* voi
 				tommy_size_t offset = (len / 8) * 4;
 				h[2] += tommy_imp_hash_le_uint32_read(key + offset);
 				h[3] += tommy_imp_hash_le_uint32_read(tail - offset);
-				tommy_imp_mul(&h[2], &h[3]);
+				tommy_mix32(&h[2], &h[3]);
 			}
 		} else {
 			a = 0;
@@ -139,10 +131,10 @@ TOMMY_API tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* voi
 			tommy_uint32_t s4 = h[3];
 			h[0] += tommy_imp_hash_le_uint32_read(key);
 			h[1] += tommy_imp_hash_le_uint32_read(key + 4);
-			tommy_imp_mul(&h[0], &h[1]);
+			tommy_mix32(&h[0], &h[1]);
 			h[2] += tommy_imp_hash_le_uint32_read(key + 8);
 			h[3] += tommy_imp_hash_le_uint32_read(key + 12);
-			tommy_imp_mul(&h[2], &h[3]);
+			tommy_mix32(&h[2], &h[3]);
 			h[0] += val01;
 			h[1] += s4;
 			h[2] += s1;
@@ -158,7 +150,7 @@ TOMMY_API tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* voi
 		if (len >= 9) {
 			h[2] += tommy_imp_hash_le_uint32_read(tail - 16);
 			h[3] += tommy_imp_hash_le_uint32_read(tail - 12);
-			tommy_imp_mul(&h[2], &h[3]);
+			tommy_mix32(&h[2], &h[3]);
 		}
 	}
 
@@ -166,9 +158,9 @@ TOMMY_API tommy_uint32_t tommy_hash_u32(tommy_uint32_t init_val, const void* voi
 	h[1] ^= h[3];
 	h[0] += a;
 	h[1] += b;
-	tommy_imp_mul(&h[0], &h[1]);
+	tommy_mix32(&h[0], &h[1]);
 	h[0] ^= val01;
-	tommy_imp_mul(&h[0], &h[1]);
+	tommy_mix32(&h[0], &h[1]);
 	return h[0] ^ h[1];
 }
 
@@ -186,14 +178,14 @@ TOMMY_API tommy_uint64_t tommy_hash_u64(tommy_uint64_t init_val, const void* voi
 	tommy_uint64_t h[2] = { (0xaebfeea8aaa3aadbULL ^ key_len) ^ (init_val & val01), (0x557d75f77dd55777ULL ^ key_len) ^ (init_val & val10) };
 	tommy_size_t len = key_len;
 
-	tommy_mum(&h[0], &h[1]);
+	tommy_mix64(&h[0], &h[1]);
 	if (len > 16) {
 		val01 ^= h[0];
 		val10 ^= h[1];
 		do {
 			h[0] ^= tommy_imp_hash_le_uint64_read(key);
 			h[1] ^= tommy_imp_hash_le_uint64_read(key + 8);
-			tommy_mum(&h[0], &h[1]);
+			tommy_mix64(&h[0], &h[1]);
 			h[0] += val01;
 			h[1] += val10;
 			key += 16;
@@ -214,9 +206,9 @@ TOMMY_API tommy_uint64_t tommy_hash_u64(tommy_uint64_t init_val, const void* voi
 			h[0] ^= key[2] << 16;
 	}
 
-	tommy_mum(&h[0], &h[1]);
+	tommy_mix64(&h[0], &h[1]);
 	h[0] ^= val01;
-	tommy_mum(&h[0], &h[1]);
+	tommy_mix64(&h[0], &h[1]);
 	return h[0] ^ h[1];
 }
 
