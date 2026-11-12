@@ -31,17 +31,17 @@
             <td class="headerValue">lcov.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntry">11</td>
-            <td class="headerCovTableEntry">11</td>
+            <td class="headerCovTableEntry">47</td>
+            <td class="headerCovTableEntry">47</td>
             <td class="headerCovTableEntryHi">100.0 %</td>
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2025-12-03 00:44:19</td>
+            <td class="headerValue">2026-11-12 12:42:49</td>
             <td></td>
             <td class="headerItem">Functions:</td>
-            <td class="headerCovTableEntry">4</td>
-            <td class="headerCovTableEntry">4</td>
+            <td class="headerCovTableEntry">12</td>
+            <td class="headerCovTableEntry">12</td>
             <td class="headerCovTableEntryHi">100.0 %</td>
           </tr>
           <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
@@ -60,151 +60,284 @@
       <td>
 <pre class="sourceHeading">          Line data    Source code</pre>
 <pre class="source">
-<a name="1"><span class="lineNum">       1 </span>            : /*</a>
-<a name="2"><span class="lineNum">       2 </span>            :  * Copyright (c) 2011, Andrea Mazzoleni. All rights reserved.</a>
-<a name="3"><span class="lineNum">       3 </span>            :  *</a>
-<a name="4"><span class="lineNum">       4 </span>            :  * Redistribution and use in source and binary forms, with or without</a>
-<a name="5"><span class="lineNum">       5 </span>            :  * modification, are permitted provided that the following conditions</a>
-<a name="6"><span class="lineNum">       6 </span>            :  * are met:</a>
-<a name="7"><span class="lineNum">       7 </span>            :  *</a>
-<a name="8"><span class="lineNum">       8 </span>            :  * 1. Redistributions of source code must retain the above copyright</a>
-<a name="9"><span class="lineNum">       9 </span>            :  *    notice, this list of conditions and the following disclaimer.</a>
-<a name="10"><span class="lineNum">      10 </span>            :  *</a>
-<a name="11"><span class="lineNum">      11 </span>            :  * 2. Redistributions in binary form must reproduce the above copyright</a>
-<a name="12"><span class="lineNum">      12 </span>            :  *    notice, this list of conditions and the following disclaimer in the</a>
-<a name="13"><span class="lineNum">      13 </span>            :  *    documentation and/or other materials provided with the distribution.</a>
-<a name="14"><span class="lineNum">      14 </span>            :  *</a>
-<a name="15"><span class="lineNum">      15 </span>            :  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS IS&quot;</a>
-<a name="16"><span class="lineNum">      16 </span>            :  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE</a>
-<a name="17"><span class="lineNum">      17 </span>            :  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE</a>
-<a name="18"><span class="lineNum">      18 </span>            :  * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE</a>
-<a name="19"><span class="lineNum">      19 </span>            :  * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR</a>
-<a name="20"><span class="lineNum">      20 </span>            :  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF</a>
-<a name="21"><span class="lineNum">      21 </span>            :  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS</a>
-<a name="22"><span class="lineNum">      22 </span>            :  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN</a>
-<a name="23"><span class="lineNum">      23 </span>            :  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)</a>
-<a name="24"><span class="lineNum">      24 </span>            :  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE</a>
-<a name="25"><span class="lineNum">      25 </span>            :  * POSSIBILITY OF SUCH DAMAGE.</a>
-<a name="26"><span class="lineNum">      26 </span>            :  */</a>
-<a name="27"><span class="lineNum">      27 </span>            : </a>
-<a name="28"><span class="lineNum">      28 </span>            : /** \file</a>
-<a name="29"><span class="lineNum">      29 </span>            :  * Dynamic array based on segments of exponentially growing size.</a>
-<a name="30"><span class="lineNum">      30 </span>            :  *</a>
-<a name="31"><span class="lineNum">      31 </span>            :  * This array is able to grow dynamically upon request, without any reallocation.</a>
-<a name="32"><span class="lineNum">      32 </span>            :  *</a>
-<a name="33"><span class="lineNum">      33 </span>            :  * The grow operation involves an allocation of a new array segment, without reallocating</a>
-<a name="34"><span class="lineNum">      34 </span>            :  * the already used memory, and thus **not increasing** the heap fragmentation.</a>
-<a name="35"><span class="lineNum">      35 </span>            :  * This also implies that the address of the stored elements never change.</a>
-<a name="36"><span class="lineNum">      36 </span>            :  *</a>
-<a name="37"><span class="lineNum">      37 </span>            :  * Allocated segments grow in size exponentially.</a>
-<a name="38"><span class="lineNum">      38 </span>            :  */</a>
-<a name="39"><span class="lineNum">      39 </span>            : </a>
-<a name="40"><span class="lineNum">      40 </span>            : #ifndef __TOMMYARRAY_H</a>
-<a name="41"><span class="lineNum">      41 </span>            : #define __TOMMYARRAY_H</a>
+<a name="1"><span class="lineNum">       1 </span>            : // SPDX-License-Identifier: BSD-2-Clause</a>
+<a name="2"><span class="lineNum">       2 </span>            : // Copyright (C) 2011 Andrea Mazzoleni</a>
+<a name="3"><span class="lineNum">       3 </span>            : </a>
+<a name="4"><span class="lineNum">       4 </span>            : /** \file</a>
+<a name="5"><span class="lineNum">       5 </span>            :  * Dynamic array based on segments of exponentially growing size.</a>
+<a name="6"><span class="lineNum">       6 </span>            :  *</a>
+<a name="7"><span class="lineNum">       7 </span>            :  * This array is able to grow dynamically upon request, without any reallocation.</a>
+<a name="8"><span class="lineNum">       8 </span>            :  *</a>
+<a name="9"><span class="lineNum">       9 </span>            :  * The grow operation involves an allocation of a new array segment, without reallocating</a>
+<a name="10"><span class="lineNum">      10 </span>            :  * the already used memory, and thus not increasing the heap fragmentation.</a>
+<a name="11"><span class="lineNum">      11 </span>            :  * This also implies that the address of the stored elements never changes.</a>
+<a name="12"><span class="lineNum">      12 </span>            :  *</a>
+<a name="13"><span class="lineNum">      13 </span>            :  * Allocated segments grow in size exponentially.</a>
+<a name="14"><span class="lineNum">      14 </span>            :  */</a>
+<a name="15"><span class="lineNum">      15 </span>            : </a>
+<a name="16"><span class="lineNum">      16 </span>            : #ifndef TOMMY_ARRAY_H</a>
+<a name="17"><span class="lineNum">      17 </span>            : #define TOMMY_ARRAY_H</a>
+<a name="18"><span class="lineNum">      18 </span>            : </a>
+<a name="19"><span class="lineNum">      19 </span>            : #include &quot;tommytypes.h&quot;</a>
+<a name="20"><span class="lineNum">      20 </span>            : </a>
+<a name="21"><span class="lineNum">      21 </span>            : #include &lt;assert.h&gt; /* for assert */</a>
+<a name="22"><span class="lineNum">      22 </span>            : </a>
+<a name="23"><span class="lineNum">      23 </span>            : /******************************************************************************/</a>
+<a name="24"><span class="lineNum">      24 </span>            : /* array */</a>
+<a name="25"><span class="lineNum">      25 </span>            : </a>
+<a name="26"><span class="lineNum">      26 </span>            : /**</a>
+<a name="27"><span class="lineNum">      27 </span>            :  * Initial and minimal size of the array expressed as a power of 2.</a>
+<a name="28"><span class="lineNum">      28 </span>            :  * The initial size is 2^TOMMY_ARRAY_BIT.</a>
+<a name="29"><span class="lineNum">      29 </span>            :  */</a>
+<a name="30"><span class="lineNum">      30 </span>            : #define TOMMY_ARRAY_BIT 6</a>
+<a name="31"><span class="lineNum">      31 </span>            : </a>
+<a name="32"><span class="lineNum">      32 </span>            : /**</a>
+<a name="33"><span class="lineNum">      33 </span>            :  * Array container type.</a>
+<a name="34"><span class="lineNum">      34 </span>            :  * \note Don't use internal fields directly, but access the container only using functions.</a>
+<a name="35"><span class="lineNum">      35 </span>            :  */</a>
+<a name="36"><span class="lineNum">      36 </span>            : typedef struct tommy_array_struct {</a>
+<a name="37"><span class="lineNum">      37 </span>            :         void** bucket[TOMMY_SIZE_BIT]; /**&lt; Dynamic array of buckets. */</a>
+<a name="38"><span class="lineNum">      38 </span>            :         tommy_size_t bucket_max; /**&lt; Number of buckets. */</a>
+<a name="39"><span class="lineNum">      39 </span>            :         tommy_size_t count; /**&lt; Number of initialized elements in the array. */</a>
+<a name="40"><span class="lineNum">      40 </span>            :         tommy_uint_t bucket_bit; /**&lt; Bits used in the bit mask. */</a>
+<a name="41"><span class="lineNum">      41 </span>            : } tommy_array;</a>
 <a name="42"><span class="lineNum">      42 </span>            : </a>
-<a name="43"><span class="lineNum">      43 </span>            : #include &quot;tommytypes.h&quot;</a>
-<a name="44"><span class="lineNum">      44 </span>            : </a>
-<a name="45"><span class="lineNum">      45 </span>            : #include &lt;assert.h&gt; /* for assert */</a>
-<a name="46"><span class="lineNum">      46 </span>            : </a>
-<a name="47"><span class="lineNum">      47 </span>            : /******************************************************************************/</a>
-<a name="48"><span class="lineNum">      48 </span>            : /* array */</a>
-<a name="49"><span class="lineNum">      49 </span>            : </a>
-<a name="50"><span class="lineNum">      50 </span>            : /**</a>
-<a name="51"><span class="lineNum">      51 </span>            :  * Initial and minimal size of the array expressed as a power of 2.</a>
-<a name="52"><span class="lineNum">      52 </span>            :  * The initial size is 2^TOMMY_ARRAY_BIT.</a>
-<a name="53"><span class="lineNum">      53 </span>            :  */</a>
-<a name="54"><span class="lineNum">      54 </span>            : #define TOMMY_ARRAY_BIT 6</a>
-<a name="55"><span class="lineNum">      55 </span>            : </a>
-<a name="56"><span class="lineNum">      56 </span>            : /**</a>
-<a name="57"><span class="lineNum">      57 </span>            :  * Array container type.</a>
-<a name="58"><span class="lineNum">      58 </span>            :  * \note Don't use internal fields directly, but access the container only using functions.</a>
-<a name="59"><span class="lineNum">      59 </span>            :  */</a>
-<a name="60"><span class="lineNum">      60 </span>            : typedef struct tommy_array_struct {</a>
-<a name="61"><span class="lineNum">      61 </span>            :         void** bucket[TOMMY_SIZE_BIT]; /**&lt; Dynamic array of buckets. */</a>
-<a name="62"><span class="lineNum">      62 </span>            :         tommy_size_t bucket_max; /**&lt; Number of buckets. */</a>
-<a name="63"><span class="lineNum">      63 </span>            :         tommy_size_t count; /**&lt; Number of initialized elements in the array. */</a>
-<a name="64"><span class="lineNum">      64 </span>            :         tommy_uint_t bucket_bit; /**&lt; Bits used in the bit mask. */</a>
-<a name="65"><span class="lineNum">      65 </span>            : } tommy_array;</a>
-<a name="66"><span class="lineNum">      66 </span>            : </a>
-<a name="67"><span class="lineNum">      67 </span>            : /**</a>
-<a name="68"><span class="lineNum">      68 </span>            :  * Initializes the array.</a>
+<a name="43"><span class="lineNum">      43 </span>            : /**</a>
+<a name="44"><span class="lineNum">      44 </span>            :  * Initializes the array.</a>
+<a name="45"><span class="lineNum">      45 </span>            :  * \param array The array.</a>
+<a name="46"><span class="lineNum">      46 </span>            :  */</a>
+<a name="47"><span class="lineNum">      47 </span>            : TOMMY_API void tommy_array_init(tommy_array* array);</a>
+<a name="48"><span class="lineNum">      48 </span>            : </a>
+<a name="49"><span class="lineNum">      49 </span>            : /**</a>
+<a name="50"><span class="lineNum">      50 </span>            :  * Deinitializes the array.</a>
+<a name="51"><span class="lineNum">      51 </span>            :  * \param array The array.</a>
+<a name="52"><span class="lineNum">      52 </span>            :  */</a>
+<a name="53"><span class="lineNum">      53 </span>            : TOMMY_API void tommy_array_done(tommy_array* array);</a>
+<a name="54"><span class="lineNum">      54 </span>            : </a>
+<a name="55"><span class="lineNum">      55 </span>            : /**</a>
+<a name="56"><span class="lineNum">      56 </span>            :  * Allocates space for at least the specified number of elements.</a>
+<a name="57"><span class="lineNum">      57 </span>            :  * The initialized size and existing elements are unchanged.</a>
+<a name="58"><span class="lineNum">      58 </span>            :  * Existing element references remain valid.</a>
+<a name="59"><span class="lineNum">      59 </span>            :  * \param array The array.</a>
+<a name="60"><span class="lineNum">      60 </span>            :  * \param size Number of elements to reserve space for.</a>
+<a name="61"><span class="lineNum">      61 </span>            :  */</a>
+<a name="62"><span class="lineNum">      62 </span>            : TOMMY_API void tommy_array_reserve(tommy_array* array, tommy_size_t size);</a>
+<a name="63"><span class="lineNum">      63 </span>            : </a>
+<a name="64"><span class="lineNum">      64 </span>            : /**</a>
+<a name="65"><span class="lineNum">      65 </span>            :  * Grows the size up to the specified value.</a>
+<a name="66"><span class="lineNum">      66 </span>            :  * All the new elements in the array are initialized with the 0 value.</a>
+<a name="67"><span class="lineNum">      67 </span>            :  * \param array The array.</a>
+<a name="68"><span class="lineNum">      68 </span>            :  * \param size New size of the array.</a>
 <a name="69"><span class="lineNum">      69 </span>            :  */</a>
-<a name="70"><span class="lineNum">      70 </span>            : TOMMY_API void tommy_array_init(tommy_array* array);</a>
-<a name="71"><span class="lineNum">      71 </span>            : </a>
-<a name="72"><span class="lineNum">      72 </span>            : /**</a>
-<a name="73"><span class="lineNum">      73 </span>            :  * Deinitializes the array.</a>
-<a name="74"><span class="lineNum">      74 </span>            :  */</a>
-<a name="75"><span class="lineNum">      75 </span>            : TOMMY_API void tommy_array_done(tommy_array* array);</a>
-<a name="76"><span class="lineNum">      76 </span>            : </a>
-<a name="77"><span class="lineNum">      77 </span>            : /**</a>
-<a name="78"><span class="lineNum">      78 </span>            :  * Grows the size up to the specified value.</a>
-<a name="79"><span class="lineNum">      79 </span>            :  * All the new elements in the array are initialized with the 0 value.</a>
-<a name="80"><span class="lineNum">      80 </span>            :  */</a>
-<a name="81"><span class="lineNum">      81 </span>            : TOMMY_API void tommy_array_grow(tommy_array* array, tommy_size_t size);</a>
-<a name="82"><span class="lineNum">      82 </span>            : </a>
-<a name="83"><span class="lineNum">      83 </span>            : /**</a>
-<a name="84"><span class="lineNum">      84 </span>            :  * Gets a reference of the element at the specified position.</a>
-<a name="85"><span class="lineNum">      85 </span>            :  * You must be sure that space for this position is already</a>
-<a name="86"><span class="lineNum">      86 </span>            :  * allocated calling tommy_array_grow().</a>
-<a name="87"><span class="lineNum">      87 </span>            :  */</a>
-<a name="88"><span class="lineNum">      88 </span><span class="lineCov">  450048832 : tommy_inline void** tommy_array_ref(tommy_array* array, tommy_size_t pos)</span></a>
-<a name="89"><span class="lineNum">      89 </span>            : {</a>
-<a name="90"><span class="lineNum">      90 </span>            :         tommy_uint_t bsr;</a>
-<a name="91"><span class="lineNum">      91 </span>            : </a>
-<a name="92"><span class="lineNum">      92 </span><span class="lineCov">  450048832 :         assert(pos &lt; array-&gt;count);</span></a>
-<a name="93"><span class="lineNum">      93 </span>            : </a>
-<a name="94"><span class="lineNum">      94 </span>            :         /* get the highest bit set, in case of all 0, return 0 */</a>
-<a name="95"><span class="lineNum">      95 </span><span class="lineCov">  450048832 :         bsr = tommy_ilog2(pos | 1);</span></a>
-<a name="96"><span class="lineNum">      96 </span>            : </a>
-<a name="97"><span class="lineNum">      97 </span><span class="lineCov">  450048832 :         return &amp;array-&gt;bucket[bsr][pos];</span></a>
-<a name="98"><span class="lineNum">      98 </span>            : }</a>
-<a name="99"><span class="lineNum">      99 </span>            : </a>
-<a name="100"><span class="lineNum">     100 </span>            : /**</a>
-<a name="101"><span class="lineNum">     101 </span>            :  * Sets the element at the specified position.</a>
-<a name="102"><span class="lineNum">     102 </span>            :  * You must be sure that space for this position is already</a>
-<a name="103"><span class="lineNum">     103 </span>            :  * allocated calling tommy_array_grow().</a>
-<a name="104"><span class="lineNum">     104 </span>            :  */</a>
-<a name="105"><span class="lineNum">     105 </span><span class="lineCov">   50024416 : tommy_inline void tommy_array_set(tommy_array* array, tommy_size_t pos, void* element)</span></a>
-<a name="106"><span class="lineNum">     106 </span>            : {</a>
-<a name="107"><span class="lineNum">     107 </span><span class="lineCov">   50024416 :         *tommy_array_ref(array, pos) = element;</span></a>
-<a name="108"><span class="lineNum">     108 </span><span class="lineCov">   50024416 : }</span></a>
-<a name="109"><span class="lineNum">     109 </span>            : </a>
-<a name="110"><span class="lineNum">     110 </span>            : /**</a>
-<a name="111"><span class="lineNum">     111 </span>            :  * Gets the element at the specified position.</a>
-<a name="112"><span class="lineNum">     112 </span>            :  * You must be sure that space for this position is already</a>
-<a name="113"><span class="lineNum">     113 </span>            :  * allocated calling tommy_array_grow().</a>
-<a name="114"><span class="lineNum">     114 </span>            :  */</a>
-<a name="115"><span class="lineNum">     115 </span><span class="lineCov">  400024416 : tommy_inline void* tommy_array_get(tommy_array* array, tommy_size_t pos)</span></a>
-<a name="116"><span class="lineNum">     116 </span>            : {</a>
-<a name="117"><span class="lineNum">     117 </span><span class="lineCov">  400024416 :         return *tommy_array_ref(array, pos);</span></a>
-<a name="118"><span class="lineNum">     118 </span>            : }</a>
+<a name="70"><span class="lineNum">      70 </span><span class="lineCov">   15000014 : tommy_inline void tommy_array_grow(tommy_array* array, tommy_size_t size)</span></a>
+<a name="71"><span class="lineNum">      71 </span>            : {</a>
+<a name="72"><span class="lineNum">      72 </span><span class="lineCov">   15000014 :         if (size &gt; array-&gt;count) {</span></a>
+<a name="73"><span class="lineNum">      73 </span><span class="lineCov">   15000013 :                 array-&gt;count = size;</span></a>
+<a name="74"><span class="lineNum">      74 </span>            : </a>
+<a name="75"><span class="lineNum">      75 </span><span class="lineCov">   15000013 :                 if (size &gt; array-&gt;bucket_max)</span></a>
+<a name="76"><span class="lineNum">      76 </span><span class="lineCov">         53 :                         tommy_array_reserve(array, size);</span></a>
+<a name="77"><span class="lineNum">      77 </span>            :         }</a>
+<a name="78"><span class="lineNum">      78 </span><span class="lineCov">   15000014 : }</span></a>
+<a name="79"><span class="lineNum">      79 </span>            : </a>
+<a name="80"><span class="lineNum">      80 </span>            : /**</a>
+<a name="81"><span class="lineNum">      81 </span>            :  * Changes the initialized size, preserving the common prefix.</a>
+<a name="82"><span class="lineNum">      82 </span>            :  * New elements are initialized to zero.</a>
+<a name="83"><span class="lineNum">      83 </span>            :  * Reducing the size does not release allocated capacity.</a>
+<a name="84"><span class="lineNum">      84 </span>            :  * \param array The array.</a>
+<a name="85"><span class="lineNum">      85 </span>            :  * \param size New size of the array.</a>
+<a name="86"><span class="lineNum">      86 </span>            :  */</a>
+<a name="87"><span class="lineNum">      87 </span>            : TOMMY_API void tommy_array_resize(tommy_array* array, tommy_size_t size);</a>
+<a name="88"><span class="lineNum">      88 </span>            : </a>
+<a name="89"><span class="lineNum">      89 </span>            : /**</a>
+<a name="90"><span class="lineNum">      90 </span>            :  * Removes all elements, preserving the allocated capacity.</a>
+<a name="91"><span class="lineNum">      91 </span>            :  * Call tommy_array_shrink() after clearing to restore the initial capacity.</a>
+<a name="92"><span class="lineNum">      92 </span>            :  * Pointed-to elements are not freed.</a>
+<a name="93"><span class="lineNum">      93 </span>            :  * The array remains initialized and can be reused immediately.</a>
+<a name="94"><span class="lineNum">      94 </span>            :  * \param array The array.</a>
+<a name="95"><span class="lineNum">      95 </span>            :  */</a>
+<a name="96"><span class="lineNum">      96 </span><span class="lineCov">          3 : tommy_inline void tommy_array_clear(tommy_array* array)</span></a>
+<a name="97"><span class="lineNum">      97 </span>            : {</a>
+<a name="98"><span class="lineNum">      98 </span><span class="lineCov">          3 :         tommy_array_resize(array, 0);</span></a>
+<a name="99"><span class="lineNum">      99 </span><span class="lineCov">          3 : }</span></a>
+<a name="100"><span class="lineNum">     100 </span>            : </a>
+<a name="101"><span class="lineNum">     101 </span>            : /**</a>
+<a name="102"><span class="lineNum">     102 </span>            :  * Releases unused allocated memory.</a>
+<a name="103"><span class="lineNum">     103 </span>            :  * Preserves the size, values, and addresses of existing elements.</a>
+<a name="104"><span class="lineNum">     104 </span>            :  * \param array The array.</a>
+<a name="105"><span class="lineNum">     105 </span>            :  */</a>
+<a name="106"><span class="lineNum">     106 </span>            : TOMMY_API void tommy_array_shrink(tommy_array* array);</a>
+<a name="107"><span class="lineNum">     107 </span>            : </a>
+<a name="108"><span class="lineNum">     108 </span>            : /**</a>
+<a name="109"><span class="lineNum">     109 </span>            :  * Gets a reference to the element at the specified position.</a>
+<a name="110"><span class="lineNum">     110 </span>            :  * You must be sure that space for this position is already</a>
+<a name="111"><span class="lineNum">     111 </span>            :  * allocated by calling tommy_array_grow().</a>
+<a name="112"><span class="lineNum">     112 </span>            :  * \param array The array.</a>
+<a name="113"><span class="lineNum">     113 </span>            :  * \param pos Position of the element.</a>
+<a name="114"><span class="lineNum">     114 </span>            :  * \return Pointer to the slot at the specified position.</a>
+<a name="115"><span class="lineNum">     115 </span>            :  */</a>
+<a name="116"><span class="lineNum">     116 </span><span class="lineCov">   60000729 : tommy_inline void** tommy_array_ref(tommy_array* array, tommy_size_t pos)</span></a>
+<a name="117"><span class="lineNum">     117 </span>            : {</a>
+<a name="118"><span class="lineNum">     118 </span><span class="lineCov">   60000729 :         assert(pos &lt; array-&gt;count);</span></a>
 <a name="119"><span class="lineNum">     119 </span>            : </a>
-<a name="120"><span class="lineNum">     120 </span>            : /**</a>
-<a name="121"><span class="lineNum">     121 </span>            :  * Grows and inserts a new element at the end of the array.</a>
-<a name="122"><span class="lineNum">     122 </span>            :  */</a>
-<a name="123"><span class="lineNum">     123 </span>            : tommy_inline void tommy_array_insert(tommy_array* array, void* element)</a>
-<a name="124"><span class="lineNum">     124 </span>            : {</a>
-<a name="125"><span class="lineNum">     125 </span>            :         tommy_size_t pos = array-&gt;count;</a>
-<a name="126"><span class="lineNum">     126 </span>            : </a>
-<a name="127"><span class="lineNum">     127 </span>            :         tommy_array_grow(array, pos + 1);</a>
-<a name="128"><span class="lineNum">     128 </span>            : </a>
-<a name="129"><span class="lineNum">     129 </span>            :         tommy_array_set(array, pos, element);</a>
-<a name="130"><span class="lineNum">     130 </span>            : }</a>
-<a name="131"><span class="lineNum">     131 </span>            : </a>
-<a name="132"><span class="lineNum">     132 </span>            : /**</a>
-<a name="133"><span class="lineNum">     133 </span>            :  * Gets the initialized size of the array.</a>
-<a name="134"><span class="lineNum">     134 </span>            :  */</a>
-<a name="135"><span class="lineNum">     135 </span><span class="lineCov">  100024420 : tommy_inline tommy_size_t tommy_array_size(tommy_array* array)</span></a>
-<a name="136"><span class="lineNum">     136 </span>            : {</a>
-<a name="137"><span class="lineNum">     137 </span><span class="lineCov">  100024420 :         return array-&gt;count;</span></a>
-<a name="138"><span class="lineNum">     138 </span>            : }</a>
-<a name="139"><span class="lineNum">     139 </span>            : </a>
-<a name="140"><span class="lineNum">     140 </span>            : /**</a>
-<a name="141"><span class="lineNum">     141 </span>            :  * Gets the size of allocated memory.</a>
-<a name="142"><span class="lineNum">     142 </span>            :  */</a>
-<a name="143"><span class="lineNum">     143 </span>            : TOMMY_API tommy_size_t tommy_array_memory_usage(tommy_array* array);</a>
-<a name="144"><span class="lineNum">     144 </span>            : </a>
-<a name="145"><span class="lineNum">     145 </span>            : #endif</a>
+<a name="120"><span class="lineNum">     120 </span>            :         /* get the highest bit set, in case of all 0, return 0 */</a>
+<a name="121"><span class="lineNum">     121 </span><span class="lineCov">   60000729 :         tommy_uint_t bsr = tommy_ilog2(pos | 1);</span></a>
+<a name="122"><span class="lineNum">     122 </span>            : </a>
+<a name="123"><span class="lineNum">     123 </span><span class="lineCov">   60000729 :         return &amp;array-&gt;bucket[bsr][pos];</span></a>
+<a name="124"><span class="lineNum">     124 </span>            : }</a>
+<a name="125"><span class="lineNum">     125 </span>            : </a>
+<a name="126"><span class="lineNum">     126 </span>            : /**</a>
+<a name="127"><span class="lineNum">     127 </span>            :  * Sets the element at the specified position.</a>
+<a name="128"><span class="lineNum">     128 </span>            :  * You must be sure that space for this position is already</a>
+<a name="129"><span class="lineNum">     129 </span>            :  * allocated by calling tommy_array_grow().</a>
+<a name="130"><span class="lineNum">     130 </span>            :  * \param array The array.</a>
+<a name="131"><span class="lineNum">     131 </span>            :  * \param pos Position of the element.</a>
+<a name="132"><span class="lineNum">     132 </span>            :  * \param element Element to set.</a>
+<a name="133"><span class="lineNum">     133 </span>            :  */</a>
+<a name="134"><span class="lineNum">     134 </span><span class="lineCov">   20000438 : tommy_inline void tommy_array_set(tommy_array* array, tommy_size_t pos, void* element)</span></a>
+<a name="135"><span class="lineNum">     135 </span>            : {</a>
+<a name="136"><span class="lineNum">     136 </span><span class="lineCov">   20000438 :         *tommy_array_ref(array, pos) = element;</span></a>
+<a name="137"><span class="lineNum">     137 </span><span class="lineCov">   20000438 : }</span></a>
+<a name="138"><span class="lineNum">     138 </span>            : </a>
+<a name="139"><span class="lineNum">     139 </span>            : /**</a>
+<a name="140"><span class="lineNum">     140 </span>            :  * Gets the element at the specified position.</a>
+<a name="141"><span class="lineNum">     141 </span>            :  * You must be sure that space for this position is already</a>
+<a name="142"><span class="lineNum">     142 </span>            :  * allocated by calling tommy_array_grow().</a>
+<a name="143"><span class="lineNum">     143 </span>            :  * \param array The array.</a>
+<a name="144"><span class="lineNum">     144 </span>            :  * \param pos Position of the element.</a>
+<a name="145"><span class="lineNum">     145 </span>            :  * \return The element at the specified position.</a>
+<a name="146"><span class="lineNum">     146 </span>            :  */</a>
+<a name="147"><span class="lineNum">     147 </span><span class="lineCov">   40000285 : tommy_inline void* tommy_array_get(tommy_array* array, tommy_size_t pos)</span></a>
+<a name="148"><span class="lineNum">     148 </span>            : {</a>
+<a name="149"><span class="lineNum">     149 </span><span class="lineCov">   40000285 :         return *tommy_array_ref(array, pos);</span></a>
+<a name="150"><span class="lineNum">     150 </span>            : }</a>
+<a name="151"><span class="lineNum">     151 </span>            : </a>
+<a name="152"><span class="lineNum">     152 </span>            : /**</a>
+<a name="153"><span class="lineNum">     153 </span>            :  * Gets the last element.</a>
+<a name="154"><span class="lineNum">     154 </span>            :  * The array must not be empty.</a>
+<a name="155"><span class="lineNum">     155 </span>            :  * \param array The array.</a>
+<a name="156"><span class="lineNum">     156 </span>            :  * \return The last element.</a>
+<a name="157"><span class="lineNum">     157 </span>            :  */</a>
+<a name="158"><span class="lineNum">     158 </span><span class="lineCov">          2 : tommy_inline void* tommy_array_tail(tommy_array* array)</span></a>
+<a name="159"><span class="lineNum">     159 </span>            : {</a>
+<a name="160"><span class="lineNum">     160 </span><span class="lineCov">          2 :         assert(array-&gt;count != 0);</span></a>
+<a name="161"><span class="lineNum">     161 </span><span class="lineCov">          2 :         return tommy_array_get(array, array-&gt;count - 1);</span></a>
+<a name="162"><span class="lineNum">     162 </span>            : }</a>
+<a name="163"><span class="lineNum">     163 </span>            : </a>
+<a name="164"><span class="lineNum">     164 </span>            : /**</a>
+<a name="165"><span class="lineNum">     165 </span>            :  * Grows and inserts a new element at the end of the array.</a>
+<a name="166"><span class="lineNum">     166 </span>            :  * \param array The array.</a>
+<a name="167"><span class="lineNum">     167 </span>            :  * \param element Element to insert.</a>
+<a name="168"><span class="lineNum">     168 </span>            :  */</a>
+<a name="169"><span class="lineNum">     169 </span><span class="lineCov">         65 : tommy_inline void tommy_array_insert_tail(tommy_array* array, void* element)</span></a>
+<a name="170"><span class="lineNum">     170 </span>            : {</a>
+<a name="171"><span class="lineNum">     171 </span><span class="lineCov">         65 :         tommy_size_t pos = array-&gt;count;</span></a>
+<a name="172"><span class="lineNum">     172 </span>            : </a>
+<a name="173"><span class="lineNum">     173 </span><span class="lineCov">         65 :         ++array-&gt;count;</span></a>
+<a name="174"><span class="lineNum">     174 </span><span class="lineCov">         65 :         if (array-&gt;count &gt; array-&gt;bucket_max)</span></a>
+<a name="175"><span class="lineNum">     175 </span><span class="lineCov">          1 :                 tommy_array_reserve(array, array-&gt;count);</span></a>
+<a name="176"><span class="lineNum">     176 </span>            : </a>
+<a name="177"><span class="lineNum">     177 </span><span class="lineCov">         65 :         tommy_array_set(array, pos, element);</span></a>
+<a name="178"><span class="lineNum">     178 </span><span class="lineCov">         65 : }</span></a>
+<a name="179"><span class="lineNum">     179 </span>            : </a>
+<a name="180"><span class="lineNum">     180 </span>            : /**</a>
+<a name="181"><span class="lineNum">     181 </span>            :  * Removes and returns the last element.</a>
+<a name="182"><span class="lineNum">     182 </span>            :  * The array must not be empty.</a>
+<a name="183"><span class="lineNum">     183 </span>            :  * The removed slot is cleared, and allocated capacity is preserved.</a>
+<a name="184"><span class="lineNum">     184 </span>            :  * \param array The array.</a>
+<a name="185"><span class="lineNum">     185 </span>            :  * \return The removed element.</a>
+<a name="186"><span class="lineNum">     186 </span>            :  */</a>
+<a name="187"><span class="lineNum">     187 </span><span class="lineCov">          1 : tommy_inline void* tommy_array_remove_tail(tommy_array* array)</span></a>
+<a name="188"><span class="lineNum">     188 </span>            : {</a>
+<a name="189"><span class="lineNum">     189 </span><span class="lineCov">          1 :         assert(array-&gt;count != 0);</span></a>
+<a name="190"><span class="lineNum">     190 </span>            : </a>
+<a name="191"><span class="lineNum">     191 </span><span class="lineCov">          1 :         tommy_size_t pos = array-&gt;count - 1;</span></a>
+<a name="192"><span class="lineNum">     192 </span><span class="lineCov">          1 :         void** ptr = tommy_array_ref(array, pos);</span></a>
+<a name="193"><span class="lineNum">     193 </span><span class="lineCov">          1 :         void* element = *ptr;</span></a>
+<a name="194"><span class="lineNum">     194 </span>            : </a>
+<a name="195"><span class="lineNum">     195 </span>            :         /* keep unused slots zero so growing within capacity needs no initialization */</a>
+<a name="196"><span class="lineNum">     196 </span><span class="lineCov">          1 :         *ptr = 0;</span></a>
+<a name="197"><span class="lineNum">     197 </span><span class="lineCov">          1 :         array-&gt;count = pos;</span></a>
+<a name="198"><span class="lineNum">     198 </span>            : </a>
+<a name="199"><span class="lineNum">     199 </span><span class="lineCov">          1 :         return element;</span></a>
+<a name="200"><span class="lineNum">     200 </span>            : }</a>
+<a name="201"><span class="lineNum">     201 </span>            : </a>
+<a name="202"><span class="lineNum">     202 </span>            : /**</a>
+<a name="203"><span class="lineNum">     203 </span>            :  * Checks whether the array is empty.</a>
+<a name="204"><span class="lineNum">     204 </span>            :  * \param array The array.</a>
+<a name="205"><span class="lineNum">     205 </span>            :  * \return Nonzero if the array is empty, 0 otherwise.</a>
+<a name="206"><span class="lineNum">     206 </span>            :  */</a>
+<a name="207"><span class="lineNum">     207 </span><span class="lineCov">          3 : tommy_inline tommy_bool_t tommy_array_empty(const tommy_array* array)</span></a>
+<a name="208"><span class="lineNum">     208 </span>            : {</a>
+<a name="209"><span class="lineNum">     209 </span><span class="lineCov">          3 :         return array-&gt;count == 0;</span></a>
+<a name="210"><span class="lineNum">     210 </span>            : }</a>
+<a name="211"><span class="lineNum">     211 </span>            : </a>
+<a name="212"><span class="lineNum">     212 </span>            : /**</a>
+<a name="213"><span class="lineNum">     213 </span>            :  * Gets the initialized size of the array.</a>
+<a name="214"><span class="lineNum">     214 </span>            :  * \param array The array.</a>
+<a name="215"><span class="lineNum">     215 </span>            :  * \return The initialized size of the array.</a>
+<a name="216"><span class="lineNum">     216 </span>            :  */</a>
+<a name="217"><span class="lineNum">     217 </span><span class="lineCov">         12 : tommy_inline tommy_size_t tommy_array_size(const tommy_array* array)</span></a>
+<a name="218"><span class="lineNum">     218 </span>            : {</a>
+<a name="219"><span class="lineNum">     219 </span><span class="lineCov">         12 :         return array-&gt;count;</span></a>
+<a name="220"><span class="lineNum">     220 </span>            : }</a>
+<a name="221"><span class="lineNum">     221 </span>            : </a>
+<a name="222"><span class="lineNum">     222 </span>            : /**</a>
+<a name="223"><span class="lineNum">     223 </span>            :  * Gets the number of elements that fit without further allocation.</a>
+<a name="224"><span class="lineNum">     224 </span>            :  * \param array The array.</a>
+<a name="225"><span class="lineNum">     225 </span>            :  * \return The capacity of the array.</a>
+<a name="226"><span class="lineNum">     226 </span>            :  */</a>
+<a name="227"><span class="lineNum">     227 </span><span class="lineCov">          6 : tommy_inline tommy_size_t tommy_array_capacity(const tommy_array* array)</span></a>
+<a name="228"><span class="lineNum">     228 </span>            : {</a>
+<a name="229"><span class="lineNum">     229 </span><span class="lineCov">          6 :         return array-&gt;bucket_max;</span></a>
+<a name="230"><span class="lineNum">     230 </span>            : }</a>
+<a name="231"><span class="lineNum">     231 </span>            : </a>
+<a name="232"><span class="lineNum">     232 </span>            : /**</a>
+<a name="233"><span class="lineNum">     233 </span>            :  * Exchanges two initialized arrays without copying their elements.</a>
+<a name="234"><span class="lineNum">     234 </span>            :  * Element references remain valid and belong to the other array.</a>
+<a name="235"><span class="lineNum">     235 </span>            :  * Passing the same array twice has no effect.</a>
+<a name="236"><span class="lineNum">     236 </span>            :  * \param first The first array.</a>
+<a name="237"><span class="lineNum">     237 </span>            :  * \param second The second array.</a>
+<a name="238"><span class="lineNum">     238 </span>            :  * \note This operation is O(1).</a>
+<a name="239"><span class="lineNum">     239 </span>            :  */</a>
+<a name="240"><span class="lineNum">     240 </span><span class="lineCov">          2 : tommy_inline void tommy_array_swap(tommy_array* first, tommy_array* second)</span></a>
+<a name="241"><span class="lineNum">     241 </span>            : {</a>
+<a name="242"><span class="lineNum">     242 </span><span class="lineCov">          2 :         tommy_array tmp = *first;</span></a>
+<a name="243"><span class="lineNum">     243 </span><span class="lineCov">          2 :         *first = *second;</span></a>
+<a name="244"><span class="lineNum">     244 </span><span class="lineCov">          2 :         *second = tmp;</span></a>
+<a name="245"><span class="lineNum">     245 </span><span class="lineCov">          2 : }</span></a>
+<a name="246"><span class="lineNum">     246 </span>            : </a>
+<a name="247"><span class="lineNum">     247 </span>            : /**</a>
+<a name="248"><span class="lineNum">     248 </span>            :  * Calls the specified function for each element in the array.</a>
+<a name="249"><span class="lineNum">     249 </span>            :  *</a>
+<a name="250"><span class="lineNum">     250 </span>            :  * You cannot add or remove elements, nor change the size of the array,</a>
+<a name="251"><span class="lineNum">     251 </span>            :  * from inside the callback.</a>
+<a name="252"><span class="lineNum">     252 </span>            :  *</a>
+<a name="253"><span class="lineNum">     253 </span>            :  * If the callback frees the elements, the array retains dangling</a>
+<a name="254"><span class="lineNum">     254 </span>            :  * pointers. Call tommy_array_clear() before reusing it, or</a>
+<a name="255"><span class="lineNum">     255 </span>            :  * tommy_array_done() to release its storage.</a>
+<a name="256"><span class="lineNum">     256 </span>            :  * \param array The array.</a>
+<a name="257"><span class="lineNum">     257 </span>            :  * \param func Function to call with each element.</a>
+<a name="258"><span class="lineNum">     258 </span>            :  */</a>
+<a name="259"><span class="lineNum">     259 </span>            : TOMMY_API void tommy_array_foreach(tommy_array* array, tommy_foreach_func* func);</a>
+<a name="260"><span class="lineNum">     260 </span>            : </a>
+<a name="261"><span class="lineNum">     261 </span>            : /**</a>
+<a name="262"><span class="lineNum">     262 </span>            :  * Calls the specified function with an argument for each element in the array.</a>
+<a name="263"><span class="lineNum">     263 </span>            :  *</a>
+<a name="264"><span class="lineNum">     264 </span>            :  * \param array The array.</a>
+<a name="265"><span class="lineNum">     265 </span>            :  * \param func Function to call with each element.</a>
+<a name="266"><span class="lineNum">     266 </span>            :  * \param arg Argument to pass to the function.</a>
+<a name="267"><span class="lineNum">     267 </span>            :  */</a>
+<a name="268"><span class="lineNum">     268 </span>            : TOMMY_API void tommy_array_foreach_arg(tommy_array* array, tommy_foreach_arg_func* func, void* arg);</a>
+<a name="269"><span class="lineNum">     269 </span>            : </a>
+<a name="270"><span class="lineNum">     270 </span>            : /**</a>
+<a name="271"><span class="lineNum">     271 </span>            :  * Gets the size of allocated memory.</a>
+<a name="272"><span class="lineNum">     272 </span>            :  * \param array The array.</a>
+<a name="273"><span class="lineNum">     273 </span>            :  * \return Total memory allocated by the array, in bytes.</a>
+<a name="274"><span class="lineNum">     274 </span>            :  */</a>
+<a name="275"><span class="lineNum">     275 </span>            : TOMMY_API tommy_size_t tommy_array_memory_usage(const tommy_array* array);</a>
+<a name="276"><span class="lineNum">     276 </span>            : </a>
+<a name="277"><span class="lineNum">     277 </span>            : #endif</a>
+<a name="278"><span class="lineNum">     278 </span>            : </a>
 </pre>
       </td>
     </tr>
