@@ -2,7 +2,7 @@
 # Tommy Makefile
 
 # Version of TommyDS
-VERSION = 3.0
+VERSION = 4.0
 
 # Build options for the check program
 ifdef COVERAGE
