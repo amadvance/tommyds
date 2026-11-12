@@ -23,21 +23,6 @@ gnuplot $DIR/gr_def.gnu gr_random_change.gnu
 gnuplot $DIR/gr_def.gnu gr_random_remove.gnu
 gnuplot $DIR/gr_def.gnu gr_random_size.gnu
 
-DIR=data/core_i7_3740_2G7_win
-gnuplot $DIR/gr_def.gnu gr_forward_insert.gnu
-gnuplot $DIR/gr_def.gnu gr_forward_hit.gnu
-gnuplot $DIR/gr_def.gnu gr_forward_insert.gnu
-gnuplot $DIR/gr_def.gnu gr_forward_miss.gnu
-gnuplot $DIR/gr_def.gnu gr_forward_change.gnu
-gnuplot $DIR/gr_def.gnu gr_forward_remove.gnu
-gnuplot $DIR/gr_def.gnu gr_forward_size.gnu
-gnuplot $DIR/gr_def.gnu gr_random_hit.gnu
-gnuplot $DIR/gr_def.gnu gr_random_insert.gnu
-gnuplot $DIR/gr_def.gnu gr_random_miss.gnu
-gnuplot $DIR/gr_def.gnu gr_random_change.gnu
-gnuplot $DIR/gr_def.gnu gr_random_remove.gnu
-gnuplot $DIR/gr_def.gnu gr_random_size.gnu
-
 DIR=data/core_i7_10700_2G9_linux
 gnuplot $DIR/gr_def.gnu gr_forward_insert.gnu
 gnuplot $DIR/gr_def.gnu gr_forward_hit.gnu
